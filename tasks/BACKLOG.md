@@ -232,4 +232,12 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 
 - [x] Sửa đồng bộ bảng thuộc tính sau mặc/tháo trang bị: gửi S2C.stats khi thao tác hành trang tính lại chỉ số; đã kiểm tra mặc/đổi/tháo/mặc lại và đối chiếu reconnect (2026-11-13).
 
-- [ ] Đồng bộ bảng thuộc tính khi buff bị xóa do chết/hồi sinh: clearStates tính lại nhưng thiếu progress; đã tái hiện, chưa sửa (2026-11-13).
+- [x] Đồng bộ bảng thuộc tính khi buff bị xóa do chết/hồi sinh: gửi snapshot cuối vòng đời (kể cả bỏ bonus cưỡi); kiểm tra mô phỏng + typecheck đạt, chưa commit (2026-11-13).
+
+- [ ] Sinh các bản đồ còn lại trên macOS: nguồn có 299 bản đồ phân biệt, mới sinh 37/140; đã điều tra danh sách Xa phu lấy từ catalog của bản đồ đã sinh, chưa chạy toàn bộ (2026-11-13).
+
+- [x] Phượng Tường (1) + 40 bãi Field/Cave cấp10–200: 43 bản đồ đã sinh, spawn/Auto/lưới kiểm tra đạt, trình duyệt + typecheck/build đạt; xem docs/training-maps.md (2026-11-13).
+
+- [x] Xa phu: gộp City/Capital thành Thành thị và sửa grid thẻ khi0/1/2 kết quả; kiểm tra desktop/390px và danh sách43 cuộn được (2026-11-13).
+
+- [x] Xa phu hiển thị cấp quái, sắp bãi tăng dần và đánh dấu vượt cấp nhân vật; dùng chung bảng cấp với tool sinh quái (2026-11-13).

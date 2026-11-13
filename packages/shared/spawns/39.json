@@ -1,13 +1,13 @@
 {
  "map": 39,
  "auto": true,
- "note": "Tự sinh (ước lượng): Thiết tháp tầng 2, cấp 70–80, vùng Hoa Bắc: Dơi chúa, Dơi chúa đỏ, Đông Bắc hổ, Hoa Nam hổ, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thiết tháp tầng 2, cấp 150–159, vùng Hoa Bắc: Dơi chúa, Dơi chúa đỏ, Đông Bắc hổ, Hoa Nam hổ, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2.",
  "zones": [
-  {"x":6448,"y":2392,"r":220,"monsters":[[28,75],[0,77]],"count":5,"respawn":45},
-  {"x":5136,"y":3880,"r":220,"monsters":[[28,81],[1,80]],"count":7,"respawn":47},
-  {"x":4816,"y":808,"r":220,"monsters":[[27,78],[28,80]],"count":5,"respawn":46},
-  {"x":2864,"y":2088,"r":220,"monsters":[[159,74]],"count":6,"respawn":44},
-  {"x":2544,"y":3784,"r":220,"monsters":[[28,81]],"count":5,"respawn":47},
-  {"x":4528,"y":2696,"r":220,"monsters":[[160,70]],"count":4,"respawn":43}
+  {"x":6448,"y":2392,"r":220,"monsters":[[28,150],[0,150]],"count":5,"respawn":70},
+  {"x":5136,"y":3880,"r":220,"monsters":[[28,159],[1,159]],"count":7,"respawn":73},
+  {"x":4816,"y":808,"r":220,"monsters":[[27,157],[28,159]],"count":5,"respawn":73},
+  {"x":2864,"y":2088,"r":220,"monsters":[[159,154]],"count":6,"respawn":71},
+  {"x":2544,"y":3784,"r":220,"monsters":[[28,159]],"count":5,"respawn":73},
+  {"x":4528,"y":2696,"r":220,"monsters":[[160,150]],"count":4,"respawn":70}
  ]
 }

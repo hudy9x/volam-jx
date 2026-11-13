@@ -1,12 +1,12 @@
 {
  "map": 14,
  "auto": true,
- "note": "Tự sinh (ước lượng): Mãnh Hổ động, cấp 40–50, vùng Tây Nam: Dơi chúa, Rắn xanh, Gấu đen, Dơi Dong, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Mãnh Hổ động, cấp 80–89, vùng Tây Nam: Dơi chúa, Rắn xanh, Kền Kền, Voi Châu á, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
  "zones": [
-  {"x":5712,"y":2024,"r":220,"monsters":[[21,46],[16,46]],"count":7,"respawn":35},
-  {"x":6128,"y":1368,"r":220,"monsters":[[21,46]],"count":4,"respawn":35},
-  {"x":6608,"y":2280,"r":220,"monsters":[[29,50],[21,51]],"count":7,"respawn":37},
-  {"x":1424,"y":1800,"r":220,"monsters":[[21,49],[16,49]],"count":7,"respawn":37},
-  {"x":3664,"y":1832,"r":220,"monsters":[[29,40]],"count":4,"respawn":34}
+  {"x":5712,"y":2024,"r":220,"monsters":[[151,80],[27,80]],"count":7,"respawn":47},
+  {"x":6128,"y":1368,"r":220,"monsters":[[26,86]],"count":7,"respawn":48},
+  {"x":6608,"y":2280,"r":220,"monsters":[[27,89],[21,89]],"count":4,"respawn":50},
+  {"x":1424,"y":1800,"r":220,"monsters":[[27,89],[21,89]],"count":5,"respawn":50},
+  {"x":3664,"y":1832,"r":220,"monsters":[[27,81],[13,80]],"count":6,"respawn":47}
  ]
 }

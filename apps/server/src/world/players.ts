@@ -100,6 +100,7 @@ export function revive(w: World, sim: Sim, x: number, y: number): void {
   clearEffects(w, sim);
   setAnim(sim, 'idle');
   syncVitals(sim);
+  if (sim.progress) w.hooks.progress(sim);
 }
 
 /** Sinh lực / Nội lực come back over time: fast in town, slowly after 5 s out of combat. */

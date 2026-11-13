@@ -541,19 +541,84 @@ Kiểm chứng cuối (2026-11-13): `npm run typecheck` và `npm run build` đ�
 
 Người dùng yêu cầu commit trạng thái hiện tại. Commit `fix(server): sync recalculated stats after inventory changes` gồm MapRoom.ts và ba file tasks. Đã kiểm chứng WebSocket và typecheck ở vòng sửa; diff kiểm tra sạch. Lỗi buff bị xóa khi chết/hồi sinh chỉ ghi nhận, chưa sửa. Không push. Hash xem git log theo tiêu đề commit.
 
+## Sửa buff chết/hồi sinh và điều tra bản đồ — 2026-11-13
+
+- Người dùng đã duyệt sửa lỗi buff chết/hồi sinh, sau đó yêu cầu điều tra vì sao chỉ có 2 bản đồ.
+- Đã thêm hooks.progress cho người chơi ở cuối kill (sau clearStates, tháo cưỡi và tính lại stats), và cuối revive (sau clearStates/clearEffects/syncVitals). Gửi snapshot hoàn chỉnh, không gửi sớm trước khi bỏ bonus ngựa. Không đổi công thức hoặc giao thức; client Web/Desktop/Mobile nhận cùng StatsMsg.
+- Test tái hiện trước sửa thất bại do 0 progress khi chết; sau sửa pass các trường hợp buff chết/hồi sinh, chết khi cưỡi ngựa, aura chết/hồi sinh, không có trạng thái. Kiểm tra các luồng buff/làm mới/hết hạn/aura/đồng minh/712 trước đó vẫn pass. `npm run typecheck` và `git diff --check` đạt. Script tạm ở `/tmp/jx-game-smoke/check-buff-lifecycle.mts` (đưa về gốc repo khi chạy).
+- Đã xác minh từ bảng gốc qua JX_CLIENT: maplist.ini có 977 mục ID, sau loại đường dẫn trùng và kiểm tra .wor còn 299 bản đồ phân biệt. Trên máy chỉ có 2 thư mục bản đồ kèm nav.json: 37, 140. Có 297 bản đồ nguồn chưa sinh (chưa bảo đảm tất cả render được; docs ghi 356/357 hỏng).
+- Nguyên nhân: quy trình cài đặt đã chạy gen:maps -- 37 140 theo bước tối thiểu. gen-maps.writeCatalog dựng catalog.gen.ts từ các thư mục có nav.json; MAPS dựng từ catalog, TravelWindow liệt kê Object.values(MAPS). Không phải cửa sổ đang lọc mất bản đồ. Không được thêm tay catalog vì thiếu ảnh/lưới đi lại.
+- Muốn sinh phần còn thiếu: `JX_CLIENT=/Users/hudy/ws/volam-shxt/Client_VLTK_SHXT npm run gen:maps -w @vltk/client -- --skip-existing`. Docs ước lượng toàn bộ khoảng 15–16GB, vài giờ. Chưa chạy vì người dùng chỉ yêu cầu điều tra.
+- Chưa commit/push thay đổi mới; commit cuối c65b55d. Không đụng dữ liệu tài khoản thật để thử.
+
 ## 2026-11-13 — Thay ảnh động gốc cho màn chọn / tạo nhân vật
 
 - Người dùng xác nhận bộ ảnh lớn đã tìm được và yêu cầu thay toàn bộ ảnh nhân vật hai màn.
 - Khôi phục tên SPR bằng hash: `角色_{金|木|水|火|土}_{男|女}_0.spr`; bản gốc chia 5 hệ × 2 giới, không có bộ riêng mỗi phái. Chọn theo hệ phái / giới tính (nhân vật mới theo hệ đang chọn).
 - Thêm generator dùng lại từ gen:ui, metadata sinh tự động, WebP lossless có version manifest; đổi showFigure sang sprite động gốc, chỉnh vùng hiển thị và sửa căn giữa màn nhỏ.
 - gen:ui, typecheck, build thành công; Playwright tải đủ 10 ảnh, kiểm tra animation, 3 nhân vật, viewport điện thoại; không pageerror. Chưa kiểm thử wrapper native. Không commit/push.
+
+## Danh sách đề xuất Phượng Tường + 40 bãi — 2026-11-13
+
+- Người dùng muốn xem danh sách, cần Phượng Tường và 40 bãi luyện công cấp 10–200. Chưa chạy gen thêm.
+- Đã xác minh bảng maplist.ini gốc: Phượng Tường ID 1 (City). Trong 299 bản đồ phân biệt chỉ 21 Field (nhãn UI Luyện công), 42 Cave. Đề xuất 40 bãi = 21 Field + 19 Cave; tên từ bảng gốc, cấp quái thực tế từ spawn project (ước lượng của tool cũ, không phải cấp chính thức client).
+- Danh sách 40 ID đề xuất, theo cấp hiện tại: 2,3,19,4,43,70,167,5,22,24,92,21,56,41,14,74,90,195,23,6,26,27,179,193,68,122,38,28,7,39,50,40,224,336,93,319,342,320,340,341. Phượng Tường 1 thêm riêng, không tính trong 40.
+- Cấp quái hiện có trong toàn bộ spawn của 299 map cao nhất 111; danh sách 40 hiện trải 19–111. Muốn phủ 10–200 cần người dùng duyệt phân bổ lại cấp quái thay vì chỉ sinh ảnh/nav.
+- Đã gửi câu hỏi lựa chọn: dùng cả hang động + chia lại cấp 10–200, hoặc giữ cấp quái hiện có và chỉ gen thêm. Đang chờ câu trả lời; không tự sửa số liệu.
+- Quan sát git status có thêm thay đổi UI chọn/tạo nhân vật và tool hình đăng nhập từ công việc khác; không chỉnh/commit các file đó.
+
 ## 2026-11-13 — Sửa giật và phát hoạt cảnh khi chọn nhân vật
 
 - Xác minh interval trong SPR: nhiều mẫu =1, code trước dùng thành 1 ms gây quá nhanh; idle các mẫu còn lại 200–250 ms.
 - Sinh 20 sprite sheet idle/action, dùng chung crop và anchor chân theo idle; fallback interval=1 thành 80 ms (lựa chọn UI), giữ nhịp action nguồn hợp lệ 50–120 ms.
 - Chưa chọn đứng idle tối màu; click chọn phát action gốc một lần, tự về idle; click lại phát lại, chuyển chọn dừng action cũ. Dùng requestAnimationFrame và giải mã ảnh trước; không còn vòng interval cho idle.
 - Playwright kiểm tra 10 tổ hợp, replay/cancel/completion/idle; không pageerror. Typecheck/build/diff --check đạt. Không commit/push; không sửa dữ liệu thật hay thay đổi map/server đang có.
+
+## Hoàn tất Phượng Tường + 40 bãi — 2026-11-13
+
+- Đã triển khai theo lựa chọn người dùng: 41 bản đồ mới, giữ 37/140, catalog tổng 43. Tất cả gen:maps thành công, không có FAILED. Manifest cache được các tool cập nhật.
+- Đã thêm `tools/data/training-maps.ts`: 20 mốc, hai bãi mỗi mốc; 10–19 tới 190–199 và 200. gen-spawns ưu tiên bảng, clamp cấp quái trong band, khu đầu đúng cấp đầu mốc cho Auto; giữ nguyên bảo vệ auto:false. Đã kiểm tra cả 40 file được chọn là auto, không có file chỉnh tay bị ghi đè. Các spawn ngoài danh sách không thay đổi.
+- Đã chạy gen:spawns (40 written), gen:skills và gen:assets (ảnh/hiệu ứng hiện có đủ, không cần encode mới). Không thay công thức chỉ số/exp/damage, cấp quái áp dụng công thức hiện có. Tên/hình gốc, cấp quái là cấu hình riêng theo USER.
+- Kiểm tra tất cả 40 file spawn: monster ID hợp lệ, cấp đầu đúng band, không vượt band/200, trung tâm zone + điểm vào trên vùng đi lại. Auto chọn đúng mốc ở mọi cấp10–200. Lưu ý Trúc Tơ tầng3 (28) có 2 zone do hình dạng/lưới nhỏ; vẫn có đủ3 lựa chọn monster/cấp để vào danh sách Auto.
+- Trình duyệt thật trên server thử :2568 / :5174 và DB riêng: Xa phu hiển thị43, chuyển tới Phượng Tường/Hoa Sơn/Mạc Cao Quật, hình và minimap tải được. WebSocket phòng thật: Hoa Sơn142 quái cấp10–19, Mạc Cao Quật153 quái cấp200, Mạc Bắc Thảo Nguyên154 quái cấp200.
+- `npm run typecheck`, `npm run build`, kiểm tra tsc riêng gen-spawns và `git diff --check` đạt. Build chỉ có cảnh báo chunk lớn có sẵn. Chưa kiểm chứng wrapper Desktop/Mobile thực tế; metadata/giao thức/tài nguyên dùng chung.
+- Đã chạy lại --catalog sau khi hoàn tất spawn để watcher nạp đủ dữ liệu. Tắt hai tiến trình thử; bản chính :2567/:5173 giữ chạy. Không chỉnh DB thật.
+- Danh sách20 mốc +40bãi và lệnh sinh lại: docs/training-maps.md. Ảnh: `/tmp/jx-map-smoke/phuong-tuong.jpg`, `list-43.jpg`; script kiểm tra tạm cùng thư mục (đưa về gốc repo khi chạy).
+- Không commit/push. Giữ nguyên thay đổi UI màn nhân vật của công việc khác đang có sẵn.
+
 ## Commit giao diện chọn / tạo nhân vật — 2026-11-13
 
 - Người dùng yêu cầu commit: ảnh động gốc, sửa nhịp, idle tối màu và phát hoạt cảnh khi chọn. Commit `fix(client): use original character selection animations` (hash xem git log -1). Không push.
 - Kiểm chứng trước commit: typecheck/build và Playwright 10 tổ hợp + phát lại/hủy/về idle đạt; diff --check sạch. Các thay đổi bản đồ/server từ công việc khác không nằm trong commit này.
+
+## Điều tra bộ lọc Thành thị — 2026-11-13
+
+- Người dùng báo bấm Thành thị chỉ thấy Biện Kinh, thắc mắc thiếu Phượng Tường. Chưa sửa gameplay/UI.
+- Dữ liệu hiện tại: Phượng Tường1 type City → Thành thị; Biện Kinh37 type Capital → Kinh thành. travel.ts lọc chính xác nhãn MAP_TYPE_NAMES, nên hiện hai tab riêng, mỗi tab có một thành.
+- Bấm thử trình duyệt trên :5174/:2568, DB thử riêng: tiêu đề43; Thành thị chỉ hiện Phượng Tường; Kinh thành chỉ hiện Biện Kinh. Không tái hiện mô tả người dùng trên bản hiện tại. Ảnh `/tmp/jx-map-smoke/filter-city.jpg`.
+- Tab IAB localhost:5173 đang ở màn đăng nhập khi kiểm tra, không tương tác tài khoản thật. Vite :5173 đang phục vụ module shared trực tiếp từ repo, không thấy dấu hiệu prebundle shared cũ; chưa xác minh tab/trình duyệt người dùng đang xem có giữ bản cũ hay không.
+- Đã hỏi người dùng tiêu đề Xa phu là43 hay2 để phân biệt dữ liệu cũ; chưa kết luận do cache. Nếu muốn cảhai thành cùng một tab cần gộp City/Capital trong bộ lọc, hiện chưa được yêu cầu đổi cách phân loại.
+- Đã tắt hai tiến trình thử, giữ bản chính và các thay đổi đang có. Commit hiện tại1241445 từ công việc UI nhân vật; chưa commit phần map/server.
+
+## Gộp Thành thị và sửa thẻ bản đồ ít mục — 2026-11-13
+
+- Người dùng yêu cầu gộp Kinh thành/Thành thị và sửa thẻ bị kéo cao như ảnh chụp.
+- Đổi nhãn Capital sang Thành thị trong MAP_TYPE_NAMES; City vẫn Thành thị. travel.ts vốn lọc/khử trùng theo nhãn, nên có đúng một tab Thành thị và hiện Biện Kinh + Phượng Tường. Không đổi type gốc, luật an toàn, catalog hay tài nguyên.
+- travel.css: align-content:start cho danh sách và thẻ, align-items:start cho danh sách, tránh grid giãn hàng và dàn nội dung khi còn1–2mục. Giữ chiều rộng auto-fill và cuộn nhiều bản đồ.
+- Kiểm tra trình duyệt trên cổng thử/DB riêng: Tất cả43; Thành thị2 đúng tên; tìm Phượng Tường còn1; không khớp0; thẻ cao151.9px ở cả1 và2 kết quả, không còn giãn theo list469.5px; danh sách43 vẫn cuộn (scrollHeight1458>clientHeight470). Viewport390×844: hai thẻ nằm gọn trong khung, không tràn ngang; đã reset viewport sau thử. Chưa kiểm wrapper native Desktop/Mobile thực tế, cùng DOM/CSS.
+- npm run typecheck và git diff --check đạt. Ảnh `/tmp/jx-map-smoke/cities-merged-desktop.jpg`, `cities-merged-mobile.jpg`.
+- Đã tắt server/client thử :2568/:5174, giữ bản chính; không sửa DB thật, không commit/push. Commit nền1241445, các thay đổi map/server chưa commit vẫn giữ nguyên.
+
+## Xa phu hiển thị cấp quái — 2026-11-13
+
+- Người dùng yêu cầu thay mô tả loại map/PK bằng cấp quái và sắp theo cấp để so với cấp nhân vật.
+- Chuyển bảng40bãi từ tools/data/training-maps.ts sang shared/src/maps/training-levels.ts, xuất mapLevelBand dùng chung UI + gen-spawns, tránh import tool vào client và tránh sao chép bảng cấp. Dược Vương Cốc giữ band3–7 theo spawn hiện có; hai thành ghi Thành thị · An toàn.
+- TravelWindow sắp thành an toàn đầu, các bãi theo min/max tăng dần, tên làm tiêu chí phụ. Mô tả Quái cấp X–Y, đỏ + Vượt cấp của bạn khi min lớn hơn cấp nhân vật; giữ Đang ở đây. Đọc lại cấp khi mở và theo dõi thay đổi cấp để làm mới khi đang mở; không chặn đi tới bãi khó.
+- Kiểm tra trình duyệt thật DB riêng :2568/:5174: đủ43 mục đúng thứ tự3–7 tới200, nhân vật1 các bãi đỏ; dùng nút dev lên11, mở lại thì3–7/10–19 không đỏ,20–29 trở lên vẫn cảnh báo. Ảnh `/tmp/jx-map-smoke/map-levels.jpg`.
+- npm run typecheck, tsc riêng gen-spawns sau di chuyển bảng, git diff --check đều đạt. Cùng DOM/CSS/metadata cho3nền tảng; không kiểm wrapper native. Đã tắt server thử, không sửa DB thật. Không commit/push.
+
+## Chốt commit bản đồ và Xa phu — 2026-11-13
+
+- Người dùng yêu cầu commit toàn bộ trạng thái hiện tại của công việc này. Commit `feat: add leveled training maps and improve travel picker` (hash xem git log -1).
+- Bao gồm43 bản đồ trong catalog,40 file spawn cấp10–200 và bảng cấp dùng chung/tool gen; giao diện Xa phu gộp Thành thị, CSS thẻ ít mục, sắp theo cấp và cảnh báo vượt cấp; bản sửa đồng bộ buff khi chết/hồi sinh; tài liệu và tiến độ liên quan.
+- Asset sinh không đưa vào git, cần tái sinh theo docs/training-maps.md trên máy khác. Các kiểm chứng typecheck, tsc tool và trình duyệt/World/WebSocket đã ghi ở các mục trên; git diff --check sạch trước commit. Không push.

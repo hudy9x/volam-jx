@@ -94,6 +94,8 @@ export function kill(w: World, target: Sim, killer: Sim | undefined): void {
   if (target.a.mounted) { target.a.mounted = false; updateSpeed(target); if (target.progress) refreshStats(target); }
   playOnce(w, target, 'die', 999);
   syncVitals(target);
+  // Send the final values after both clearing states and removing mounted bonuses.
+  if (target.kind === 'player' && target.progress) w.hooks.progress(target);
   w.events.push({ t: 'die', id: target.id, by: killer?.id ?? '' });
   if (target.kind === 'monster') {
     target.removeAt = w.now + CORPSE_SECONDS * 1000;

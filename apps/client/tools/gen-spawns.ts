@@ -20,6 +20,7 @@ import { MAP_CATALOG } from '../../../packages/shared/src/maps/catalog.gen.ts';
 import { formatSpawnFile, type SpawnFile, type SpawnZone } from '../../../packages/shared/src/maps/spawns.ts';
 import { GEN_MONSTERS } from '../../../packages/shared/src/monsters/monsters.gen.ts';
 import { decodeGrid } from '../../../packages/shared/src/maps/nav/grid.ts';
+import { TRAINING_BANDS } from '../../../packages/shared/src/maps/training-levels.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const MAPS_DIR = path.resolve(HERE, '../public/assets/maps');
@@ -73,6 +74,8 @@ function mulberry32(seed: number): () => number {
 
 /** What kind of spawns a map gets: level band and minimum distance from the entry, or null for none. */
 function plan(m: (typeof MAP_CATALOG)[number]): { band: [number, number]; away: number; perZone: [number, number] } | null {
+  const training = TRAINING_BANDS.get(m.id);
+  if (training) return { band: training, away: 700, perZone: [4, 7] };
   const floor = Number(/tầng\s*(\d+)/i.exec(m.name)?.[1] ?? 1);
   const deeper = (b: [number, number]): [number, number] => [b[0] + 5 * (floor - 1), b[1] + 5 * (floor - 1)];
   if (LEVELS[m.id]) return { band: LEVELS[m.id], away: 700, perZone: [4, 7] };
@@ -121,14 +124,21 @@ function generate(m: (typeof MAP_CATALOG)[number]): SpawnFile | null {
   const pool = poolOf(m, mid, rng);
   if (!pool.length) return null;
   const far = Math.max(...spots.map(s => iso(s, m.entry)));
-  const zones: SpawnZone[] = spots.map(s => {
+  const training = TRAINING_BANDS.has(m.id);
+  const zones: SpawnZone[] = spots.map((s, index) => {
     // Further from the entry = closer to the top of the band.
     const t = far > p.away ? (iso(s, m.entry) - p.away) / (far - p.away) : 0;
-    const level = Math.round(p.band[0] + (p.band[1] - p.band[0]) * t);
+    // Auto selects by the lowest monster level: each configured bãi starts at its exact stage.
+    const level = training && index === 0 ? p.band[0] : Math.round(p.band[0] + (p.band[1] - p.band[0]) * t);
     const kinds = [...pool].sort(() => rng() - 0.5).slice(0, 1 + Math.floor(rng() * 2));
     return {
       x: Math.round(s.x), y: Math.round(s.y), r: 220,
-      monsters: kinds.map(id => [id, Math.max(1, level + Math.floor(rng() * 3) - 1)] as [number, number]),
+      monsters: kinds.map(id => {
+        const varied = Math.max(1, level + Math.floor(rng() * 3) - 1);
+        const monsterLevel = !training ? varied : index === 0 ? p.band[0]
+          : Math.max(p.band[0], Math.min(p.band[1], varied));
+        return [id, monsterLevel] as [number, number];
+      }),
       count: p.perZone[0] + Math.floor(rng() * (p.perZone[1] - p.perZone[0] + 1)),
       respawn: Math.round(20 + level / 3),
     };
@@ -136,7 +146,7 @@ function generate(m: (typeof MAP_CATALOG)[number]): SpawnFile | null {
   const names = [...new Set(pool.map(id => nameOf.get(id)))].join(', ');
   return {
     map: m.id, auto: true,
-    note: `Tự sinh (ước lượng): ${m.name}, cấp ${p.band[0]}–${p.band[1]}${m.region ? `, vùng ${m.region}` : ''}: ${names}.`,
+    note: `Tự sinh (${TRAINING_BANDS.has(m.id) ? 'cấp theo yêu cầu 2026-11-13' : 'ước lượng'}): ${m.name}, cấp ${p.band[0]}–${p.band[1]}${m.region ? `, vùng ${m.region}` : ''}: ${names}.`,
     zones,
   };
 }

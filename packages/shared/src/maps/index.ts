@@ -102,10 +102,12 @@ export function snapToMap(mapId: number, x: number, y: number): [number, number]
 
 /** Names of the map types for the map list. */
 export const MAP_TYPE_NAMES: Record<string, string> = {
-  City: 'Thành thị', Capital: 'Kinh thành', Field: 'Luyện công', Country: 'Thôn trấn', Cave: 'Hang động',
+  City: 'Thành thị', Capital: 'Thành thị', Field: 'Luyện công', Country: 'Thôn trấn', Cave: 'Hang động',
   Tong: 'Bang hội', Battlefield: 'Chiến trường', Others: 'Khác', '': 'Khác',
 };
 
 export type { MapMeta, MapCatalogEntry, NavFile, Portal, RawMapData } from './types.js';
 export * from './spawns.js';
 export * from './training.js';
+
+export * from './training-levels.js';

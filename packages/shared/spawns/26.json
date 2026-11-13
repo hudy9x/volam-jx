@@ -1,10 +1,10 @@
 {
  "map": 26,
  "auto": true,
- "note": "Tự sinh (ước lượng): Trúc Tơ động tầng 1, cấp 40–50, vùng Tây Nam: Rết, Dơi hút máu, Rắn xanh, Thương ưng, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Trúc Tơ động tầng 1, cấp 110–119, vùng Tây Nam: Rết, Dơi hút máu, Kim Tiền báo, Xích Luyện mãng xà, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
  "zones": [
-  {"x":2672,"y":1208,"r":220,"monsters":[[46,46],[25,45]],"count":6,"respawn":35},
-  {"x":2128,"y":2856,"r":220,"monsters":[[30,45]],"count":7,"respawn":35},
-  {"x":2576,"y":712,"r":220,"monsters":[[46,49],[30,50]],"count":5,"respawn":37}
+  {"x":2672,"y":1208,"r":220,"monsters":[[46,110]],"count":4,"respawn":57},
+  {"x":2128,"y":2856,"r":220,"monsters":[[46,116]],"count":6,"respawn":58},
+  {"x":2576,"y":712,"r":220,"monsters":[[23,119],[46,119]],"count":6,"respawn":60}
  ]
 }

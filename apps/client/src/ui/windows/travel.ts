@@ -1,8 +1,9 @@
-import { MAPS, MAP_TYPE_NAMES, type MapMeta } from '@vltk/shared';
+import { MAPS, MAP_TYPE_NAMES, mapLevelBand, type MapMeta } from '@vltk/shared';
 import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
 import type { HudContext } from '../hud/context';
 import './travel.css';
+import { progress } from '../../state/progress';
 import { assetUrl } from '../../art/assets';
 
 const ID = 'travel-panel';
@@ -16,11 +17,18 @@ const HTML = `
 /** Xa phu · Chuyển bản đồ (T, NPC): every generated map as a card, towns first; search and kind filter on top. */
 export class TravelWindow {
   private query = '';
+  private level = 0;
   private type = '';
   private meta: MapMeta | null = null;
 
   constructor(parent: HTMLElement, private ctx: HudContext) {
     mount(parent, HTML);
+    progress.watch(p => {
+      const level = p?.progress.level ?? 0;
+      if (level === this.level) return;
+      this.level = level;
+      if (dialogs.isOpen(ID)) this.render();
+    }, false);
     dialogs.register(ID);
     $<HTMLInputElement>('travel-search').addEventListener('input', e => {
       this.query = fold((e.target as HTMLInputElement).value);
@@ -30,6 +38,7 @@ export class TravelWindow {
 
   toggle(open?: boolean): void {
     dialogs.toggle(ID, open);
+    if (dialogs.isOpen(ID)) this.render();
   }
 
   /** The map we are on ("Đang ở đây"). */
@@ -39,9 +48,11 @@ export class TravelWindow {
   }
 
   private render(): void {
-    const order = ['Capital', 'City', 'Country', 'Field', 'Cave', 'Others', '', 'Tong', 'Battlefield'];
-    const rank = (t: string) => (order.indexOf(t) + 99) % 99;
-    const all = Object.values(MAPS).sort((a, b) => rank(a.type) - rank(b.type) || a.name.localeCompare(b.name, 'vi'));
+    const level = progress.get()?.progress.level ?? this.ctx.self()?.level ?? 0;
+    const all = Object.values(MAPS).sort((a, b) => Number(b.safe) - Number(a.safe)
+      || (mapLevelBand(a.id)?.[0] ?? Infinity) - (mapLevelBand(b.id)?.[0] ?? Infinity)
+      || (mapLevelBand(a.id)?.[1] ?? Infinity) - (mapLevelBand(b.id)?.[1] ?? Infinity)
+      || a.name.localeCompare(b.name, 'vi'));
     const kinds = [...new Set(all.map(m => MAP_TYPE_NAMES[m.type] ?? 'Khác'))];
     dialogs.setTitle(ID, `Xa phu · Chuyển bản đồ (${all.length})`);
     $('travel-types').replaceChildren(...['', ...kinds].map(k => {
@@ -64,7 +75,14 @@ export class TravelWindow {
       img.src = assetUrl(`${m.assets}/thumb.webp`);
       img.onerror = () => { img.onerror = null; img.src = assetUrl(`${m.assets}/minimap.webp`); };
       (el.querySelector('.fname') as HTMLElement).textContent = m.name;
-      (el.querySelector('.muted') as HTMLElement).textContent = here ? 'Đang ở đây' : `${MAP_TYPE_NAMES[m.type] ?? 'Khác'}${m.safe ? '' : ' · cho phép PK'}`;
+      const band = mapLevelBand(m.id);
+      const above = !!band && level > 0 && band[0] > level;
+      const detail = el.querySelector('.muted') as HTMLElement;
+      detail.textContent = m.safe ? 'Thành thị · An toàn' : band
+        ? `Quái cấp ${band[0] === band[1] ? band[0] : `${band[0]}–${band[1]}`}${above ? ' · Vượt cấp của bạn' : ''}`
+        : 'Chưa có dữ liệu cấp quái';
+      if (here) detail.textContent += ' · Đang ở đây';
+      detail.classList.toggle('map-level-high', above);
       if (!here) el.addEventListener('click', () => { dialogs.close(ID); this.ctx.actions()?.teleport(m.id); });
       return el;
     }));

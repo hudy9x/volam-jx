@@ -108,6 +108,8 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
 
+- **Phượng Tường + 40 bãi (USER 2026-11-13):** thêm thành Phượng Tường (1), giữ Biện Kinh (37) / Dược Vương Cốc (140); 40 bãi Field + Cave chia cấp 10–200, hai bản đồ/mốc. Bảng chỉnh tay `packages/shared/src/maps/training-levels.ts`, tài liệu `docs/training-maps.md`; `gen-spawns` ưu tiên bảng này và giữ quái trong band. Đây là cấp riêng của project, không phải dữ liệu cấp từ client gốc. Tổng hiện có 43 bản đồ đã sinh. Bộ lọc Xa phu gộp `City` và `Capital` dưới nhãn **Thành thị** (USER 2026-11-13); giữ nguyên type gốc và luật thành an toàn.
+
 - **Công thức** (2026-11-12): mọi phép tính chỉ số / cấp / sát thương / hiệu ứng nằm ở `packages/shared/src/formulas/`, hằng số chỉ ở
   `formulas/tuning.ts` (ghi nguồn DATA / SRC / WEB / JXWEB / CHỌN / USER), tài liệu `docs/formulas/`. Không viết công thức ở chỗ khác.
 - **Tiến trình** (USER 2026-11-12): tạo nhân vật chọn hệ + giới, bắt đầu cấp 1; **cấp 10 gia nhập phái cùng hệ** (cửa sổ Kỹ năng);

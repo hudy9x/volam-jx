@@ -1,9 +1,9 @@
 {
  "map": 28,
  "auto": true,
- "note": "Tự sinh (ước lượng): Trúc Tơ động tầng 3, cấp 60–70, vùng Tây Nam: Rết, Dơi chúa, Bạch Hổ, Kim Điêu, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Trúc Tơ động tầng 3, cấp 140–149, vùng Tây Nam: Rết, Dơi chúa, Bạch Hổ, Kim Điêu, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
  "zones": [
-  {"x":1040,"y":872,"r":220,"monsters":[[27,70]],"count":5,"respawn":43},
-  {"x":2032,"y":504,"r":220,"monsters":[[152,66],[24,68]],"count":5,"respawn":42}
+  {"x":1040,"y":872,"r":220,"monsters":[[27,140]],"count":5,"respawn":67},
+  {"x":2032,"y":504,"r":220,"monsters":[[152,146],[24,148]],"count":5,"respawn":69}
  ]
 }
