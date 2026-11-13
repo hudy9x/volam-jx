@@ -226,3 +226,7 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 - [x] Sinh asset trên macOS: bộ chuyển đổi từ volam-shxt, data_extract và sáu lệnh gen thành công (maps 37/140); chi tiết CURRENT.md.
 
 - [x] Cài package và khởi động macOS: thử tạo nhân vật/vào Biện Kinh trên DB riêng; giữ bản chính ở localhost:5173 (2026-11-13).
+
+- [x] Sửa đồng bộ bảng thuộc tính sau mặc/tháo trang bị: gửi S2C.stats khi thao tác hành trang tính lại chỉ số; đã kiểm tra mặc/đổi/tháo/mặc lại và đối chiếu reconnect (2026-11-13).
+
+- [ ] Đồng bộ bảng thuộc tính khi buff bị xóa do chết/hồi sinh: clearStates tính lại nhưng thiếu progress; đã tái hiện, chưa sửa (2026-11-13).

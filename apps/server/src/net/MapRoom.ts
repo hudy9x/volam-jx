@@ -119,12 +119,15 @@ export class MapRoom extends Room<{ state: MapState }> {
       setMounted(this.world, sim, !!msg?.on);
       this.saveCharacter(sim);
     });
-    // Orders on the sender's Sim. inventoryOp: when it changed something, send the owner the new inventory and save;
+    // Orders on the sender's Sim. inventoryOp: send inventory and any recalculated stats, then save;
     // progressOp: save (world/progress.ts sends its own messages).
     const inventoryOp = <M>(type: string, op: (sim: Sim, msg: M) => boolean) => this.onMessage(type, (client, msg: M) => {
       const sim = this.simOf(client);
-      if (!sim || !op(sim, msg)) return;
+      if (!sim) return;
+      const previousStats = sim.stats;
+      if (!op(sim, msg)) return;
       this.sendInventory(client, sim);
+      if (sim.stats !== previousStats) this.sendStats(client, sim);
       this.saveCharacter(sim);
     });
     const progressOp = <M>(type: string, op: (sim: Sim, msg: M) => boolean) => this.onMessage(type, (client, msg: M) => {
