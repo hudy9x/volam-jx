@@ -1,0 +1,40 @@
+/* /?bots (dev, desktop): bot giả lập người chơi — BotPanel.ts */
+#bots-page { position: fixed; inset: 0; overflow: auto; padding: 12px 16px 24px; box-sizing: border-box; background: var(--bg);
+  color: #f1e6cf; font-size: 13px; cursor: auto; }
+#bots-page * { cursor: auto; }
+#bots-page button, #bots-page select, #bots-page input[type=checkbox] { cursor: pointer; }
+#bots-page .bp-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+#bots-page h1 { margin: 0; font-size: 18px; color: var(--gold); }
+#bots-page h2 { margin: 0 0 8px; font-size: 15px; color: var(--gold); }
+#bots-page h3 { margin: 12px 0 4px; font-size: 13px; color: #d9c79c; }
+#bots-page .bp-status { color: #9fd59a; }
+#bots-page .bp-status.bad { color: #ff9a7a; }
+#bots-page .bp-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; align-items: start; }
+#bots-page .bp-card { background: #0c0905e6; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; min-width: 0; }
+#bots-page .bp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 10px; }
+#bots-page .bp-f { display: grid; gap: 2px; }
+#bots-page .bp-f > span { color: #c8b48a; font-size: 12px; }
+#bots-page .bp-f small { color: #8c7c5c; font-size: 11px; }
+#bots-page .bp-c { display: inline-flex; align-items: center; gap: 4px; margin-right: 12px; }
+#bots-page #sc-auto .bp-c { margin: 2px 0; }
+#bots-page .bp-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+#bots-page .bp-act { margin-top: 10px; }
+#bots-page .bp-act input { width: 70px; }
+#bots-page input:not([type=checkbox]), #bots-page select { background: #15100a; color: #f1e6cf; border: 1px solid #4a3a20; border-radius: 3px; padding: 3px 5px;
+  font: inherit; min-width: 0; }
+#bots-page button { background: #1a140c; color: #f1e6cf; border: 1px solid #4a3a20; border-radius: 4px; padding: 3px 10px; font: inherit; }
+#bots-page button:hover { border-color: var(--gold); }
+#bots-page button.bp-main { border-color: var(--gold); color: var(--gold); }
+#bots-page button.bp-danger { border-color: #8a3a2a; color: #ff9a7a; }
+#bots-page .bp-note { color: #8c7c5c; font-size: 12px; margin: 6px 0 0; }
+#bots-page .bp-cmd { background: #15100a; border: 1px dashed #4a3a20; padding: 5px 8px; border-radius: 4px; margin: 4px 0 8px; }
+#bots-page .bp-cmd code { color: var(--gold); user-select: all; }
+#bots-page .bp-summary { display: grid; gap: 4px; margin-bottom: 6px; }
+#bots-page .bp-summary i { color: #c8b48a; font-style: normal; margin-right: 4px; }
+#bots-page .bp-chip { display: inline-block; border: 1px solid #4a3a20; border-radius: 10px; padding: 0 7px; margin: 1px 2px; font-size: 12px; }
+#bots-page .bp-table { max-height: 60vh; overflow: auto; border: 1px solid #3a2d18; }
+#bots-page table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#bots-page th { position: sticky; top: 0; background: #1a140c; text-align: left; padding: 3px 5px; color: #c8b48a; }
+#bots-page td { padding: 2px 5px; border-top: 1px solid #2a2012; white-space: nowrap; }
+#bots-page tr.on td { color: #9fd59a; }
+#bots-page .bp-empty { color: #8c7c5c; text-align: center; padding: 10px; }

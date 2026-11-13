@@ -1,0 +1,10 @@
+#travel-panel { width: min(800px, calc(100vw - 16px)); height: min(640px, calc(100vh - 110px)); }
+#travel-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; overflow-y: auto; min-height: 0; flex: 1; }
+#travel-panel .dlg-body { flex: 1; }
+.map-card { display: grid; gap: 3px; padding: 5px; border: 1px solid var(--line); background: #0b0e0d; cursor: pointer; }
+.map-card:hover { border-color: var(--teal-hi); background: #121a17; }
+.map-card.here { border-color: var(--blue); cursor: default; }
+.map-thumb { height: 106px; display: grid; place-items: center; background: #000; overflow: hidden; }
+.map-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.map-card .fname { font-size: 12px; line-height: 1.2; }
+.map-card .muted { font-size: 11px; }

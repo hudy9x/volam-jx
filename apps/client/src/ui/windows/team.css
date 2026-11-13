@@ -1,0 +1,15 @@
+/* Tổ đội: members with a Sinh lực bar, invitations, players on screen */
+#team-dlg { width: 320px; }
+#team-dlg .team-member { padding: 4px 6px; margin-top: 4px; border: 1px solid var(--line); background: #0b0e0d; }
+#team-dlg .team-member.offline { opacity: 0.5; }
+#team-dlg .hpbar { height: 4px; margin-top: 3px; background: #300; }
+#team-dlg .hpbar i { display: block; height: 100%; background: #d22; }
+#team-dlg .tm-actions { gap: 4px; margin-top: 3px; }
+#team-dlg .team-invite { gap: 4px; padding: 4px; margin-bottom: 4px; border: 1px solid var(--gold); }
+#team-dlg .team-h2 { margin-top: 10px; color: var(--gold); }
+#team-dlg #team-nearby { max-height: 220px; overflow-y: auto; margin-top: 4px; }
+#team-dlg .team-near { gap: 6px; align-items: center; padding: 2px 4px; border-bottom: 1px solid #1a201d; }
+#team-dlg .team-near span { font-size: 11px; }
+#team-dlg .team-actions { gap: 6px; margin-top: 8px; }
+#team-dlg .team-refuse { margin-top: 6px; }
+#team-dlg .team-help { margin-top: 8px; font-size: 11px; }

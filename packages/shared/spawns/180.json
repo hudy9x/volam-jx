@@ -1,0 +1,22 @@
+{
+ "map": 180,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Long Cung động, cấp 45–55, vùng Giang Nam: Dơi Dong, Nhện, Gấu nâu, Nhãn Kính Mãng xà, Giang Nam sơn tặc 2, Giang Nam sơn tặc 1.",
+ "zones": [
+  {"x":3120,"y":5176,"r":220,"monsters":[[154,52],[29,50]],"count":6,"respawn":37},
+  {"x":5296,"y":4280,"r":220,"monsters":[[20,46]],"count":6,"respawn":36},
+  {"x":4496,"y":184,"r":220,"monsters":[[154,55],[29,54]],"count":6,"respawn":38},
+  {"x":3408,"y":376,"r":220,"monsters":[[29,55],[20,55]],"count":5,"respawn":38},
+  {"x":1776,"y":4584,"r":220,"monsters":[[29,52]],"count":4,"respawn":37},
+  {"x":9552,"y":1720,"r":220,"monsters":[[153,51]],"count":6,"respawn":37},
+  {"x":10992,"y":3640,"r":220,"monsters":[[29,49]],"count":6,"respawn":37},
+  {"x":10960,"y":1704,"r":220,"monsters":[[15,52]],"count":4,"respawn":37},
+  {"x":8944,"y":2248,"r":220,"monsters":[[153,48],[15,48]],"count":4,"respawn":36},
+  {"x":2608,"y":728,"r":220,"monsters":[[153,54]],"count":4,"respawn":38},
+  {"x":13424,"y":2104,"r":220,"monsters":[[29,54],[45,55]],"count":4,"respawn":38},
+  {"x":4112,"y":1608,"r":220,"monsters":[[153,50],[154,52]],"count":4,"respawn":37},
+  {"x":2192,"y":4920,"r":220,"monsters":[[153,52]],"count":5,"respawn":37},
+  {"x":5072,"y":2152,"r":220,"monsters":[[20,48],[153,49]],"count":4,"respawn":36},
+  {"x":3216,"y":1512,"r":220,"monsters":[[15,52]],"count":5,"respawn":37}
+ ]
+}

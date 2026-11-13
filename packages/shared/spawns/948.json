@@ -1,0 +1,10 @@
+{
+ "map": 948,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Kiếm Gia Mê Cung., cấp 45–55, vùng Đặc thù: Rắn xanh, Bò cạp, Sài, Thanh Lang, sơn tặc 03, sơn tặc 01.",
+ "zones": [
+  {"x":14448,"y":8296,"r":220,"monsters":[[21,46]],"count":6,"respawn":36},
+  {"x":13744,"y":8088,"r":220,"monsters":[[7,52]],"count":5,"respawn":37},
+  {"x":12880,"y":8168,"r":220,"monsters":[[21,56],[44,56]],"count":6,"respawn":38}
+ ]
+}

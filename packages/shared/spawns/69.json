@@ -1,0 +1,25 @@
+{
+ "map": 69,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thanh Loa đảo sơn động, cấp 50–60, vùng Lưỡng Hồ: Kim Hoàn Mãng Xà, Cóc, Cá sấu, Tuyết Báo, Hoa Nam sơn tặc 2, Hoa Nam sơn tặc 1.",
+ "zones": [
+  {"x":12144,"y":4888,"r":220,"monsters":[[22,58]],"count":7,"respawn":39},
+  {"x":3760,"y":4312,"r":220,"monsters":[[22,54],[41,53]],"count":5,"respawn":38},
+  {"x":8880,"y":2808,"r":220,"monsters":[[4,54],[156,54]],"count":6,"respawn":38},
+  {"x":4880,"y":1272,"r":220,"monsters":[[4,57],[22,59]],"count":7,"respawn":39},
+  {"x":4720,"y":4296,"r":220,"monsters":[[155,52]],"count":6,"respawn":38},
+  {"x":1392,"y":3608,"r":220,"monsters":[[4,57],[18,59]],"count":4,"respawn":39},
+  {"x":9840,"y":6744,"r":220,"monsters":[[22,59],[41,60]],"count":5,"respawn":40},
+  {"x":5680,"y":5640,"r":220,"monsters":[[22,56]],"count":5,"respawn":38},
+  {"x":8752,"y":3800,"r":220,"monsters":[[22,53]],"count":6,"respawn":37},
+  {"x":10672,"y":6040,"r":220,"monsters":[[156,58],[4,58]],"count":5,"respawn":40},
+  {"x":8240,"y":6296,"r":220,"monsters":[[155,57],[156,59]],"count":5,"respawn":39},
+  {"x":8496,"y":2456,"r":220,"monsters":[[155,53]],"count":5,"respawn":38},
+  {"x":2448,"y":2888,"r":220,"monsters":[[4,58]],"count":6,"respawn":39},
+  {"x":9584,"y":3320,"r":220,"monsters":[[4,55]],"count":5,"respawn":38},
+  {"x":2608,"y":2152,"r":220,"monsters":[[4,58]],"count":6,"respawn":39},
+  {"x":5488,"y":1928,"r":220,"monsters":[[18,56]],"count":5,"respawn":38},
+  {"x":9424,"y":2264,"r":220,"monsters":[[22,56]],"count":4,"respawn":38},
+  {"x":4176,"y":1800,"r":220,"monsters":[[156,57],[22,58]],"count":6,"respawn":39}
+ ]
+}

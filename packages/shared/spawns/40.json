@@ -1,0 +1,13 @@
+{
+ "map": 40,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thiết tháp tầng 3, cấp 80–90, vùng Hoa Bắc: Bò cạp, Dơi chúa đỏ, Đông Bắc hổ, Hoa Nam hổ, Hoa Bắc sơn tặc 2, Hoa Bắc sơn tặc 1.",
+ "zones": [
+  {"x":2704,"y":520,"r":220,"monsters":[[0,89],[28,91]],"count":7,"respawn":50},
+  {"x":2960,"y":3288,"r":220,"monsters":[[160,87],[0,87]],"count":6,"respawn":49},
+  {"x":2416,"y":1976,"r":220,"monsters":[[160,84]],"count":7,"respawn":48},
+  {"x":3760,"y":1464,"r":220,"monsters":[[44,81],[0,83]],"count":5,"respawn":47},
+  {"x":3888,"y":2424,"r":220,"monsters":[[44,81],[28,81]],"count":6,"respawn":47},
+  {"x":1424,"y":1464,"r":220,"monsters":[[0,89]],"count":6,"respawn":49}
+ ]
+}

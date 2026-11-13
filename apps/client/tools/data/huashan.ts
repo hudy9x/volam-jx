@@ -1,0 +1,65 @@
+// Hoa Sơn phái (index 10 of settings/faction/门派设定.ini, hệ Thủy): the Vietnamese client never translated its
+// skills (skills.txt has the Chinese names), so names are read in Hán Việt and descriptions translated from the
+// Chinese SkillDesc. Formulas: jx-origin/script/skill/huashan.lua (loose mod file, not in a PAK).
+// There is no add_hs() in skills_table.lua: the learning tiers below follow ReqLevel and the two branches
+// (Kiếm Tông = 剑宗, Khí Tông = 气宗).
+
+export const HUASHAN_TEXT: Record<number, { name: string; desc: string }> = {
+  1347: { name: 'Bạch Hồng Quán Nhật', desc: 'Võ công sơ cấp của Hoa Sơn, ngưng khí thành hình, tấn công một kẻ địch.' },
+  1348: { name: 'Vân Chưng Hà Úy', desc: 'Võ công sơ cấp của Hoa Sơn Kiếm Tông, ngưng khí thành hình, tấn công một kẻ địch.' },
+  1349: { name: 'Kiếm Tông Tổng Quyết', desc: 'Đại cương của Hoa Sơn Kiếm Tông, nâng cao khả năng sử dụng kiếm.' },
+  1350: { name: 'Dưỡng Ngô Kiếm Pháp', desc: 'Cương yếu võ học Kiếm Tông phái Hoa Sơn, nâng cao khả năng sử dụng kiếm.' },
+  1351: { name: 'Kim Nhạn Hoành Không', desc: 'Võ học cao cấp của Hoa Sơn Kiếm Tông, dung hợp hai thức Phá Kiếm, Phá Đao; đặc biệt hiệu quả với Nga My kiếm, Thúy Yên đao, Ngũ Độc đao.' },
+  1352: { name: 'Hữu Phượng Lai Nghi', desc: 'Võ học cao cấp của Hoa Sơn Kiếm Tông, dung hợp hai thức Phá Kiếm, Phá Đao; đặc biệt hiệu quả với Nga My kiếm và Thúy Yên đao.' },
+  1353: { name: 'Kim Nhạn Hoành Không (2)', desc: 'Võ học cao cấp của Hoa Sơn Kiếm Tông, dung hợp hai thức Phá Kiếm, Phá Đao.' },
+  1354: { name: 'Hy Di Kiếm Pháp', desc: 'Kiếm pháp do Hy Di tiên sinh sáng tạo, tăng mạnh uy lực chiêu kiếm.' },
+  1355: { name: 'Thiên Thân Đảo Huyền', desc: 'Võ công cao cấp của Hoa Sơn Kiếm Tông, dung hợp thức Phá Thương, Phá Tiên; đặc biệt hiệu quả với Cái Bang côn và Thiên Nhẫn mâu.' },
+  1356: { name: 'Thiên Thân Đảo Huyền (2)', desc: 'Võ công cao cấp của Hoa Sơn Kiếm Tông, dung hợp thức Phá Thương, Phá Tiên.' },
+  1357: { name: 'Cao Sơn Lưu Thủy', desc: 'Võ công cao cấp của Hoa Sơn Kiếm Tông, dung hợp thức Phá Thương, Phá Tiên; đặc biệt hiệu quả với Cái Bang côn và Thiên Nhẫn mâu.' },
+  1358: { name: 'Huyễn Nhãn Vân Yên', desc: 'Võ học trấn phái của Hoa Sơn.' },
+  1359: { name: 'Huyễn Nhãn Vân Yên (2)', desc: 'Võ học trấn phái của Hoa Sơn.' },
+  1360: { name: 'Thương Tùng Nghênh Khách', desc: 'Võ công cao cấp của Hoa Sơn Kiếm Tông, dung hợp hai thức Phá Tiễn, Phá Chưởng; đặc biệt hiệu quả với Đường Môn nỏ, phi đao, phi tiêu.' },
+  1361: { name: 'Thương Tùng Nghênh Khách (2)', desc: 'Võ công cao cấp của Hoa Sơn Kiếm Tông, dung hợp hai thức Phá Tiễn, Phá Chưởng.' },
+  1362: { name: 'Thương Tùng Nghênh Khách (3)', desc: 'Võ công cao cấp của Hoa Sơn Kiếm Tông, dung hợp hai thức Phá Tiễn, Phá Chưởng.' },
+  1363: { name: 'Thái Nhạc Tam Thanh Phong', desc: 'Chiêu tối thượng của Hoa Sơn Kiếm Tông, ngự kiếm sát địch, vạn người khó địch.' },
+  1364: { name: 'Đoạt Mệnh Liên Hoàn Tam Tiên Kiếm', desc: 'Chiêu tối thượng của Hoa Sơn Kiếm Tông, ngự kiếm sát địch, vạn người khó địch.' },
+  1365: { name: 'Tử Hà Kiếm Khí', desc: 'Tuyệt học Hoa Sơn, đánh vào chỗ kẻ địch buộc phải cứu, giảm mạnh khả năng hồi phục của kẻ địch.' },
+  1366: { name: 'Lạc Nhạn Kinh Hồng', desc: 'Tuyệt học Hoa Sơn, đánh vào chỗ kẻ địch buộc phải cứu, giảm mạnh khả năng hồi phục của kẻ địch.' },
+  1367: { name: 'Tử Hà Kiếm Khí (3)', desc: 'Tuyệt học Hoa Sơn, giảm mạnh khả năng hồi phục của kẻ địch.' },
+  1368: { name: 'Độc Cô Cửu Kiếm', desc: 'Cửu kiếm hợp nhất, không ai tranh phong. Kiếm pháp đại thừa của Hoa Sơn, dung hợp áo nghĩa Độc Cô Cửu Kiếm, uy lực cực lớn.' },
+  1369: { name: 'Cửu Kiếm Hợp Nhất', desc: 'Cửu kiếm hợp nhất, không ai tranh phong. Kiếm pháp đại thừa của Hoa Sơn, uy lực cực lớn.' },
+  1370: { name: 'Hạo Nhiên Chi Khí', desc: 'Di kỹ của Hoa Sơn: trong tuyệt cảnh tìm được đường sống, dù giữa thiên quân vạn mã vẫn ra vào tự do.' },
+  1371: { name: 'Hạo Nhiên Chi Khí (2)', desc: 'Di kỹ của Hoa Sơn: trong tuyệt cảnh tìm được đường sống.' },
+  1372: { name: 'Thanh Phong Tống Sảng', desc: 'Chiêu sơ cấp của Hoa Sơn Khí Tông, ngưng tụ nội lực đánh vào kẻ địch.' },
+  1374: { name: 'Long Nhiễu Thân', desc: 'Một trong Thất Tuyệt của Hoa Sơn Khí Tông, nâng giới hạn nội công.' },
+  1375: { name: 'Hải Nạp Bách Xuyên', desc: 'Một trong Thất Tuyệt của Hoa Sơn Khí Tông, chuyển hóa sát thương thành nội lực bản thân.' },
+  1376: { name: 'Long Toàn Kiếm Khí', desc: 'Một trong Thất Tuyệt của Hoa Sơn Khí Tông, tạo khí trường quanh mình, nâng phòng thủ phe ta.' },
+  1377: { name: 'Long Toàn Kiếm Khí · Công', desc: 'Một trong Thất Tuyệt của Hoa Sơn Khí Tông, tạo khí trường quanh mình, tăng mạnh sát thương phe ta.' },
+  1378: { name: 'Khí Chấn Sơn Hà', desc: 'Một trong Thất Tuyệt của Hoa Sơn Khí Tông, hóa khí thành kình, tiêu hao nội lực kẻ địch.' },
+  1379: { name: 'Khí Quán Trường Hồng', desc: 'Một trong Thất Tuyệt của Hoa Sơn Khí Tông: nội lực càng thâm hậu, chiêu kiếm Khí Tông càng mạnh.' },
+  1380: { name: 'Ma Vân Kiếm Khí', desc: 'Khí trường tối thượng của Hoa Sơn Khí Tông, tăng mạnh năng lực phe ta, làm suy yếu kẻ địch.' },
+  1381: { name: 'Vô Cực Kiếm Khí', desc: 'Chiêu kiếm tối thượng của Hoa Sơn Khí Tông, kích nổ khí trường trong một phạm vi, gây sát thương diện rộng.' },
+  1382: { name: 'Phách Thạch Phá Ngọc', desc: 'Võ học đại thừa của Hoa Sơn Khí Tông, ngự khí ra ngoài, có thể phá núi chẻ đá.' },
+  1383: { name: 'Phách Thạch Phá Ngọc (2)', desc: 'Võ học đại thừa của Hoa Sơn Khí Tông, ngự khí ra ngoài, có thể phá núi chẻ đá.' },
+  1384: { name: 'Thần Quang Toàn Nhiễu', desc: 'Chiêu kiếm đại thừa của Hoa Sơn Khí Tông, kích nổ khí trường quanh mình, gây sát thương diện rộng và định thân.' },
+  1385: { name: 'Thần Quang Toàn Nhiễu (2)', desc: 'Chiêu kiếm tối thượng của Hoa Sơn Khí Tông, kích nổ khí trường trong một phạm vi, gây sát thương diện rộng.' },
+  1411: { name: 'Vô Cực Kiếm Khí · Nổ', desc: 'Vụ nổ khí trường của Vô Cực Kiếm Khí.' },
+  1420: { name: 'Kiếm pháp · Thái Nhạc Tam Thanh Phong', desc: 'Chiêu tối thượng của Hoa Sơn Kiếm Tông, ngự kiếm sát địch, vạn người khó địch.' },
+  1421: { name: 'Kiếm pháp · Độc Cô Cửu Kiếm', desc: 'Cửu kiếm hợp nhất, không ai tranh phong. Kiếm pháp đại thừa của Hoa Sơn, uy lực cực lớn.' },
+  1410: { name: 'Thương Tùng Nghênh Khách (4)', desc: 'Võ công trung cấp của Hoa Sơn Kiếm Tông, dung hợp hai thức Phá Tiễn, Phá Chưởng, có thể phá mọi ám khí.' },
+};
+
+/** Learning tiers by ReqLevel (Kiếm Tông and Khí Tông side by side), like the other factions' tiers. */
+export const HUASHAN_LEARN: { label: string; level: number; skills: number[] }[] = [
+  { label: 'Nhập môn', level: 10, skills: [1347, 1348, 1372] },
+  { label: 'Cấp 10', level: 10, skills: [1349, 1350, 1374] },
+  { label: 'Cấp 20', level: 20, skills: [1375] },
+  { label: 'Cấp 30', level: 30, skills: [1351, 1352, 1376, 1377] },
+  { label: 'Cấp 40', level: 40, skills: [1354, 1378] },
+  { label: 'Cấp 50', level: 50, skills: [1355, 1357, 1379] },
+  { label: 'Cấp 60', level: 60, skills: [1360, 1380, 1381] },
+  { label: 'Trấn phái', level: 60, skills: [1358] },
+  { label: 'Cấp 90', level: 90, skills: [1363, 1364, 1382] },
+  { label: 'Cấp 120', level: 120, skills: [1365] },
+  { label: 'Cấp 150', level: 150, skills: [1368, 1369, 1384] },
+];

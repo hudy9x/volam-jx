@@ -1,0 +1,22 @@
+{
+ "map": 896,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Cửu Châu Cốc, cấp 45–55, vùng Đặc thù: Sói xám, Sói đỏ, Dơi chúa, Rắn xanh, sơn tặc 01, sơn tặc 02.",
+ "zones": [
+  {"x":2032,"y":2856,"r":220,"monsters":[[5,46],[164,47]],"count":4,"respawn":36},
+  {"x":1712,"y":2040,"r":220,"monsters":[[5,47],[6,48]],"count":6,"respawn":36},
+  {"x":1552,"y":3144,"r":220,"monsters":[[5,50]],"count":6,"respawn":36},
+  {"x":4528,"y":2568,"r":220,"monsters":[[5,46]],"count":4,"respawn":36},
+  {"x":2640,"y":3544,"r":220,"monsters":[[5,48],[6,49]],"count":5,"respawn":36},
+  {"x":2448,"y":1144,"r":220,"monsters":[[21,51],[27,50]],"count":4,"respawn":37},
+  {"x":4272,"y":4552,"r":220,"monsters":[[27,54]],"count":6,"respawn":38},
+  {"x":4240,"y":2184,"r":220,"monsters":[[163,48]],"count":6,"respawn":36},
+  {"x":3632,"y":3720,"r":220,"monsters":[[164,49]],"count":6,"respawn":37},
+  {"x":3088,"y":3192,"r":220,"monsters":[[6,47],[5,46]],"count":5,"respawn":36},
+  {"x":3184,"y":1816,"r":220,"monsters":[[6,48],[163,47]],"count":4,"respawn":36},
+  {"x":1840,"y":3704,"r":220,"monsters":[[163,52],[6,51]],"count":4,"respawn":37},
+  {"x":2192,"y":4040,"r":220,"monsters":[[27,53],[163,51]],"count":6,"respawn":37},
+  {"x":4880,"y":1656,"r":220,"monsters":[[21,49]],"count":6,"respawn":37},
+  {"x":4432,"y":4168,"r":220,"monsters":[[21,52],[5,53]],"count":5,"respawn":38}
+ ]
+}

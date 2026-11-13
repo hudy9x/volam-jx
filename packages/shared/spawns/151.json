@@ -1,0 +1,10 @@
+{
+ "map": 151,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tuyết Báo động tầng 7, cấp 75–85, vùng Tây Bắc: Dơi chúa, Dơi Dong, Kền Kền, Đông Bắc hổ, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":3216,"y":2024,"r":220,"monsters":[[29,82],[27,83]],"count":5,"respawn":48},
+  {"x":1744,"y":2504,"r":220,"monsters":[[27,85]],"count":5,"respawn":48},
+  {"x":3152,"y":1560,"r":220,"monsters":[[29,80]],"count":5,"respawn":47}
+ ]
+}

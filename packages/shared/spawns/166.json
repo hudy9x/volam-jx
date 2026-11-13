@@ -1,0 +1,13 @@
+{
+ "map": 166,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thiên Tầm tháp tầng 3, cấp 55–65, vùng Tây Nam: Rắn xanh, Nhện, Kim Tiền báo, Voi Hoàng hà, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "zones": [
+  {"x":4240,"y":2104,"r":220,"monsters":[[151,55]],"count":6,"respawn":38},
+  {"x":2608,"y":1416,"r":220,"monsters":[[152,58],[3,59]],"count":6,"respawn":40},
+  {"x":1456,"y":1528,"r":220,"monsters":[[14,64],[3,62]],"count":5,"respawn":41},
+  {"x":6192,"y":1368,"r":220,"monsters":[[152,64]],"count":5,"respawn":42},
+  {"x":3312,"y":712,"r":220,"monsters":[[21,63],[45,64]],"count":4,"respawn":41},
+  {"x":4752,"y":3160,"r":220,"monsters":[[21,63]],"count":5,"respawn":41}
+ ]
+}

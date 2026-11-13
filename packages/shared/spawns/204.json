@@ -1,0 +1,18 @@
+{
+ "map": 204,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Phi Thiên động, cấp 45–55, vùng Hoa Bắc: Dơi chúa, Dơi hút máu, Dơi Dong, Thanh Lang, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2.",
+ "zones": [
+  {"x":14000,"y":4328,"r":220,"monsters":[[27,51],[159,51]],"count":4,"respawn":37},
+  {"x":11408,"y":4584,"r":220,"monsters":[[27,46],[30,46]],"count":6,"respawn":36},
+  {"x":11472,"y":6024,"r":220,"monsters":[[7,45]],"count":6,"respawn":35},
+  {"x":10864,"y":7896,"r":220,"monsters":[[159,54]],"count":5,"respawn":38},
+  {"x":11504,"y":7976,"r":220,"monsters":[[29,54],[30,53]],"count":4,"respawn":38},
+  {"x":12944,"y":4664,"r":220,"monsters":[[159,49]],"count":5,"respawn":36},
+  {"x":12240,"y":5592,"r":220,"monsters":[[160,46],[29,44]],"count":5,"respawn":35},
+  {"x":9264,"y":7976,"r":220,"monsters":[[159,56],[27,54]],"count":5,"respawn":38},
+  {"x":16304,"y":4680,"r":220,"monsters":[[160,52]],"count":6,"respawn":38},
+  {"x":12816,"y":3544,"r":220,"monsters":[[159,50]],"count":4,"respawn":37},
+  {"x":10896,"y":8248,"r":220,"monsters":[[30,56],[29,54]],"count":4,"respawn":38}
+ ]
+}

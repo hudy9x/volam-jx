@@ -1,0 +1,57 @@
+import Phaser from 'phaser';
+import { JX_TICK_MS, getSkill, stateFxOf } from '@vltk/shared';
+import { SKILL_FX } from './fx.gen';
+import { fxReady, showFx } from './SkillFx';
+
+interface Shown { start: number; fx?: Phaser.GameObjects.Image }
+
+/** Between the ground shadow (PaperDoll SHADOW_DEPTH −0.6) and the body (0): pictures under the feet. */
+const UNDER_FEET = -0.5;
+/**
+ * Pictures under the feet are raised this many px (USER 2026-11-13: centred on the logic point they looked lower than
+ * the feet, the character seemed to float). Tune by eye.
+ */
+const FOOT_LIFT = 10;
+
+/**
+ * Bùa lợi / bùa hại / hào quang of one actor: the original state picture on the body. Pictures under the feet (hào
+ * quang rings) are always behind the character; the others follow their "behind" frames like the original.
+ * Their icons are not drawn over the head: the HUD lists the own ones under the portrait (ui/hud/status.ts).
+ */
+export class StateDecor {
+  private shown = new Map<number, Shown>();
+
+  constructor(private scene: Phaser.Scene) {}
+
+  /** `ids` = state skill ids; (x, y) feet; `height` of the body. */
+  update(ids: Iterable<number>, x: number, y: number, height: number): void {
+    const now = this.scene.time.now;
+    const list = [...ids];
+    for (const [id, v] of this.shown) {
+      if (list.includes(id)) continue;
+      v.fx?.destroy();
+      this.shown.delete(id);
+    }
+    for (const id of list) {
+      const s = getSkill(id);
+      if (!s) continue;
+      let v = this.shown.get(id);
+      if (!v) this.shown.set(id, v = { start: now });
+      const sfx = stateFxOf(s);
+      if (!sfx || !fxReady(this.scene, sfx.key)) continue;
+      const m = SKILL_FX[sfx.key];
+      const ms = m[8] >= 20 ? m[8] : JX_TICK_MS;
+      const col = Math.floor((now - v.start) / ms) % m[4];
+      const py = sfx.at === 'foot' ? y - FOOT_LIFT : sfx.at === 'head' ? y - height + 8 : y - Math.round(height * 0.45);
+      v.fx ??= this.scene.add.image(0, 0, '__DEFAULT').setOrigin(0, 0);
+      showFx(v.fx, sfx.key, 0, col, x, py);
+      const behind = sfx.at === 'foot' || (sfx.behind && col >= sfx.behind[0] && col <= sfx.behind[1]);
+      v.fx.setDepth(y + (sfx.at === 'foot' ? UNDER_FEET : behind ? -0.5 : 0.5)).setVisible(true);
+    }
+  }
+
+  destroy(): void {
+    for (const v of this.shown.values()) v.fx?.destroy();
+    this.shown.clear();
+  }
+}

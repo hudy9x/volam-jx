@@ -1,0 +1,19 @@
+{
+ "map": 50,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thất Sát động, cấp 70–80, vùng Hoa Bắc: Dơi chúa, Bò cạp, Tuyết Quái, Kim Tiền báo, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2.",
+ "zones": [
+  {"x":1616,"y":2600,"r":220,"monsters":[[159,78],[40,79]],"count":4,"respawn":46},
+  {"x":4784,"y":1944,"r":220,"monsters":[[40,71],[44,71]],"count":4,"respawn":44},
+  {"x":3984,"y":1096,"r":220,"monsters":[[40,76],[44,76]],"count":7,"respawn":46},
+  {"x":1104,"y":2088,"r":220,"monsters":[[27,80],[44,81]],"count":5,"respawn":47},
+  {"x":5456,"y":2648,"r":220,"monsters":[[3,74]],"count":7,"respawn":44},
+  {"x":2672,"y":2264,"r":220,"monsters":[[3,73],[40,72]],"count":4,"respawn":44},
+  {"x":4816,"y":3848,"r":220,"monsters":[[40,81]],"count":6,"respawn":47},
+  {"x":6640,"y":2760,"r":220,"monsters":[[159,78],[3,79]],"count":5,"respawn":46},
+  {"x":4304,"y":776,"r":220,"monsters":[[27,79]],"count":6,"respawn":47},
+  {"x":1808,"y":1784,"r":220,"monsters":[[44,78]],"count":5,"respawn":46},
+  {"x":3504,"y":2120,"r":220,"monsters":[[160,71]],"count":5,"respawn":43},
+  {"x":5616,"y":1816,"r":220,"monsters":[[3,75],[27,75]],"count":4,"respawn":45}
+ ]
+}

@@ -1,0 +1,17 @@
+{
+ "map": 99,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Vĩnh Lạc trấn, cấp 1–10, vùng Tây Bắc: Heo trắng, Nhím, Hồ ly, Khôi Diệp hầu.",
+ "zones": [
+  {"x":5776,"y":11496,"r":220,"monsters":[[12,5]],"count":5,"respawn":22},
+  {"x":14448,"y":5752,"r":220,"monsters":[[36,7]],"count":3,"respawn":22},
+  {"x":6256,"y":12504,"r":220,"monsters":[[9,7],[12,7]],"count":3,"respawn":23},
+  {"x":4368,"y":10712,"r":220,"monsters":[[12,5],[36,5]],"count":3,"respawn":22},
+  {"x":11696,"y":7960,"r":220,"monsters":[[9,1],[12,1]],"count":4,"respawn":21},
+  {"x":6992,"y":2840,"r":220,"monsters":[[43,9]],"count":4,"respawn":23},
+  {"x":15440,"y":2792,"r":220,"monsters":[[43,9]],"count":5,"respawn":23},
+  {"x":13040,"y":9256,"r":220,"monsters":[[36,4]],"count":5,"respawn":21},
+  {"x":12208,"y":8328,"r":220,"monsters":[[9,3],[43,2]],"count":4,"respawn":21},
+  {"x":14928,"y":10456,"r":220,"monsters":[[43,7]],"count":5,"respawn":22}
+ ]
+}

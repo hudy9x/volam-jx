@@ -1,0 +1,18 @@
+{
+ "map": 75,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Khoả Lang động, cấp 60–70, vùng Lưỡng Hồ: Dơi chúa, Dơi chúa đỏ, Xích Luyện mãng xà, Tuyết Quái, Hoa Nam sơn tặc 2, Hoa Nam sơn tặc 1.",
+ "zones": [
+  {"x":3536,"y":2248,"r":220,"monsters":[[156,64],[27,66]],"count":7,"respawn":42},
+  {"x":2160,"y":3720,"r":220,"monsters":[[40,66],[23,65]],"count":5,"respawn":42},
+  {"x":7632,"y":680,"r":220,"monsters":[[23,71],[28,70]],"count":5,"respawn":43},
+  {"x":3536,"y":4600,"r":220,"monsters":[[27,64]],"count":5,"respawn":42},
+  {"x":1776,"y":4616,"r":220,"monsters":[[23,66]],"count":6,"respawn":42},
+  {"x":6096,"y":1128,"r":220,"monsters":[[40,69],[156,69]],"count":7,"respawn":43},
+  {"x":9584,"y":1640,"r":220,"monsters":[[40,68]],"count":5,"respawn":43},
+  {"x":4656,"y":2760,"r":220,"monsters":[[155,63]],"count":4,"respawn":41},
+  {"x":6608,"y":728,"r":220,"monsters":[[156,70],[155,70]],"count":7,"respawn":43},
+  {"x":4560,"y":2104,"r":220,"monsters":[[40,65],[27,65]],"count":5,"respawn":41},
+  {"x":6256,"y":3160,"r":220,"monsters":[[28,59]],"count":4,"respawn":40}
+ ]
+}

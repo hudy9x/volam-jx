@@ -1,0 +1,17 @@
+/* dev only: monster zones on the big map */
+#spawn-editor { width: 300px; flex: none; display: grid; gap: 6px; align-content: start; max-height: 80vh; overflow: auto;
+  padding: 6px; border: 1px solid var(--line); background: #080a09; font-size: 12px; }
+#spawn-editor input:not([type=checkbox]) { margin: 0; padding: 3px 5px; font-size: 12px; }
+#spawn-editor .row { gap: 4px; }
+#se-level { width: 56px; flex: none; }
+#se-zones { max-height: 180px; overflow: auto; border: 1px solid var(--line); }
+.se-z { padding: 2px 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.se-z:hover { background: #121a17; }
+.se-z.sel { background: #2a2610; color: var(--gold); }
+#se-monster-list { display: grid; gap: 2px; }
+.se-m { display: flex; justify-content: space-between; gap: 4px; padding: 1px 4px; background: #0d100f; }
+.se-m.noart { color: var(--danger); }
+.se-m button { background: none; border: 0; color: var(--danger); cursor: pointer; }
+.se-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.se-grid label { margin: 0; color: var(--text); }
+#se-zone.hidden-zone { display: none; }

@@ -1,0 +1,16 @@
+{
+ "map": 171,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Điểm Thương động tầng 1, cấp 45–55, vùng Tây Nam: Dơi hút máu, Dơi chúa đỏ, Thanh Lang, Nhãn Kính Mãng xà, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "zones": [
+  {"x":7824,"y":1480,"r":220,"monsters":[[30,54]],"count":4,"respawn":38},
+  {"x":5776,"y":1080,"r":220,"monsters":[[152,53]],"count":4,"respawn":38},
+  {"x":5584,"y":4072,"r":220,"monsters":[[28,50],[152,51]],"count":4,"respawn":37},
+  {"x":3248,"y":1176,"r":220,"monsters":[[152,54],[151,53]],"count":5,"respawn":38},
+  {"x":6512,"y":1352,"r":220,"monsters":[[20,51],[7,51]],"count":6,"respawn":37},
+  {"x":2256,"y":1448,"r":220,"monsters":[[30,55]],"count":6,"respawn":38},
+  {"x":1904,"y":3544,"r":220,"monsters":[[7,51],[28,53]],"count":5,"respawn":37},
+  {"x":7216,"y":4648,"r":220,"monsters":[[152,54]],"count":4,"respawn":38},
+  {"x":1552,"y":1992,"r":220,"monsters":[[30,54],[20,53]],"count":6,"respawn":38}
+ ]
+}

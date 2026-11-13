@@ -1,0 +1,28 @@
+{
+ "map": 201,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Băng Hà động, cấp 45–55, vùng Tây Bắc: Dơi hút máu, Cá sấu, Thương ưng, Dơi chúa, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":12208,"y":5384,"r":220,"monsters":[[149,52]],"count":5,"respawn":37},
+  {"x":10480,"y":4056,"r":220,"monsters":[[18,49],[30,47]],"count":6,"respawn":36},
+  {"x":4080,"y":1512,"r":220,"monsters":[[25,52]],"count":4,"respawn":37},
+  {"x":8848,"y":3704,"r":220,"monsters":[[149,47]],"count":4,"respawn":35},
+  {"x":6096,"y":840,"r":220,"monsters":[[150,53],[30,51]],"count":4,"respawn":37},
+  {"x":7056,"y":5320,"r":220,"monsters":[[18,50]],"count":6,"respawn":36},
+  {"x":13200,"y":3640,"r":220,"monsters":[[30,52]],"count":5,"respawn":37},
+  {"x":12048,"y":3048,"r":220,"monsters":[[30,50],[18,51]],"count":6,"respawn":37},
+  {"x":4240,"y":3656,"r":220,"monsters":[[18,49]],"count":6,"respawn":36},
+  {"x":12784,"y":4056,"r":220,"monsters":[[149,52]],"count":5,"respawn":37},
+  {"x":11440,"y":6664,"r":220,"monsters":[[30,55]],"count":6,"respawn":38},
+  {"x":2192,"y":984,"r":220,"monsters":[[149,56],[27,55]],"count":5,"respawn":38},
+  {"x":2672,"y":1208,"r":220,"monsters":[[27,53]],"count":4,"respawn":38},
+  {"x":11248,"y":6184,"r":220,"monsters":[[27,52],[30,52]],"count":5,"respawn":38},
+  {"x":7408,"y":2296,"r":220,"monsters":[[30,48]],"count":6,"respawn":36},
+  {"x":8144,"y":3352,"r":220,"monsters":[[27,46]],"count":5,"respawn":35},
+  {"x":1552,"y":1336,"r":220,"monsters":[[150,55]],"count":5,"respawn":38},
+  {"x":10672,"y":5128,"r":220,"monsters":[[149,49]],"count":4,"respawn":37},
+  {"x":11696,"y":5160,"r":220,"monsters":[[149,52],[30,50]],"count":6,"respawn":37},
+  {"x":10096,"y":5688,"r":220,"monsters":[[30,50]],"count":4,"respawn":37},
+  {"x":2704,"y":3208,"r":220,"monsters":[[149,50]],"count":6,"respawn":37}
+ ]
+}

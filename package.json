@@ -1,0 +1,20 @@
+{
+  "name": "jx-system-online",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c yellow,cyan \"npm run dev -w @vltk/server\" \"npm run dev -w @vltk/client\"",
+    "bots": "npm run bots -w @vltk/server --",
+    "typecheck": "tsc -p packages/shared && tsc -p apps/server && tsc -p apps/client && tsc -p apps/client/src/platform/sw",
+    "build": "npm run build -w @vltk/client"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.7",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

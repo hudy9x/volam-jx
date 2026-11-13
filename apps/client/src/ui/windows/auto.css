@@ -1,0 +1,6 @@
+#auto-dlg { width: min(340px, calc(100vw - 16px)); }
+#auto-dlg .muted { font-size: 11px; line-height: 1.4; margin-top: 6px; }
+
+#auto-dlg .auto-h { margin-top: 8px; color: var(--gold); }
+#auto-dlg select { margin-left: 6px; }
+#auto-dlg { max-height: calc(100vh - 140px); overflow-y: auto; }

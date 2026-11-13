@@ -1,0 +1,13 @@
+{
+ "map": 120,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tường Vân động tầng 5, cấp 65–75, vùng Trung Nguyên: Rắn xanh, Nhện, Đông Bắc hổ, Cá sấu, Trung Nguyên sơn tặc 2, Trung Nguyên sơn tặc 1.",
+ "zones": [
+  {"x":6608,"y":1960,"r":220,"monsters":[[0,71],[45,72]],"count":6,"respawn":44},
+  {"x":3792,"y":3528,"r":220,"monsters":[[162,67],[161,67]],"count":5,"respawn":43},
+  {"x":4272,"y":2008,"r":220,"monsters":[[21,69]],"count":5,"respawn":43},
+  {"x":4752,"y":1064,"r":220,"monsters":[[18,75]],"count":6,"respawn":45},
+  {"x":6000,"y":3032,"r":220,"monsters":[[18,68],[21,69]],"count":5,"respawn":43},
+  {"x":3984,"y":920,"r":220,"monsters":[[0,75]],"count":4,"respawn":45}
+ ]
+}

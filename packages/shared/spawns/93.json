@@ -1,0 +1,14 @@
+{
+ "map": 93,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tiến Cúc động, cấp 90–100, vùng Trung Nguyên: Rết, Rắn xanh, Đông Bắc hổ, Kim Hoàn Mãng Xà, Trung Nguyên sơn tặc 2, Trung Nguyên sơn tặc 1.",
+ "zones": [
+  {"x":4912,"y":3752,"r":220,"monsters":[[0,90]],"count":7,"respawn":50},
+  {"x":5520,"y":696,"r":220,"monsters":[[22,100],[21,99]],"count":4,"respawn":53},
+  {"x":3952,"y":5704,"r":220,"monsters":[[46,98],[22,97]],"count":6,"respawn":53},
+  {"x":4880,"y":5448,"r":220,"monsters":[[21,97]],"count":7,"respawn":53},
+  {"x":4464,"y":4712,"r":220,"monsters":[[22,94],[162,95]],"count":5,"respawn":51},
+  {"x":3376,"y":5480,"r":220,"monsters":[[0,98],[21,97]],"count":5,"respawn":53},
+  {"x":1584,"y":2536,"r":220,"monsters":[[22,94],[162,95]],"count":7,"respawn":52}
+ ]
+}

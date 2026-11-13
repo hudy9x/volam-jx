@@ -1,0 +1,33 @@
+{
+ "map": 41,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Phục Ngưu Sơn Tây, cấp 40–50, vùng Hoa Bắc: Sói xám, Sói đỏ, Gấu nâu, Dơi chúa, Hoa Bắc sơn tặc 2, Hoa Bắc sơn tặc 1.",
+ "zones": [
+  {"x":3760,"y":11608,"r":220,"monsters":[[160,49],[15,50]],"count":5,"respawn":37},
+  {"x":16016,"y":1416,"r":220,"monsters":[[6,47],[27,48]],"count":7,"respawn":36},
+  {"x":15216,"y":3112,"r":220,"monsters":[[5,46],[6,45]],"count":5,"respawn":35},
+  {"x":10224,"y":5704,"r":220,"monsters":[[160,40],[159,40]],"count":4,"respawn":34},
+  {"x":5968,"y":8504,"r":220,"monsters":[[15,46],[159,44]],"count":6,"respawn":35},
+  {"x":15600,"y":4168,"r":220,"monsters":[[27,43],[15,45]],"count":6,"respawn":35},
+  {"x":13008,"y":2696,"r":220,"monsters":[[159,44],[160,44]],"count":6,"respawn":35},
+  {"x":5584,"y":8008,"r":220,"monsters":[[5,44]],"count":5,"respawn":35},
+  {"x":13616,"y":6024,"r":220,"monsters":[[5,41],[6,41]],"count":4,"respawn":34},
+  {"x":4624,"y":11112,"r":220,"monsters":[[6,49]],"count":5,"respawn":36},
+  {"x":17200,"y":3544,"r":220,"monsters":[[5,47],[159,47]],"count":5,"respawn":35},
+  {"x":6320,"y":9400,"r":220,"monsters":[[159,47]],"count":5,"respawn":35},
+  {"x":12656,"y":4552,"r":220,"monsters":[[15,43]],"count":6,"respawn":34},
+  {"x":9936,"y":6136,"r":220,"monsters":[[160,40],[27,40]],"count":7,"respawn":33},
+  {"x":18992,"y":3128,"r":220,"monsters":[[27,46],[15,48]],"count":6,"respawn":36},
+  {"x":21392,"y":4216,"r":220,"monsters":[[160,49],[27,49]],"count":5,"respawn":36},
+  {"x":19952,"y":5000,"r":220,"monsters":[[5,47],[160,46]],"count":6,"respawn":36},
+  {"x":4912,"y":10680,"r":220,"monsters":[[159,48]],"count":5,"respawn":36},
+  {"x":2992,"y":9704,"r":220,"monsters":[[5,47],[27,48]],"count":6,"respawn":36},
+  {"x":2864,"y":11320,"r":220,"monsters":[[160,50]],"count":4,"respawn":37},
+  {"x":2096,"y":10520,"r":220,"monsters":[[27,49],[15,49]],"count":4,"respawn":36},
+  {"x":3504,"y":8872,"r":220,"monsters":[[15,46],[159,47]],"count":5,"respawn":36},
+  {"x":5744,"y":5160,"r":220,"monsters":[[5,43]],"count":7,"respawn":35},
+  {"x":7216,"y":4520,"r":220,"monsters":[[5,45],[6,43]],"count":6,"respawn":35},
+  {"x":4624,"y":7224,"r":220,"monsters":[[5,46]],"count":4,"respawn":35},
+  {"x":5968,"y":4680,"r":220,"monsters":[[27,43]],"count":6,"respawn":35}
+ ]
+}

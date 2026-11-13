@@ -1,0 +1,15 @@
+{
+  "name": "@vltk/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "CHOKIDAR_USEPOLLING=1 tsx watch src/index.ts", "bots": "tsx src/dev/bots.ts", "start": "tsx src/index.ts" },
+  "dependencies": {
+    "@vltk/shared": "*",
+    "colyseus": "0.18.12",
+    "@colyseus/schema": "5.0.45",
+    "@colyseus/ws-transport": "0.18",
+    "express": "^5.1.0"
+  },
+  "devDependencies": { "@types/express": "^5.0.0", "@types/node": "^22.0.0" }
+}

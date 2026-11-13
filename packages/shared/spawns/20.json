@@ -1,0 +1,17 @@
+{
+ "map": 20,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Giang Tân Thôn, cấp 1–10, vùng Tây Nam: Cá sấu, Kim Hoàn Mãng Xà, Hắc Diệp Hầu, Linh Miêu.",
+ "zones": [
+  {"x":10000,"y":5416,"r":220,"monsters":[[37,4]],"count":4,"respawn":21},
+  {"x":13776,"y":7928,"r":220,"monsters":[[18,5]],"count":3,"respawn":21},
+  {"x":13936,"y":12520,"r":220,"monsters":[[18,9],[34,9]],"count":4,"respawn":23},
+  {"x":7088,"y":8360,"r":220,"monsters":[[34,1]],"count":4,"respawn":21},
+  {"x":7408,"y":12120,"r":220,"monsters":[[34,9]],"count":4,"respawn":23},
+  {"x":12240,"y":4376,"r":220,"monsters":[[34,6]],"count":5,"respawn":22},
+  {"x":10064,"y":10248,"r":220,"monsters":[[18,6],[22,6]],"count":5,"respawn":22},
+  {"x":11952,"y":5896,"r":220,"monsters":[[22,4]],"count":3,"respawn":21},
+  {"x":11088,"y":10808,"r":220,"monsters":[[34,6]],"count":3,"respawn":22},
+  {"x":4112,"y":4168,"r":220,"monsters":[[18,8],[22,8]],"count":3,"respawn":23}
+ ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@vltk/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "gen:assets": "tsx tools/gen-assets.ts",
+    "gen:maps": "tsx tools/gen-maps.ts",
+    "gen:skills": "tsx tools/gen-skills.ts",
+    "audit:skills": "tsx tools/audit-skills.ts",
+    "gen:ui": "tsx tools/gen-ui.ts",
+    "gen:sounds": "tsx tools/gen-sounds.ts",
+    "gen:spawns": "tsx tools/gen-spawns.ts",
+    "gen:magic": "tsx tools/gen-magicattrib.ts",
+    "gen:player": "tsx tools/gen-player.ts",
+    "gen:drops": "tsx tools/gen-drops.ts",
+    "gen:gold": "tsx tools/gen-gold.ts",
+    "gen:manifest": "tsx tools/gen-manifest.ts"
+  },
+  "dependencies": {
+    "@colyseus/sdk": "0.18.9",
+    "@vltk/shared": "*",
+    "phaser": "4.2.1"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.3",
+    "vite": "^7.0.0"
+  }
+}

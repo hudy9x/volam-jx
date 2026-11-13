@@ -1,0 +1,17 @@
+{
+ "map": 174,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Long Tuyền thôn, cấp 1–10, vùng Giang Nam: Tàng Vực hầu, Khôi Diệp hầu, Kim Tơ Hầu, Hươu đốm.",
+ "zones": [
+  {"x":11216,"y":9800,"r":220,"monsters":[[35,8],[36,8]],"count":3,"respawn":23},
+  {"x":6384,"y":9400,"r":220,"monsters":[[42,8],[35,8]],"count":4,"respawn":23},
+  {"x":2832,"y":3160,"r":220,"monsters":[[42,9],[35,7]],"count":5,"respawn":23},
+  {"x":4400,"y":7160,"r":220,"monsters":[[35,6]],"count":3,"respawn":22},
+  {"x":4304,"y":9880,"r":220,"monsters":[[35,11],[36,9]],"count":3,"respawn":23},
+  {"x":9712,"y":4872,"r":220,"monsters":[[35,1],[36,1]],"count":4,"respawn":21},
+  {"x":8848,"y":3128,"r":220,"monsters":[[42,7],[38,7]],"count":4,"respawn":22},
+  {"x":12432,"y":1800,"r":220,"monsters":[[35,11]],"count":5,"respawn":23},
+  {"x":12272,"y":9960,"r":220,"monsters":[[35,9],[36,11]],"count":4,"respawn":23},
+  {"x":5136,"y":8840,"r":220,"monsters":[[42,6]],"count":3,"respawn":22}
+ ]
+}

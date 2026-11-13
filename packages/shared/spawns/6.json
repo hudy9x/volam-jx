@@ -1,0 +1,25 @@
+{
+ "map": 6,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tỏa Vân động, cấp 40–50, vùng Tây Bắc: Bò cạp, Rắn xanh, Thằn lằn đỏ, Gấu đen, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":6480,"y":2072,"r":220,"monsters":[[149,44],[21,43]],"count":4,"respawn":35},
+  {"x":10736,"y":3512,"r":220,"monsters":[[16,43]],"count":7,"respawn":35},
+  {"x":10448,"y":4728,"r":220,"monsters":[[44,43],[21,44]],"count":6,"respawn":35},
+  {"x":8496,"y":1688,"r":220,"monsters":[[16,44]],"count":7,"respawn":35},
+  {"x":6256,"y":7688,"r":220,"monsters":[[44,49],[21,50]],"count":7,"respawn":37},
+  {"x":7280,"y":1528,"r":220,"monsters":[[21,47],[16,46]],"count":4,"respawn":35},
+  {"x":7088,"y":632,"r":220,"monsters":[[149,49]],"count":5,"respawn":36},
+  {"x":720,"y":3576,"r":220,"monsters":[[19,50]],"count":5,"respawn":36},
+  {"x":3952,"y":4664,"r":220,"monsters":[[44,44],[16,44]],"count":7,"respawn":35},
+  {"x":7248,"y":6952,"r":220,"monsters":[[44,49],[21,47]],"count":6,"respawn":36},
+  {"x":5168,"y":5688,"r":220,"monsters":[[19,44]],"count":7,"respawn":35},
+  {"x":10736,"y":6152,"r":220,"monsters":[[150,48]],"count":4,"respawn":36},
+  {"x":10032,"y":5704,"r":220,"monsters":[[44,45],[21,46]],"count":4,"respawn":35},
+  {"x":8272,"y":2424,"r":220,"monsters":[[19,43]],"count":5,"respawn":34},
+  {"x":9456,"y":3944,"r":220,"monsters":[[44,43],[19,43]],"count":4,"respawn":34},
+  {"x":2032,"y":2632,"r":220,"monsters":[[44,47]],"count":7,"respawn":36},
+  {"x":4912,"y":7176,"r":220,"monsters":[[44,50]],"count":6,"respawn":36},
+  {"x":1520,"y":3896,"r":220,"monsters":[[150,49],[19,48]],"count":6,"respawn":36}
+ ]
+}

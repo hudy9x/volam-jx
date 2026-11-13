@@ -1,0 +1,15 @@
+{
+ "map": 66,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Đáy Động Đình hồ tầng 1, cấp 60–70, vùng Lưỡng Hồ: Dơi chúa đỏ, Cóc, Bạch Hổ, Tuyết Quái, Hoa Nam sơn tặc 2, Hoa Nam sơn tặc 1.",
+ "zones": [
+  {"x":2096,"y":3384,"r":220,"monsters":[[2,65],[155,67]],"count":7,"respawn":42},
+  {"x":2352,"y":1784,"r":220,"monsters":[[40,67]],"count":7,"respawn":42},
+  {"x":8688,"y":1080,"r":220,"monsters":[[28,67]],"count":6,"respawn":43},
+  {"x":7888,"y":2920,"r":220,"monsters":[[40,64],[28,63]],"count":4,"respawn":41},
+  {"x":3760,"y":3880,"r":220,"monsters":[[28,64],[155,65]],"count":6,"respawn":42},
+  {"x":4944,"y":1848,"r":220,"monsters":[[155,62],[2,62]],"count":5,"respawn":41},
+  {"x":1296,"y":4376,"r":220,"monsters":[[28,70],[41,69]],"count":7,"respawn":43},
+  {"x":4688,"y":2248,"r":220,"monsters":[[2,61]],"count":6,"respawn":40}
+ ]
+}

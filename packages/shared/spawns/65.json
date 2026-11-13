@@ -1,0 +1,22 @@
+{
+ "map": 65,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thiên Vương đảo sơn động, cấp 50–60, vùng Lưỡng Hồ: Dơi chúa đỏ, Rắn xanh, Voi Châu á, Tuyết Quái, Hoa Nam sơn tặc 1, Hoa Nam sơn tặc 2.",
+ "zones": [
+  {"x":4848,"y":1592,"r":220,"monsters":[[156,55]],"count":4,"respawn":39},
+  {"x":7824,"y":3160,"r":220,"monsters":[[155,51],[13,51]],"count":4,"respawn":37},
+  {"x":2320,"y":3864,"r":220,"monsters":[[156,56]],"count":6,"respawn":39},
+  {"x":4496,"y":5512,"r":220,"monsters":[[40,58]],"count":4,"respawn":39},
+  {"x":2416,"y":4712,"r":220,"monsters":[[21,57]],"count":6,"respawn":39},
+  {"x":8624,"y":3688,"r":220,"monsters":[[155,52],[21,52]],"count":7,"respawn":38},
+  {"x":10032,"y":5656,"r":220,"monsters":[[28,60]],"count":4,"respawn":40},
+  {"x":10672,"y":3736,"r":220,"monsters":[[28,58]],"count":5,"respawn":39},
+  {"x":5680,"y":5688,"r":220,"monsters":[[13,57]],"count":7,"respawn":39},
+  {"x":6128,"y":2008,"r":220,"monsters":[[156,54],[155,53]],"count":5,"respawn":38},
+  {"x":7792,"y":2568,"r":220,"monsters":[[28,52],[21,53]],"count":6,"respawn":38},
+  {"x":3824,"y":3736,"r":220,"monsters":[[40,53],[28,53]],"count":5,"respawn":38},
+  {"x":560,"y":3736,"r":220,"monsters":[[156,60],[40,59]],"count":4,"respawn":40},
+  {"x":11312,"y":5160,"r":220,"monsters":[[155,60]],"count":7,"respawn":40},
+  {"x":4400,"y":5144,"r":220,"monsters":[[40,56],[13,56]],"count":5,"respawn":39}
+ ]
+}

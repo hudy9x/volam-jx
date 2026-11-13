@@ -1,0 +1,12 @@
+{
+ "map": 152,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tuyết Báo động tầng 8, cấp 80–90, vùng Tây Bắc: Dơi chúa, Nhện, Bạch Hổ, Cá sấu, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":4016,"y":1624,"r":220,"monsters":[[149,82]],"count":4,"respawn":47},
+  {"x":5936,"y":3096,"r":220,"monsters":[[27,89],[150,89]],"count":5,"respawn":50},
+  {"x":4336,"y":2440,"r":220,"monsters":[[45,82]],"count":6,"respawn":48},
+  {"x":1040,"y":2344,"r":220,"monsters":[[27,87]],"count":6,"respawn":49},
+  {"x":3728,"y":1032,"r":220,"monsters":[[18,84],[2,83]],"count":6,"respawn":48}
+ ]
+}

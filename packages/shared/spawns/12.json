@@ -1,0 +1,16 @@
+{
+ "map": 12,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Địa đạo hậu viện Tín Tướng tự, cấp 50–60, vùng Tây Nam: Bò cạp, Dơi chúa, Dơi chúa đỏ, Kim Tiền báo, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
+ "zones": [
+  {"x":1392,"y":1512,"r":220,"monsters":[[44,60]],"count":4,"respawn":40},
+  {"x":8464,"y":2152,"r":220,"monsters":[[44,60]],"count":6,"respawn":40},
+  {"x":3408,"y":2184,"r":220,"monsters":[[151,53],[27,52]],"count":4,"respawn":37},
+  {"x":4048,"y":2120,"r":220,"monsters":[[152,50]],"count":6,"respawn":37},
+  {"x":3632,"y":3400,"r":220,"monsters":[[27,55]],"count":6,"respawn":38},
+  {"x":4528,"y":2776,"r":220,"monsters":[[152,51]],"count":5,"respawn":37},
+  {"x":8816,"y":1864,"r":220,"monsters":[[3,59]],"count":6,"respawn":40},
+  {"x":2160,"y":2152,"r":220,"monsters":[[44,55]],"count":4,"respawn":39},
+  {"x":3920,"y":2600,"r":220,"monsters":[[27,50],[3,51]],"count":6,"respawn":37}
+ ]
+}

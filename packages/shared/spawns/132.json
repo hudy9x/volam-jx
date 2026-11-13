@@ -1,0 +1,19 @@
+{
+ "map": 132,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Băng Huyệt động, cấp 45–55, vùng Tây Bắc: Dơi chúa, Rết, Nhãn Kính Mãng xà, Sói xám, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":7856,"y":4136,"r":220,"monsters":[[27,52]],"count":6,"respawn":37},
+  {"x":6384,"y":2056,"r":220,"monsters":[[27,48],[46,48]],"count":5,"respawn":36},
+  {"x":6576,"y":984,"r":220,"monsters":[[27,52],[46,53]],"count":5,"respawn":38},
+  {"x":5712,"y":3288,"r":220,"monsters":[[27,47]],"count":5,"respawn":36},
+  {"x":3824,"y":1976,"r":220,"monsters":[[27,47]],"count":6,"respawn":36},
+  {"x":1072,"y":2824,"r":220,"monsters":[[5,50],[20,52]],"count":4,"respawn":37},
+  {"x":7952,"y":5160,"r":220,"monsters":[[149,54]],"count":4,"respawn":38},
+  {"x":4432,"y":2568,"r":220,"monsters":[[27,47]],"count":4,"respawn":35},
+  {"x":2160,"y":1528,"r":220,"monsters":[[27,51],[46,52]],"count":6,"respawn":37},
+  {"x":3312,"y":4760,"r":220,"monsters":[[27,52]],"count":5,"respawn":37},
+  {"x":4496,"y":568,"r":220,"monsters":[[27,55],[149,53]],"count":4,"respawn":38},
+  {"x":6352,"y":4184,"r":220,"monsters":[[46,50],[5,50]],"count":5,"respawn":37}
+ ]
+}

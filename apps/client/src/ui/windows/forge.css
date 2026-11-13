@@ -1,0 +1,29 @@
+#forge-panel { width: min(720px, calc(100vw - 16px)); }
+.forge-body { display: flex; gap: 14px; align-items: flex-start; }
+.forge-form { flex: 1 1 auto; min-width: 0; }
+.forge-pick { display: flex; gap: 6px; flex-wrap: wrap; }
+.forge-pick select[hidden] { display: none; }
+.forge-pick select:last-child { flex: 1; min-width: 0; }
+#forge-panel select, #forge-panel input[type=number] {
+  border: 1px solid var(--teal); background: #0b0d0c; color: var(--text); font: 12px Tahoma, sans-serif; padding: 3px 4px; }
+#forge-panel select option:disabled { color: #56645c; }
+.forge-series { display: flex; gap: 4px; margin: 8px 0; flex-wrap: wrap; }
+.forge-line { display: grid; grid-template-columns: 72px 1fr 64px; gap: 6px; align-items: center; margin: 4px 0; }
+.forge-line select { min-width: 0; color: #7b8cff; }
+.forge-line.hidden-line select { color: #8c968c; }
+.forge-label { font-size: 12px; color: var(--muted); }
+.forge-value:disabled { opacity: 0.4; }
+.forge-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+#forge-price { color: rgb(255, 246, 108); }
+#forge-price.short { color: rgb(0, 135, 133); }
+/* preview: the piece and its tooltip lines (same builder as #item-tip) */
+.forge-preview { flex: 0 0 260px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 8px; border: 1px solid var(--line); background: rgba(4, 5, 5, 0.94); text-align: center; font-size: 12px; line-height: 1.45; }
+.forge-preview .slot { width: 64px; height: 96px; }
+.forge-preview .tip-name { font-weight: 700; font-size: 13px; }
+.forge-preview .tip-sub { color: #9aa49e; font-size: 11px; margin-bottom: 3px; }
+@media (max-width: 640px) {
+  .forge-body { flex-direction: column; }
+  .forge-preview { flex-basis: auto; align-self: stretch; }
+}
+.forge-plan { display: flex; flex-direction: column; gap: 4px; margin: 0 0 8px; max-width: 360px; }

@@ -1,0 +1,3 @@
+/* ---------- HUD ---------- */
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+#hud .frame, #hud .dlg, #quickbar, #hud-states, #hud button { pointer-events: auto; }

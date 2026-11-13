@@ -1,0 +1,36 @@
+/* Trang bị và Thuộc tính: value colours from ui3/玩家装备与人物状态_属性.ini (names 0,255,0; title / stats 255,217,78; potential 255,0,0) */
+#char-panel { width: auto; }
+.char-body { display: flex; gap: 8px; align-items: stretch; }
+.char-attr { width: 310px; display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.ca-grid { display: grid; gap: 2px 6px; align-items: center; }
+.ca-top { grid-template-columns: 76px 1fr; }
+.ca-pair { grid-template-columns: 68px 1fr 68px 1fr; }
+.ca-points { grid-template-columns: 58px 1fr 16px 58px 1fr 16px; }
+.ca-l { color: #a9d3be; white-space: nowrap; }
+.ca-v { min-height: 16px; padding: 0 4px; border: 1px solid #1c2823; background: #050706; color: rgb(255, 217, 78);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; line-height: 16px; }
+.ca-v.green, .ca-v.ca-name { color: rgb(0, 255, 0); }
+.ca-v.ca-title { color: rgb(255, 217, 78); }
+.ca-v.red { color: rgb(255, 0, 0); }
+.ca-v.na { color: #56645c; }
+.ca-mid { display: flex; gap: 6px; align-items: center; margin: 2px 0; }
+.ca-face { width: 72px; height: 72px; flex: none; object-fit: cover; border: 1px solid var(--teal); background: #050706; }
+.ca-vit { flex: 1; grid-template-columns: 62px 1fr; }
+.ca-plus { width: 14px; height: 14px; padding: 0; border: 1px solid var(--teal); background: #0b0d0c; color: var(--gold); font-size: 11px; line-height: 12px; }
+.ca-plus:disabled { opacity: 0.35; }
+/* worn items: slot sizes of ui3/玩家装备与人物状态_装备.ini */
+.char-equip { position: relative; width: 180px; border: 1px solid var(--line); background: #080a09; }
+.ce-pk { position: absolute; top: 4px; right: 8px; color: #a9d3be; font-size: 12px; }
+.ce-pk span { color: rgb(0, 255, 0); margin-left: 4px; }
+#ce-slots { position: relative; height: 318px; }
+#ce-slots .slot { position: absolute; box-sizing: border-box; }
+#ce-slots .slot-name { font-size: 9px; line-height: 1.1; inset: auto 0 1px; }
+.char-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.char-foot .btn { flex: 1; }
+/* default place like the original (StartPos -430,100: left side), the bag on the right */
+#char-panel:not(.placed) { left: 16px; transform: none; }
+@media (max-width: 560px) {
+  .char-body { flex-direction: column; }
+  .char-attr { width: auto; }
+  .char-equip { align-self: center; }
+}

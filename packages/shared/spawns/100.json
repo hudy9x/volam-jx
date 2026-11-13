@@ -1,0 +1,17 @@
+{
+ "map": 100,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Chu Tiên trấn, cấp 1–10, vùng Hoa Bắc: Nhím, Heo rừng, Hồng Hồ, Tàng Vực hầu.",
+ "zones": [
+  {"x":9328,"y":8536,"r":220,"monsters":[[12,4],[11,4]],"count":5,"respawn":22},
+  {"x":8592,"y":8616,"r":220,"monsters":[[12,5]],"count":5,"respawn":22},
+  {"x":16624,"y":6936,"r":220,"monsters":[[35,5]],"count":5,"respawn":22},
+  {"x":1296,"y":8264,"r":220,"monsters":[[10,11],[12,9]],"count":5,"respawn":23},
+  {"x":14416,"y":8776,"r":220,"monsters":[[35,7]],"count":5,"respawn":22},
+  {"x":4272,"y":10360,"r":220,"monsters":[[11,10],[35,11]],"count":3,"respawn":23},
+  {"x":13488,"y":8520,"r":220,"monsters":[[12,4]],"count":5,"respawn":22},
+  {"x":10128,"y":10024,"r":220,"monsters":[[12,7]],"count":4,"respawn":22},
+  {"x":5936,"y":4920,"r":220,"monsters":[[12,5],[11,6]],"count":3,"respawn":22},
+  {"x":12976,"y":5096,"r":220,"monsters":[[12,3],[11,3]],"count":4,"respawn":21}
+ ]
+}

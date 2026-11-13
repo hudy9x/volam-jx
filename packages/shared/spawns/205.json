@@ -1,0 +1,26 @@
+{
+ "map": 205,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Dương Trung động, cấp 45–55, vùng Trung Nguyên: Rắn xanh, Rết, Sói xám, Trâu rừng, Trung Nguyên sơn tặc 2, Trung Nguyên sơn tặc 1.",
+ "zones": [
+  {"x":11152,"y":5576,"r":220,"monsters":[[21,50],[17,51]],"count":5,"respawn":37},
+  {"x":7984,"y":2600,"r":220,"monsters":[[5,49],[46,47]],"count":4,"respawn":36},
+  {"x":11824,"y":6920,"r":220,"monsters":[[17,52]],"count":4,"respawn":38},
+  {"x":7344,"y":2696,"r":220,"monsters":[[21,49]],"count":4,"respawn":36},
+  {"x":13456,"y":7448,"r":220,"monsters":[[161,55],[162,54]],"count":6,"respawn":38},
+  {"x":6512,"y":4552,"r":220,"monsters":[[21,46],[162,46]],"count":5,"respawn":35},
+  {"x":10480,"y":5512,"r":220,"monsters":[[21,50]],"count":5,"respawn":36},
+  {"x":9200,"y":5112,"r":220,"monsters":[[161,47]],"count":6,"respawn":36},
+  {"x":3312,"y":1208,"r":220,"monsters":[[21,53]],"count":5,"respawn":38},
+  {"x":7888,"y":5528,"r":220,"monsters":[[46,49],[161,48]],"count":4,"respawn":36},
+  {"x":6640,"y":984,"r":220,"monsters":[[46,52]],"count":4,"respawn":37},
+  {"x":880,"y":1944,"r":220,"monsters":[[5,54],[17,55]],"count":5,"respawn":38},
+  {"x":9264,"y":6728,"r":220,"monsters":[[161,51],[162,50]],"count":5,"respawn":37},
+  {"x":14096,"y":5592,"r":220,"monsters":[[161,53]],"count":5,"respawn":38},
+  {"x":11056,"y":4904,"r":220,"monsters":[[17,48]],"count":5,"respawn":36},
+  {"x":10704,"y":6632,"r":220,"monsters":[[162,52]],"count":5,"respawn":37},
+  {"x":5232,"y":4328,"r":220,"monsters":[[46,48]],"count":6,"respawn":36},
+  {"x":3888,"y":840,"r":220,"monsters":[[162,54],[21,52]],"count":6,"respawn":38},
+  {"x":13008,"y":4984,"r":220,"monsters":[[21,51]],"count":6,"respawn":37}
+ ]
+}

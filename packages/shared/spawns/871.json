@@ -1,0 +1,10 @@
+{
+ "map": 871,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thanh Êm Động (1), cấp 45–55, vùng Đặc thù: Rết, Dơi chúa, Sói xám, Dơi Dong, sơn tặc 03, sơn tặc 02.",
+ "zones": [
+  {"x":720,"y":2008,"r":220,"monsters":[[46,56],[29,55]],"count":5,"respawn":38},
+  {"x":2320,"y":712,"r":220,"monsters":[[29,53],[46,51]],"count":4,"respawn":37},
+  {"x":2224,"y":2008,"r":220,"monsters":[[164,54]],"count":5,"respawn":38}
+ ]
+}

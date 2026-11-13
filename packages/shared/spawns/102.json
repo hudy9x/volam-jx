@@ -1,0 +1,8 @@
+{
+ "map": 102,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thánh động tầng 2, cấp 55–65, vùng Hoa Bắc: Bò cạp, Dơi Dong, Sói tuyết, Đông Bắc hổ, Hoa Bắc sơn tặc 2, Hoa Bắc sơn tặc 1.",
+ "zones": [
+  {"x":1520,"y":328,"r":220,"monsters":[[29,64]],"count":5,"respawn":42}
+ ]
+}

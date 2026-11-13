@@ -1,0 +1,13 @@
+{
+ "map": 163,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): ác bá địa đạo, cấp 45–55, vùng Tây Nam: Dơi chúa, Rắn xanh, Sài, Thương ưng, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
+ "zones": [
+  {"x":5808,"y":2104,"r":220,"monsters":[[27,46]],"count":5,"respawn":36},
+  {"x":7440,"y":2552,"r":220,"monsters":[[25,53]],"count":4,"respawn":38},
+  {"x":7952,"y":2328,"r":220,"monsters":[[25,54]],"count":6,"respawn":38},
+  {"x":3888,"y":760,"r":220,"monsters":[[39,54],[151,53]],"count":5,"respawn":38},
+  {"x":4976,"y":1352,"r":220,"monsters":[[25,48],[39,47]],"count":6,"respawn":36},
+  {"x":2000,"y":1416,"r":220,"monsters":[[39,54]],"count":5,"respawn":38}
+ ]
+}

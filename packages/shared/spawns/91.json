@@ -1,0 +1,26 @@
+{
+ "map": 91,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Mê cung Kê Quán động, cấp 70–80, vùng Trung Nguyên: Rết, Nhện, Dơi chúa đỏ, Kim Tiền báo, Trung Nguyên sơn tặc 2, Trung Nguyên sơn tặc 1.",
+ "zones": [
+  {"x":10096,"y":5032,"r":220,"monsters":[[161,75],[162,74]],"count":5,"respawn":45},
+  {"x":6224,"y":8696,"r":220,"monsters":[[161,79],[45,77]],"count":5,"respawn":46},
+  {"x":4560,"y":6008,"r":220,"monsters":[[46,73]],"count":4,"respawn":44},
+  {"x":7920,"y":1800,"r":220,"monsters":[[28,77],[3,77]],"count":7,"respawn":46},
+  {"x":6544,"y":7592,"r":220,"monsters":[[28,76],[46,75]],"count":5,"respawn":45},
+  {"x":4336,"y":1000,"r":220,"monsters":[[45,81],[28,79]],"count":6,"respawn":47},
+  {"x":5104,"y":3240,"r":220,"monsters":[[28,73],[3,74]],"count":7,"respawn":45},
+  {"x":6160,"y":9192,"r":220,"monsters":[[162,81]],"count":5,"respawn":47},
+  {"x":6256,"y":7944,"r":220,"monsters":[[3,75]],"count":7,"respawn":45},
+  {"x":3888,"y":6856,"r":220,"monsters":[[45,75],[46,75]],"count":7,"respawn":45},
+  {"x":11120,"y":3144,"r":220,"monsters":[[3,78]],"count":7,"respawn":46},
+  {"x":5072,"y":5704,"r":220,"monsters":[[162,70],[28,72]],"count":5,"respawn":44},
+  {"x":9296,"y":3688,"r":220,"monsters":[[46,76]],"count":5,"respawn":45},
+  {"x":3408,"y":3480,"r":220,"monsters":[[3,74]],"count":6,"respawn":45},
+  {"x":8560,"y":1992,"r":220,"monsters":[[161,78],[46,78]],"count":4,"respawn":46},
+  {"x":784,"y":3960,"r":220,"monsters":[[3,77]],"count":6,"respawn":46},
+  {"x":9712,"y":2840,"r":220,"monsters":[[161,78]],"count":5,"respawn":46},
+  {"x":4624,"y":3656,"r":220,"monsters":[[161,74]],"count":6,"respawn":44},
+  {"x":4656,"y":4920,"r":220,"monsters":[[45,70],[46,70]],"count":7,"respawn":44}
+ ]
+}

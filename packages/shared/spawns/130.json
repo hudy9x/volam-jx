@@ -1,0 +1,13 @@
+{
+ "map": 130,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Lưu Tiên động tầng 6, cấp 70–80, vùng Tây Bắc: Bò cạp, Dơi Dong, Bạch Hổ, Kim Hoàn Mãng Xà, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":5360,"y":2840,"r":220,"monsters":[[44,77]],"count":5,"respawn":46},
+  {"x":3664,"y":2520,"r":220,"monsters":[[22,70]],"count":4,"respawn":43},
+  {"x":912,"y":2232,"r":220,"monsters":[[22,76],[44,77]],"count":4,"respawn":46},
+  {"x":4208,"y":3752,"r":220,"monsters":[[149,80],[2,79]],"count":4,"respawn":47},
+  {"x":1936,"y":3016,"r":220,"monsters":[[22,75],[150,76]],"count":5,"respawn":45},
+  {"x":1232,"y":1672,"r":220,"monsters":[[2,76],[149,76]],"count":6,"respawn":46}
+ ]
+}

@@ -1,0 +1,22 @@
+{
+ "map": 125,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Lưu Tiên động tầng 1, cấp 45–55, vùng Tây Bắc: Dơi chúa, Dơi chúa đỏ, Sói xám, Sói đỏ, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":5104,"y":2744,"r":220,"monsters":[[27,46],[6,46]],"count":6,"respawn":35},
+  {"x":7216,"y":4520,"r":220,"monsters":[[6,52],[149,51]],"count":6,"respawn":37},
+  {"x":3632,"y":2392,"r":220,"monsters":[[27,48]],"count":4,"respawn":36},
+  {"x":6064,"y":2280,"r":220,"monsters":[[27,47],[6,49]],"count":6,"respawn":36},
+  {"x":3376,"y":5928,"r":220,"monsters":[[6,54],[5,56]],"count":4,"respawn":38},
+  {"x":8016,"y":5400,"r":220,"monsters":[[28,56]],"count":5,"respawn":38},
+  {"x":6416,"y":4072,"r":220,"monsters":[[5,49],[6,48]],"count":5,"respawn":36},
+  {"x":3216,"y":3528,"r":220,"monsters":[[6,48]],"count":4,"respawn":36},
+  {"x":1936,"y":1176,"r":220,"monsters":[[5,53],[28,51]],"count":5,"respawn":37},
+  {"x":4240,"y":3816,"r":220,"monsters":[[5,47],[149,46]],"count":4,"respawn":36},
+  {"x":7888,"y":4232,"r":220,"monsters":[[27,51]],"count":6,"respawn":37},
+  {"x":208,"y":4840,"r":220,"monsters":[[5,53],[149,54]],"count":5,"respawn":38},
+  {"x":2448,"y":5464,"r":220,"monsters":[[5,54]],"count":4,"respawn":38},
+  {"x":4464,"y":4152,"r":220,"monsters":[[27,47],[28,48]],"count":5,"respawn":36},
+  {"x":4592,"y":2136,"r":220,"monsters":[[27,48]],"count":5,"respawn":36}
+ ]
+}

@@ -1,0 +1,4 @@
+#bigmap { top: 50%; transform: translate(-50%, -50%); }
+#bigmap.placed { transform: none; }
+#bigmap-canvas { display: block; border: 1px solid #000; cursor: crosshair; }
+.bigmap-body { display: flex; gap: 8px; align-items: flex-start; min-height: 0; }

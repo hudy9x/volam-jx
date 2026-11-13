@@ -1,0 +1,10 @@
+{
+ "map": 949,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thí Kiếm Cốc, cấp 45–55, vùng Đặc thù: Sói xám, Dơi hút máu, Trâu rừng, Rắn xanh, sơn tặc 01, sơn tặc 03.",
+ "zones": [
+  {"x":2480,"y":1752,"r":220,"monsters":[[163,52]],"count":4,"respawn":38},
+  {"x":1488,"y":1768,"r":220,"monsters":[[17,56]],"count":4,"respawn":38},
+  {"x":1648,"y":792,"r":220,"monsters":[[17,53]],"count":4,"respawn":38}
+ ]
+}

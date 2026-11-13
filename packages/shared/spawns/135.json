@@ -1,0 +1,23 @@
+{
+ "map": 135,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Kiến Tính Phong sơn động, cấp 45–55, vùng Tây Bắc: Dơi chúa, Rết, Thanh Lang, Dơi Dong, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":8720,"y":8248,"r":220,"monsters":[[150,53],[7,52]],"count":6,"respawn":38},
+  {"x":3184,"y":4072,"r":220,"monsters":[[27,47]],"count":6,"respawn":36},
+  {"x":5392,"y":7944,"r":220,"monsters":[[149,51]],"count":6,"respawn":37},
+  {"x":3408,"y":4408,"r":220,"monsters":[[27,49],[7,47]],"count":5,"respawn":36},
+  {"x":2192,"y":4456,"r":220,"monsters":[[29,49],[46,48]],"count":5,"respawn":36},
+  {"x":3088,"y":8088,"r":220,"monsters":[[27,53]],"count":6,"respawn":38},
+  {"x":6224,"y":8568,"r":220,"monsters":[[149,52]],"count":4,"respawn":38},
+  {"x":5488,"y":8744,"r":220,"monsters":[[46,55],[27,55]],"count":4,"respawn":38},
+  {"x":1072,"y":3240,"r":220,"monsters":[[7,50]],"count":4,"respawn":37},
+  {"x":8272,"y":8616,"r":220,"monsters":[[46,53]],"count":5,"respawn":38},
+  {"x":7984,"y":6808,"r":220,"monsters":[[7,50],[46,49]],"count":4,"respawn":37},
+  {"x":5136,"y":5112,"r":220,"monsters":[[7,46]],"count":5,"respawn":35},
+  {"x":4240,"y":7624,"r":220,"monsters":[[149,50]],"count":6,"respawn":37},
+  {"x":6352,"y":6520,"r":220,"monsters":[[27,47],[46,47]],"count":6,"respawn":36},
+  {"x":8656,"y":7112,"r":220,"monsters":[[46,50],[29,52]],"count":5,"respawn":37},
+  {"x":8336,"y":9096,"r":220,"monsters":[[29,54]],"count":5,"respawn":38}
+ ]
+}

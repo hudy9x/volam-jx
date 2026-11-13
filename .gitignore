@@ -1,0 +1,15 @@
+node_modules/
+dist/
+apps/server/data/
+*.log
+# Generated art (gen:assets / gen:skills / gen:maps / gen:ui / gen:sounds): far too many files to version.
+# Rebuild it with docs/regenerate-assets.md. Portraits have no generator, so they stay versioned.
+apps/client/public/assets/*
+!apps/client/public/assets/portraits/
+# Hash of each asset file by size + mtime (tools/jx/manifest.ts): about this machine's files only.
+apps/client/tools/.cache/asset-hashes.json
+
+# Local settings (apps/server/.env from apps/server/.env.example); may hold secrets such as AUTH_SECRET.
+.env
+.env.*
+!.env.example

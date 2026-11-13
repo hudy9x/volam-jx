@@ -1,0 +1,17 @@
+{
+ "map": 153,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thạch Cổ trấn, cấp 1–10, vùng Tây Nam: Kim Miêu, Linh Miêu, Cóc, Tàng Vực hầu.",
+ "zones": [
+  {"x":10000,"y":5560,"r":220,"monsters":[[41,2]],"count":3,"respawn":21},
+  {"x":2992,"y":4696,"r":220,"monsters":[[31,6],[34,6]],"count":4,"respawn":22},
+  {"x":7344,"y":5768,"r":220,"monsters":[[35,3],[31,2]],"count":5,"respawn":21},
+  {"x":2448,"y":5480,"r":220,"monsters":[[41,4],[35,5]],"count":3,"respawn":22},
+  {"x":1616,"y":5848,"r":220,"monsters":[[41,7]],"count":3,"respawn":22},
+  {"x":10032,"y":5960,"r":220,"monsters":[[35,1]],"count":5,"respawn":20},
+  {"x":6928,"y":4952,"r":220,"monsters":[[34,2]],"count":3,"respawn":21},
+  {"x":6832,"y":12616,"r":220,"monsters":[[41,9],[34,8]],"count":3,"respawn":23},
+  {"x":14224,"y":10936,"r":220,"monsters":[[35,8],[31,9]],"count":4,"respawn":23},
+  {"x":13264,"y":12744,"r":220,"monsters":[[35,11],[34,11]],"count":5,"respawn":23}
+ ]
+}

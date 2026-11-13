@@ -1,0 +1,22 @@
+{
+ "map": 83,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Hỏa Lang động, cấp 60–70, vùng Trung Nguyên: Rết, Dơi hút máu, Kền Kền, Hoa Nam hổ, Trung Nguyên sơn tặc 1, Trung Nguyên sơn tặc 2.",
+ "zones": [
+  {"x":8848,"y":9384,"r":220,"monsters":[[161,66],[1,66]],"count":7,"respawn":42},
+  {"x":2096,"y":9816,"r":220,"monsters":[[46,66],[26,66]],"count":6,"respawn":42},
+  {"x":7120,"y":10520,"r":220,"monsters":[[46,66],[1,68]],"count":6,"respawn":42},
+  {"x":6544,"y":11000,"r":220,"monsters":[[46,67]],"count":7,"respawn":42},
+  {"x":6128,"y":12184,"r":220,"monsters":[[30,70]],"count":4,"respawn":43},
+  {"x":1744,"y":9032,"r":220,"monsters":[[161,66]],"count":7,"respawn":42},
+  {"x":2480,"y":8488,"r":220,"monsters":[[1,63],[30,64]],"count":6,"respawn":41},
+  {"x":5776,"y":12552,"r":220,"monsters":[[30,69],[162,69]],"count":5,"respawn":43},
+  {"x":7824,"y":10392,"r":220,"monsters":[[1,67],[46,65]],"count":7,"respawn":42},
+  {"x":7280,"y":10136,"r":220,"monsters":[[161,67],[162,66]],"count":5,"respawn":42},
+  {"x":5104,"y":5848,"r":220,"monsters":[[1,62],[46,61]],"count":4,"respawn":40},
+  {"x":6608,"y":6872,"r":220,"monsters":[[26,61],[161,61]],"count":5,"respawn":40},
+  {"x":6704,"y":7832,"r":220,"monsters":[[1,61],[46,62]],"count":4,"respawn":41},
+  {"x":9648,"y":10328,"r":220,"monsters":[[162,67],[26,68]],"count":4,"respawn":42},
+  {"x":2480,"y":11096,"r":220,"monsters":[[30,67]],"count":7,"respawn":43}
+ ]
+}

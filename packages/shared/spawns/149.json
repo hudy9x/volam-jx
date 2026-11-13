@@ -1,0 +1,10 @@
+{
+ "map": 149,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tuyết Báo động tầng 5, cấp 65–75, vùng Tây Bắc: Dơi Dong, Rết, Kim Tiền báo, Bạch Hổ, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":2160,"y":1800,"r":220,"monsters":[[29,76]],"count":5,"respawn":45},
+  {"x":1104,"y":1608,"r":220,"monsters":[[3,70],[2,70]],"count":6,"respawn":43},
+  {"x":2256,"y":1416,"r":220,"monsters":[[29,67]],"count":6,"respawn":42}
+ ]
+}

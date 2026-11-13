@@ -1,0 +1,24 @@
+{
+ "map": 164,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thiên Tầm tháp tầng 1, cấp 45–55, vùng Tây Nam: Dơi Dong, Bò cạp, Sói xám, Gấu nâu, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
+ "zones": [
+  {"x":5520,"y":1208,"r":220,"monsters":[[152,54],[29,52]],"count":6,"respawn":38},
+  {"x":8112,"y":1976,"r":220,"monsters":[[29,52],[15,50]],"count":4,"respawn":37},
+  {"x":6512,"y":1704,"r":220,"monsters":[[152,50],[29,51]],"count":5,"respawn":37},
+  {"x":5392,"y":2504,"r":220,"monsters":[[44,46],[152,46]],"count":5,"respawn":36},
+  {"x":4848,"y":5720,"r":220,"monsters":[[44,55]],"count":4,"respawn":38},
+  {"x":10128,"y":1784,"r":220,"monsters":[[29,54]],"count":6,"respawn":38},
+  {"x":6704,"y":2152,"r":220,"monsters":[[15,48]],"count":5,"respawn":36},
+  {"x":9072,"y":3688,"r":220,"monsters":[[15,50]],"count":4,"respawn":37},
+  {"x":4784,"y":1608,"r":220,"monsters":[[15,50]],"count":6,"respawn":37},
+  {"x":1328,"y":2648,"r":220,"monsters":[[44,54]],"count":4,"respawn":38},
+  {"x":3536,"y":3816,"r":220,"monsters":[[29,48],[152,48]],"count":5,"respawn":36},
+  {"x":4112,"y":1480,"r":220,"monsters":[[5,51],[152,52]],"count":5,"respawn":37},
+  {"x":4240,"y":3176,"r":220,"monsters":[[151,46]],"count":4,"respawn":36},
+  {"x":9456,"y":2792,"r":220,"monsters":[[151,53]],"count":5,"respawn":37},
+  {"x":7728,"y":2904,"r":220,"monsters":[[44,47]],"count":5,"respawn":36},
+  {"x":6000,"y":824,"r":220,"monsters":[[44,53]],"count":4,"respawn":38},
+  {"x":2704,"y":4920,"r":220,"monsters":[[15,53],[44,53]],"count":5,"respawn":38}
+ ]
+}

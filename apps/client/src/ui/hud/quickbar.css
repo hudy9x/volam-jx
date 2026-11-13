@@ -1,0 +1,53 @@
+/* thanh phím tắt (original quick bar, 800x92) */
+#quickbar {
+  position: absolute; left: 50%; bottom: 0; width: 800px; height: 92px;
+  transform: translateX(-50%) scale(var(--qb, 1)); transform-origin: 50% 100%;
+  background: url(/assets/ui/quickbar.webp) no-repeat;
+}
+.sk-slot { position: absolute; width: 36px; height: 36px; cursor: pointer; }
+.sk-slot.key { top: 41px; }
+.sk-slot.mouse { top: 20px; }
+.sk-slot img { width: 36px; height: 36px; display: block; pointer-events: none; }
+.sk-slot.blocked img { filter: grayscale(1) brightness(0.6); }
+.sk-slot:hover { box-shadow: inset 0 0 0 1px var(--hl); }
+.sk-slot.drop { box-shadow: inset 0 0 0 2px var(--gold), 0 0 8px var(--gold); }
+.sk-slot .cd { position: absolute; inset: 0; background: #000b; transform-origin: bottom; transform: scaleY(0); pointer-events: none; }
+.fn { position: absolute; top: 51px; width: 28px; height: 28px; padding: 0; border: 0; cursor: pointer; background: 0 0 / 300% 100% no-repeat; }
+.fn:hover { background-position: 100% 0; }
+.fn:active { background-position: 50% 0; }
+.fn.b-bag { background-image: url(/assets/ui/b-bag.webp); }
+.fn.b-char { background-image: url(/assets/ui/b-char.webp); }
+/* Tự động đánh: the original has no such button, so it is drawn here in the bar's bronze / jade colours (28 x 28 like the others) */
+.fn.b-auto { background: radial-gradient(circle at 50% 40%, #2c3b33, #0b100d 70%); border: 1px solid #6b5a2e; border-radius: 50%;
+  box-shadow: inset 0 0 0 1px #000, inset 0 1px 2px #a08a4a80; color: #b9b29a; font: bold 8px/26px Tahoma, sans-serif; letter-spacing: -0.3px;
+  text-align: center; text-shadow: 0 1px 1px #000; }
+.fn.b-auto:hover { color: var(--hl); border-color: #c9a64a; }
+.fn.b-auto:active { transform: translateY(1px); }
+.fn.b-auto.on { color: rgb(0, 255, 0); border-color: rgb(243, 194, 70); box-shadow: 0 0 8px rgb(243, 194, 70), inset 0 0 6px #3f8a3f; }
+.fn.b-skill { background-image: url(/assets/ui/b-skill.webp); }
+.fn.b-system { background-image: url(/assets/ui/b-system.webp); }
+.fn.b-horse, .fn.b-trade { background-image: url(/assets/ui/b-horse.webp); background-size: 200% 100%; }
+.fn.b-trade { background-image: url(/assets/ui/b-trade.webp); }
+.fn.b-horse:hover, .fn.b-trade:hover, .fn.b-horse:active, .fn.b-trade:active { background-position: 0 0; filter: brightness(1.25); }
+.fn.b-horse.on { background-position: 100% 0; box-shadow: 0 0 6px var(--gold); }
+.fn.b-pk { background-image: url(/assets/ui/b-pk.webp); }
+.fn.b-pk.on { background-position: 50% 0; box-shadow: 0 0 8px #ff5040; }
+.fn.b-pk.off-map { opacity: 0.35; }
+.fn.b-pk.on:not(.slaughter) { box-shadow: 0 0 8px #ffd94e; }
+.fn.b-team { background-image: url(/assets/ui/b-team.webp); }
+/* items on keys 1–9: original icon at 1:1 (potions are ~15x26), centred; pieces left in the bag at the bottom right */
+.sk-slot.item img { position: absolute; inset: 0; margin: auto; width: auto; height: auto; max-width: 36px; max-height: 36px; }
+.sk-slot .qty { position: absolute; right: 1px; bottom: 0; font-size: 11px; line-height: 1; color: #fff; text-shadow: var(--outline); pointer-events: none; }
+/* Kỳ Trân Các: original button of the VN interface (74 x 61 per frame, gen:ui), above the right end of the bar */
+.fn.b-kytran { top: -64px; width: 74px; height: 61px; background-image: url(/assets/ui/b-kytran.webp); background-size: 300% 100%; }
+/* Phím tắt (USER 2026-11-13): the key number on top of every 1–9 slot (above the icon), and each function button's key
+   floating above its top right corner (input/keymap.ts KEYS). */
+.sk-slot .key-no { position: absolute; left: 1px; top: 0; z-index: 2; font: 700 11px/1 Tahoma, sans-serif; color: var(--gold);
+  text-shadow: var(--outline); pointer-events: none; }
+.fn .fn-key { position: absolute; right: -5px; top: -9px; z-index: 2; min-width: 14px; height: 13px; padding: 0 2px;
+  font: 700 9px/11px Tahoma, sans-serif; letter-spacing: 0; color: var(--gold); text-align: center; text-shadow: none;
+  background: #0b0d0c; border: 1px solid #6b5a2e; border-radius: 3px; box-shadow: 0 1px 2px #000; pointer-events: none; }
+.fn:hover .fn-key { border-color: var(--gold); color: #fff; }
+.fn.b-kytran .fn-key { right: 6px; top: 2px; }
+/* empty slots already show their number in the original art */
+.sk-slot:not(.filled) .key-no { display: none; }

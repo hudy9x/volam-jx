@@ -1,0 +1,13 @@
+{
+ "map": 94,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Linh Cốc động, cấp 70–80, vùng Trung Nguyên: Dơi Dong, Rết, Kền Kền, Kim Điêu, Trung Nguyên sơn tặc 2, Trung Nguyên sơn tặc 1.",
+ "zones": [
+  {"x":720,"y":3144,"r":220,"monsters":[[26,79]],"count":7,"respawn":47},
+  {"x":2064,"y":2440,"r":220,"monsters":[[29,76],[46,76]],"count":6,"respawn":45},
+  {"x":3248,"y":3912,"r":220,"monsters":[[26,78],[162,76]],"count":6,"respawn":46},
+  {"x":2672,"y":1352,"r":220,"monsters":[[26,77],[162,75]],"count":6,"respawn":45},
+  {"x":2320,"y":2744,"r":220,"monsters":[[26,73]],"count":4,"respawn":45},
+  {"x":944,"y":3544,"r":220,"monsters":[[162,81]],"count":5,"respawn":47}
+ ]
+}

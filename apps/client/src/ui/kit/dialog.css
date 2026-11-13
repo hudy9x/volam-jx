@@ -1,0 +1,27 @@
+/* ---------- cửa sổ (ui/kit/dialog.ts) ---------- */
+.dlg {
+  position: absolute; top: 90px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; flex-direction: column; max-height: calc(100vh - 20px); min-width: 220px; padding: 8px;
+  border: solid transparent; border-width: 19px 21px; border-image: url(/assets/ui/jade.webp) 19 21 round;
+  background: var(--body); background-clip: padding-box; box-shadow: 0 8px 30px #000c;
+}
+.dlg.placed { transform: none; }
+.dlg-head {
+  position: relative; flex: none; height: 26px; margin: -8px -8px 6px; display: flex; align-items: center; justify-content: center;
+  background: url(/assets/ui/stone.webp) center / auto 100%; border: 1px solid #1a2520; cursor: move; user-select: none; touch-action: none;
+}
+.dlg.dragging .dlg-head { cursor: grabbing; }
+.dlg-head .coin { position: absolute; top: 1px; width: 22px; height: 22px; background: url(/assets/ui/coin.webp); }
+.dlg-head .coin:first-child { left: 3px; }
+.dlg-head .coin:nth-child(3) { right: 3px; }
+.dlg-title { margin: 0; padding: 0 30px; font-size: 14px; line-height: 24px; text-transform: uppercase; letter-spacing: 0.5px; color: #141209;
+  text-shadow: 0 0 2px #fff3b0, 0 0 3px #fff3b0, 0 0 1px #fff3b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dlg-x { position: absolute; top: -20px; right: -22px; width: 22px; height: 22px; padding: 0; border: 0; cursor: pointer;
+  background: url(/assets/ui/close.webp) 0 0 / 300% 100%; }
+.dlg-x:hover { background-position: 100% 0; }
+.dlg-x:active { background-position: 50% 0; }
+.dlg-body { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
+
+@media (max-width: 720px) {
+  .dlg { border-width: 12px 13px; border-image-width: 12px 13px; }
+}

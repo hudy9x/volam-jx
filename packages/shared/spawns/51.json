@@ -1,0 +1,16 @@
+{
+ "map": 51,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thánh động tầng 1, cấp 60–70, vùng Hoa Bắc: Nhện, Dơi chúa đỏ, Voi Châu á, Voi Hoàng hà, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2.",
+ "zones": [
+  {"x":5904,"y":3624,"r":220,"monsters":[[13,64]],"count":7,"respawn":41},
+  {"x":4784,"y":1720,"r":220,"monsters":[[159,63],[14,63]],"count":6,"respawn":41},
+  {"x":7952,"y":2600,"r":220,"monsters":[[160,63]],"count":4,"respawn":41},
+  {"x":10224,"y":2824,"r":220,"monsters":[[28,69],[14,71]],"count":5,"respawn":43},
+  {"x":6480,"y":4328,"r":220,"monsters":[[45,68],[28,66]],"count":5,"respawn":42},
+  {"x":5424,"y":1336,"r":220,"monsters":[[13,66]],"count":5,"respawn":42},
+  {"x":3216,"y":4104,"r":220,"monsters":[[160,70],[159,68]],"count":7,"respawn":43},
+  {"x":6224,"y":3032,"r":220,"monsters":[[28,59],[159,60]],"count":7,"respawn":40},
+  {"x":2608,"y":2648,"r":220,"monsters":[[160,67]],"count":7,"respawn":42}
+ ]
+}

@@ -1,0 +1,22 @@
+{
+ "map": 23,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thần Tiên động, cấp 40–50, vùng Tây Nam: Dơi Dong, Dơi hút máu, Thương ưng, Gấu nâu, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
+ "zones": [
+  {"x":3152,"y":3432,"r":220,"monsters":[[15,47],[25,46]],"count":6,"respawn":35},
+  {"x":4560,"y":4312,"r":220,"monsters":[[29,46],[30,46]],"count":6,"respawn":35},
+  {"x":3728,"y":4808,"r":220,"monsters":[[29,48]],"count":6,"respawn":36},
+  {"x":4176,"y":1928,"r":220,"monsters":[[151,45],[29,47]],"count":6,"respawn":35},
+  {"x":5616,"y":2056,"r":220,"monsters":[[25,43],[30,42]],"count":4,"respawn":34},
+  {"x":6928,"y":1416,"r":220,"monsters":[[25,47],[29,46]],"count":6,"respawn":35},
+  {"x":8784,"y":4936,"r":220,"monsters":[[152,50],[30,48]],"count":7,"respawn":36},
+  {"x":4240,"y":3512,"r":220,"monsters":[[25,43],[15,42]],"count":5,"respawn":34},
+  {"x":5296,"y":680,"r":220,"monsters":[[15,49],[29,51]],"count":7,"respawn":37},
+  {"x":5840,"y":5032,"r":220,"monsters":[[15,49]],"count":7,"respawn":36},
+  {"x":7408,"y":2088,"r":220,"monsters":[[29,44]],"count":7,"respawn":35},
+  {"x":2160,"y":3864,"r":220,"monsters":[[25,48]],"count":6,"respawn":36},
+  {"x":9552,"y":3704,"r":220,"monsters":[[15,48]],"count":7,"respawn":36},
+  {"x":4976,"y":3896,"r":220,"monsters":[[151,42]],"count":5,"respawn":34},
+  {"x":4272,"y":5000,"r":220,"monsters":[[152,48],[15,50]],"count":4,"respawn":36}
+ ]
+}

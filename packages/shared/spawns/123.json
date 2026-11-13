@@ -1,0 +1,14 @@
+{
+ "map": 123,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Lão Hổ động, cấp 45–55, vùng Tây Bắc: Rết, Nhện, Dơi chúa, Thanh Lang, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":3440,"y":824,"r":220,"monsters":[[46,53]],"count":4,"respawn":37},
+  {"x":5744,"y":840,"r":220,"monsters":[[7,55]],"count":5,"respawn":38},
+  {"x":4592,"y":776,"r":220,"monsters":[[7,52],[27,53]],"count":5,"respawn":38},
+  {"x":4176,"y":3208,"r":220,"monsters":[[46,51],[45,51]],"count":5,"respawn":37},
+  {"x":4816,"y":1336,"r":220,"monsters":[[7,49],[46,49]],"count":6,"respawn":37},
+  {"x":2320,"y":2696,"r":220,"monsters":[[27,49],[7,49]],"count":6,"respawn":36},
+  {"x":5360,"y":1912,"r":220,"monsters":[[149,49]],"count":5,"respawn":37}
+ ]
+}

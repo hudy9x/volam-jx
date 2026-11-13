@@ -1,0 +1,16 @@
+{
+ "map": 116,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tường Vân động tầng 1, cấp 45–55, vùng Trung Nguyên: Dơi hút máu, Dơi Dong, Sói xám, Sói đỏ, Trung Nguyên sơn tặc 2, Trung Nguyên sơn tặc 1.",
+ "zones": [
+  {"x":6736,"y":3832,"r":220,"monsters":[[30,51]],"count":5,"respawn":37},
+  {"x":7856,"y":2184,"r":220,"monsters":[[29,53],[162,53]],"count":5,"respawn":38},
+  {"x":5456,"y":3368,"r":220,"monsters":[[161,49],[30,48]],"count":5,"respawn":36},
+  {"x":7344,"y":1800,"r":220,"monsters":[[5,51],[30,51]],"count":4,"respawn":37},
+  {"x":6608,"y":712,"r":220,"monsters":[[161,56]],"count":4,"respawn":38},
+  {"x":2832,"y":1928,"r":220,"monsters":[[29,49]],"count":5,"respawn":36},
+  {"x":4976,"y":2232,"r":220,"monsters":[[162,44],[30,46]],"count":4,"respawn":35},
+  {"x":3408,"y":4056,"r":220,"monsters":[[29,53]],"count":4,"respawn":37},
+  {"x":1744,"y":3016,"r":220,"monsters":[[5,51],[30,53]],"count":6,"respawn":37}
+ ]
+}

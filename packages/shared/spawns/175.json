@@ -1,0 +1,10 @@
+{
+ "map": 175,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tây Sơn thôn, cấp 1–10, vùng Giang Nam: Tàng Vực hầu, Heo trắng, Nhím, Hươu đốm.",
+ "zones": [
+  {"x":1232,"y":3816,"r":220,"monsters":[[35,10],[42,9]],"count":5,"respawn":23},
+  {"x":4592,"y":3160,"r":220,"monsters":[[35,3],[42,4]],"count":3,"respawn":21},
+  {"x":2640,"y":3400,"r":220,"monsters":[[12,5]],"count":3,"respawn":21}
+ ]
+}

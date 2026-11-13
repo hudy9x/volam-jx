@@ -1,0 +1,20 @@
+{
+ "map": 52,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thánh động tầng 2, cấp 70–80, vùng Hoa Bắc: Dơi hút máu, Dơi Dong, Kim Hoàn Mãng Xà, Dơi chúa đỏ, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2.",
+ "zones": [
+  {"x":3536,"y":2584,"r":220,"monsters":[[22,75]],"count":5,"respawn":45},
+  {"x":5520,"y":1160,"r":220,"monsters":[[159,77]],"count":5,"respawn":45},
+  {"x":2032,"y":3912,"r":220,"monsters":[[22,77]],"count":5,"respawn":46},
+  {"x":9808,"y":4152,"r":220,"monsters":[[159,77]],"count":5,"respawn":45},
+  {"x":3408,"y":3656,"r":220,"monsters":[[30,76],[29,75]],"count":5,"respawn":45},
+  {"x":5296,"y":3032,"r":220,"monsters":[[30,71]],"count":5,"respawn":44},
+  {"x":10448,"y":2744,"r":220,"monsters":[[30,75]],"count":5,"respawn":45},
+  {"x":8944,"y":3816,"r":220,"monsters":[[159,74],[28,73]],"count":6,"respawn":45},
+  {"x":4016,"y":2808,"r":220,"monsters":[[30,75]],"count":5,"respawn":45},
+  {"x":3056,"y":5304,"r":220,"monsters":[[28,81],[160,79]],"count":7,"respawn":47},
+  {"x":4080,"y":3896,"r":220,"monsters":[[29,74],[28,74]],"count":7,"respawn":45},
+  {"x":11408,"y":3208,"r":220,"monsters":[[22,77]],"count":6,"respawn":46},
+  {"x":4784,"y":4328,"r":220,"monsters":[[159,75]],"count":4,"respawn":45}
+ ]
+}

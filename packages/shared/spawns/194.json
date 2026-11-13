@@ -1,0 +1,17 @@
+{
+ "map": 194,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Ngọc Hoa động, cấp 45–55, vùng Giang Nam: Dơi chúa đỏ, Dơi chúa, Sói đỏ, Nhện, Giang Nam sơn tặc 2, Giang Nam sơn tặc 1.",
+ "zones": [
+  {"x":5392,"y":6888,"r":220,"monsters":[[45,52],[27,53]],"count":4,"respawn":37},
+  {"x":12016,"y":7384,"r":220,"monsters":[[154,52]],"count":4,"respawn":37},
+  {"x":7728,"y":8264,"r":220,"monsters":[[27,50],[6,52]],"count":4,"respawn":37},
+  {"x":5808,"y":5384,"r":220,"monsters":[[27,54]],"count":5,"respawn":38},
+  {"x":5264,"y":8440,"r":220,"monsters":[[153,56]],"count":4,"respawn":38},
+  {"x":5168,"y":7432,"r":220,"monsters":[[27,54],[6,53]],"count":5,"respawn":38},
+  {"x":8208,"y":7896,"r":220,"monsters":[[153,47],[28,47]],"count":6,"respawn":36},
+  {"x":9008,"y":7464,"r":220,"monsters":[[6,45],[28,47]],"count":4,"respawn":35},
+  {"x":6032,"y":5720,"r":220,"monsters":[[27,54]],"count":4,"respawn":38},
+  {"x":10256,"y":6664,"r":220,"monsters":[[6,49],[154,48]],"count":5,"respawn":36}
+ ]
+}

@@ -1,0 +1,9 @@
+/* Who reacted to a chat line (ui/windows/chatReacts.ts). */
+#chat-reacts-dlg { width: min(320px, calc(100vw - 32px)); }
+.cr-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding-bottom: 6px; border-bottom: 1px solid #5a4d28; margin-bottom: 6px; }
+.cr-tab { padding: 2px 8px; background: none; border: 0; border-bottom: 2px solid transparent; color: #e8e2cf; cursor: pointer; font: inherit; }
+.cr-tab.on { border-bottom-color: #ffd96a; color: #ffd96a; }
+.cr-list { max-height: 260px; overflow-y: auto; display: grid; gap: 2px; }
+.cr-row { display: flex; align-items: center; gap: 8px; padding: 3px 4px; }
+.cr-row.me { color: #9cf08a; }
+.cr-emoji { width: 22px; text-align: center; font-size: 16px; }

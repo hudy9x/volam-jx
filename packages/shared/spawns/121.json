@@ -1,0 +1,17 @@
+{
+ "map": 121,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Long Môn trấn, cấp 1–10, vùng Tây Bắc: Heo trắng, Kim Miêu, Hắc Diệp Hầu, Tàng Vực hầu.",
+ "zones": [
+  {"x":14192,"y":8552,"r":220,"monsters":[[43,5],[31,5]],"count":3,"respawn":22},
+  {"x":11792,"y":10328,"r":220,"monsters":[[43,7],[35,8]],"count":4,"respawn":22},
+  {"x":14960,"y":7464,"r":220,"monsters":[[35,4]],"count":5,"respawn":21},
+  {"x":9456,"y":9176,"r":220,"monsters":[[43,5]],"count":3,"respawn":21},
+  {"x":12624,"y":11832,"r":220,"monsters":[[37,9]],"count":4,"respawn":23},
+  {"x":9104,"y":10232,"r":220,"monsters":[[37,6],[35,8]],"count":4,"respawn":22},
+  {"x":11312,"y":10952,"r":220,"monsters":[[37,7],[35,8]],"count":5,"respawn":23},
+  {"x":6480,"y":4168,"r":220,"monsters":[[37,7],[35,7]],"count":4,"respawn":22},
+  {"x":14448,"y":6136,"r":220,"monsters":[[43,3],[31,4]],"count":3,"respawn":21},
+  {"x":12528,"y":7848,"r":220,"monsters":[[31,3]],"count":4,"respawn":21}
+ ]
+}

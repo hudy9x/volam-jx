@@ -1,0 +1,12 @@
+{
+ "map": 128,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Lưu Tiên động tầng 4, cấp 60–70, vùng Tây Bắc: Dơi hút máu, Dơi chúa, Voi Châu á, Sói tuyết, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":3504,"y":3992,"r":220,"monsters":[[30,69],[8,71]],"count":6,"respawn":43},
+  {"x":5776,"y":2344,"r":220,"monsters":[[27,68]],"count":4,"respawn":43},
+  {"x":880,"y":2776,"r":220,"monsters":[[30,69]],"count":5,"respawn":43},
+  {"x":2160,"y":1912,"r":220,"monsters":[[30,65],[149,65]],"count":5,"respawn":42},
+  {"x":1456,"y":1864,"r":220,"monsters":[[150,67]],"count":6,"respawn":43}
+ ]
+}

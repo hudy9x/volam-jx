@@ -1,0 +1,10 @@
+{
+ "map": 79,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Mật đạo Nha môn Tương Dương, cấp 20–30, vùng Trung Nguyên: Sói xám, Rắn xanh, Dơi Dong, Sài, Trung Nguyên sơn tặc 2, Trung Nguyên sơn tặc 1.",
+ "zones": [
+  {"x":2896,"y":1816,"r":220,"monsters":[[162,21]],"count":4,"respawn":27},
+  {"x":4048,"y":2680,"r":220,"monsters":[[161,29],[5,29]],"count":4,"respawn":30},
+  {"x":4880,"y":1560,"r":220,"monsters":[[161,24],[5,23]],"count":5,"respawn":28}
+ ]
+}

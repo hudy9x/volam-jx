@@ -1,0 +1,11 @@
+/* bùa lợi / bùa hại */
+#hud-states { position: absolute; top: 112px; left: 8px; display: flex; flex-wrap: wrap; gap: 3px; max-width: 300px; }
+#hud-states:empty { display: none; }
+.st-icon { position: relative; width: 28px; height: 28px; border: 1px solid #3f7a3f; background: #000a; }
+.st-icon.debuff { border-color: #8a3fb0; }
+.st-icon img { width: 100%; height: 100%; object-fit: contain; }
+.st-icon span { position: absolute; right: 1px; bottom: 0; font-size: 10px; line-height: 1; color: #fff; text-shadow: var(--outline); }
+
+@media (max-width: 720px) {
+  #hud-states { top: 112px; }
+}

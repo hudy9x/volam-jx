@@ -1,0 +1,16 @@
+{
+ "map": 178,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Sơn động Ngự Hoa viên, cấp 45–55, vùng Giang Nam: Rết, Nhện, Nhãn Kính Mãng xà, Dơi Dong, Giang Nam sơn tặc 2, Giang Nam sơn tặc 1.",
+ "zones": [
+  {"x":2224,"y":3608,"r":220,"monsters":[[29,51],[154,53]],"count":5,"respawn":37},
+  {"x":4304,"y":3672,"r":220,"monsters":[[29,50]],"count":5,"respawn":37},
+  {"x":112,"y":3416,"r":220,"monsters":[[46,55],[45,56]],"count":5,"respawn":38},
+  {"x":5744,"y":3544,"r":220,"monsters":[[29,52]],"count":4,"respawn":37},
+  {"x":2800,"y":648,"r":220,"monsters":[[45,51]],"count":6,"respawn":37},
+  {"x":7984,"y":2536,"r":220,"monsters":[[46,52],[20,53]],"count":5,"respawn":38},
+  {"x":4144,"y":408,"r":220,"monsters":[[45,50]],"count":6,"respawn":37},
+  {"x":2256,"y":1848,"r":220,"monsters":[[45,47],[154,47]],"count":6,"respawn":36},
+  {"x":3376,"y":1032,"r":220,"monsters":[[45,49]],"count":5,"respawn":36}
+ ]
+}

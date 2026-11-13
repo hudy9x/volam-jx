@@ -1,0 +1,27 @@
+{
+ "map": 203,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Vô Danh động, cấp 45–55, vùng Tây Nam: Dơi chúa đỏ, Rết, Dơi Dong, Dơi chúa, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
+ "zones": [
+  {"x":10736,"y":4936,"r":220,"monsters":[[28,49]],"count":4,"respawn":36},
+  {"x":9232,"y":5480,"r":220,"monsters":[[152,49],[151,49]],"count":6,"respawn":36},
+  {"x":12528,"y":5000,"r":220,"monsters":[[151,51]],"count":4,"respawn":37},
+  {"x":7184,"y":4584,"r":220,"monsters":[[151,47]],"count":5,"respawn":35},
+  {"x":5712,"y":3704,"r":220,"monsters":[[28,47]],"count":4,"respawn":36},
+  {"x":10640,"y":5464,"r":220,"monsters":[[29,51],[152,50]],"count":5,"respawn":37},
+  {"x":7888,"y":888,"r":220,"monsters":[[152,54]],"count":5,"respawn":38},
+  {"x":5776,"y":904,"r":220,"monsters":[[28,54],[46,55]],"count":5,"respawn":38},
+  {"x":8592,"y":520,"r":220,"monsters":[[28,56],[46,56]],"count":4,"respawn":38},
+  {"x":5232,"y":1576,"r":220,"monsters":[[28,53],[46,54]],"count":5,"respawn":38},
+  {"x":13008,"y":5608,"r":220,"monsters":[[28,54]],"count":6,"respawn":38},
+  {"x":11280,"y":4184,"r":220,"monsters":[[28,50]],"count":4,"respawn":36},
+  {"x":10704,"y":6392,"r":220,"monsters":[[151,52]],"count":5,"respawn":37},
+  {"x":10576,"y":3832,"r":220,"monsters":[[28,49]],"count":5,"respawn":36},
+  {"x":8784,"y":3576,"r":220,"monsters":[[151,45],[27,47]],"count":5,"respawn":35},
+  {"x":9424,"y":744,"r":220,"monsters":[[46,54]],"count":5,"respawn":38},
+  {"x":13712,"y":5016,"r":220,"monsters":[[28,54],[27,53]],"count":4,"respawn":38},
+  {"x":7312,"y":6104,"r":220,"monsters":[[27,49]],"count":6,"respawn":37},
+  {"x":12400,"y":4216,"r":220,"monsters":[[46,52],[152,50]],"count":5,"respawn":37},
+  {"x":4400,"y":3992,"r":220,"monsters":[[151,48],[152,50]],"count":4,"respawn":36}
+ ]
+}

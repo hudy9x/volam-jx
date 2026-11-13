@@ -1,0 +1,19 @@
+{
+ "map": 170,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thổ Phỉ động, cấp 45–55, vùng Tây Nam: Bò cạp, Dơi Dong, Dơi hút máu, Trâu rừng, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "zones": [
+  {"x":8720,"y":5512,"r":220,"monsters":[[44,52],[29,51]],"count":4,"respawn":37},
+  {"x":6192,"y":2488,"r":220,"monsters":[[151,50],[29,49]],"count":4,"respawn":37},
+  {"x":9584,"y":3176,"r":220,"monsters":[[152,52]],"count":6,"respawn":37},
+  {"x":5392,"y":6888,"r":220,"monsters":[[17,53]],"count":4,"respawn":38},
+  {"x":5488,"y":1752,"r":220,"monsters":[[44,52],[29,53]],"count":6,"respawn":38},
+  {"x":8496,"y":4280,"r":220,"monsters":[[44,49],[151,50]],"count":6,"respawn":36},
+  {"x":4496,"y":1192,"r":220,"monsters":[[152,55]],"count":5,"respawn":38},
+  {"x":4976,"y":2552,"r":220,"monsters":[[44,51],[151,49]],"count":5,"respawn":37},
+  {"x":4848,"y":4200,"r":220,"monsters":[[30,47]],"count":6,"respawn":35},
+  {"x":6992,"y":5240,"r":220,"monsters":[[30,48],[29,50]],"count":5,"respawn":36},
+  {"x":10352,"y":2344,"r":220,"monsters":[[44,54],[17,55]],"count":6,"respawn":38},
+  {"x":3824,"y":5880,"r":220,"monsters":[[29,51]],"count":4,"respawn":37}
+ ]
+}

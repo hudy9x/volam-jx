@@ -1,0 +1,11 @@
+{
+ "map": 145,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tuyết Báo động tầng 1, cấp 45–55, vùng Tây Bắc: Dơi hút máu, Sói tuyết, Gấu đen, Sói xám, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":1840,"y":2472,"r":220,"monsters":[[5,55]],"count":4,"respawn":38},
+  {"x":3664,"y":2456,"r":220,"monsters":[[16,46],[8,48]],"count":4,"respawn":36},
+  {"x":1712,"y":2040,"r":220,"monsters":[[5,54]],"count":6,"respawn":38},
+  {"x":4688,"y":1352,"r":220,"monsters":[[30,53],[8,53]],"count":4,"respawn":38}
+ ]
+}

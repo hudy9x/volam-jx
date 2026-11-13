@@ -1,0 +1,10 @@
+{
+ "map": 150,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tuyết Báo động tầng 6, cấp 70–80, vùng Tây Bắc: Rắn xanh, Sói tuyết, Bạch Hổ, Voi Châu á, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":1872,"y":2360,"r":220,"monsters":[[21,78],[149,78]],"count":4,"respawn":46},
+  {"x":2992,"y":2232,"r":220,"monsters":[[21,79],[8,80]],"count":6,"respawn":47},
+  {"x":3024,"y":1256,"r":220,"monsters":[[21,75],[150,74]],"count":4,"respawn":45}
+ ]
+}

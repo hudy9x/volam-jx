@@ -1,0 +1,17 @@
+{
+ "map": 101,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Đạo Hương thôn, cấp 1–10, vùng Trung Nguyên: Heo trắng, Hồ ly, Hồng Hồ, Hươu đốm.",
+ "zones": [
+  {"x":19952,"y":6312,"r":220,"monsters":[[43,8],[9,8]],"count":3,"respawn":23},
+  {"x":14128,"y":1768,"r":220,"monsters":[[9,9]],"count":4,"respawn":23},
+  {"x":6640,"y":11976,"r":220,"monsters":[[43,9],[42,10]],"count":3,"respawn":23},
+  {"x":18704,"y":10968,"r":220,"monsters":[[42,10],[10,9]],"count":5,"respawn":23},
+  {"x":1232,"y":7496,"r":220,"monsters":[[42,9],[43,8]],"count":4,"respawn":23},
+  {"x":17040,"y":9752,"r":220,"monsters":[[43,8],[10,6]],"count":5,"respawn":22},
+  {"x":3760,"y":9400,"r":220,"monsters":[[42,7]],"count":5,"respawn":22},
+  {"x":18864,"y":5656,"r":220,"monsters":[[42,8],[43,6]],"count":4,"respawn":22},
+  {"x":8016,"y":4280,"r":220,"monsters":[[9,3]],"count":3,"respawn":21},
+  {"x":18352,"y":5384,"r":220,"monsters":[[42,8]],"count":3,"respawn":22}
+ ]
+}

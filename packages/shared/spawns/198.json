@@ -1,0 +1,23 @@
+{
+ "map": 198,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Thanh khê động, cấp 45–55, vùng Giang Nam: Dơi chúa, Dơi hút máu, Thanh Lang, Thằn lằn đỏ, Giang Nam sơn tặc 2, Giang Nam sơn tặc 1.",
+ "zones": [
+  {"x":5488,"y":7528,"r":220,"monsters":[[27,53]],"count":6,"respawn":37},
+  {"x":3696,"y":7464,"r":220,"monsters":[[27,52],[153,51]],"count":4,"respawn":37},
+  {"x":2416,"y":3352,"r":220,"monsters":[[27,48]],"count":6,"respawn":36},
+  {"x":3120,"y":8424,"r":220,"monsters":[[27,56],[30,54]],"count":6,"respawn":38},
+  {"x":9904,"y":5976,"r":220,"monsters":[[7,52]],"count":4,"respawn":37},
+  {"x":6544,"y":6232,"r":220,"monsters":[[7,49],[19,50]],"count":5,"respawn":36},
+  {"x":7984,"y":7128,"r":220,"monsters":[[154,53],[30,52]],"count":6,"respawn":37},
+  {"x":3056,"y":5560,"r":220,"monsters":[[27,49]],"count":4,"respawn":36},
+  {"x":4144,"y":6344,"r":220,"monsters":[[27,51]],"count":4,"respawn":37},
+  {"x":5392,"y":6616,"r":220,"monsters":[[27,50]],"count":4,"respawn":37},
+  {"x":496,"y":3352,"r":220,"monsters":[[153,52]],"count":6,"respawn":37},
+  {"x":5744,"y":5912,"r":220,"monsters":[[27,49]],"count":6,"respawn":36},
+  {"x":7632,"y":5624,"r":220,"monsters":[[153,49],[27,47]],"count":4,"respawn":36},
+  {"x":1136,"y":2024,"r":220,"monsters":[[19,52]],"count":4,"respawn":37},
+  {"x":3024,"y":5192,"r":220,"monsters":[[27,49],[30,49]],"count":5,"respawn":36},
+  {"x":9328,"y":7464,"r":220,"monsters":[[30,54]],"count":4,"respawn":38}
+ ]
+}

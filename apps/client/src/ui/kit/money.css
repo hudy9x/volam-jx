@@ -1,0 +1,4 @@
+/* tiền túi (original ui3/随身物品.ini: icon at x 25, amount box x 53 w 110 centred, colour 255,217,78, font 14) */
+.money-row { display: flex; align-items: center; gap: 10px; }
+.money-icon { flex: none; width: 18px; height: 18px; background: url(/assets/ui/money.webp) no-repeat; image-rendering: pixelated; }
+.money { min-width: 110px; text-align: center; color: rgb(255, 217, 78); font-size: 14px; text-shadow: var(--outline); }

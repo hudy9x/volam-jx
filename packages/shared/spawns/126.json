@@ -1,0 +1,21 @@
+{
+ "map": 126,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Lưu Tiên động tầng 2, cấp 50–60, vùng Tây Bắc: Nhện, Dơi hút máu, Voi Hoàng hà, Kim Điêu, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":7984,"y":3048,"r":220,"monsters":[[149,56],[150,57]],"count":6,"respawn":39},
+  {"x":304,"y":2744,"r":220,"monsters":[[30,56]],"count":4,"respawn":39},
+  {"x":7408,"y":1912,"r":220,"monsters":[[150,57],[45,57]],"count":4,"respawn":39},
+  {"x":3792,"y":4280,"r":220,"monsters":[[30,54],[24,53]],"count":6,"respawn":38},
+  {"x":4528,"y":5960,"r":220,"monsters":[[150,60],[24,61]],"count":6,"respawn":40},
+  {"x":1136,"y":1672,"r":220,"monsters":[[14,56],[30,57]],"count":5,"respawn":39},
+  {"x":4944,"y":296,"r":220,"monsters":[[150,61]],"count":5,"respawn":40},
+  {"x":2128,"y":2696,"r":220,"monsters":[[45,53],[30,53]],"count":4,"respawn":38},
+  {"x":1872,"y":4104,"r":220,"monsters":[[14,56],[149,54]],"count":5,"respawn":38},
+  {"x":5552,"y":728,"r":220,"monsters":[[150,57],[24,58]],"count":4,"respawn":39},
+  {"x":3888,"y":3752,"r":220,"monsters":[[30,51]],"count":5,"respawn":37},
+  {"x":8272,"y":2360,"r":220,"monsters":[[45,56],[150,57]],"count":4,"respawn":39},
+  {"x":3664,"y":1672,"r":220,"monsters":[[149,53],[45,55]],"count":6,"respawn":38},
+  {"x":2384,"y":4376,"r":220,"monsters":[[24,54]],"count":4,"respawn":38}
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "map": 144,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Dược Vương động tầng 4, cấp 60–70, vùng Tây Bắc: Dơi Dong, Dơi chúa đỏ, Đông Bắc hổ, Sói tuyết, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":5072,"y":2744,"r":220,"monsters":[[150,64]],"count":5,"respawn":42},
+  {"x":2160,"y":1464,"r":220,"monsters":[[8,66],[149,65]],"count":5,"respawn":42},
+  {"x":2768,"y":3608,"r":220,"monsters":[[8,70],[29,71]],"count":6,"respawn":43},
+  {"x":1616,"y":1848,"r":220,"monsters":[[150,66]],"count":4,"respawn":42},
+  {"x":1744,"y":1128,"r":220,"monsters":[[29,69]],"count":4,"respawn":43},
+  {"x":1200,"y":2376,"r":220,"monsters":[[0,66]],"count":6,"respawn":42},
+  {"x":2448,"y":2232,"r":220,"monsters":[[29,61],[149,63]],"count":6,"respawn":41}
+ ]
+}

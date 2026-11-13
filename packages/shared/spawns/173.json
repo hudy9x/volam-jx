@@ -1,0 +1,10 @@
+{
+ "map": 173,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Điểm Thương động tầng 3, cấp 55–65, vùng Tây Nam: Dơi hút máu, Nhện, Bạch Hổ, Hoa Nam hổ, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "zones": [
+  {"x":7760,"y":3272,"r":220,"monsters":[[30,66],[45,64]],"count":6,"respawn":42},
+  {"x":6064,"y":3992,"r":220,"monsters":[[152,63]],"count":6,"respawn":41},
+  {"x":4112,"y":3528,"r":220,"monsters":[[151,59],[152,58]],"count":6,"respawn":39}
+ ]
+}

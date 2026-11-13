@@ -1,0 +1,20 @@
+{
+ "map": 249,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tẩy Tủy đảo sơn động (1), cấp 45–55, vùng Đặc thù: Cóc, Dơi chúa, Bò cạp, Sài, sơn tặc 03, sơn tặc 02.",
+ "zones": [
+  {"x":2608,"y":1800,"r":220,"monsters":[[164,49]],"count":4,"respawn":37},
+  {"x":3664,"y":3224,"r":220,"monsters":[[27,49]],"count":6,"respawn":37},
+  {"x":2480,"y":3128,"r":220,"monsters":[[164,52]],"count":5,"respawn":37},
+  {"x":2512,"y":2632,"r":220,"monsters":[[44,48]],"count":5,"respawn":36},
+  {"x":2608,"y":3496,"r":220,"monsters":[[44,54],[27,52]],"count":6,"respawn":38},
+  {"x":5424,"y":1352,"r":220,"monsters":[[44,53],[165,52]],"count":4,"respawn":37},
+  {"x":4464,"y":3912,"r":220,"monsters":[[39,55]],"count":4,"respawn":38},
+  {"x":3408,"y":1448,"r":220,"monsters":[[41,50]],"count":4,"respawn":37},
+  {"x":4240,"y":2984,"r":220,"monsters":[[165,49],[39,47]],"count":5,"respawn":36},
+  {"x":5872,"y":3480,"r":220,"monsters":[[41,55]],"count":6,"respawn":38},
+  {"x":3248,"y":2152,"r":220,"monsters":[[39,47],[44,45]],"count":6,"respawn":35},
+  {"x":4944,"y":2872,"r":220,"monsters":[[44,49]],"count":6,"respawn":36},
+  {"x":1776,"y":3416,"r":220,"monsters":[[164,56]],"count":6,"respawn":38}
+ ]
+}

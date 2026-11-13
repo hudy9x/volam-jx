@@ -1,0 +1,17 @@
+{
+ "map": 53,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Ba Lăng huyện, cấp 1–10, vùng Lưỡng Hồ: Kim Tơ Hầu, Heo trắng, Kim Miêu, Hồng Hồ.",
+ "zones": [
+  {"x":3472,"y":9416,"r":220,"monsters":[[38,11]],"count":5,"respawn":23},
+  {"x":2800,"y":3800,"r":220,"monsters":[[10,5],[31,6]],"count":5,"respawn":22},
+  {"x":5136,"y":1240,"r":220,"monsters":[[10,9]],"count":4,"respawn":23},
+  {"x":5008,"y":8328,"r":220,"monsters":[[38,7]],"count":3,"respawn":22},
+  {"x":7088,"y":9144,"r":220,"monsters":[[10,9]],"count":3,"respawn":23},
+  {"x":14928,"y":1944,"r":220,"monsters":[[10,9],[31,10]],"count":4,"respawn":23},
+  {"x":10800,"y":2808,"r":220,"monsters":[[10,5]],"count":4,"respawn":22},
+  {"x":9040,"y":1240,"r":220,"monsters":[[38,9],[43,8]],"count":3,"respawn":23},
+  {"x":13904,"y":1448,"r":220,"monsters":[[38,10],[43,10]],"count":4,"respawn":23},
+  {"x":10832,"y":5496,"r":220,"monsters":[[38,2]],"count":5,"respawn":21}
+ ]
+}

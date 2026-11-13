@@ -1,0 +1,12 @@
+{
+ "map": 71,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Bạch Thủy động, cấp 30–40, vùng Lưỡng Hồ: Dơi chúa đỏ, Cá sấu, Sói xám, Sài, Hoa Nam sơn tặc 2, Hoa Nam sơn tặc 1.",
+ "zones": [
+  {"x":5168,"y":2152,"r":220,"monsters":[[28,38],[18,38]],"count":4,"respawn":32},
+  {"x":4752,"y":5256,"r":220,"monsters":[[18,38],[5,39]],"count":4,"respawn":33},
+  {"x":8336,"y":2728,"r":220,"monsters":[[28,40]],"count":5,"respawn":33},
+  {"x":8432,"y":4440,"r":220,"monsters":[[5,39]],"count":7,"respawn":33},
+  {"x":4400,"y":4152,"r":220,"monsters":[[39,31]],"count":6,"respawn":31}
+ ]
+}

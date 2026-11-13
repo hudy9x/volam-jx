@@ -1,0 +1,14 @@
+{
+ "map": 127,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Lưu Tiên động tầng 3, cấp 55–65, vùng Tây Bắc: Dơi chúa, Dơi chúa đỏ, Đông Bắc hổ, Voi Châu á, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":5392,"y":4104,"r":220,"monsters":[[150,63]],"count":6,"respawn":41},
+  {"x":6192,"y":4472,"r":220,"monsters":[[0,65],[13,65]],"count":5,"respawn":42},
+  {"x":4816,"y":3656,"r":220,"monsters":[[149,60],[13,61]],"count":6,"respawn":40},
+  {"x":5488,"y":3176,"r":220,"monsters":[[0,59],[13,60]],"count":6,"respawn":40},
+  {"x":4048,"y":1160,"r":220,"monsters":[[0,60]],"count":5,"respawn":40},
+  {"x":3664,"y":4504,"r":220,"monsters":[[27,62],[28,62]],"count":6,"respawn":41},
+  {"x":3824,"y":744,"r":220,"monsters":[[149,64]],"count":6,"respawn":41}
+ ]
+}

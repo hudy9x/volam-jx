@@ -1,0 +1,20 @@
+{
+ "map": 8,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Lăng Tần Thủy Hoàng, cấp 80–90, vùng Tây Bắc: Cá sấu, Cóc, Voi Châu á, Dơi chúa đỏ, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":7088,"y":4104,"r":220,"monsters":[[150,86],[28,86]],"count":4,"respawn":49},
+  {"x":2224,"y":1512,"r":220,"monsters":[[18,89],[41,88]],"count":5,"respawn":49},
+  {"x":2448,"y":4328,"r":220,"monsters":[[13,87],[150,88]],"count":7,"respawn":49},
+  {"x":8464,"y":3128,"r":220,"monsters":[[28,86]],"count":6,"respawn":49},
+  {"x":4368,"y":4984,"r":220,"monsters":[[18,89]],"count":7,"respawn":49},
+  {"x":7152,"y":1432,"r":220,"monsters":[[28,86]],"count":6,"respawn":49},
+  {"x":2608,"y":4744,"r":220,"monsters":[[28,90]],"count":4,"respawn":50},
+  {"x":8560,"y":1704,"r":220,"monsters":[[41,89],[13,87]],"count":5,"respawn":49},
+  {"x":7472,"y":2744,"r":220,"monsters":[[13,83]],"count":7,"respawn":48},
+  {"x":1104,"y":4312,"r":220,"monsters":[[13,91],[149,89]],"count":6,"respawn":50},
+  {"x":8048,"y":1304,"r":220,"monsters":[[18,87],[13,87]],"count":5,"respawn":49},
+  {"x":5136,"y":1224,"r":220,"monsters":[[149,86],[150,87]],"count":5,"respawn":49},
+  {"x":3824,"y":1912,"r":220,"monsters":[[18,83],[41,84]],"count":5,"respawn":48}
+ ]
+}

@@ -1,0 +1,13 @@
+{
+ "map": 119,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tường Vân động tầng 4, cấp 60–70, vùng Trung Nguyên: Dơi chúa, Bò cạp, Dơi chúa đỏ, Tuyết Báo, Trung Nguyên sơn tặc 2, Trung Nguyên sơn tặc 1.",
+ "zones": [
+  {"x":3888,"y":2264,"r":220,"monsters":[[4,62],[28,62]],"count":6,"respawn":40},
+  {"x":2224,"y":2632,"r":220,"monsters":[[27,61]],"count":5,"respawn":41},
+  {"x":4784,"y":1480,"r":220,"monsters":[[27,67]],"count":6,"respawn":42},
+  {"x":1008,"y":2152,"r":220,"monsters":[[27,67]],"count":5,"respawn":42},
+  {"x":2832,"y":2888,"r":220,"monsters":[[27,60],[44,60]],"count":4,"respawn":40},
+  {"x":1456,"y":4136,"r":220,"monsters":[[162,70]],"count":5,"respawn":43}
+ ]
+}

@@ -1,0 +1,12 @@
+{
+ "map": 158,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Mê cung cấm địa, cấp 45–55, vùng Tây Nam: Bò cạp, Dơi chúa, Nhãn Kính Mãng xà, Sói xám, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "zones": [
+  {"x":4080,"y":3208,"r":220,"monsters":[[5,49],[20,49]],"count":5,"respawn":37},
+  {"x":6192,"y":4136,"r":220,"monsters":[[20,45],[152,44]],"count":4,"respawn":35},
+  {"x":6960,"y":2728,"r":220,"monsters":[[151,50]],"count":5,"respawn":37},
+  {"x":6672,"y":1880,"r":220,"monsters":[[5,55],[152,54]],"count":5,"respawn":38},
+  {"x":3472,"y":3784,"r":220,"monsters":[[5,51],[20,51]],"count":6,"respawn":37}
+ ]
+}

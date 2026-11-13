@@ -1,0 +1,15 @@
+{
+ "map": 118,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tường Vân động tầng 3, cấp 55–65, vùng Trung Nguyên: Nhện, Dơi Dong, Dơi chúa đỏ, Tuyết Quái, Trung Nguyên sơn tặc 1, Trung Nguyên sơn tặc 2.",
+ "zones": [
+  {"x":7664,"y":1032,"r":220,"monsters":[[45,66],[29,65]],"count":4,"respawn":42},
+  {"x":4112,"y":4088,"r":220,"monsters":[[28,59]],"count":5,"respawn":40},
+  {"x":5648,"y":2312,"r":220,"monsters":[[29,57],[40,58]],"count":4,"respawn":39},
+  {"x":5872,"y":5048,"r":220,"monsters":[[45,66]],"count":4,"respawn":42},
+  {"x":6576,"y":632,"r":220,"monsters":[[161,66],[40,66]],"count":5,"respawn":42},
+  {"x":6224,"y":3720,"r":220,"monsters":[[45,60],[29,58]],"count":6,"respawn":40},
+  {"x":5936,"y":744,"r":220,"monsters":[[29,64]],"count":5,"respawn":41},
+  {"x":5424,"y":4472,"r":220,"monsters":[[45,63],[29,61]],"count":6,"respawn":41}
+ ]
+}

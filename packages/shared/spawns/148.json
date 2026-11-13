@@ -1,0 +1,11 @@
+{
+ "map": 148,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tuyết Báo động tầng 4, cấp 60–70, vùng Tây Bắc: Rết, Tuyết Quái, Bạch Hổ, Tuyết Báo, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":5136,"y":2056,"r":220,"monsters":[[2,64],[4,66]],"count":6,"respawn":42},
+  {"x":3696,"y":3064,"r":220,"monsters":[[149,65]],"count":4,"respawn":41},
+  {"x":2960,"y":2968,"r":220,"monsters":[[40,63],[46,63]],"count":5,"respawn":41},
+  {"x":2384,"y":3592,"r":220,"monsters":[[4,69],[150,70]],"count":5,"respawn":43}
+ ]
+}

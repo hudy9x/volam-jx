@@ -1,0 +1,23 @@
+{
+ "map": 200,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Cổ Dương động, cấp 45–55, vùng Tây Bắc: Dơi chúa, Dơi chúa đỏ, Dơi Dong, Sói xám, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":11376,"y":2520,"r":220,"monsters":[[150,51]],"count":4,"respawn":37},
+  {"x":6832,"y":1176,"r":220,"monsters":[[150,51],[5,53]],"count":4,"respawn":37},
+  {"x":400,"y":3608,"r":220,"monsters":[[5,54]],"count":6,"respawn":38},
+  {"x":8752,"y":4008,"r":220,"monsters":[[5,48]],"count":4,"respawn":36},
+  {"x":4112,"y":1320,"r":220,"monsters":[[149,51]],"count":5,"respawn":37},
+  {"x":7376,"y":3736,"r":220,"monsters":[[150,46]],"count":5,"respawn":35},
+  {"x":9136,"y":1080,"r":220,"monsters":[[150,52]],"count":6,"respawn":38},
+  {"x":12080,"y":3112,"r":220,"monsters":[[27,52],[29,53]],"count":5,"respawn":38},
+  {"x":7536,"y":1384,"r":220,"monsters":[[5,50],[150,50]],"count":5,"respawn":37},
+  {"x":2000,"y":2376,"r":220,"monsters":[[5,52],[27,54]],"count":6,"respawn":38},
+  {"x":8816,"y":1912,"r":220,"monsters":[[27,51],[28,50]],"count":6,"respawn":37},
+  {"x":6448,"y":216,"r":220,"monsters":[[28,54],[29,56]],"count":4,"respawn":38},
+  {"x":6288,"y":4088,"r":220,"monsters":[[5,45],[27,46]],"count":4,"respawn":35},
+  {"x":8176,"y":4472,"r":220,"monsters":[[27,48]],"count":4,"respawn":36},
+  {"x":9296,"y":4200,"r":220,"monsters":[[29,49]],"count":4,"respawn":36},
+  {"x":6256,"y":1480,"r":220,"monsters":[[5,50]],"count":6,"respawn":37}
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "map": 169,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Long Nhãn động, cấp 45–55, vùng Tây Nam: Rắn xanh, Dơi chúa, Sói đỏ, Thương ưng, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
+ "zones": [
+  {"x":5840,"y":2776,"r":220,"monsters":[[6,51]],"count":6,"respawn":37},
+  {"x":6800,"y":3288,"r":220,"monsters":[[27,50],[152,49]],"count":4,"respawn":37},
+  {"x":6704,"y":7720,"r":220,"monsters":[[27,49]],"count":5,"respawn":37},
+  {"x":8400,"y":7144,"r":220,"monsters":[[21,50]],"count":4,"respawn":36},
+  {"x":2640,"y":7480,"r":220,"monsters":[[21,53],[25,52]],"count":6,"respawn":38},
+  {"x":12912,"y":7080,"r":220,"monsters":[[21,53],[27,53]],"count":5,"respawn":37},
+  {"x":12496,"y":4808,"r":220,"monsters":[[152,49]],"count":4,"respawn":37},
+  {"x":5040,"y":2504,"r":220,"monsters":[[6,52]],"count":6,"respawn":37},
+  {"x":3408,"y":7784,"r":220,"monsters":[[21,51],[27,52]],"count":5,"respawn":37},
+  {"x":4656,"y":4488,"r":220,"monsters":[[21,48]],"count":4,"respawn":36},
+  {"x":6512,"y":2936,"r":220,"monsters":[[21,51],[27,51]],"count":4,"respawn":37},
+  {"x":3504,"y":6424,"r":220,"monsters":[[25,51]],"count":6,"respawn":37},
+  {"x":12688,"y":6504,"r":220,"monsters":[[6,51],[27,51]],"count":6,"respawn":37},
+  {"x":8752,"y":3048,"r":220,"monsters":[[21,50],[27,50]],"count":4,"respawn":37},
+  {"x":5392,"y":8312,"r":220,"monsters":[[21,52],[27,51]],"count":6,"respawn":37},
+  {"x":7408,"y":9576,"r":220,"monsters":[[21,56],[27,56]],"count":5,"respawn":38},
+  {"x":11408,"y":7224,"r":220,"monsters":[[25,50]],"count":4,"respawn":37},
+  {"x":6128,"y":7496,"r":220,"monsters":[[21,49]],"count":6,"respawn":37},
+  {"x":10256,"y":4776,"r":220,"monsters":[[25,48]],"count":5,"respawn":36},
+  {"x":6064,"y":1272,"r":220,"monsters":[[151,55],[25,54]],"count":4,"respawn":38},
+  {"x":8240,"y":5688,"r":220,"monsters":[[21,46],[25,44]],"count":4,"respawn":35},
+  {"x":4272,"y":6696,"r":220,"monsters":[[152,50]],"count":6,"respawn":37}
+ ]
+}

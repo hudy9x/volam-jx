@@ -1,0 +1,12 @@
+{
+ "map": 67,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Đáy Động Đình hồ tầng 2, cấp 70–80, vùng Lưỡng Hồ: Rắn xanh, Nhện, Kim Điêu, Tuyết Báo, Hoa Nam sơn tặc 2, Hoa Nam sơn tặc 1.",
+ "zones": [
+  {"x":848,"y":2600,"r":220,"monsters":[[24,77],[21,76]],"count":7,"respawn":46},
+  {"x":2800,"y":1240,"r":220,"monsters":[[155,76],[156,76]],"count":5,"respawn":45},
+  {"x":5552,"y":3976,"r":220,"monsters":[[24,80]],"count":5,"respawn":47},
+  {"x":2416,"y":2488,"r":220,"monsters":[[21,71],[4,73]],"count":6,"respawn":44},
+  {"x":4816,"y":936,"r":220,"monsters":[[4,78],[21,77]],"count":5,"respawn":46}
+ ]
+}

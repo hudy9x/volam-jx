@@ -1,0 +1,13 @@
+{
+ "map": 172,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Điểm Thương động tầng 2, cấp 50–60, vùng Tây Nam: Rết, Dơi chúa, Dơi chúa đỏ, Bạch Hổ, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "zones": [
+  {"x":6128,"y":4776,"r":220,"monsters":[[2,51]],"count":6,"respawn":37},
+  {"x":3856,"y":4808,"r":220,"monsters":[[152,56]],"count":4,"respawn":39},
+  {"x":6576,"y":6168,"r":220,"monsters":[[2,56]],"count":6,"respawn":39},
+  {"x":4080,"y":5160,"r":220,"monsters":[[28,55]],"count":6,"respawn":39},
+  {"x":3184,"y":5128,"r":220,"monsters":[[151,59],[27,59]],"count":5,"respawn":39},
+  {"x":2672,"y":5464,"r":220,"monsters":[[46,60],[27,60]],"count":6,"respawn":40}
+ ]
+}

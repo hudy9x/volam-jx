@@ -1,0 +1,21 @@
+{
+ "map": 168,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Phụng Nhãn động, cấp 45–55, vùng Tây Nam: Rắn xanh, Dơi chúa đỏ, Nhãn Kính Mãng xà, Rết, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
+ "zones": [
+  {"x":10800,"y":6824,"r":220,"monsters":[[152,51],[20,52]],"count":6,"respawn":37},
+  {"x":7280,"y":6760,"r":220,"monsters":[[151,49],[21,50]],"count":4,"respawn":37},
+  {"x":3056,"y":4680,"r":220,"monsters":[[20,52]],"count":6,"respawn":38},
+  {"x":7440,"y":4376,"r":220,"monsters":[[21,46]],"count":5,"respawn":36},
+  {"x":8368,"y":6696,"r":220,"monsters":[[21,49],[46,50]],"count":4,"respawn":37},
+  {"x":9904,"y":5624,"r":220,"monsters":[[46,48]],"count":5,"respawn":36},
+  {"x":2448,"y":4248,"r":220,"monsters":[[21,53],[46,55]],"count":4,"respawn":38},
+  {"x":5872,"y":5512,"r":220,"monsters":[[28,49],[46,49]],"count":5,"respawn":36},
+  {"x":8080,"y":4024,"r":220,"monsters":[[20,48],[28,49]],"count":4,"respawn":36},
+  {"x":7824,"y":5528,"r":220,"monsters":[[151,45]],"count":5,"respawn":35},
+  {"x":2736,"y":3480,"r":220,"monsters":[[21,54]],"count":5,"respawn":38},
+  {"x":11376,"y":7288,"r":220,"monsters":[[46,54]],"count":4,"respawn":38},
+  {"x":8112,"y":6264,"r":220,"monsters":[[20,48],[152,49]],"count":4,"respawn":36},
+  {"x":6128,"y":4360,"r":220,"monsters":[[21,47]],"count":5,"respawn":36}
+ ]
+}

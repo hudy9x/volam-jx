@@ -1,0 +1,27 @@
+{
+ "map": 122,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Hoàng Hà Nguyên Đầu, cấp 60–70, vùng Tây Bắc: Cá sấu, Rắn xanh, Bạch Hổ, Kim Tiền báo, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":6672,"y":1432,"r":220,"monsters":[[3,67]],"count":6,"respawn":42},
+  {"x":1360,"y":2792,"r":220,"monsters":[[18,66],[21,66]],"count":6,"respawn":42},
+  {"x":8144,"y":1672,"r":220,"monsters":[[3,68],[149,67]],"count":4,"respawn":43},
+  {"x":7312,"y":1896,"r":220,"monsters":[[149,66],[2,67]],"count":7,"respawn":42},
+  {"x":6384,"y":3992,"r":220,"monsters":[[18,65]],"count":7,"respawn":42},
+  {"x":6928,"y":3176,"r":220,"monsters":[[150,64],[2,63]],"count":7,"respawn":41},
+  {"x":7920,"y":4552,"r":220,"monsters":[[149,71]],"count":4,"respawn":43},
+  {"x":1168,"y":3656,"r":220,"monsters":[[150,69]],"count":4,"respawn":43},
+  {"x":3984,"y":4120,"r":220,"monsters":[[18,66],[150,65]],"count":4,"respawn":42},
+  {"x":8560,"y":3064,"r":220,"monsters":[[3,69]],"count":7,"respawn":43},
+  {"x":5968,"y":2904,"r":220,"monsters":[[18,62],[21,60]],"count":7,"respawn":40},
+  {"x":7888,"y":3864,"r":220,"monsters":[[18,67]],"count":7,"respawn":43},
+  {"x":3120,"y":4776,"r":220,"monsters":[[149,69],[18,68]],"count":7,"respawn":43},
+  {"x":816,"y":3256,"r":220,"monsters":[[18,70]],"count":4,"respawn":43},
+  {"x":1616,"y":2168,"r":220,"monsters":[[149,68],[3,67]],"count":4,"respawn":42},
+  {"x":8016,"y":3464,"r":220,"monsters":[[149,67]],"count":7,"respawn":42},
+  {"x":5040,"y":4760,"r":220,"monsters":[[18,69],[21,68]],"count":5,"respawn":43},
+  {"x":6992,"y":2664,"r":220,"monsters":[[18,63],[21,63]],"count":5,"respawn":41},
+  {"x":5008,"y":4088,"r":220,"monsters":[[18,64]],"count":4,"respawn":42},
+  {"x":6192,"y":4328,"r":220,"monsters":[[2,66]],"count":4,"respawn":42}
+ ]
+}

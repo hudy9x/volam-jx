@@ -1,0 +1,15 @@
+{
+ "map": 124,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Cán Viên động, cấp 45–55, vùng Tây Bắc: Dơi Dong, Dơi chúa đỏ, Rắn xanh, Nhãn Kính Mãng xà, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "zones": [
+  {"x":3440,"y":2504,"r":220,"monsters":[[29,46],[28,46]],"count":4,"respawn":35},
+  {"x":2160,"y":4600,"r":220,"monsters":[[21,56]],"count":4,"respawn":38},
+  {"x":144,"y":2072,"r":220,"monsters":[[29,50]],"count":4,"respawn":37},
+  {"x":2896,"y":1256,"r":220,"monsters":[[21,48],[28,48]],"count":5,"respawn":36},
+  {"x":1392,"y":2824,"r":220,"monsters":[[20,47],[149,48]],"count":4,"respawn":36},
+  {"x":592,"y":776,"r":220,"monsters":[[20,53],[29,53]],"count":4,"respawn":38},
+  {"x":3408,"y":4344,"r":220,"monsters":[[20,53]],"count":4,"respawn":38},
+  {"x":656,"y":3048,"r":220,"monsters":[[149,50],[29,49]],"count":5,"respawn":37}
+ ]
+}

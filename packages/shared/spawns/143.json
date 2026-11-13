@@ -1,0 +1,20 @@
+{
+ "map": 143,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Dược Vương động tầng 3, cấp 55–65, vùng Tây Bắc: Dơi hút máu, Nhện, Tuyết Báo, Kim Hoàn Mãng Xà, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":5040,"y":4072,"r":220,"monsters":[[30,64],[45,63]],"count":4,"respawn":41},
+  {"x":4304,"y":328,"r":220,"monsters":[[149,65],[22,65]],"count":4,"respawn":41},
+  {"x":7024,"y":2104,"r":220,"monsters":[[149,61],[150,62]],"count":5,"respawn":41},
+  {"x":6704,"y":3096,"r":220,"monsters":[[149,63]],"count":4,"respawn":41},
+  {"x":368,"y":2136,"r":220,"monsters":[[45,61]],"count":6,"respawn":40},
+  {"x":3984,"y":4232,"r":220,"monsters":[[22,63],[150,64]],"count":4,"respawn":41},
+  {"x":3152,"y":2072,"r":220,"monsters":[[30,54]],"count":6,"respawn":38},
+  {"x":752,"y":2440,"r":220,"monsters":[[149,61],[4,59]],"count":5,"respawn":40},
+  {"x":3504,"y":1016,"r":220,"monsters":[[149,60]],"count":4,"respawn":40},
+  {"x":848,"y":3352,"r":220,"monsters":[[4,62],[45,63]],"count":5,"respawn":41},
+  {"x":6000,"y":712,"r":220,"monsters":[[149,63]],"count":4,"respawn":41},
+  {"x":3280,"y":472,"r":220,"monsters":[[149,63],[4,62]],"count":5,"respawn":41},
+  {"x":3088,"y":56,"r":220,"monsters":[[150,65],[30,64]],"count":6,"respawn":42}
+ ]
+}

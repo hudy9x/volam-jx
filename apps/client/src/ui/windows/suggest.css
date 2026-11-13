@@ -1,0 +1,10 @@
+/* Gợi ý cộng điểm: route tabs, a preview table, apply */
+#suggest-dlg { width: 380px; }
+#suggest-dlg #sg-tabs, #suggest-dlg .sg-kinds { flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+#suggest-dlg .btn.on { outline: 1px solid var(--hl, #ffd94e); color: var(--hl, #ffd94e); }
+#suggest-dlg .sg-table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 12px; }
+#suggest-dlg .sg-table th { text-align: left; color: var(--gold); border-bottom: 1px solid var(--line); }
+#suggest-dlg .sg-table td { padding: 2px 4px; border-bottom: 1px solid #1a201d; }
+#suggest-dlg .sg-table tr.up b { color: rgb(0, 255, 120); }
+#suggest-dlg .sg-table tr.same { opacity: 0.7; }
+#suggest-dlg #sg-body { max-height: 420px; overflow-y: auto; }

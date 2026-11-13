@@ -1,0 +1,28 @@
+/* Hành trang: the original ItemBox (ui3/随身物品.ini) — 6 x 10 cells of 28 px with a 1 px border; pieces sit on their cells (1:1 icons) */
+#bag-panel { width: auto; }
+#bag-grid { position: relative; width: calc(var(--cols) * var(--cell)); height: calc(var(--rows) * var(--cell)); margin-top: 6px;
+  background-color: #000; border: 1px solid var(--line); box-sizing: content-box;
+  background-image: linear-gradient(to right, #2a342f 1px, transparent 1px), linear-gradient(to bottom, #2a342f 1px, transparent 1px);
+  background-size: var(--cell) var(--cell); }
+#bag-grid .bag-item { position: absolute; box-sizing: border-box; box-shadow: none; }
+#bag-grid .bag-item:not(.q-gold):not(.q-purple):not(.q-plat) { border-color: transparent; }
+/* the green / dark red background is see-through in the bag so the cell lines under a piece stay visible */
+#bag-grid .bag-item.wear-ok { background: rgba(0, 51, 34, 0.6); }
+#bag-grid .bag-item.wear-no { background: rgba(50, 0, 1, 0.6); }
+#bag-grid .bag-item:hover { outline: 1px solid var(--hl); outline-offset: -1px; }
+#bag-grid .bag-item img { max-width: none; max-height: none; }
+.bag-money { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; padding: 4px 6px; border: 1px solid var(--line); background: #080a09; }
+#bag-dev-money { margin-top: 6px; width: 100%; }
+#bag-grid.selling .slot, #bag-grid.selling .slot * { cursor: var(--cur-sell, pointer); }
+/* default place like the original bag (ui3/随身物品.ini StartPos 800,100: right side), next to an NPC shop on the left */
+#bag-panel:not(.placed) { left: auto; right: 16px; transform: none; }
+
+/* Hành trang + 4 rương mở rộng (USER 2026-11-12): a small tab row over the grid */
+.bag-tabs { display: flex; gap: 2px; margin-bottom: 4px; }
+.bag-tab { flex: 1 1 0; min-width: 0; padding: 2px 0; font-size: 10px; white-space: nowrap; overflow: hidden; background: #101412; color: var(--muted, #aaa); border: 1px solid var(--line); cursor: inherit; }
+.bag-tab.on { color: var(--hl, #ffd94e); background: #1c2620; border-color: var(--hl, #ffd94e); }
+.bag-actions { display: flex; gap: 6px; margin-top: 6px; }
+.bag-actions .btn { flex: 1; }
+.bag-actions .btn.on { outline: 1px solid var(--hl, #ffd94e); color: var(--hl, #ffd94e); }
+#bag-grid.throwing .slot, #bag-grid.throwing .slot * { cursor: var(--cur-throw, var(--cur-sell, pointer)); }
+#bag-grid.selling-own .slot, #bag-grid.selling-own .slot * { cursor: var(--cur-sell, pointer); }

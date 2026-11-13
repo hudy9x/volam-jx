@@ -1,0 +1,11 @@
+{
+ "map": 147,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tuyết Báo động tầng 3, cấp 55–65, vùng Tây Bắc: Dơi chúa, Tuyết Báo, Voi Châu á, Đông Bắc hổ, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":3888,"y":2744,"r":220,"monsters":[[27,56]],"count":6,"respawn":39},
+  {"x":2768,"y":2872,"r":220,"monsters":[[0,61],[13,59]],"count":6,"respawn":40},
+  {"x":1840,"y":3048,"r":220,"monsters":[[149,66]],"count":5,"respawn":42},
+  {"x":5008,"y":1832,"r":220,"monsters":[[27,62]],"count":6,"respawn":41}
+ ]
+}

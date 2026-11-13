@@ -1,0 +1,9 @@
+#npc-dlg { top: auto; bottom: 110px; width: min(560px, calc(100vw - 16px)); }
+/* NPC */
+.npc-talk { display: flex; gap: 12px; align-items: flex-start; }
+.npc-face { width: 72px; height: 96px; flex: none; border: 1px solid var(--teal); background: radial-gradient(#1d2a24, #060807); display: grid; place-items: end center; overflow: hidden; }
+#npc-text { margin: 2px 0 10px; line-height: 1.5; }
+#npc-options { display: grid; gap: 4px; }
+.npc-opt { text-align: left; background: none; border: 0; padding: 2px 0; cursor: pointer; color: var(--hl); font: 13px Tahoma, sans-serif; text-shadow: var(--outline); }
+.npc-opt::before { content: "◆ "; color: var(--teal-hi); }
+.npc-opt:hover { color: #fff; text-decoration: underline; }

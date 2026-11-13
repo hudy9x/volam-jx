@@ -1,0 +1,12 @@
+/* Mua vào / Bán ra (original ui3/买卖确认.ini: name 255,253,122; price 255,246,108, not enough money 0,135,133; currency 255,255,181) */
+#trade-dlg { width: 260px; }
+.trade-box { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.trade-name { color: rgb(255, 253, 122); font-weight: bold; text-align: center; }
+.trade-qty { display: flex; align-items: center; gap: 4px; }
+.trade-qty input { width: 44px; text-align: center; color: rgb(255, 246, 108); background: #050605; border: 1px solid var(--line); padding: 2px; }
+.trade-price { font-size: 15px; }
+#trade-price { color: rgb(255, 246, 108); }
+#trade-price.short { color: rgb(0, 135, 133); }
+.trade-cur { color: rgb(255, 255, 181); }
+.trade-btns { gap: 8px; justify-content: center; }
+.trade-btns .btn { white-space: nowrap; min-width: 84px; }

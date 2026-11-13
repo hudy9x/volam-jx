@@ -1,0 +1,18 @@
+{
+ "map": 129,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Lưu Tiên động tầng 5, cấp 65–75, vùng Tây Bắc: Rắn xanh, Dơi chúa đỏ, Sói tuyết, Hoa Nam hổ, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "zones": [
+  {"x":1392,"y":2984,"r":220,"monsters":[[8,70],[1,70]],"count":4,"respawn":43},
+  {"x":3536,"y":2344,"r":220,"monsters":[[28,68],[21,68]],"count":4,"respawn":43},
+  {"x":1072,"y":4168,"r":220,"monsters":[[28,72]],"count":6,"respawn":44},
+  {"x":1456,"y":3368,"r":220,"monsters":[[21,69],[150,70]],"count":6,"respawn":43},
+  {"x":2192,"y":3816,"r":220,"monsters":[[149,67]],"count":5,"respawn":43},
+  {"x":1296,"y":4808,"r":220,"monsters":[[150,71]],"count":6,"respawn":44},
+  {"x":4016,"y":904,"r":220,"monsters":[[149,74],[28,76]],"count":5,"respawn":45},
+  {"x":4144,"y":4904,"r":220,"monsters":[[8,72]],"count":5,"respawn":44},
+  {"x":1392,"y":2552,"r":220,"monsters":[[21,71]],"count":4,"respawn":43},
+  {"x":2352,"y":5704,"r":220,"monsters":[[149,74],[1,76]],"count":6,"respawn":45},
+  {"x":4656,"y":3640,"r":220,"monsters":[[150,67]],"count":5,"respawn":42}
+ ]
+}
