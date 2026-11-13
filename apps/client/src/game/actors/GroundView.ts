@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { ITEMS, QUALITY_COLORS } from '@vltk/shared';
-import { ui, uiPx } from '../display';
+import { ui, uiPx, zoomPlate } from '../display';
 import { assetUrl } from '../../art/assets';
 
 /** A drop on the ground as the server syncs it (MapState.ground). */
@@ -36,7 +36,11 @@ export class GroundView {
     this.label = scene.add.text(g.x, g.y - 30, name, {
       fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(12), stroke: '#000', strokeThickness: ui(3),
       color: def ? QUALITY_COLORS[g.q] ?? '#ffffff' : MONEY_COLOR,
-    }).setOrigin(0.5, 1).setDepth(1e6 - 1);
+    }).setOrigin(0.5, 1).setScale(zoomPlate().textScale).setDepth(1e6 - 1);
+  }
+
+  syncZoom(): void {
+    if (!this.dead) this.label.setScale(zoomPlate().textScale);
   }
 
   /** Click test (world coordinates): the icon and its label. */

@@ -17,6 +17,7 @@ const HTML = `
   <label class="slider">Nhạc nền <input type="range" min="0" max="100" data-set="music" /><span></span></label>
   <h4>Giao diện</h4>
   <label class="check"><input type="checkbox" data-set="minimap" /> Hiện bản đồ nhỏ</label>
+  <label class="slider">Độ phóng (%) <input type="range" min="100" max="200" step="50" data-set="zoom" /><span></span></label>
   <h4>Bộ nhớ đệm</h4>
   <div class="row spread"><span id="settings-cache">—</span><button type="button" class="btn" id="settings-cache-clear">Xóa bộ nhớ đệm</button></div>
   <h4>Phím tắt</h4>

@@ -21,6 +21,7 @@ import { bagIndexOf, inventory } from '../state/inventory';
 import { settings } from '../state/settings';
 import { BASIC_SKILL, skillbar, type BarSlot } from '../state/skillbar';
 import { assetUrl } from '../art/assets';
+import { setActiveZoom, stepZoom, ui, uiPx, zoomPlate, type ZoomPct } from './display';
 
 /**
  * The map being played: draws the original map, actors and effects, turns clicks / keys into orders for the server,
@@ -48,6 +49,7 @@ export class WorldScene extends Phaser.Scene {
   private mapView: MapView | null = null;
   /** Client-side town NPCs (Thợ rèn, Xa phu). */
   private npcs: { view: ActorView; npc: TownNpc }[] = [];
+  private portalLabels: Phaser.GameObjects.Text[] = [];
   /** Items / money on the ground (MapState.ground). */
   private ground = new Map<string, GroundView>();
   /** Tự động đánh (Hệ thống → Tự động đánh, phím Z). */
@@ -91,6 +93,7 @@ export class WorldScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.setBounds(0, 0, width, height);
     cam.setBackgroundColor('#000000');
+    this.cleanups.push(settings.watch(s => this.applyZoom(s.zoom)));
 
     this.effects = new Effects(this, this.views, this.room.sessionId, skill => skillbar.startCooldown(skill));
     // Hào quang on a hand slot: the server keeps it on (each map room is new, so send it again here).
@@ -160,15 +163,28 @@ export class WorldScene extends Phaser.Scene {
     return this.views.get(this.room.sessionId);
   }
 
+  private applyZoom(pct: number): ZoomPct {
+    const z = setActiveZoom(pct);
+    const plate = zoomPlate();
+    this.cameras.main.setZoom(plate.zoom);
+    for (const t of this.portalLabels) t.setScale(plate.textScale);
+    for (const g of this.ground.values()) g.syncZoom();
+    return z;
+  }
+
   private drawPortals(): void {
+    this.portalLabels = [];
+    const s = zoomPlate().textScale;
     for (const p of this.meta.portals) {
       const ring = this.add.graphics().setDepth(p.y - 1);
       ring.fillStyle(0x6fd2ff, 0.25).fillEllipse(p.x, p.y, p.radius * 2.6, p.radius * 1.3);
       ring.lineStyle(2, 0xbfeaff, 0.9).strokeEllipse(p.x, p.y, p.radius * 2.6, p.radius * 1.3);
       this.tweens.add({ targets: ring, alpha: 0.45, duration: 900, yoyo: true, repeat: -1 });
-      this.add.text(p.x, p.y - 28, `➜ ${p.label}`, {
-        fontFamily: 'Segoe UI, sans-serif', fontSize: '14px', color: '#bfeaff', stroke: '#000', strokeThickness: 4,
-      }).setOrigin(0.5).setDepth(1e6);
+      this.portalLabels.push(
+        this.add.text(p.x, p.y - 28, `➜ ${p.label}`, {
+          fontFamily: 'Segoe UI, sans-serif', fontSize: uiPx(14), color: '#bfeaff', stroke: '#000', strokeThickness: ui(4),
+        }).setOrigin(0.5).setScale(s).setDepth(1e6),
+      );
     }
   }
 
@@ -223,9 +239,30 @@ export class WorldScene extends Phaser.Scene {
       if (over) return;
       move(p.worldX, p.worldY);
     });
+    let wheelStepAt = 0;
+    let wheelDir: -1 | 1 | 0 = 0;
+    let pendingZoom: ZoomPct | null = null;
+    let saveZoomTimer: ReturnType<typeof setTimeout> | null = null;
+    const flushZoomSave = () => {
+      if (saveZoomTimer !== null) { clearTimeout(saveZoomTimer); saveZoomTimer = null; }
+      if (pendingZoom !== null && pendingZoom !== settings.get().zoom) settings.set({ zoom: pendingZoom });
+      pendingZoom = null;
+    };
+    this.cleanups.push(flushZoomSave);
+
     this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
-      const cam = this.cameras.main;
-      cam.setZoom(Phaser.Math.Clamp(cam.zoom * (dy > 0 ? 0.9 : 1.1), 0.5, 3));
+      if (dy === 0) return;
+      const dir: -1 | 1 = dy > 0 ? -1 : 1;
+      const now = performance.now();
+      if (dir === wheelDir && now - wheelStepAt < 80) return;
+      wheelStepAt = now;
+      wheelDir = dir;
+      const cur = pendingZoom ?? settings.get().zoom;
+      const next = stepZoom(cur, dir);
+      if (next === cur) return;
+      pendingZoom = this.applyZoom(next);
+      if (saveZoomTimer !== null) clearTimeout(saveZoomTimer);
+      saveZoomTimer = setTimeout(flushZoomSave, 150);
     });
 
     const keys = this.input.keyboard;
@@ -415,6 +452,7 @@ export class WorldScene extends Phaser.Scene {
     for (const g of this.ground.values()) g.destroy();
     this.ground.clear();
     this.npcs = [];
+    this.portalLabels = [];
     this.mapView?.destroy();
     this.mapView = null;
     this.input.removeAllListeners();

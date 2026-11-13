@@ -5,6 +5,8 @@ import { settings, type Settings } from '../../state/settings';
  * <span> after a range shows its value) and follow it when it changes elsewhere. `muteDisables`: sliders are greyed
  * out while the sound is muted (Tùy chỉnh).
  */
+const AUDIO_KEYS = new Set<keyof Settings>(['master', 'sfx', 'music']);
+
 export function bindSettingInputs(box: HTMLElement, muteDisables = false): void {
   const inputs = [...box.querySelectorAll<HTMLInputElement>('[data-set]')];
   for (const input of inputs) {
@@ -14,14 +16,15 @@ export function bindSettingInputs(box: HTMLElement, muteDisables = false): void 
   }
   settings.watch(s => {
     for (const input of inputs) {
-      const v = s[input.dataset.set as keyof Settings];
+      const key = input.dataset.set as keyof Settings;
+      const v = s[key];
       if (input.type === 'checkbox') input.checked = !!v;
       else {
         input.value = String(v);
         const label = input.nextElementSibling;
         if (label && input.type === 'range') label.textContent = String(v);
       }
-      if (muteDisables && input.type === 'range') input.disabled = s.mute;
+      if (muteDisables && AUDIO_KEYS.has(key)) input.disabled = s.mute;
     }
   });
 }

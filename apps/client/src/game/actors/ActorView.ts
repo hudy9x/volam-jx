@@ -3,7 +3,7 @@ import { CAMP_COLORS, type Camp, jumpHeight } from '@vltk/shared';
 import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
 import type { ActorState } from '../../state/actor';
 import { FRAME_MS, JxSprite, type Source } from './PaperDoll';
-import { ui, uiPx } from '../display';
+import { ui, uiPx, zoomPlate } from '../display';
 import { StateDecor } from '../fx/StateDecor';
 
 export type { ActorState };
@@ -131,6 +131,7 @@ export class ActorView {
 
   private drawPlate(): void {
     const s = this.state;
+    const plate = zoomPlate();
     if (this.shown && this.jx!.height > 0) this.headHeight = this.jx!.height + 8;
     const top = Math.round(this.y - this.lift - this.headHeight);
     // Players: the colour of their camp (own, or the team leader's) — shared CAMP_COLORS; Đồ sát is marked.
@@ -140,15 +141,16 @@ export class ActorView {
     const text = s.kind === 'monster' ? `${s.name} (${s.level})` : `${s.name}${s.pk === 2 ? ' [Đồ sát]' : s.pk === 1 ? ' [Chiến đấu]' : ''}`;
     if (this.label.text !== text) this.label.setText(text);
     if (this.label.style.color !== color) this.label.setColor(color);
-    this.label.setPosition(Math.round(this.x), top - ui(7));
+    if (this.label.scaleX !== plate.textScale) this.label.setScale(plate.textScale);
+    this.label.setPosition(Math.round(this.x), top - Math.max(2, ui(plate.gapY)));
     if (s.hp > 0 || s.kind === 'npc') {
       // Under-foot pictures stay on the ground during a jump, the others rise with the body.
       this.decor.update(s.states ?? [], Math.round(this.x), Math.round(this.y), this.headHeight - 8 + this.lift);
     } else this.decor.update([], 0, 0, 0);
 
-    const w = ui(s.boss ? 70 : 44), bh = ui(4);
+    const w = Math.max(10, ui(s.boss ? plate.barBossW : plate.barW)), bh = Math.max(2, ui(plate.barH));
     const ratio = s.maxHp ? Math.max(0, s.hp / s.maxHp) : 0;
-    const barKey = `${Math.round(this.x)},${top},${ratio.toFixed(3)},${s.pk}`;
+    const barKey = `${Math.round(this.x)},${top},${ratio.toFixed(3)},${s.pk},${plate.zoom}`;
     if (barKey === this.lastBarKey) return;
     this.lastBarKey = barKey;
     this.bar.clear();

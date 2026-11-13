@@ -1,4 +1,5 @@
 import { DEFAULT_AUTO, type AutoSettings } from '@vltk/shared';
+import { snapZoom, type ZoomPct } from '../game/display';
 import { storage } from '../platform/storage';
 
 /**
@@ -14,13 +15,15 @@ export interface Settings extends AutoSettings {
   music: number;
   /** Bản đồ nhỏ đang mở. */
   minimap: boolean;
+  /** Độ phóng camera (%): 100 | 150 | 200. */
+  zoom: ZoomPct;
   /** Tổ đội: tự từ chối mọi lời mời. */
   teamRefuse: boolean;
 }
 
 const KEY = 'vltk.settings';
 export const DEFAULT_SETTINGS: Settings = {
-  ...DEFAULT_AUTO, mute: false, master: 80, sfx: 80, music: 50, minimap: true, teamRefuse: false,
+  ...DEFAULT_AUTO, mute: false, master: 80, sfx: 80, music: 50, minimap: true, zoom: 100, teamRefuse: false,
 };
 
 type Listener = (s: Settings) => void;
@@ -33,6 +36,7 @@ class SettingsStore {
     const saved: Partial<Settings> = storage.getJson<Partial<Settings>>(KEY) ?? {};
     // Older builds kept the minimap flag on its own.
     if (storage.get('vltk.minimap.hidden') === '1' && saved.minimap === undefined) saved.minimap = false;
+    if (saved.zoom !== undefined) saved.zoom = snapZoom(saved.zoom);
     this.value = { ...DEFAULT_SETTINGS, ...saved };
   }
 
@@ -41,6 +45,7 @@ class SettingsStore {
   }
 
   set(patch: Partial<Settings>): void {
+    if (patch.zoom !== undefined) patch = { ...patch, zoom: snapZoom(patch.zoom) };
     this.value = { ...this.value, ...patch };
     storage.setJson(KEY, this.value);
     for (const fn of this.listeners) fn(this.value);
