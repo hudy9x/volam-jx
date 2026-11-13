@@ -5,9 +5,9 @@
 import { formatAttr, richText, type TipLine } from '../skills/core/describe.js';
 import { MAGIC_DESC } from '../skills/core/magicdesc.gen.js';
 import { missesReq, type ItemViewer } from './equip.js';
-import { KIND_NAMES, QUALITY, QUALITY_NAMES, type Equipment, type Item, type ItemDef } from './items.js';
+import { KIND_NAMES, KIND_SLOTS, QUALITY, QUALITY_NAMES, SLOT_NAMES, type EquipSlot, type Equipment, type Item, type ItemDef } from './items.js';
 import { lineParam3, suiteOf } from './gold.js';
-import { SERIES_NAMES, activeLines, isHidden, magicRange } from './magic.js';
+import { ACTIVATED_BY, GENERATES, MAGIC_KINDS, SERIES_NAMES, activeLines, isHidden, magicRange } from './magic.js';
 import { POTION_PULSE_MS, potionPumps } from './potions.js';
 
 export type { ItemViewer } from './equip.js';
@@ -18,11 +18,15 @@ export const TIP_COLORS = {
 };
 /** Name colours by quality (Item.q): trắng, xanh, tím, hoàng kim, bạch kim. */
 export const QUALITY_COLORS = [TIP_COLORS.text, TIP_COLORS.blue, '#c88cff', TIP_COLORS.gold, '#f0f0f0'];
+/** Colours of the five elements (0 Kim, 1 Mộc, 2 Thủy, 3 Hỏa, 4 Thổ) on item tooltips. */
+export const SERIES_COLORS = ['#ffd24a', '#58d070', '#6fb8ff', '#ff4646', '#d8a466'];
 
 /** Where a piece is shown: worn pieces light up their activated hidden lines. */
 export interface ItemTipContext {
   /** Hidden lines active (gold.ts wornActiveCount); undefined = not worn (none). */
   active?: number;
+  /** Worn slot when inspecting an equipped piece (disambiguates ring1 vs ring2). */
+  slot?: EquipSlot;
   /** The viewer's worn pieces: the hoàng kim set list marks the worn ones (TB13). */
   equip?: Equipment;
 }
@@ -117,6 +121,18 @@ export function describeItem(def: ItemDef, item?: Item, viewer?: ItemViewer, ctx
     suite.push([{ text: `Bộ ${set.name} (${n}/${set.pieces.length})`, color: TIP_COLORS.gold }]);
     for (const p of set.pieces) suite.push([{ text: `  ${p.name}`, color: worn.has(p.id) ? TIP_COLORS.green : GRAY }]);
     suite.push([{ text: 'Mặc đủ bộ: kích hoạt toàn bộ thuộc tính ẩn', color: n >= set.pieces.length ? TIP_COLORS.green : GRAY }]);
+  } else if (item && item.series !== undefined && (item.q === QUALITY.magic || !item.q) && MAGIC_KINDS.includes(def.kind)) {
+    const gen = GENERATES.indexOf(item.series);
+    const pair = (s: EquipSlot) => (ACTIVATED_BY[s] ?? []).map(k => SLOT_NAMES[k]).join(' + ');
+    const slots = ctx.slot && ACTIVATED_BY[ctx.slot] ? [ctx.slot] : KIND_SLOTS[def.kind].filter(k => ACTIVATED_BY[k]);
+    if (gen >= 0 && slots.length) {
+      const need = slots.length === 1 ? pair(slots[0]) : `${pair('ring1')} (nhẫn trên) / ${pair('ring2')} (nhẫn dưới)`;
+      suite.push([
+        { text: `Cần ${need} hệ `, color: GRAY },
+        { text: SERIES_NAMES[gen], color: SERIES_COLORS[gen] ?? GRAY },
+        { text: ' để kích hoạt dòng ẩn', color: GRAY },
+      ]);
+    }
   }
   // A zero level / Sức mạnh / Thân pháp means "none" (sex, ngũ hành and faction use 0 as a value).
   const req = def.req.filter(([name, value]) => value > 0 || !/^require(level|str|dex)$/.test(name)).flatMap(([name, value]) => {
@@ -125,7 +141,11 @@ export function describeItem(def: ItemDef, item?: Item, viewer?: ItemViewer, ctx
   });
   const sub = [KIND_NAMES[def.kind], def.kind === 'horse' || def.kind === 'mask' || def.kind === 'potion' ? '' : `Cấp ${def.level}`, q ? QUALITY_NAMES[q] : '']
     .filter(Boolean).join(' · ');
-  const series = item?.series !== undefined ? [[{ text: `Thuộc tính Ngũ hành: ${SERIES_NAMES[item.series]}`, color: TIP_COLORS.text }]] : [];
+  const s = item?.series ?? def.gold?.series;
+  const series: TipLine[] = s !== undefined && SERIES_NAMES[s] ? [[
+    { text: 'Thuộc tính Ngũ hành: ', color: TIP_COLORS.text },
+    { text: SERIES_NAMES[s], color: SERIES_COLORS[s] ?? TIP_COLORS.text },
+  ]] : [];
   return {
     name: [{ text: def.name, color: QUALITY_COLORS[q] }], sub, series, base, magic, req,
     desc: def.desc ? richText(def.desc, TIP_COLORS.desc) : [], price: def.price, suite,

@@ -188,7 +188,7 @@ export class InventoryWindow {
     el.addEventListener('mouseenter', () => {
       const hint = this.mode === 'throw' ? 'Click: vứt xuống đất'
         : this.selling() ? `Click: bán (${moneyText(sellPrice(def))} lượng)`
-        : usableItem(def) ? 'Click / chuột phải: dùng · Kéo lên phím 1 – 9' : 'Click / chuột phải: mặc · Kéo: xếp lại / sang rương';
+        : '';
       this.tip(item, el, hint);
     });
     el.addEventListener('mouseleave', () => showItemTip(null));

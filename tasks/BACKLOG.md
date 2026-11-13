@@ -157,7 +157,7 @@ Nguồn: tài liệu nghiên cứu 05 (mission thế giới), 06 (Dã Tẩu, que
 | | Mã | Việc | Ghi chú / phụ thuộc |
 |---|---|---|---|
 | ⬜ | SK0 | **Nền cho event**: hẹn giờ phía server (mỗi phút), "mission" theo bản đồ (vòng đời, bảng xếp hạng), biến nhiệm vụ lưu theo nhân vật, hội thoại NPC có lựa chọn kịch bản | Tài liệu 05 §1–§2, 06 §2–§3, 07 §2. Làm trước mọi SK khác |
-| ⬜ | SK1 | Tống Kim (chiến trường phe, tính điểm, quân NPC, thưởng) | Tài liệu 05 §3 |
+| ⬜ | SK1 | **Tống Kim — Chế độ PK (Chiến trường chung)**: 3 bản đồ Sơ `326` (Bình nguyên) / Trung `384` (Giới Kiều) / Cao `44` (Cổ điển); báo danh tại Chiêu Mộ Sứ, trận 20 phút, lính NPC 5 cấp + Nguyên soái ở 50% thời gian; 5 bậc Quân hàm (`+0/5/10/15/20%` sát thương, tốc đánh, kháng dương); **26 vật phẩm Quân Nhu** (18 Hoàn cá nhân, 3 hiệu lệnh diện rộng `410` px cho phe ta / phe địch, 3 Bẫy `90` px cho phe địch; rơi từ NPC + mua tại Quan Quân Nhu bằng `tk_merit`, xếp chồng 50/ô); Bảng xếp hạng (phím `` ` `` + nút HUD Mobile) | **Tài liệu thiết kế đầy đủ & đường dẫn tham khảo:** `docs/tong-kim-battlefield.md` (tham khảo `/Users/hudy/ws/volamidle.pages.dev/src` + `magicscript.txt` gốc) |
 | ⬜ | SK2 | Công Thành Chiến | Tài liệu 05 §4; cần GP15 |
 | ⬜ | SK3 | Võ lâm Liên Đấu | Tài liệu 05 §5 |
 | ⬜ | SK4 | Vượt Ải (thách thức thời gian) | Tài liệu 05 §6 |

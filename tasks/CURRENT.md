@@ -1,6 +1,10 @@
 # Điểm dừng hiện tại
 
-> Điểm dừng mới nhất **2026-11-13**: đã chỉnh lại giao diện và logic bảng Kỹ năng võ công (cột `0` bên trái, kỹ năng `common` tự học không cần cộng điểm, cột rộng bằng icon `40px`, hàng chân `.sk-foot` chứa cấp + nút `+` đỏ đô chữ vàng, màu cấp trang bị `.boosted` sáng hơn). Commit mới nhất xem `git log -1`: `feat(skills): restyle skill window layout and auto-learn common skills`. Kiểm chứng đạt; chưa push.
+> Điểm dừng mới nhất **2026-11-14**: chỉnh sửa cửa sổ **Trang bị và Thuộc tính** (`Chạy` → `T.Độ Chạy`, `Công kích` → `T.Độ đánh`, giá trị `T.Độ đánh` dạng `125/90` không có `%`, đồng bộ nền ô đang mặc xanh/đỏ theo điều kiện mặc giống hành trang, tự đổi sang nền đỏ khi tẩy tủy tiềm năng mà vẫn giữ nguyên trang bị và thuộc tính đang kích hoạt), **Tooltip trang bị** (tô màu riêng tên hệ Ngũ hành `Kim`/`Mộc`/`Thủy`/`Hỏa`/`Thổ`, xóa dòng `"Click / chuột phải..."`, thêm dòng gợi ý 2 món + hệ tương sinh kích dòng ẩn cho đồ xanh), và **hiệu ứng 2 tia beam vàng xoay quanh viền** trang bị Hoàng kim (`.slot.filled.q-gold`, chu kỳ `4s`, dày `1px`, góc `80°`). Kiểm chứng `npm run typecheck` và `git diff --check` đạt; đã commit (xem `git log -1`), không push.
+
+> Trước đó **2026-11-14**: đã khảo sát bản đồ gốc, kết xuất ảnh xem trước và lập tài liệu thiết kế chi tiết **Chiến trường Tống Kim (Chế độ PK & 26 Vật phẩm Quân Nhu)** tại **`docs/tong-kim-battlefield.md`** (cập nhật `tasks/BACKLOG.md` mục **SK1**, `AGENTS.md`, `tasks/HISTORY.md`), kèm đầy đủ đường dẫn tham khảo sang `/Users/hudy/ws/volamidle.pages.dev/src` và `settings/item/004/magicscript.txt`. Commit nền hiện tại (`git log -1`): `e2b67ea fix: increase fullExpGap default value to 200 in tuning formulas`.
+
+> Trước đó **2026-11-13**: đã chỉnh lại giao diện và logic bảng Kỹ năng võ công (cột `0` bên trái, kỹ năng `common` tự học không cần cộng điểm, cột rộng bằng icon `40px`, hàng chân `.sk-foot` chứa cấp + nút `+` đỏ đô chữ vàng, màu cấp trang bị `.boosted` sáng hơn).
 
 > Cập nhật: **2026-11-13** (vòng 23–31: lệnh bài, 4 rương, màn chọn / tạo nhân vật gốc, PK + tổ đội, bùa theo màu chữ, exp tổ đội,
 > gợi ý cộng điểm + tẩy tủy, Auto theo jx-web-main, thuộc tính hoàng kim + Càn Khôn Giới Chỉ + popup kỹ năng; vòng 31: Auto tiếp cận /

@@ -110,7 +110,48 @@ label.check { display: flex; gap: 6px; align-items: center; margin: 4px 0 8px; c
 .slot.filled.wear-ok { background: rgb(0, 51, 34); }
 .slot.filled.wear-no { background: rgb(50, 0, 1); }
 /* frames of coloured pieces (ui3/随身物品.ini [Settings]); white and blue pieces keep the plain frame */
-.slot.filled.q-gold { border-color: rgb(243, 194, 70); }
+@property --gold-beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes gold-beam-spin {
+  to { --gold-beam-angle: 360deg; }
+}
+.slot.filled.q-gold {
+  border-color: rgba(243, 194, 70, 0.35);
+  box-shadow: inset 0 0 0 1px #000, 0 0 6px rgba(255, 208, 64, 0.28);
+}
+.slot.filled.q-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--gold-beam-angle),
+    transparent 0deg,
+    rgba(243, 194, 70, 0.15) 10deg,
+    #ffae00 54deg,
+    #ffe875 84deg,
+    #fffdf0 90deg,
+    rgba(243, 194, 70, 0.2) 94deg,
+    transparent 100deg,
+    transparent 180deg,
+    rgba(243, 194, 70, 0.15) 190deg,
+    #ffae00 234deg,
+    #ffe875 264deg,
+    #fffdf0 270deg,
+    rgba(243, 194, 70, 0.2) 274deg,
+    transparent 280deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: gold-beam-spin 4s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
 .slot.filled.q-purple { border-color: rgb(188, 40, 255); }
 .slot.filled.q-plat { border-color: rgb(240, 240, 240); }
 .slot-name { position: absolute; inset: auto 0 2px; font-size: 10px; color: #56645c; text-align: center; pointer-events: none; }

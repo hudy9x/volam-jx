@@ -1,5 +1,5 @@
 import { PK_MODE_NAMES,
-  ELEMENT_NAMES, SLOT_NAMES, wornActiveCount, attrOf, getSkill, itemDef, moveFactor, portraitFaction, speedPoints, seriesOf, skillDamage,
+  ELEMENT_NAMES, SLOT_NAMES, wornActiveCount, attrOf, canWear, getSkill, itemDef, moveFactor, portraitFaction, speedPoints, seriesOf, skillDamage,
   type EquipSlot, type Gender, type InventoryMsg, type Item,
 } from '@vltk/shared';
 import { itemViewer, ownSeries, progress } from '../../state/progress';
@@ -64,8 +64,8 @@ const HTML = `
       <div class="ca-grid ca-pair">
         ${cell('Chính xác', 'ca-hit')}${cell('Phòng thủ', 'ca-res-phy')}
         ${cell('Né tránh', 'ca-def')}${cell('Kháng băng', 'ca-res-cold')}
-        ${cell('Chạy', 'ca-run')}${cell('Kháng lôi', 'ca-res-light')}
-        ${cell('Công kích', 'ca-aspd')}${cell('Kháng hỏa', 'ca-res-fire')}
+        ${cell('T.Độ Chạy', 'ca-run')}${cell('Kháng lôi', 'ca-res-light')}
+        ${cell('T.Độ đánh', 'ca-aspd')}${cell('Kháng hỏa', 'ca-res-fire')}
         ${cell('Tiềm năng', 'ca-points', 'red')}${cell('Kháng độc', 'ca-res-poison')}
       </div>
     </div>
@@ -139,7 +139,7 @@ export class CharacterWindow {
     set('ca-dmg-l', hand('left')); set('ca-dmg-r', hand('right'));
     if (p.combat) {
       set('ca-run', String(speedPoints(moveFactor(p.combat.bag, false) * 100)));
-      set('ca-aspd', `${attrOf(p.combat.bag, 'attackspeed_v')}% / ${attrOf(p.combat.bag, 'castspeed_v')}%`);
+      set('ca-aspd', `${attrOf(p.combat.bag, 'attackspeed_v')}/${attrOf(p.combat.bag, 'castspeed_v')}`);
       $('ca-aspd').title = 'Tốc độ đánh ngoại công / nội công (formulas/speed.ts)';
     }
     set('ca-res-phy', `${st.resist.phys}%`); set('ca-res-cold', `${st.resist.cold}%`); set('ca-res-light', `${st.resist.light}%`);
@@ -148,11 +148,12 @@ export class CharacterWindow {
     for (const id of ['ca-add-str', 'ca-add-dex', 'ca-add-vit', 'ca-add-ene']) ($(id) as HTMLButtonElement).disabled = pr.potentialPoints <= 0;
     const self = this.ctx.self();
     if (self) $<HTMLImageElement>('ca-face').src = assetUrl(`portraits/${portraitFaction(self.faction, p.series, self.gender as Gender)}.png`);
+    this.renderEquip();
   }
 
   toggle(open?: boolean): void {
     dialogs.toggle(ID, open);
-    if (dialogs.isOpen(ID)) { this.shown = ''; this.update(); }
+    if (dialogs.isOpen(ID)) { this.shown = ''; this.update(); this.renderEquip(); }
   }
 
   /** Values from the own character (called every frame by the HUD; writes only what changed, only while open). */
@@ -189,14 +190,16 @@ export class CharacterWindow {
     const self = this.ctx.self();
     const active = wornActiveCount(this.inv.equip, slot, seriesOf(ownSeries(self)));
     showItemTip(itemDef(item), el, {
-      item, viewer: itemViewer(self), active, hint: 'Click / chuột phải: tháo xuống hành trang',
+      item, viewer: itemViewer(self), active, slot,
     });
   }
 
   private renderEquip(): void {
+    const viewer = itemViewer(this.ctx.self());
     document.querySelectorAll<HTMLElement>('#ce-slots .slot').forEach(el => {
       const item = this.inv.equip[el.dataset.slot as EquipSlot];
-      setSlotIcon(el, itemDef(item), { quality: item?.q });
+      const def = itemDef(item);
+      setSlotIcon(el, def, { quality: item?.q, wearable: def ? canWear(def, viewer) : undefined });
     });
   }
 }

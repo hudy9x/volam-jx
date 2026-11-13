@@ -2,6 +2,30 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Chỉnh Trang bị & Thuộc tính, Tooltip ngũ hành / kích dòng ẩn đồ xanh, và hiệu ứng viền tia beam Hoàng kim (`git log -1`)
+
+- Người dùng:
+  1. Cửa sổ Trang bị và Thuộc tính: đổi `Chạy` → `T.Độ Chạy`, `Công kích` → `T.Độ đánh`, giá trị `T.Độ đánh` bỏ `%` (`125/90`), hiển thị đủ tối thiểu 7 ký tự (`190/120`).
+  2. Tooltip trang bị: tô màu riêng các từ `Kim`, `Mộc`, `Thủy`, `Hỏa`, `Thổ` ở dòng `Thuộc tính Ngũ hành:` (giữ nguyên màu tiêu đề); bỏ dòng `"Click / chuột phải..."`; đồ xanh hiện dòng gợi ý 2 món + hệ tương sinh cần dùng để kích hoạt dòng ẩn.
+  3. Trang bị Hoàng kim: hiệu ứng 2 tia beam màu vàng xoay quanh viền (`4s`, dày `1px`, dài `80°` sau khi duyệt demo HTML); đồng bộ nền ô đang mặc giống nền ô trong hành trang (xanh khi đủ điều kiện, đỏ sẫm khi tẩy tủy tiềm năng thiếu điểm nhưng vẫn mặc trên người và giữ nguyên mọi thuộc tính).
+- Đã làm:
+  - `packages/shared/src/items/describe.ts`, `apps/client/src/ui/tips/itemTip.ts`: thêm `SERIES_COLORS`, tách span màu cho giá trị ngũ hành, thêm dòng gợi ý `Cần <ô 1> + <ô 2> hệ <Hệ> để kích hoạt dòng ẩn` cho đồ xanh.
+  - `apps/client/src/ui/windows/character.ts`, `inventory.ts`, `hud/quickbar.ts`: đổi nhãn và định dạng `T.Độ Chạy` / `T.Độ đánh`, bỏ hint `"Click / chuột phải..."`, truyền `wearable: canWear(def, viewer)` cho các ô đang mặc (`#ce-slots .slot`) và cập nhật lại khi chỉ số/tiềm năng thay đổi.
+  - `apps/client/src/ui/kit/theme.css`: thêm `@property --gold-beam-angle` và `.slot.filled.q-gold::after` xoay 2 tia beam vàng đối xứng (`4s`, `1px`, `80deg`).
+
+## 2026-11-14 · Thiết kế Chiến trường Tống Kim (Chế độ PK & Vật phẩm Quân Nhu) — `docs/tong-kim-battlefield.md`
+
+- Người dùng: tìm bản đồ Chiến trường Tống Kim, xem ảnh trước để chọn 3 bản đồ đại diện Sơ / Trung / Cao cấp; trao đổi các chức năng cần có
+  (báo danh, thời gian trận, thể lệ PK, bảo vệ Nguyên soái, vật phẩm Tống Kim tham khảo `/Users/hudy/ws/volamidle.pages.dev/src`); lưu tài liệu
+  thiết kế (chỉ áp dụng chế độ PK trước), ghi rõ khả năng tăng hiệu ứng của vật phẩm cho nhân vật và ảnh hưởng đến phe ta / phe địch, đặt vào
+  backlog và tài liệu kèm đường dẫn tham khảo cụ thể để phiên mới bắt đầu ngay.
+- Đã làm:
+  - Tra cứu `settings/maplist.ini` + `.wor` gốc, kết xuất 10 ảnh toàn cảnh và chọn bộ 3 bản đồ đại diện: Sơ cấp `326` (Khu vực Bình nguyên),
+    Trung cấp `384` (Cầu ranh giới / Giới Kiều), Cao cấp `44` (Chiến trường Tống Kim cổ điển).
+  - Đối chiếu `/Users/hudy/ws/volamidle.pages.dev/src` (`BATTLEFIELD.md`, `battlefield.rs`, `war_items.rs`, `war-items.cjs`, `war-rewards.ts`,
+    `war-offense.ts`, `quartermaster/model.ts`, `war-drop-rates.json`, `pvp.rs`, `support.rs`) và `settings/item/004/magicscript.txt` gốc.
+  - Viết tài liệu đầy đủ tại `docs/tong-kim-battlefield.md` và cập nhật `tasks/BACKLOG.md` (SK1), `tasks/CURRENT.md`, `AGENTS.md`. Chưa sửa code.
+
 ## 2026-11-13 · Hướng dẫn bot + rà soát tool sinh asset (sau vòng 35, chưa commit)
 
 - Người dùng: viết lại cách dùng bot ngắn gọn, có ảnh chụp, dẫn vào `CLAUDE.md` / `AGENTS.md`. → `docs/bots-guide.md` + `docs/images/bots/`

@@ -84,7 +84,8 @@ docs/                  skills-audit.md · regenerate-assets.md · combat_effects
                        **formulas/** (công thức trò chơi: README.md mục lục, character, level, skills… — mã ở shared/src/formulas) ·
                        research/ (nghiên cứu 2026-11-12: skills-progression, effects-buffs, luck-drops) ·
                        **performance/** (tải / lưu đệm tài nguyên: README.md mục lục, 01–05 = phân tích + PF1–PF4 trong BACKLOG §9) ·
-                       **bots-guide.md** (cách dùng bot, có ảnh `images/bots/`) · **bots.md** (thiết kế bot + đo hiệu năng server, BACKLOG §10)
+                       **bots-guide.md** (cách dùng bot, có ảnh `images/bots/`) · **bots.md** (thiết kế bot + đo hiệu năng server, BACKLOG §10) ·
+                       **tong-kim-battlefield.md** (thiết kế Chiến trường Tống Kim chế độ PK + 26 vật phẩm Quân Nhu, BACKLOG SK1)
 tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md — xem mục 0
 ```
 

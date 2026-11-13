@@ -87,7 +87,7 @@ export class Quickbar {
       });
       el.addEventListener('mouseenter', () => {
         const item = skillbar.itemAt(slot);
-        if (item) showItemTip(ITEMS[item], el, { hint: `Còn ${bagCount(item)} trong hành trang · Click: dùng · Chuột phải: bỏ khỏi ô` });
+        if (item) showItemTip(ITEMS[item], el, { hint: `Còn ${bagCount(item)} trong hành trang` });
         else showSkillTip(skillbar.skillAt(slot), el);
       });
       el.addEventListener('mouseleave', () => showSkillTip(null));

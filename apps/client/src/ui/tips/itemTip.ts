@@ -26,7 +26,9 @@ export function showItemTip(def: ItemDef | null | undefined, anchor?: HTMLElemen
 
 /** The item tooltip's lines into `tip` (the tooltip box, or an inline preview such as the forge's). */
 export function fillItemTip(tip: HTMLElement, def: ItemDef, opts: ItemTipOptions = {}): void {
-  const t = describeItem(def, opts.item ?? undefined, opts.viewer ?? undefined, { active: opts.active, equip: inventory.get().equip });
+  const t = describeItem(def, opts.item ?? undefined, opts.viewer ?? undefined, {
+    active: opts.active, slot: opts.slot, equip: inventory.get().equip,
+  });
   const put = (lines: TipLine[], cls: string) => {
     for (const l of lines) {
       const d = document.createElement('div');
