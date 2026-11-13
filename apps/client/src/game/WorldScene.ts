@@ -2,7 +2,8 @@ import { itemViewer } from '../state/progress';
 import Phaser from 'phaser';
 import type { Room } from '@colyseus/sdk';
 import { Callbacks, CloseCode } from '@colyseus/sdk';
-import { AutoPlay, castRange, getSkill, isMelee, skillCost, equipError, TOWN_MAP_ID, pvpAllowed, type Camp,
+import {
+  AutoPlay, castRange, getSkill, isMelee, skillCost, equipError, TOWN_MAP_ID, pvpAllowed, type Camp,
   C2S, FACTIONS, ITEMS, MAPS, NPC_LINES, S2C, TOWN_NPCS, hasNav, registerNav,
   type FxEvent, type MapMeta, type NavFile, type NoticeMsg, type TownNpc, type TransferMsg,
 } from '@vltk/shared';
@@ -224,7 +225,7 @@ export class WorldScene extends Phaser.Scene {
     });
     this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
       const cam = this.cameras.main;
-      cam.setZoom(Phaser.Math.Clamp(cam.zoom * (dy > 0 ? 0.9 : 1.1), 0.5, 1.6));
+      cam.setZoom(Phaser.Math.Clamp(cam.zoom * (dy > 0 ? 0.9 : 1.1), 0.5, 3));
     });
 
     const keys = this.input.keyboard;
