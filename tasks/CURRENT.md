@@ -1,6 +1,6 @@
 # Điểm dừng hiện tại
 
-> Điểm dừng mới nhất **2026-11-13**: đã sửa đồng bộ bảng thuộc tính khi mặc/tháo/đổi trang bị; kiểm chứng WebSocket và typecheck đạt. Commit hiện tại: `git log -1` — `fix(server): sync recalculated stats after inventory changes`. Lỗi mất buff khi chết/hồi sinh đã tái hiện, **chưa sửa**. Các mục lịch sử bên dưới được giữ nguyên.
+> Điểm dừng mới nhất **2026-11-13**: đã commit ảnh động gốc và hoạt cảnh chọn/tạo nhân vật; idle tối màu, click phát một lần, sửa nhịp SPR. Commit `fix(client): use original character selection animations` (hash xem git log -1). Các thay đổi bản đồ/server khác vẫn chưa commit.
 
 > Cập nhật: **2026-11-13** (vòng 23–31: lệnh bài, 4 rương, màn chọn / tạo nhân vật gốc, PK + tổ đội, bùa theo màu chữ, exp tổ đội,
 > gợi ý cộng điểm + tẩy tủy, Auto theo jx-web-main, thuộc tính hoàng kim + Càn Khôn Giới Chỉ + popup kỹ năng; vòng 31: Auto tiếp cận /
@@ -253,3 +253,21 @@ Kiểm chứng cuối (2026-11-13): `npm run typecheck` và `npm run build` đ�
 - Kiểm chứng đã hoàn tất: WebSocket thật mặc/đổi/tháo/mặc lại cập nhật ngay, thao tác túi không gửi thừa stats; typecheck thành công. `git diff --check` sạch trước commit.
 - Commit: `fix(server): sync recalculated stats after inventory changes` (hash xem `git log -1`). Không push.
 - Việc chờ tiếp: lỗi đồng bộ chỉ số khi mất buff do chết/hồi sinh, chưa được yêu cầu sửa.
+
+## Ảnh động màn chọn / tạo nhân vật — 2026-11-13
+
+- Theo yêu cầu người dùng: thay paper-doll nhỏ ở cả hai màn bằng ảnh động lớn gốc. Đã khôi phục tên theo hash: `角色_{hệ}_{giới}_0.spr`, 10 tổ hợp. Bộ này theo hệ/giới, không theo từng phái; màn chọn dùng hệ của phái, màn tạo dùng hệ đang chọn.
+- `tools/gen-login-figures.ts` được gọi trong `gen:ui`: sinh WebP lossless + `art/login-figures.gen.ts`, cập nhật manifest core. Đã chạy toàn bộ `gen:ui` thành công với JX_CLIENT hiện tại.
+- Kiểm chứng: typecheck/build đạt (cảnh báo chunk lớn có sẵn); Playwright kiểm tra 10 ảnh tải được, frame thay đổi, không pageerror; xem màn chọn 3 nhân vật và tạo mới ở desktop + viewport 390×844. Sửa căn giữa grid để màn nhỏ không cắt bên phải. Chưa thử wrapper Desktop/Mobile thật; cùng DOM/CSS và assetUrl dùng chung.
+- Preview: `/tmp/jx-character-preview/select-updated.png`, `create-updated.png`, `create-mobile.png`. Không sửa DB thật. Không commit/push; commit nền hiện tại `c65b55d`. Giữ nguyên các thay đổi server và nhật ký từ công việc khác đang có sẵn.
+## Sửa nhịp và hoạt cảnh khi chọn nhân vật — 2026-11-13
+
+- Người dùng báo giật, yêu cầu chưa chọn idle tối màu, click phát động tác gốc. Nguyên nhân xác minh: nhiều SPR idle/action ghi interval=1; code trước dùng 1 ms trực tiếp, một số khác 250 ms.
+- gen-login-figures sinh cả hậu tố 0 idle + 1 action (20 sheet); chung crop, anchor và tỷ lệ theo vùng idle để giữ vị trí/kích thước khi đổi động tác. Interval action nguồn 50/80/100/120 ms được giữ; giá trị 1 dùng 80 ms (chọn cho UI, chưa xác minh engine gốc).
+- figure.ts: idle tĩnh, action một lần khi click/tap/chọn mũi tên, trở lại idle; bấm lại phát lại, đổi nhân vật hủy action cũ, preload/decode trước khi chạy và dùng requestAnimationFrame theo thời gian. Áp dụng màn chọn và tạo mới; không đổi hình trong thế giới.
+- Kiểm chứng: generator chạy thành công; Playwright kiểm tra 10 biến thể, idle tĩnh, click chạy action, hoàn tất về idle, click lại phát từ đầu và hủy action khi đổi chọn; không pageerror. Typecheck/build và diff --check đạt, cảnh báo chunk lớn hiện có. Chưa kiểm thử wrapper native thật.
+- Không commit/push. Các thay đổi map/server khác đang có sẵn được giữ nguyên. Script kiểm tra tạm `/tmp/jx-character-preview/check-actions.cjs`.
+## Commit giao diện chọn / tạo nhân vật — 2026-11-13
+
+- Người dùng yêu cầu commit: ảnh động gốc, sửa nhịp, idle tối màu và phát hoạt cảnh khi chọn. Commit `fix(client): use original character selection animations` (hash xem git log -1). Không push.
+- Kiểm chứng trước commit: typecheck/build và Playwright 10 tổ hợp + phát lại/hủy/về idle đạt; diff --check sạch. Các thay đổi bản đồ/server từ công việc khác không nằm trong commit này.

@@ -540,3 +540,20 @@ Kiểm chứng cuối (2026-11-13): `npm run typecheck` và `npm run build` đ�
 ## 2026-11-13 — Commit sửa đồng bộ thuộc tính trang bị
 
 Người dùng yêu cầu commit trạng thái hiện tại. Commit `fix(server): sync recalculated stats after inventory changes` gồm MapRoom.ts và ba file tasks. Đã kiểm chứng WebSocket và typecheck ở vòng sửa; diff kiểm tra sạch. Lỗi buff bị xóa khi chết/hồi sinh chỉ ghi nhận, chưa sửa. Không push. Hash xem git log theo tiêu đề commit.
+
+## 2026-11-13 — Thay ảnh động gốc cho màn chọn / tạo nhân vật
+
+- Người dùng xác nhận bộ ảnh lớn đã tìm được và yêu cầu thay toàn bộ ảnh nhân vật hai màn.
+- Khôi phục tên SPR bằng hash: `角色_{金|木|水|火|土}_{男|女}_0.spr`; bản gốc chia 5 hệ × 2 giới, không có bộ riêng mỗi phái. Chọn theo hệ phái / giới tính (nhân vật mới theo hệ đang chọn).
+- Thêm generator dùng lại từ gen:ui, metadata sinh tự động, WebP lossless có version manifest; đổi showFigure sang sprite động gốc, chỉnh vùng hiển thị và sửa căn giữa màn nhỏ.
+- gen:ui, typecheck, build thành công; Playwright tải đủ 10 ảnh, kiểm tra animation, 3 nhân vật, viewport điện thoại; không pageerror. Chưa kiểm thử wrapper native. Không commit/push.
+## 2026-11-13 — Sửa giật và phát hoạt cảnh khi chọn nhân vật
+
+- Xác minh interval trong SPR: nhiều mẫu =1, code trước dùng thành 1 ms gây quá nhanh; idle các mẫu còn lại 200–250 ms.
+- Sinh 20 sprite sheet idle/action, dùng chung crop và anchor chân theo idle; fallback interval=1 thành 80 ms (lựa chọn UI), giữ nhịp action nguồn hợp lệ 50–120 ms.
+- Chưa chọn đứng idle tối màu; click chọn phát action gốc một lần, tự về idle; click lại phát lại, chuyển chọn dừng action cũ. Dùng requestAnimationFrame và giải mã ảnh trước; không còn vòng interval cho idle.
+- Playwright kiểm tra 10 tổ hợp, replay/cancel/completion/idle; không pageerror. Typecheck/build/diff --check đạt. Không commit/push; không sửa dữ liệu thật hay thay đổi map/server đang có.
+## Commit giao diện chọn / tạo nhân vật — 2026-11-13
+
+- Người dùng yêu cầu commit: ảnh động gốc, sửa nhịp, idle tối màu và phát hoạt cảnh khi chọn. Commit `fix(client): use original character selection animations` (hash xem git log -1). Không push.
+- Kiểm chứng trước commit: typecheck/build và Playwright 10 tổ hợp + phát lại/hủy/về idle đạt; diff --check sạch. Các thay đổi bản đồ/server từ công việc khác không nằm trong commit này.

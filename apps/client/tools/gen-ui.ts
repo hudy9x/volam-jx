@@ -12,6 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { generateLoginFigures } from './gen-login-figures.ts';
 import { updateManifest } from './jx/manifest.ts';
 import { resolveAny } from './jx/hashindex.ts';
 import { readGameFile } from './jx/source.ts';
@@ -163,6 +164,7 @@ await strip('b-kytran', '主界面\\奇珍阁按钮_vn.spr');
     `export const CURSORS: Record<string, { url: string; x: number; y: number }> = ${JSON.stringify(out, null, 2)};\n`;
   fs.writeFileSync(path.resolve(HERE, '../src/art/cursors.gen.ts'), ts);
 }
+await generateLoginFigures();
 updateManifest(['core']);
 console.log('done');
 

@@ -11,7 +11,7 @@
 | `npm run gen:skills -w @vltk/client` | `public/assets/skill` (fx, icon) + các `*.gen.ts` của kỹ năng | vài giây; `-- --force` để mã hóa lại hiệu ứng |
 | `npm run gen:maps -w @vltk/client -- 37 140` | `public/assets/maps/<id>` (ảnh nền theo vùng, atlas vật thể, minimap, `nav.json`) cho 2 bản đồ khởi đầu | nhanh |
 | `npm run gen:maps -w @vltk/client` | toàn bộ khoảng 300 bản đồ của `maplist.ini` + `catalog.gen.ts` (khoảng 16 GB) | vài giờ |
-| `npm run gen:ui -w @vltk/client` | `public/assets/ui` (khung, nút, thanh phím tắt gốc, icon ngân lượng, con trỏ chuột `ui/cursor/*.png`; vài trăm KB) + `src/art/cursors.gen.ts` | vài giây |
+| `npm run gen:ui -w @vltk/client` | `public/assets/ui` (khung, nút, thanh phím tắt gốc, icon ngân lượng, con trỏ chuột `ui/cursor/*.png`, ảnh động chọn/tạo nhân vật `ui/login/figures/*.webp`) + `src/art/cursors.gen.ts`, `src/art/login-figures.gen.ts` | vài giây |
 | `npm run gen:sounds -w @vltk/client` | `public/assets/sound` (≈300 MP3, 2,6 MB), `public/assets/music` (30 bài, 34 MB) + `src/game/audio/sounds.gen.ts` | khoảng 15 giây |
 | `npm run gen:manifest -w @vltk/client` | `public/assets/manifest.json` (phiên bản từng gói asset cho cache, `docs/performance/05-cache-va-phien-ban.md`). Các tool `gen:*` ở trên **tự cập nhật** gói của mình; chạy lệnh này khi manifest mất / lệch (chép asset bằng tay, tool bị ngắt). `-- core map/37` = chỉ vài gói | lần đầu đọc hết file (≈ 1,5 phút cho 1 GB trên `/mnt`), sau đó nhanh (nhớ hash theo cỡ + mtime ở `tools/.cache/asset-hashes.json`, không vào git) |
 | `npm run gen:magic -w @vltk/client` | `packages/shared/src/items/magicattrib.gen.ts` (dòng thuộc tính đồ xanh, đọc `settings/item/magicattrib.txt` gói `update01`) | vài giây |
@@ -192,3 +192,11 @@ Giữ lại `music`, `portraits` và mọi `*.gen.ts`; file nén còn vài chụ
 | `.git` | khoảng 8 MB (đo 2026-11-13) |
 | `node_modules` (gốc) | 246 MB |
 | File trong git trừ asset (mã, `*.gen.ts`, tài liệu, spawn) | khoảng 5,7 MB; mã viết tay ≈ 1 MB, `*.gen.ts` ≈ 2,4 MB |
+
+### Ảnh động chọn / tạo nhân vật
+
+`gen:ui` gọi `tools/gen-login-figures.ts`, tìm SPR bằng tên gốc và hash PAK:
+`\spr\ui3\登入界面\选存档人物\角色_{金|木|水|火|土}_{男|女}_{0|1}.spr`.
+Bộ gốc có 5 hệ × 2 giới tính, không có ảnh riêng từng phái. Màn chọn lấy hệ của phái (chưa vào phái thì lấy hệ nhân vật), màn tạo lấy hệ/giới đang chọn. Hậu tố 0 là tư thế đứng có màu, 1 là hoạt cảnh vào, 2 là bản xám. Xuất WebP lossless + metadata khung/thời gian; các frame dùng cùng vùng cắt để không rung. Thư mục asset vẫn không vào git.
+
+Hành vi chọn (2026-11-13): chưa chọn = idle tĩnh tối màu; click/tap hoặc chọn bằng mũi tên = hoạt cảnh hậu tố 1 phát một lần rồi về idle, click lại phát lại. Hai tư thế dùng chung vùng cắt nhưng căn chân và tỷ lệ theo vùng idle để không nhảy vị trí/thu nhỏ khi đổi tư thế. Ảnh hoạt cảnh được giải mã trước khi phát; dùng đồng hồ requestAnimationFrame thay vòng lặp 1 ms. Header interval nhiều SPR bằng 1 (Mộc nam, Thủy nữ, Hỏa nam/nữ, Thổ nữ); chọn 80 ms/khung cho các file này, không khẳng định đó là tốc độ engine gốc. Các hoạt cảnh có interval 50/80/100/120 giữ giá trị nguồn. Idle không chạy vòng lặp.

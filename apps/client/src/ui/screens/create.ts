@@ -1,5 +1,5 @@
 import {
-  ELEMENT_NAMES, LEVEL, SERIES, factionsFor, lookOfOutfit, starterEquipment, type Element, type Gender,
+  ELEMENT_NAMES, LEVEL, SERIES, factionsFor, type Element, type Gender,
 } from '@vltk/shared';
 import { $, mount } from '../kit/dom';
 import { SERIES_COLORS } from './characters';
@@ -51,9 +51,9 @@ export class CreateScreen {
     this.el = mount(root, html());
     fitStage(this.el);
     this.el.querySelectorAll<HTMLElement>('.series-btn').forEach(b =>
-      b.addEventListener('click', () => { this.series = b.dataset.series as Element; this.render(); }));
+      b.addEventListener('click', () => { this.series = b.dataset.series as Element; this.render(true); }));
     this.el.querySelectorAll<HTMLElement>('.create-gender').forEach(g =>
-      g.addEventListener('click', () => { this.gender = g.dataset.gender as Gender; this.render(); }));
+      g.addEventListener('click', () => { this.gender = g.dataset.gender as Gender; this.render(true); }));
     $('create-cancel').addEventListener('click', () => handlers.cancel());
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !this.el.classList.contains('hidden')) handlers.cancel(); });
     $('create-form').addEventListener('submit', async (e: SubmitEvent) => {
@@ -74,13 +74,12 @@ export class CreateScreen {
     requestAnimationFrame(() => ($('create-name') as HTMLInputElement).focus());
   }
 
-  private render(): void {
+  private render(animate = false): void {
     this.el.querySelectorAll<HTMLElement>('.series-btn').forEach(b => b.classList.toggle('on', b.dataset.series === this.series));
     for (const gender of ['male', 'female'] as const) {
       const box = this.el.querySelector<HTMLElement>(`.create-gender.${gender}`)!;
       box.classList.toggle('on', gender === this.gender);
-      const look = lookOfOutfit(starterEquipment('', gender));
-      requestAnimationFrame(() => showFigure(box.querySelector('.char-figure') as HTMLElement, gender, look, gender === 'male' ? 1 : 7));
+      requestAnimationFrame(() => showFigure(box.querySelector('.char-figure') as HTMLElement, gender, this.series, '', { selected: gender === this.gender, animate: animate && gender === this.gender }));
     }
     const factions = factionsFor(this.series, this.gender).map(f => f.name);
     const prop = $('create-property');

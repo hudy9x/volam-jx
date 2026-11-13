@@ -2,7 +2,7 @@ import {
   ELEMENT_NAMES, FACTIONS, MAPS, MAX_CHARACTERS, type CharacterSummary,
 } from '@vltk/shared';
 import { $, mount } from '../kit/dom';
-import { showFigure } from './figure';
+import { selectFigure, showFigure } from './figure';
 import { fitStage } from './stage';
 import './screens.css';
 import { assetUrl } from '../../art/assets';
@@ -62,7 +62,11 @@ export class CharactersScreen {
   private select(i: number): void {
     if (!this.chars.length) return;
     this.selected = (i + this.chars.length) % this.chars.length;
-    document.querySelectorAll('#char-slots .char-slot').forEach((el, k) => el.classList.toggle('selected', k === this.selected));
+    this.el.querySelectorAll<HTMLElement>('#char-slots .char-slot').forEach((el, k) => {
+      const selected = k === this.selected;
+      el.classList.toggle('selected', selected);
+      selectFigure(el.querySelector<HTMLElement>('.char-figure')!, selected, selected);
+    });
   }
 
   /** Fill the list (and show `message`, e.g. why the game was left). `prefer` = id of the character to select. */
@@ -88,8 +92,8 @@ export class CharactersScreen {
       slot.addEventListener('click', () => this.select(i));
       slot.addEventListener('dblclick', () => { this.select(i); this.enter(); });
       slots.appendChild(slot);
-      // Facing the viewer a little to the side, like the original select screen.
-      requestAnimationFrame(() => showFigure(slot.querySelector('.char-figure') as HTMLElement, c.gender, c.look, 0));
+      // The original large login artwork follows the faction element, independently of equipped items.
+      requestAnimationFrame(() => showFigure(slot.querySelector('.char-figure') as HTMLElement, c.gender, c.series, c.faction, { selected: i === this.selected }));
     });
     if (!chars.length) {
       const empty = document.createElement('p');

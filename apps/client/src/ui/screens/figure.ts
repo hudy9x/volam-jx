@@ -1,43 +1,79 @@
-import { FOOT_X, FOOT_Y, jxSheetUrl, lookPreview, makeLook } from '../../art/jx';
+import { FACTIONS, type Element, type Gender } from '@vltk/shared';
+import { assetUrl } from '../../art/assets';
+import { LOGIN_FIGURES } from '../../art/login-figures.gen';
 
-/** Original frame time (18 per second); the standing pose is played a little slower, like the original login figures. */
-const FRAME_MS = 1000 / 12;
-const timers = new WeakMap<HTMLElement, number>();
+type Figure = { sprite: HTMLElement; key: string; generation: number; raf?: number };
+const figures = new WeakMap<HTMLElement, Figure>();
+const decoded = new Map<string, Promise<void>>();
 
-/**
- * A character standing at 1:1 from its original paper-doll sheets (CSS sprites), feet at the bottom centre of `el`,
- * playing the standing pose. Used by the character select / create screens (no Phaser there).
- */
-export function showFigure(el: HTMLElement, gender: string, look: { helm: number; armor: number; weapon: number } | undefined, dir = 0): void {
-  const old = timers.get(el);
-  if (old) clearInterval(old);
-  el.replaceChildren();
-  if (!look) return;
-  const layers = lookPreview(makeLook(gender, look.helm, look.armor, look.weapon, '', false), dir);
-  const cx = el.clientWidth / 2 || 60, cy = el.clientHeight || 200;
-  const parts = layers.map(part => {
-    const [w, h, bx, by, , dirs, cols] = part.meta;
-    const perDir = part.meta[4];
-    const rowsPerDir = Math.ceil(perDir / cols);
-    const div = document.createElement('div');
-    Object.assign(div.style, {
-      position: 'absolute', left: `${cx + bx - FOOT_X}px`, top: `${cy + by - FOOT_Y}px`, width: `${w}px`, height: `${h}px`,
-      backgroundImage: `url(${jxSheetUrl(part.key)})`, backgroundSize: `${cols * w}px ${dirs * rowsPerDir * h}px`,
-    });
-    el.appendChild(div);
-    return { div, w, h, perDir, cols, rowsPerDir, row: part.row };
+function preload(url: string): Promise<void> {
+  let ready = decoded.get(url);
+  if (!ready) {
+    const image = new Image();
+    image.src = url;
+    ready = image.decode();
+    decoded.set(url, ready);
+    void ready.catch(() => decoded.delete(url));
+  }
+  return ready;
+}
+
+function draw(figure: Figure, pose: 'idle' | 'action', frame = 0): void {
+  if (figure.sprite.dataset.pose === pose && figure.sprite.dataset.frame === String(frame)) return;
+  const key = `${figure.key}-${pose}`, art = LOGIN_FIGURES[key];
+  Object.assign(figure.sprite.style, {
+    backgroundImage: `url("${assetUrl(`ui/login/figures/${key}.webp`)}")`,
+    backgroundSize: `${art.columns * art.width}px ${Math.ceil(art.frames / art.columns) * art.height}px`,
+    backgroundPosition: `${-(frame % art.columns) * art.width}px ${-Math.floor(frame / art.columns) * art.height}px`,
   });
-  let frame = 0;
-  const draw = () => {
-    for (const p of parts) {
-      const f = frame % p.perDir;
-      p.div.style.backgroundPosition = `${-(f % p.cols) * p.w}px ${-(p.row * p.rowsPerDir + Math.floor(f / p.cols)) * p.h}px`;
-    }
-  };
-  draw();
-  timers.set(el, window.setInterval(() => {
-    if (!el.isConnected) { clearInterval(timers.get(el)); return; }
-    frame++;
-    draw();
-  }, FRAME_MS));
+  figure.sprite.dataset.pose = pose;
+  figure.sprite.dataset.frame = String(frame);
+}
+
+/** Cancel the previous action immediately; clicking a selected figure replays its action once. */
+export function selectFigure(el: HTMLElement, selected: boolean, animate = false): void {
+  const figure = figures.get(el);
+  if (!figure) return;
+  const generation = ++figure.generation;
+  if (figure.raf !== undefined) cancelAnimationFrame(figure.raf);
+  draw(figure, 'idle');
+  if (!selected || !animate) return;
+  const art = LOGIN_FIGURES[`${figure.key}-action`];
+  const url = assetUrl(`ui/login/figures/${figure.key}-action.webp`);
+  void preload(url).then(() => {
+    if (figure.generation !== generation || !el.isConnected || el.closest('.login-screen.hidden')) return;
+    const start = performance.now();
+    const tick = (now: number) => {
+      if (figure.generation !== generation) return;
+      if (!el.isConnected || el.closest('.login-screen.hidden')) { draw(figure, 'idle'); return; }
+      const frame = Math.floor((now - start) / art.interval);
+      if (frame >= art.frames) { draw(figure, 'idle'); return; }
+      draw(figure, 'action', frame);
+      figure.raf = requestAnimationFrame(tick);
+    };
+    tick(start);
+  }).catch(() => { /* Keep the idle image if the action cannot be loaded. */ });
+}
+
+/** Original artwork is keyed by element/gender. Both poses share a crop and remain anchored at the feet. */
+export function showFigure(el: HTMLElement, gender: Gender, series: Element, faction = '',
+  options: { selected?: boolean; animate?: boolean } = {}): void {
+  const previous = figures.get(el);
+  if (previous) { previous.generation++; if (previous.raf !== undefined) cancelAnimationFrame(previous.raf); }
+  el.replaceChildren();
+  const key = `${FACTIONS[faction]?.element ?? series}-${gender}`;
+  const art = LOGIN_FIGURES[`${key}-idle`];
+  if (!art) return;
+  const scale = Math.min(1, el.clientWidth / art.idleWidth, el.clientHeight / art.idleHeight);
+  const sprite = document.createElement('div');
+  sprite.className = 'login-figure-sprite';
+  sprite.setAttribute('aria-hidden', 'true');
+  Object.assign(sprite.style, { width: `${art.width}px`, height: `${art.height}px`,
+    left: `calc(50% - ${art.anchorX * scale}px)`, top: `${el.clientHeight - art.anchorY * scale}px`, bottom: 'auto',
+    transform: `scale(${scale})`, transformOrigin: 'top left' });
+  el.appendChild(sprite);
+  figures.set(el, { sprite, key, generation: 0 });
+  // Decode the action in advance so the first click does not flash an unloaded sprite sheet.
+  void preload(assetUrl(`ui/login/figures/${key}-action.webp`)).catch(() => {});
+  selectFigure(el, options.selected ?? false, options.animate ?? false);
 }
