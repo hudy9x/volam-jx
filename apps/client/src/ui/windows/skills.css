@@ -1,37 +1,239 @@
-#skill-panel { width: min(640px, calc(100vw - 16px)); }
-/* kỹ năng: lưới theo cấp */
-#skill-grid { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(48px, 1fr); gap: 2px; border: 1px solid var(--line); background: #080a09; padding: 4px; }
-.sk-col { display: grid; grid-auto-rows: min-content; gap: 4px; justify-items: center; padding-bottom: 4px; }
-.sk-col + .sk-col { border-left: 1px solid #141c18; }
-.sk-col-head { width: 100%; text-align: center; font-size: 11px; font-weight: 700; color: var(--gold); text-shadow: var(--outline);
-  background: url(/assets/ui/stone.webp) center / auto 100%; color: #141209; text-shadow: 0 0 2px #fff3b0; padding: 2px 0; margin-bottom: 2px; }
-.sk-cell { position: relative; width: 40px; height: 40px; padding: 1px; border: 1px solid var(--line); background: #000; cursor: pointer; }
-.sk-cell img { width: 36px; height: 36px; display: block; pointer-events: none; }
-.sk-cell .lv { position: absolute; right: 0; bottom: -1px; font-size: 10px; color: #fff; text-shadow: var(--outline); pointer-events: none; }
-.sk-cell.c-attack { border-color: #a0623c; }
-.sk-cell.c-support { border-color: #4f9a4f; }
-.sk-cell.c-buff { border-color: #3f8fb4; }
-.sk-cell.c-debuff { border-color: #8a4fb0; }
-.sk-cell.c-passive { border-color: #6b6253; border-style: dashed; }
-/* Icons always in colour here (USER 2026-11-13): grey only on the quick bar (weapon can't use it); level 0 shows as "0". */
-.sk-cell:hover { box-shadow: 0 0 0 1px var(--hl); }
-.sk-cell.sel { box-shadow: 0 0 0 2px var(--gold), 0 0 8px var(--gold); }
-.sk-cell .tag { position: absolute; left: -1px; top: -1px; font-size: 9px; line-height: 10px; padding: 0 2px; background: #6b1a12; color: #ffd; pointer-events: none; }
-.sk-cell .tag.lost { background: #3a2a6b; }
-.sk-level { display: flex; align-items: center; gap: 4px; font-size: 12px; white-space: nowrap; }
-.sk-level span { min-width: 44px; text-align: center; color: var(--gold); }
-.hint { font-size: 11px; }
-.sk-head { margin-bottom: 4px; color: var(--gold); }
-#skill-join { margin: 4px 0 8px; display: flex; flex-direction: column; gap: 6px; }
-#skill-join .row { flex-wrap: wrap; gap: 6px; }
-.sk-grow { font-size: 12px; max-width: 170px; }
+#skill-panel {
+  width: max-content;
+  max-width: calc(100vw - 16px);
+}
 
-/* levels raised by worn pieces (allskill_v): blue like the original's extra levels */
-.sk-cell .lv.boosted, #skill-pop .boosted { color: #5aa8ff; font-weight: 700; }
+/* kỹ năng: lưới theo cấp, mỗi cột rộng đúng bằng ô icon skill (40px) */
+#skill-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 40px;
+  gap: 4px;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: #080a09;
+  padding: 4px;
+}
+
+.sk-col {
+  width: 40px;
+  display: grid;
+  grid-auto-rows: min-content;
+  gap: 4px;
+  justify-items: center;
+  padding-bottom: 4px;
+}
+
+.sk-col-head {
+  width: 40px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: url(/assets/ui/stone.webp) center / auto 100%;
+  color: #141209;
+  text-shadow: 0 0 2px #fff3b0;
+  padding: 2px 0;
+  margin-bottom: 2px;
+}
+
+.sk-cell {
+  position: relative;
+  width: 40px;
+  padding: 1px;
+  border: 1px solid var(--line);
+  background: #050706;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sk-ico {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  background: #000;
+}
+
+.sk-ico img {
+  width: 36px;
+  height: 36px;
+  display: block;
+  pointer-events: none;
+}
+
+.sk-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 15px;
+  padding: 0 1px;
+  background: #0a0e0c;
+  border-top: 1px solid #18221e;
+}
+
+.sk-cell .lv {
+  font-size: 11px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: var(--outline);
+  pointer-events: none;
+}
+
+.sk-cell .sk-add {
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  flex: none;
+  border: 1px solid #a63434;
+  background: #781217;
+  color: var(--gold);
+  font: 700 11px/1 Tahoma, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-shadow: 0 1px 1px #000;
+  box-shadow: 0 0 2px #000;
+}
+
+.sk-cell .sk-add:hover:not(.off) {
+  background: #96181e;
+  border-color: var(--gold);
+  color: #fff3b0;
+}
+
+.sk-cell .sk-add:active:not(.off) {
+  filter: brightness(0.85);
+}
+
+.sk-cell .sk-add.off {
+  opacity: 0.45;
+}
+
+.sk-cell.c-attack {
+  border-color: #a0623c;
+}
+
+.sk-cell.c-support {
+  border-color: #4f9a4f;
+}
+
+.sk-cell.c-buff {
+  border-color: #3f8fb4;
+}
+
+.sk-cell.c-debuff {
+  border-color: #8a4fb0;
+}
+
+.sk-cell.c-passive {
+  border-color: #6b6253;
+  border-style: dashed;
+}
+
+/* Icons always in colour here (USER 2026-11-13): grey only on the quick bar (weapon can't use it); level 0 shows as "0". */
+.sk-cell:hover {
+  box-shadow: 0 0 0 1px var(--hl);
+}
+
+.sk-cell.sel {
+  box-shadow: 0 0 0 2px var(--gold), 0 0 8px var(--gold);
+}
+
+.sk-cell .tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 9px;
+  line-height: 10px;
+  padding: 0 2px;
+  background: #6b1a12;
+  color: #ffd;
+  pointer-events: none;
+}
+
+.sk-cell .tag.lost {
+  background: #3a2a6b;
+}
+
+.sk-level {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.sk-level span {
+  min-width: 44px;
+  text-align: center;
+  color: var(--gold);
+}
+
+.hint {
+  width: 0;
+  min-width: 100%;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.sk-head {
+  margin-bottom: 4px;
+  color: var(--gold);
+}
+
+#skill-join {
+  margin: 4px 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#skill-join .row {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sk-grow {
+  font-size: 12px;
+  max-width: 170px;
+}
+
+/* levels raised by worn pieces (allskill_v): bright cyan-blue so it is easy to read on dark backgrounds */
+.sk-cell .lv.boosted,
+#skill-pop .boosted {
+  color: #4c5ff5;
+}
+
 /* the small popup under a clicked skill (no long description: that is the hover tooltip) */
-#skill-pop { position: absolute; z-index: 5; min-width: 170px; padding: 6px 8px; background: #0b0f0d; border: 1px solid var(--gold);
-  box-shadow: 0 4px 14px #000c; display: flex; flex-direction: column; gap: 4px; }
-#skill-pop.hidden { display: none; }
-#skill-pop .sk-pop-name { color: var(--gold); font-weight: 700; }
-#skill-pop .row { gap: 4px; }
-#skill-pop .sk-grow { font-size: 11px; max-width: 220px; }
+#skill-pop {
+  position: absolute;
+  z-index: 5;
+  min-width: 170px;
+  padding: 6px 8px;
+  background: #0b0f0d;
+  border: 1px solid var(--gold);
+  box-shadow: 0 4px 14px #000c;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#skill-pop.hidden {
+  display: none;
+}
+
+#skill-pop .sk-pop-name {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+#skill-pop .row {
+  gap: 4px;
+}
+
+#skill-pop .sk-grow {
+  font-size: 11px;
+  max-width: 220px;
+}

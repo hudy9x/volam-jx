@@ -57,10 +57,12 @@ interface Missile {
 interface Timer { at: number; owner: string; run: () => void }
 interface Aura { s: SkillDef; level: number; next: number }
 
-/** Level a combatant uses a skill at: learned + what its worn pieces add (only when learned above 0). */
+/** Level a combatant uses a skill at: learned + what its worn pieces add (only when learned above 0; common skills work at level 0+). */
 export function levelOf(c: Combatant, id: number): number | undefined {
-  const base = c.skills.get(id);
-  return base !== undefined && base > 0 ? base + (c.skillBonus?.get(id) ?? 0) : base;
+  const raw = c.skills.get(id);
+  if (raw === undefined) return undefined;
+  const base = raw <= 0 && getSkill(id)?.pack === 'common' ? 1 : raw;
+  return base > 0 ? base + (c.skillBonus?.get(id) ?? 0) : base;
 }
 
 /** What a cast did to the caster: pose, how long it locks them, and a line for the player (auras on/off). */

@@ -119,12 +119,16 @@ export function unlockSkills(sim: Sim, stored?: Record<string, number>): boolean
   let added = false;
   for (const id of ids) {
     const s = getSkill(id);
-    if (!s || sim.skills.has(id)) continue;
+    if (!s) continue;
+    const start = BASIC_SKILLS.includes(id) ? Math.max(1, startLevel(s)) : startLevel(s);
+    if (sim.skills.has(id)) {
+      if ((sim.skills.get(id) ?? 0) < start) { sim.skills.set(id, start); added = true; }
+      continue;
+    }
     const kept = Number(stored?.[id]);
     // Tiers 90 / 120 / 150 appear only through a bí kíp (Kỳ Trân Các); already learned ones stay.
     if (!(kept >= 0 && stored && id in stored) && sim.a.faction && TIER_BOOKS.includes(tierOf(sim.a.faction, id)?.level ?? 0)) continue;
-    if ((s.reqLevel ?? 1) > level && !BASIC_SKILLS.includes(id)) continue;
-    const start = BASIC_SKILLS.includes(id) ? Math.max(1, startLevel(s)) : startLevel(s);
+    if ((s.reqLevel ?? 1) > level && !BASIC_SKILLS.includes(id) && s.pack !== 'common') continue;
     sim.skills.set(id, Number.isFinite(kept) && kept >= start ? Math.min(kept, s.maxLevel ?? 20) : start);
     added = true;
   }

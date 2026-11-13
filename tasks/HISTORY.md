@@ -622,3 +622,12 @@ Người dùng yêu cầu commit trạng thái hiện tại. Commit `fix(server)
 - Người dùng yêu cầu commit toàn bộ trạng thái hiện tại của công việc này. Commit `feat: add leveled training maps and improve travel picker` (hash xem git log -1).
 - Bao gồm43 bản đồ trong catalog,40 file spawn cấp10–200 và bảng cấp dùng chung/tool gen; giao diện Xa phu gộp Thành thị, CSS thẻ ít mục, sắp theo cấp và cảnh báo vượt cấp; bản sửa đồng bộ buff khi chết/hồi sinh; tài liệu và tiến độ liên quan.
 - Asset sinh không đưa vào git, cần tái sinh theo docs/training-maps.md trên máy khác. Các kiểm chứng typecheck, tsc tool và trình duyệt/World/WebSocket đã ghi ở các mục trên; git diff --check sạch trước commit. Không push.
+
+## Tra cứu Tống Kim — 2026-11-13
+
+Đã xác minh maplist.ini gốc: ID44 Chiến trường Tống Kim (Battlefield), có file .wor trong data_extract; ID323/324/325 điểm báo danh sơ/trung/cao dùng chung hình bản đồ. Chưa gen các map này, chưa có trong43map hiện tại. Gameplay Tống Kim vẫn chưa triển khai (BACKLOG SK1). Chỉ tra cứu, không gen/sửa code. Commit nền21bbcb5.
+
+## Chỉnh giao diện bảng Kỹ năng võ công — 2026-11-13
+
+- Chuyển cột `Khác` sang bên trái đầu tiên và đổi tiêu đề thành `0`; bỏ chữ `Cấp` ở các cột còn lại (`10` … `150`).
+- Kỹ năng cột `0` (`common`) tự động học / dùng được ngay không cần cộng điểm; độ rộng cột bằng đúng độ rộng ô icon (`40px`); tách hàng `.sk-foot` bên dưới icon chứa số cấp bên trái và nút `+` đỏ đô chữ vàng bên phải; tăng độ sáng màu xanh dương `.boosted` (`#66e6ff`). Đã commit `feat(skills): restyle skill window layout and auto-learn common skills`.

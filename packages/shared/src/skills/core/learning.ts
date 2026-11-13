@@ -44,8 +44,8 @@ export function skillGrowth(s: SkillDef): SkillGrowth {
   return 'practice'; // 90 (addskillexp1) and 150 (USER: like 90)
 }
 
-/** Level a skill has when it appears: practice / kill-exp skills start at 1, point skills at 0 (DATA AddMagic(id[,1])). */
-export const startLevel = (s: SkillDef): number => (skillGrowth(s) === 'points' ? 0 : 1);
+/** Level a skill has when it appears: common / practice / kill-exp skills start at 1, point skills at 0 (DATA AddMagic(id[,1])). */
+export const startLevel = (s: SkillDef): number => (s.pack === 'common' || skillGrowth(s) !== 'points' ? 1 : 0);
 
 /** Highest level reachable now. */
 export function levelCap(s: SkillDef, charLevel: number): number {
@@ -60,6 +60,7 @@ export function levelCap(s: SkillDef, charLevel: number): number {
 export function raiseError(id: number, levels: Record<number, number>, charLevel: number, points: number): string | null {
   const s = getSkill(id);
   if (!s) return 'Kỹ năng không tồn tại.';
+  if (s.pack === 'common') return `Kỹ năng ${s.name} không cần cộng điểm.`;
   const cur = levels[id];
   if (cur === undefined) return 'Chưa học kỹ năng này.';
   if (skillGrowth(s) !== 'points') return `Không thể sử dụng điểm kỹ năng để thăng cấp kỹ năng ${s.name}.`; // DATA G_PLAYER_1

@@ -1,6 +1,6 @@
 # Điểm dừng hiện tại
 
-> Điểm dừng mới nhất **2026-11-13**: đã hoàn tất Phượng Tường + 40 bãi cấp10–200 (tổng43), gộp Thành thị, sửa CSS ít mục và hiển thị/sắp theo cấp quái/cảnh báo vượt cấp. Kèm sửa đồng bộ buff chết/hồi sinh. Commit mới nhất xem `git log -1`: `feat: add leveled training maps and improve travel picker`. Kiểm chứng đạt; chưa push. Các mục lịch sử bên dưới được giữ nguyên.
+> Điểm dừng mới nhất **2026-11-13**: đã chỉnh lại giao diện và logic bảng Kỹ năng võ công (cột `0` bên trái, kỹ năng `common` tự học không cần cộng điểm, cột rộng bằng icon `40px`, hàng chân `.sk-foot` chứa cấp + nút `+` đỏ đô chữ vàng, màu cấp trang bị `.boosted` sáng hơn). Commit mới nhất xem `git log -1`: `feat(skills): restyle skill window layout and auto-learn common skills`. Kiểm chứng đạt; chưa push.
 
 > Cập nhật: **2026-11-13** (vòng 23–31: lệnh bài, 4 rương, màn chọn / tạo nhân vật gốc, PK + tổ đội, bùa theo màu chữ, exp tổ đội,
 > gợi ý cộng điểm + tẩy tủy, Auto theo jx-web-main, thuộc tính hoàng kim + Càn Khôn Giới Chỉ + popup kỹ năng; vòng 31: Auto tiếp cận /
@@ -343,3 +343,16 @@ Kiểm chứng cuối (2026-11-13): `npm run typecheck` và `npm run build` đ�
 - Người dùng yêu cầu commit toàn bộ trạng thái hiện tại của công việc này. Commit `feat: add leveled training maps and improve travel picker` (hash xem git log -1).
 - Bao gồm43 bản đồ trong catalog,40 file spawn cấp10–200 và bảng cấp dùng chung/tool gen; giao diện Xa phu gộp Thành thị, CSS thẻ ít mục, sắp theo cấp và cảnh báo vượt cấp; bản sửa đồng bộ buff khi chết/hồi sinh; tài liệu và tiến độ liên quan.
 - Asset sinh không đưa vào git, cần tái sinh theo docs/training-maps.md trên máy khác. Các kiểm chứng typecheck, tsc tool và trình duyệt/World/WebSocket đã ghi ở các mục trên; git diff --check sạch trước commit. Không push.
+
+## Tra cứu Tống Kim — 2026-11-13
+
+Đã xác minh maplist.ini gốc: ID44 Chiến trường Tống Kim (Battlefield), có file .wor trong data_extract; ID323/324/325 điểm báo danh sơ/trung/cao dùng chung hình bản đồ. Chưa gen các map này, chưa có trong43map hiện tại. Gameplay Tống Kim vẫn chưa triển khai (BACKLOG SK1). Chỉ tra cứu, không gen/sửa code. Commit nền21bbcb5.
+
+## Chỉnh giao diện bảng Kỹ năng võ công — 2026-11-13
+
+- Theo yêu cầu người dùng: chuyển cột kỹ năng `Khác` từ cuối phải sang đầu bên trái với nhãn `0`; các cột mốc cấp bỏ chữ `Cấp `, chỉ hiển thị `10`, `20`, `30`, `40`, `50`, `60`, `90`, `120`, `150`.
+- Kỹ năng cột `0` (`s.pack === 'common'`: Khinh công, Vũ Lộ Xuân Phong, Kiếp Phú Tế Bần, Công kích vật lý) tự động học và dùng được ngay mà không cần cộng điểm kỹ năng (`learning.ts`, `SkillEngine.ts`, `progress.ts`, `skillbar.ts`, `skills.ts`).
+- Độ rộng mỗi cột kỹ năng (`.sk-col`, `.sk-col-head`) rộng đúng `40px` bằng độ rộng ô icon skill (`.sk-cell`).
+- Tách phần chân `.sk-foot` thành hàng riêng bên dưới `.sk-ico` (`36×36`), không đè lên icon skill: bên trái là số cấp (`.lv`), bên phải là nút `.sk-add` màu đỏ đô (`#781217`), dấu `+` màu vàng (`var(--gold)`), bấm cộng 1 điểm kỹ năng (`raiseSkill`).
+- Đổi màu cấp cộng thêm từ trang bị (`.boosted`) sang xanh dương sáng (`#66e6ff`) dễ nhìn trên nền tối.
+- Kiểm chứng: `npm run typecheck` và `git diff --check` đạt. Đã commit `feat(skills): restyle skill window layout and auto-learn common skills` (hash xem `git log -1`), không push.

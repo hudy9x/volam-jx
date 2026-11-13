@@ -87,7 +87,8 @@ class SkillBarState {
    * engine's levelOf, which the server checks cost / damage with); 0 / undefined-as-0 = not learned.
    */
   levelOf(id: number): number {
-    const base = this.levels[id] ?? 0;
+    const raw = this.levels[id] ?? 0;
+    const base = raw <= 0 && getSkill(id)?.pack === 'common' ? 1 : raw;
     return base > 0 ? base + (this.bonus[id] ?? 0) : base;
   }
 
