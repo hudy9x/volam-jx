@@ -1,7 +1,7 @@
 {
  "map": 41,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Phục Ngưu Sơn Tây, cấp 70–79, vùng Hoa Bắc: Đông Bắc hổ, Hoa Nam hổ, Kim Điêu, Sói tuyết, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Phục Ngưu Sơn Tây, cấp 70–79, vùng Hoa Bắc: Đông Bắc hổ, Hoa Nam hổ, Kim Điêu, Sói tuyết, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Vương Tá.",
  "zones": [
   {"x":3760,"y":11608,"r":220,"monsters":[[24,70]],"count":4,"respawn":43},
   {"x":16016,"y":1416,"r":220,"monsters":[[8,77]],"count":5,"respawn":46},
@@ -28,6 +28,9 @@
   {"x":5744,"y":5160,"r":220,"monsters":[[24,73],[160,74]],"count":5,"respawn":45},
   {"x":7216,"y":4520,"r":220,"monsters":[[0,72]],"count":7,"respawn":44},
   {"x":4624,"y":7224,"r":220,"monsters":[[0,75],[1,73]],"count":6,"respawn":45},
-  {"x":5968,"y":4680,"r":220,"monsters":[[0,75]],"count":4,"respawn":45}
+  {"x":5968,"y":4680,"r":220,"monsters":[[0,75]],"count":4,"respawn":45},
+  {"x":3760,"y":11608,"r":60,"monsters":[[160,79]],"count":1,"respawn":60,"boss":1},
+  {"x":2096,"y":10520,"r":60,"monsters":[[160,79]],"count":1,"respawn":60,"boss":1},
+  {"x":2864,"y":11320,"r":40,"monsters":[[739,79]],"count":1,"respawn":180,"boss":2}
  ]
 }

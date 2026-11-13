@@ -114,7 +114,8 @@ class Minimap {
       if (a.id === selfId) { self = a; continue; }
       const s = a.state;
       if (s.hp <= 0) continue;
-      const [color, r] = s.kind === 'monster' ? (s.boss ? ['#ff9b3d', 3] : ['#e0503c', 1.5])
+      const [color, r] = s.kind === 'monster'
+        ? (Number(s.boss) >= 2 || s.boss === true ? ['#ffd700', 3.2] : s.boss === 1 ? ['#5cb8ff', 2.4] : ['#e0503c', 1.5])
         : s.kind === 'player' ? [(CAMP_COLORS[(s.camp || 'new') as Camp] ?? '#ffffff'), 2] : ['#7fe08a', 2];
       ctx.fillStyle = color as string;
       ctx.beginPath();

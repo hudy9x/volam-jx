@@ -1,7 +1,7 @@
 {
  "map": 7,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Tần Lăng, cấp 150–159, vùng Tây Bắc: Kim Tiền báo, Bạch Hổ, Kền Kền, Kim Hoàn Mãng Xà, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Tần Lăng, cấp 150–159, vùng Tây Bắc: Kim Tiền báo, Bạch Hổ, Kền Kền, Kim Hoàn Mãng Xà, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1; Boss Xanh + Boss Hoàng Kim Đường Phong.",
  "zones": [
   {"x":3856,"y":6120,"r":220,"monsters":[[22,150],[26,150]],"count":4,"respawn":70},
   {"x":5488,"y":1608,"r":220,"monsters":[[149,158],[3,159]],"count":4,"respawn":73},
@@ -19,6 +19,9 @@
   {"x":9776,"y":5032,"r":220,"monsters":[[22,155]],"count":4,"respawn":72},
   {"x":8752,"y":4408,"r":220,"monsters":[[3,154],[26,154]],"count":5,"respawn":71},
   {"x":7312,"y":4536,"r":220,"monsters":[[149,150]],"count":4,"respawn":70},
-  {"x":4208,"y":3384,"r":220,"monsters":[[26,155],[22,155]],"count":5,"respawn":71}
+  {"x":4208,"y":3384,"r":220,"monsters":[[26,155],[22,155]],"count":5,"respawn":71},
+  {"x":3856,"y":6120,"r":60,"monsters":[[149,159]],"count":1,"respawn":60,"boss":1},
+  {"x":3472,"y":5816,"r":60,"monsters":[[149,159]],"count":1,"respawn":60,"boss":1},
+  {"x":4400,"y":1512,"r":40,"monsters":[[522,159]],"count":1,"respawn":180,"boss":2}
  ]
 }

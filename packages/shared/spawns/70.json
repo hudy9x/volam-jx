@@ -1,7 +1,7 @@
 {
  "map": 70,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Vũ Lăng sơn, cấp 30–39, vùng Lưỡng Hồ: Sói xám, Sói đỏ, Rắn xanh, Nhện, Hoa Nam sơn tặc 1, Hoa Nam sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Vũ Lăng sơn, cấp 30–39, vùng Lưỡng Hồ: Sói xám, Sói đỏ, Rắn xanh, Nhện, Hoa Nam sơn tặc 1, Hoa Nam sơn tặc 2; Boss Xanh + Boss Hoàng Kim Chung Linh Tú.",
  "zones": [
   {"x":16432,"y":11736,"r":220,"monsters":[[156,30]],"count":5,"respawn":30},
   {"x":5360,"y":6504,"r":220,"monsters":[[21,36]],"count":4,"respawn":32},
@@ -30,6 +30,9 @@
   {"x":2384,"y":5816,"r":220,"monsters":[[5,38]],"count":6,"respawn":33},
   {"x":3632,"y":3720,"r":220,"monsters":[[6,39],[45,39]],"count":5,"respawn":33},
   {"x":10160,"y":1144,"r":220,"monsters":[[45,39],[21,37]],"count":5,"respawn":33},
-  {"x":18768,"y":6392,"r":220,"monsters":[[6,32],[45,30]],"count":5,"respawn":30}
+  {"x":18768,"y":6392,"r":220,"monsters":[[6,32],[45,30]],"count":5,"respawn":30},
+  {"x":3632,"y":3720,"r":60,"monsters":[[156,39]],"count":1,"respawn":60,"boss":1},
+  {"x":2384,"y":5816,"r":60,"monsters":[[156,39]],"count":1,"respawn":60,"boss":1},
+  {"x":2096,"y":4424,"r":40,"monsters":[[567,39]],"count":1,"respawn":180,"boss":2}
  ]
 }

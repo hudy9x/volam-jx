@@ -4,7 +4,8 @@
   "note": "Dược Vương Cốc (bản cũ): Linh Miêu, Hươu Đốm, Kim Tơ Hầu ở 11 chỗ ngẫu nhiên, boss Kim Miêu Vương, 3 cọc gỗ gần lối vào.",
   "zones": [
     { "camps": 11, "count": 4, "r": 90, "monsters": [[34, 3], [42, 5], [38, 7]], "respawn": 15 },
-    { "camps": 1, "count": 1, "boss": true, "monsters": [[10031, 10]], "respawn": 120 }
+    { "camps": 2, "count": 1, "r": 60, "boss": 1, "monsters": [[38, 8]], "respawn": 60 },
+    { "camps": 1, "count": 1, "boss": 2, "monsters": [[10031, 10]], "respawn": 120 }
   ],
   "fixed": [
     { "monster": 413, "level": 1, "x": 5470, "y": 9700 },

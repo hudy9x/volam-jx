@@ -1,7 +1,7 @@
 {
  "map": 179,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): La Tiêu sơn, cấp 120–129, vùng Giang Nam: Hoa Nam hổ, Dơi chúa đỏ, Tuyết Quái, Kim Tiền báo, Giang Nam sơn tặc 2, Giang Nam sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): La Tiêu sơn, cấp 120–129, vùng Giang Nam: Hoa Nam hổ, Dơi chúa đỏ, Tuyết Quái, Kim Tiền báo, Giang Nam sơn tặc 2, Giang Nam sơn tặc 1; Boss Xanh + Boss Hoàng Kim Tuyền Cơ Tử.",
  "zones": [
   {"x":13456,"y":10504,"r":220,"monsters":[[28,120]],"count":5,"respawn":60},
   {"x":6800,"y":7960,"r":220,"monsters":[[1,121]],"count":4,"respawn":61},
@@ -30,6 +30,9 @@
   {"x":5136,"y":9800,"r":220,"monsters":[[40,125],[3,124]],"count":6,"respawn":62},
   {"x":15056,"y":4456,"r":220,"monsters":[[3,125]],"count":7,"respawn":62},
   {"x":13424,"y":2536,"r":220,"monsters":[[28,128]],"count":5,"respawn":62},
-  {"x":7536,"y":4712,"r":220,"monsters":[[1,124],[3,122]],"count":6,"respawn":61}
+  {"x":7536,"y":4712,"r":220,"monsters":[[1,124],[3,122]],"count":6,"respawn":61},
+  {"x":3696,"y":12456,"r":60,"monsters":[[153,129]],"count":1,"respawn":60,"boss":1},
+  {"x":13328,"y":12792,"r":60,"monsters":[[153,129]],"count":1,"respawn":60,"boss":1},
+  {"x":14576,"y":12936,"r":40,"monsters":[[747,129]],"count":1,"respawn":180,"boss":2}
  ]
 }

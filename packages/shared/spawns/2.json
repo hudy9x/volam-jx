@@ -1,7 +1,7 @@
 {
  "map": 2,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Hoa Sơn, cấp 10–19, vùng Tây Bắc: Hồng Hồ, Tàng Vực hầu, Heo trắng, Kim Miêu.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Hoa Sơn, cấp 10–19, vùng Tây Bắc: Hồng Hồ, Tàng Vực hầu, Heo trắng, Kim Miêu; Boss Xanh + Boss Hoàng Kim Huyền Giác Đại Sư.",
  "zones": [
   {"x":10256,"y":9384,"r":220,"monsters":[[10,10]],"count":5,"respawn":23},
   {"x":10544,"y":6104,"r":220,"monsters":[[35,14],[31,12]],"count":6,"respawn":24},
@@ -30,6 +30,9 @@
   {"x":8944,"y":4408,"r":220,"monsters":[[43,12]],"count":4,"respawn":24},
   {"x":7792,"y":9112,"r":220,"monsters":[[31,16]],"count":6,"respawn":25},
   {"x":3984,"y":7832,"r":220,"monsters":[[10,14],[35,13]],"count":4,"respawn":24},
-  {"x":9072,"y":6952,"r":220,"monsters":[[10,12],[35,13]],"count":5,"respawn":24}
+  {"x":9072,"y":6952,"r":220,"monsters":[[10,12],[35,13]],"count":5,"respawn":24},
+  {"x":9392,"y":1176,"r":60,"monsters":[[31,19]],"count":1,"respawn":60,"boss":1},
+  {"x":3728,"y":1144,"r":60,"monsters":[[31,19]],"count":1,"respawn":60,"boss":1},
+  {"x":1648,"y":11352,"r":40,"monsters":[[740,19]],"count":1,"respawn":180,"boss":2}
  ]
 }

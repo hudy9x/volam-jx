@@ -1,7 +1,7 @@
 {
  "map": 319,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Lâm Du Quan, cấp 180–189, vùng Đông Bắc: Voi Hoàng hà, Dơi chúa đỏ, Sói tuyết, Kim Điêu, Đông Bắc sơn tặc 1, Đông Bắc sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Lâm Du Quan, cấp 180–189, vùng Đông Bắc: Voi Hoàng hà, Dơi chúa đỏ, Sói tuyết, Kim Điêu, Đông Bắc sơn tặc 1, Đông Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Tuyền Cơ Tử.",
  "zones": [
   {"x":4976,"y":7304,"r":220,"monsters":[[157,180]],"count":5,"respawn":80},
   {"x":4976,"y":11544,"r":220,"monsters":[[158,186]],"count":4,"respawn":82},
@@ -30,6 +30,9 @@
   {"x":7280,"y":5544,"r":220,"monsters":[[24,182],[158,181]],"count":7,"respawn":81},
   {"x":8880,"y":11512,"r":220,"monsters":[[8,185]],"count":7,"respawn":82},
   {"x":6480,"y":7256,"r":220,"monsters":[[24,180],[14,180]],"count":5,"respawn":80},
-  {"x":2704,"y":12104,"r":220,"monsters":[[158,188],[157,187]],"count":5,"respawn":82}
+  {"x":2704,"y":12104,"r":220,"monsters":[[158,188],[157,187]],"count":5,"respawn":82},
+  {"x":13360,"y":13400,"r":60,"monsters":[[158,189]],"count":1,"respawn":60,"boss":1},
+  {"x":9776,"y":13304,"r":60,"monsters":[[158,189]],"count":1,"respawn":60,"boss":1},
+  {"x":2704,"y":13624,"r":40,"monsters":[[747,189]],"count":1,"respawn":180,"boss":2}
  ]
 }

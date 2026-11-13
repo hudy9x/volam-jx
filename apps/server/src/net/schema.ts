@@ -24,7 +24,7 @@ export const Actor = schema({
   pk: t.uint8(),             // PK mode: 0 Luyện công, 1 Chiến đấu, 2 Đồ sát (shared combat/rules.ts)
   camp: t.string(),          // players: camp shown by the name colour (own, or the team leader's); '' monsters
   team: t.string(),          // players: team id ('' = none; world/teams.ts)
-  boss: t.boolean(),
+  boss: t.uint8(),           // monsters: 0 normal (white), 1 Boss Xanh (blue), 2 Boss Hoàng Kim (gold)
   scale: t.float32(),
   protectedUntil: t.float64(), // server time (ms) until which the actor can't be hit
   horse: t.string(),         // horse in the horse slot, '' = none

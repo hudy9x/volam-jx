@@ -1,7 +1,7 @@
 {
  "map": 3,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Kiếm Các Tây Bắc, cấp 10–19, vùng Tây Bắc: Hươu đốm, Heo trắng, Heo rừng, Linh Miêu.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Kiếm Các Tây Bắc, cấp 10–19, vùng Tây Bắc: Hươu đốm, Heo trắng, Heo rừng, Linh Miêu; Boss Xanh + Boss Hoàng Kim Hàn Mông.",
  "zones": [
   {"x":4016,"y":3080,"r":220,"monsters":[[42,10],[34,10]],"count":7,"respawn":23},
   {"x":4624,"y":3976,"r":220,"monsters":[[34,13]],"count":5,"respawn":24},
@@ -30,6 +30,9 @@
   {"x":4176,"y":6488,"r":220,"monsters":[[11,14]],"count":4,"respawn":25},
   {"x":2576,"y":6392,"r":220,"monsters":[[11,16],[34,15]],"count":5,"respawn":25},
   {"x":1424,"y":7704,"r":220,"monsters":[[11,19]],"count":5,"respawn":26},
-  {"x":5168,"y":8200,"r":220,"monsters":[[42,17],[43,18]],"count":7,"respawn":26}
+  {"x":5168,"y":8200,"r":220,"monsters":[[42,17],[43,18]],"count":7,"respawn":26},
+  {"x":13072,"y":2168,"r":60,"monsters":[[34,19]],"count":1,"respawn":60,"boss":1},
+  {"x":5168,"y":8200,"r":60,"monsters":[[34,19]],"count":1,"respawn":60,"boss":1},
+  {"x":1424,"y":7704,"r":40,"monsters":[[748,19]],"count":1,"respawn":180,"boss":2}
  ]
 }

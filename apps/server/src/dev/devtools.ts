@@ -37,7 +37,7 @@ export function registerDevRoutes(app: Application, spawnsDir: string): void {
         ...(z.r !== undefined ? { r: Math.round(z.r) } : {}),
         ...(z.camps ? { camps: Math.round(z.camps) } : {}),
         monsters: z.monsters.map(([m, l]) => [m, Math.round(l)] as [number, number]),
-        count: Math.round(z.count), respawn: Math.round(z.respawn), ...(z.boss ? { boss: true } : {}),
+        count: Math.round(z.count), respawn: Math.round(z.respawn), ...(z.boss ? { boss: z.boss === 1 ? 1 : 2 } : {}),
       })),
       ...(body.fixed?.length ? { fixed: body.fixed } : {}),
     };

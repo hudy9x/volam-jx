@@ -1,7 +1,7 @@
 {
  "map": 90,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Phục Ngưu Sơn Đông, cấp 90–99, vùng Trung Nguyên: Kim Hoàn Mãng Xà, Dơi chúa đỏ, Tuyết Báo, Đông Bắc hổ, Trung Nguyên sơn tặc 1, Trung Nguyên sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Phục Ngưu Sơn Đông, cấp 90–99, vùng Trung Nguyên: Kim Hoàn Mãng Xà, Dơi chúa đỏ, Tuyết Báo, Đông Bắc hổ, Trung Nguyên sơn tặc 1, Trung Nguyên sơn tặc 2; Boss Xanh + Boss Hoàng Kim Chung Linh Tú.",
  "zones": [
   {"x":10864,"y":7384,"r":220,"monsters":[[0,90],[4,90]],"count":6,"respawn":50},
   {"x":15056,"y":11416,"r":220,"monsters":[[0,95],[4,95]],"count":7,"respawn":52},
@@ -30,6 +30,9 @@
   {"x":11184,"y":2728,"r":220,"monsters":[[22,98]],"count":5,"respawn":52},
   {"x":11280,"y":11352,"r":220,"monsters":[[22,94]],"count":6,"respawn":52},
   {"x":8176,"y":8440,"r":220,"monsters":[[162,90]],"count":5,"respawn":50},
-  {"x":7152,"y":4536,"r":220,"monsters":[[161,95]],"count":4,"respawn":51}
+  {"x":7152,"y":4536,"r":220,"monsters":[[161,95]],"count":4,"respawn":51},
+  {"x":10192,"y":1304,"r":60,"monsters":[[162,99]],"count":1,"respawn":60,"boss":1},
+  {"x":10192,"y":13864,"r":60,"monsters":[[162,99]],"count":1,"respawn":60,"boss":1},
+  {"x":8272,"y":14456,"r":40,"monsters":[[567,99]],"count":1,"respawn":180,"boss":2}
  ]
 }

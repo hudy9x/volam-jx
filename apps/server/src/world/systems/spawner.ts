@@ -1,4 +1,4 @@
-import { MONSTERS, canStandAt, getSkill, isoDistance, maxLevelOf, monsterAt, mulberry32, nearestWalkable, spawnsOf, type Point } from '@vltk/shared';
+import { DROPS, MONSTERS, bossTierOf, canStandAt, getSkill, isoDistance, maxLevelOf, monsterAt, mulberry32, nearestWalkable, spawnsOf, type Point } from '@vltk/shared';
 import { Actor } from '../../net/schema.js';
 import { BASIC_ATTACK, makeSim } from '../entity.js';
 import { refreshMonsterCombat } from './effects.js';
@@ -17,7 +17,7 @@ export function createSpawnSlots(w: World): void {
   for (const f of file.fixed ?? []) {
     if (!known(f.monster)) continue;
     const [x, y] = nearestWalkable(g, f.x, f.y);
-    w.slots.push({ monsterId: f.monster, level: f.level, x, y, respawnMs: 3000, respawnAt: 0, simId: null, boss: false, fixed: true });
+    w.slots.push({ monsterId: f.monster, level: f.level, x, y, respawnMs: 3000, respawnAt: 0, simId: null, boss: 0, fixed: true });
   }
   const camps: Point[] = [];
   const randomCamp = (): Point | null => {
@@ -44,9 +44,12 @@ export function createSpawnSlots(w: World): void {
         const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * r;
         const [x, y] = nearestWalkable(g, c.x + Math.cos(a) * d, c.y + Math.sin(a) * d * 0.5);
         const [monsterId, level] = monsters[Math.floor(rng() * monsters.length)];
+        const zoneTier = bossTierOf(z.boss);
+        const defTier = bossTierOf(MONSTERS[monsterId].boss);
+        const boss: 0 | 1 | 2 = zoneTier || defTier;
         w.slots.push({
-          monsterId, level, x, y, respawnMs: z.respawn * 1000, respawnAt: z.boss ? w.now + 5000 : 0, simId: null,
-          boss: !!z.boss || !!MONSTERS[monsterId].boss, fixed: false,
+          monsterId, level, x, y, respawnMs: z.respawn * 1000, respawnAt: boss >= 2 ? w.now + 5000 : 0, simId: null,
+          boss, fixed: false,
         });
       }
     }
@@ -71,7 +74,9 @@ export function updateSlots(w: World): void {
     if (slot.simId || w.now < slot.respawnAt) continue;
     const def = MONSTERS[slot.monsterId];
     if (!def) continue;
-    const stats = monsterAt(def, slot.level);
+    // Ordinary monster slots in training zones have a chance (AutoGoldenNpc / blueBossChance) to spawn as a Boss Xanh (1).
+    const bossTier: 0 | 1 | 2 = slot.boss || (!slot.fixed && !def.dummy && Math.random() < DROPS.blueBossChance ? 1 : 0);
+    const stats = monsterAt(def, slot.level, bossTier);
     // Skills this build knows (others: the basic attack), at most their max level.
     const skills = stats.skills.filter(([sid]) => getSkill(sid)).map(([sid, lvl]) => [sid, Math.min(lvl, maxLevelOf(getSkill(sid)!))] as [number, number]);
     if (!skills.length && !def.dummy) skills.push([BASIC_ATTACK, 1]);
@@ -80,7 +85,7 @@ export function updateSlots(w: World): void {
     Object.assign(a, {
       kind: 'monster', name: def.name, sprite: def.sprite, faction: '', level: stats.level,
       x: Math.round(slot.x), y: Math.round(slot.y), dir: def.dummy ? 1 : Math.floor(Math.random() * 8), anim: 'idle', animSeq: 0, jumpMs: 0,
-      hp: stats.hp, maxHp: stats.hp, mp: 0, maxMp: 0, pk: 0, camp: '', team: '', boss: slot.boss, scale: def.scale, protectedUntil: 0,
+      hp: stats.hp, maxHp: stats.hp, mp: 0, maxMp: 0, pk: 0, camp: '', team: '', boss: bossTier, scale: def.scale, protectedUntil: 0,
     });
     const sim = makeSim(id, 'monster', a, def.element, def.speed);
     sim.hp = stats.hp;

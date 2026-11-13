@@ -1,10 +1,13 @@
 {
  "map": 27,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Trúc Tơ động tầng 2, cấp 110–119, vùng Tây Nam: Dơi chúa, Dơi chúa đỏ, Kim Tiền báo, Kim Điêu, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Trúc Tơ động tầng 2, cấp 110–119, vùng Tây Nam: Dơi chúa, Dơi chúa đỏ, Kim Tiền báo, Kim Điêu, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2; Boss Xanh + Boss Hoàng Kim Đường Phong.",
  "zones": [
   {"x":528,"y":1272,"r":220,"monsters":[[27,110],[24,110]],"count":5,"respawn":57},
   {"x":1040,"y":1048,"r":220,"monsters":[[151,114]],"count":5,"respawn":58},
-  {"x":2480,"y":1336,"r":220,"monsters":[[27,110],[28,110]],"count":5,"respawn":57}
+  {"x":2480,"y":1336,"r":220,"monsters":[[27,110],[28,110]],"count":5,"respawn":57},
+  {"x":1040,"y":1048,"r":60,"monsters":[[152,119]],"count":1,"respawn":60,"boss":1},
+  {"x":2480,"y":1336,"r":60,"monsters":[[152,119]],"count":1,"respawn":60,"boss":1},
+  {"x":528,"y":1272,"r":40,"monsters":[[522,119]],"count":1,"respawn":180,"boss":2}
  ]
 }

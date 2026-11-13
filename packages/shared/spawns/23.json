@@ -1,7 +1,7 @@
 {
  "map": 23,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thần Tiên động, cấp 100–109, vùng Tây Nam: Dơi Dong, Dơi hút máu, Kim Điêu, Bạch Hổ, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thần Tiên động, cấp 100–109, vùng Tây Nam: Dơi Dong, Dơi hút máu, Kim Điêu, Bạch Hổ, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1; Boss Xanh + Boss Hoàng Kim Hàn Mông.",
  "zones": [
   {"x":3152,"y":3432,"r":220,"monsters":[[152,100],[2,100]],"count":6,"respawn":53},
   {"x":4560,"y":4312,"r":220,"monsters":[[29,105],[30,105]],"count":6,"respawn":55},
@@ -17,6 +17,9 @@
   {"x":2160,"y":3864,"r":220,"monsters":[[29,108]],"count":7,"respawn":56},
   {"x":9552,"y":3704,"r":220,"monsters":[[24,105]],"count":6,"respawn":55},
   {"x":4976,"y":3896,"r":220,"monsters":[[2,104]],"count":7,"respawn":54},
-  {"x":4272,"y":5000,"r":220,"monsters":[[152,107]],"count":5,"respawn":56}
+  {"x":4272,"y":5000,"r":220,"monsters":[[152,107]],"count":5,"respawn":56},
+  {"x":8784,"y":4936,"r":60,"monsters":[[151,109]],"count":1,"respawn":60,"boss":1},
+  {"x":2160,"y":3864,"r":60,"monsters":[[151,109]],"count":1,"respawn":60,"boss":1},
+  {"x":5296,"y":680,"r":40,"monsters":[[748,109]],"count":1,"respawn":180,"boss":2}
  ]
 }

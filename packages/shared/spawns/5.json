@@ -1,7 +1,7 @@
 {
  "map": 5,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Kinh Hoàng động, cấp 40–49, vùng Tây Bắc: Rết, Dơi hút máu, Gấu đen, Nhãn Kính Mãng xà, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Kinh Hoàng động, cấp 40–49, vùng Tây Bắc: Rết, Dơi hút máu, Gấu đen, Nhãn Kính Mãng xà, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Lam Y Y.",
  "zones": [
   {"x":7856,"y":2616,"r":220,"monsters":[[16,40],[46,40]],"count":4,"respawn":33},
   {"x":12688,"y":7288,"r":220,"monsters":[[149,47],[16,46]],"count":6,"respawn":36},
@@ -23,6 +23,9 @@
   {"x":8208,"y":1736,"r":220,"monsters":[[46,47],[150,48]],"count":4,"respawn":36},
   {"x":9104,"y":1416,"r":220,"monsters":[[150,48]],"count":7,"respawn":36},
   {"x":6608,"y":4936,"r":220,"monsters":[[150,41]],"count":7,"respawn":34},
-  {"x":14192,"y":4856,"r":220,"monsters":[[149,46]],"count":6,"respawn":35}
+  {"x":14192,"y":4856,"r":220,"monsters":[[149,46]],"count":6,"respawn":35},
+  {"x":9616,"y":8712,"r":60,"monsters":[[150,49]],"count":1,"respawn":60,"boss":1},
+  {"x":10288,"y":8632,"r":60,"monsters":[[150,49]],"count":1,"respawn":60,"boss":1},
+  {"x":7632,"y":696,"r":40,"monsters":[[582,49]],"count":1,"respawn":180,"boss":2}
  ]
 }

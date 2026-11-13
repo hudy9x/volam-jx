@@ -40,7 +40,7 @@ export function updateMonster(w: World, sim: Sim, dt: number): void {
   }
 
   if (target) {
-    if (leashes(def) && isoDistance(sim.a.x, sim.a.y, home.x, home.y) > def.leash) {
+    if (leashes(def, sim) && isoDistance(sim.a.x, sim.a.y, home.x, home.y) > def.leash) {
       sim.target = null;
       sim.plan = null;
       sim.returning = true;

@@ -1,7 +1,7 @@
 {
  "map": 224,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Sa mạc địa biểu, cấp 170–179, vùng Tây Bắc: Kền Kền, Bò cạp, Hoa Nam hổ, Voi Châu á, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Sa mạc địa biểu, cấp 170–179, vùng Tây Bắc: Kền Kền, Bò cạp, Hoa Nam hổ, Voi Châu á, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1; Boss Xanh + Boss Hoàng Kim Đường Bất Nhiễm.",
  "zones": [
   {"x":9712,"y":2840,"r":220,"monsters":[[13,170]],"count":7,"respawn":77},
   {"x":15920,"y":4968,"r":220,"monsters":[[149,179]],"count":7,"respawn":79},
@@ -30,6 +30,9 @@
   {"x":16432,"y":4248,"r":220,"monsters":[[13,178]],"count":6,"respawn":80},
   {"x":8528,"y":3720,"r":220,"monsters":[[150,174],[13,174]],"count":4,"respawn":78},
   {"x":14800,"y":5736,"r":220,"monsters":[[150,177]],"count":4,"respawn":79},
-  {"x":11216,"y":4104,"r":220,"monsters":[[26,173],[44,171]],"count":6,"respawn":77}
+  {"x":11216,"y":4104,"r":220,"monsters":[[26,173],[44,171]],"count":6,"respawn":77},
+  {"x":16432,"y":4248,"r":60,"monsters":[[149,179]],"count":1,"respawn":60,"boss":1},
+  {"x":12784,"y":2072,"r":60,"monsters":[[149,179]],"count":1,"respawn":60,"boss":1},
+  {"x":12560,"y":1640,"r":40,"monsters":[[741,179]],"count":1,"respawn":180,"boss":2}
  ]
 }

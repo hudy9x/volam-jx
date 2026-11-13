@@ -26,7 +26,8 @@ export interface ActorState {
   camp?: string;
   /** Players: team id ('' = none). */
   team?: string;
-  boss: boolean;
+  /** Boss tier: 0/false = normal (white), 1 = Boss Xanh (blue), 2/true = Boss Hoàng Kim (gold). */
+  boss: boolean | number;
   scale: number;
   protectedUntil: number;
   /** Horse in the horse slot ('' = none). */

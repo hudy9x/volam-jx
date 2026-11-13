@@ -1,7 +1,7 @@
 {
  "map": 122,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Hoàng Hà Nguyên Đầu, cấp 130–139, vùng Tây Bắc: Cá sấu, Rắn xanh, Bạch Hổ, Kim Tiền báo, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Hoàng Hà Nguyên Đầu, cấp 130–139, vùng Tây Bắc: Cá sấu, Rắn xanh, Bạch Hổ, Kim Tiền báo, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1; Boss Xanh + Boss Hoàng Kim Huyền Giác Đại Sư.",
  "zones": [
   {"x":6672,"y":1432,"r":220,"monsters":[[3,130]],"count":6,"respawn":63},
   {"x":1360,"y":2792,"r":220,"monsters":[[18,136],[21,136]],"count":6,"respawn":66},
@@ -22,6 +22,9 @@
   {"x":5040,"y":4760,"r":220,"monsters":[[18,138],[21,137]],"count":5,"respawn":66},
   {"x":6992,"y":2664,"r":220,"monsters":[[18,132],[21,132]],"count":5,"respawn":64},
   {"x":5008,"y":4088,"r":220,"monsters":[[18,133]],"count":4,"respawn":65},
-  {"x":6192,"y":4328,"r":220,"monsters":[[2,135]],"count":4,"respawn":65}
+  {"x":6192,"y":4328,"r":220,"monsters":[[2,135]],"count":4,"respawn":65},
+  {"x":3120,"y":4776,"r":60,"monsters":[[149,139]],"count":1,"respawn":60,"boss":1},
+  {"x":816,"y":3256,"r":60,"monsters":[[149,139]],"count":1,"respawn":60,"boss":1},
+  {"x":7920,"y":4552,"r":40,"monsters":[[740,139]],"count":1,"respawn":180,"boss":2}
  ]
 }

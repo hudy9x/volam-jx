@@ -1,7 +1,7 @@
 {
  "map": 92,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thục Cương sơn, cấp 60–69, vùng Trung Nguyên: Đông Bắc hổ, Kim Hoàn Mãng Xà, Kền Kền, Kim Tiền báo, Trung Nguyên sơn tặc 2, Trung Nguyên sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thục Cương sơn, cấp 60–69, vùng Trung Nguyên: Đông Bắc hổ, Kim Hoàn Mãng Xà, Kền Kền, Kim Tiền báo, Trung Nguyên sơn tặc 2, Trung Nguyên sơn tặc 1; Boss Xanh + Boss Hoàng Kim Hà Nhân Ngã.",
  "zones": [
   {"x":7792,"y":8600,"r":220,"monsters":[[22,60]],"count":5,"respawn":40},
   {"x":4656,"y":3640,"r":220,"monsters":[[0,68]],"count":7,"respawn":42},
@@ -30,6 +30,9 @@
   {"x":16464,"y":13032,"r":220,"monsters":[[0,66],[162,66]],"count":5,"respawn":42},
   {"x":4592,"y":13000,"r":220,"monsters":[[0,64],[22,65]],"count":4,"respawn":42},
   {"x":3056,"y":4216,"r":220,"monsters":[[0,67]],"count":4,"respawn":42},
-  {"x":4368,"y":12488,"r":220,"monsters":[[0,64]],"count":4,"respawn":42}
+  {"x":4368,"y":12488,"r":220,"monsters":[[0,64]],"count":4,"respawn":42},
+  {"x":3760,"y":2296,"r":60,"monsters":[[161,69]],"count":1,"respawn":60,"boss":1},
+  {"x":12752,"y":1992,"r":60,"monsters":[[161,69]],"count":1,"respawn":60,"boss":1},
+  {"x":9840,"y":16600,"r":40,"monsters":[[745,69]],"count":1,"respawn":180,"boss":2}
  ]
 }

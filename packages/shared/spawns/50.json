@@ -1,7 +1,7 @@
 {
  "map": 50,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thất Sát động, cấp 160–169, vùng Hoa Bắc: Dơi chúa, Bò cạp, Tuyết Quái, Kim Tiền báo, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thất Sát động, cấp 160–169, vùng Hoa Bắc: Dơi chúa, Bò cạp, Tuyết Quái, Kim Tiền báo, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Chung Linh Tú.",
  "zones": [
   {"x":1616,"y":2600,"r":220,"monsters":[[159,160],[40,160]],"count":4,"respawn":73},
   {"x":4784,"y":1944,"r":220,"monsters":[[40,161],[44,161]],"count":4,"respawn":74},
@@ -14,6 +14,9 @@
   {"x":4304,"y":776,"r":220,"monsters":[[27,168]],"count":6,"respawn":76},
   {"x":1808,"y":1784,"r":220,"monsters":[[44,168]],"count":5,"respawn":76},
   {"x":3504,"y":2120,"r":220,"monsters":[[160,161]],"count":5,"respawn":73},
-  {"x":5616,"y":1816,"r":220,"monsters":[[3,165],[27,165]],"count":4,"respawn":75}
+  {"x":5616,"y":1816,"r":220,"monsters":[[3,165],[27,165]],"count":4,"respawn":75},
+  {"x":4304,"y":776,"r":60,"monsters":[[160,169]],"count":1,"respawn":60,"boss":1},
+  {"x":1104,"y":2088,"r":60,"monsters":[[160,169]],"count":1,"respawn":60,"boss":1},
+  {"x":4816,"y":3848,"r":40,"monsters":[[567,169]],"count":1,"respawn":180,"boss":2}
  ]
 }

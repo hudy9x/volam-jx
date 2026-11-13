@@ -1,7 +1,7 @@
 {
  "map": 336,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Phong Lăng độ, cấp 170–179, vùng Hoa Bắc: Voi Hoàng hà, Tuyết Báo, Sói tuyết, Cá sấu, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Phong Lăng độ, cấp 170–179, vùng Hoa Bắc: Voi Hoàng hà, Tuyết Báo, Sói tuyết, Cá sấu, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Hoàn Nhan Tuyết Y.",
  "zones": [
   {"x":10800,"y":4024,"r":220,"monsters":[[4,170],[159,170]],"count":7,"respawn":77},
   {"x":10096,"y":6824,"r":220,"monsters":[[159,170]],"count":7,"respawn":77},
@@ -30,6 +30,9 @@
   {"x":12432,"y":6120,"r":220,"monsters":[[8,172]],"count":6,"respawn":77},
   {"x":4176,"y":9192,"r":220,"monsters":[[159,176],[18,174]],"count":6,"respawn":78},
   {"x":3920,"y":5688,"r":220,"monsters":[[14,175],[4,174]],"count":5,"respawn":78},
-  {"x":6672,"y":6152,"r":220,"monsters":[[14,171],[4,173]],"count":7,"respawn":77}
+  {"x":6672,"y":6152,"r":220,"monsters":[[14,171],[4,173]],"count":7,"respawn":77},
+  {"x":15920,"y":2152,"r":60,"monsters":[[160,179]],"count":1,"respawn":60,"boss":1},
+  {"x":14736,"y":2520,"r":60,"monsters":[[160,179]],"count":1,"respawn":60,"boss":1},
+  {"x":3344,"y":2216,"r":40,"monsters":[[564,179]],"count":1,"respawn":180,"boss":2}
  ]
 }

@@ -1,7 +1,7 @@
 {
  "map": 43,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Kiếm Các Trung Nguyên, cấp 30–39, vùng Hoa Bắc: Sói xám, Sói đỏ, Bò cạp, Gấu nâu, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Kiếm Các Trung Nguyên, cấp 30–39, vùng Hoa Bắc: Sói xám, Sói đỏ, Bò cạp, Gấu nâu, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Hàn Mông.",
  "zones": [
   {"x":976,"y":3144,"r":220,"monsters":[[44,30]],"count":4,"respawn":30},
   {"x":8880,"y":1752,"r":220,"monsters":[[159,39]],"count":6,"respawn":33},
@@ -29,6 +29,9 @@
   {"x":2192,"y":2584,"r":220,"monsters":[[159,37]],"count":6,"respawn":33},
   {"x":9520,"y":5528,"r":220,"monsters":[[5,33]],"count":6,"respawn":31},
   {"x":9456,"y":3624,"r":220,"monsters":[[15,36]],"count":7,"respawn":32},
-  {"x":3568,"y":8680,"r":220,"monsters":[[44,38]],"count":4,"respawn":32}
+  {"x":3568,"y":8680,"r":220,"monsters":[[44,38]],"count":4,"respawn":32},
+  {"x":9840,"y":2056,"r":60,"monsters":[[160,39]],"count":1,"respawn":60,"boss":1},
+  {"x":5552,"y":1896,"r":60,"monsters":[[160,39]],"count":1,"respawn":60,"boss":1},
+  {"x":8880,"y":1752,"r":40,"monsters":[[748,39]],"count":1,"respawn":180,"boss":2}
  ]
 }

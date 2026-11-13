@@ -54,7 +54,7 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
     kind: 'player', name: char.name, sprite: '', faction, gender: char.gender, level: prog.level,
     x: Math.round(x), y: Math.round(y), dir: 0, anim: 'idle', animSeq: 0, jumpMs: 0,
     hp: 1, maxHp: 1, mp: 0, maxMp: 0,
-    pk: 0, camp: campOf(faction), team: '', boss: false, scale: 1, protectedUntil: Date.now() + SPAWN_PROTECTION * 1000,
+    pk: 0, camp: campOf(faction), team: '', boss: 0, scale: 1, protectedUntil: Date.now() + SPAWN_PROTECTION * 1000,
     horse: '', mounted: false,
   });
   const sim = makeSim(sessionId, 'player', a, series, PLAYER_SPEED);

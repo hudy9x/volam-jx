@@ -1,7 +1,7 @@
 {
  "map": 342,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Vi sơn đảo, cấp 190–199, vùng Giang Nam: Kim Hoàn Mãng Xà, Rắn xanh, Hoa Nam hổ, Cá sấu, Giang Nam sơn tặc 1, Giang Nam sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Vi sơn đảo, cấp 190–199, vùng Giang Nam: Kim Hoàn Mãng Xà, Rắn xanh, Hoa Nam hổ, Cá sấu, Giang Nam sơn tặc 1, Giang Nam sơn tặc 2; Boss Xanh + Boss Hoàng Kim Huyền Giác Đại Sư.",
  "zones": [
   {"x":7536,"y":2936,"r":220,"monsters":[[22,190],[21,190]],"count":4,"respawn":83},
   {"x":11248,"y":13112,"r":220,"monsters":[[22,197],[21,196]],"count":5,"respawn":85},
@@ -30,6 +30,9 @@
   {"x":13104,"y":2936,"r":220,"monsters":[[154,198],[153,198]],"count":5,"respawn":86},
   {"x":13008,"y":6088,"r":220,"monsters":[[154,193],[1,194]],"count":6,"respawn":85},
   {"x":13328,"y":5768,"r":220,"monsters":[[1,194]],"count":7,"respawn":85},
-  {"x":11824,"y":14856,"r":220,"monsters":[[154,199]],"count":6,"respawn":86}
+  {"x":11824,"y":14856,"r":220,"monsters":[[154,199]],"count":6,"respawn":86},
+  {"x":6736,"y":14744,"r":60,"monsters":[[154,199]],"count":1,"respawn":60,"boss":1},
+  {"x":13328,"y":14072,"r":60,"monsters":[[154,199]],"count":1,"respawn":60,"boss":1},
+  {"x":11824,"y":14856,"r":40,"monsters":[[740,199]],"count":1,"respawn":180,"boss":2}
  ]
 }

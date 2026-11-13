@@ -119,15 +119,21 @@ export const SPEED = {
   minFrames: 6,
 } as const;
 
-/** Drops on the ground (VT7–VT9). Docs: docs/formulas/drops.md, research docs/research/luck-drops.md. */
+/** Drops on the ground (VT7–VT9) and boss tier multipliers (GP11). Docs: docs/formulas/drops.md, research docs/research/luck-drops.md. */
 export const DROPS = {
   /** A drop lasts this long (USER 2026-11-12: 60 s; the original ≈ 8.3 s). */
   lifeMs: 60_000,
   /** Only the killer may pick it up during the first … (USER: 20 s; party members too once parties exist). */
   ownerMs: 20_000,
-  /** Rolls of a monster's drop table per kill (npcs.txt Treasure, not imported yet: ordinary 1, boss 8 — CHỌN). */
+  /** Rolls of a monster's drop table per kill (npcs.txt Treasure: ordinary 1, blue boss 4, golden boss 8 — CHỌN). */
   rolls: 1,
+  blueBossRolls: 4,
   bossRolls: 8,
+  /** Sinh lực and exp multipliers by boss tier: 1 = Boss Xanh (Thủ lĩnh), 2 = Boss Hoàng Kim (CHỌN / USER). */
+  blueBossLife: 5,
+  goldBossLife: 12,
+  /** Chance for an ordinary spawn slot to spawn as a Boss Xanh (1) on each respawn (DATA maplist.ini AutoGoldenNpc idea — CHỌN 3%). */
+  blueBossChance: 0.03,
   /** Picking up from this far (original map units; CHỌN, the original walks next to the item). */
   pickupRange: 80,
   /** Money of one drop: ⌈level × MoneyScale / 10 × U(0.5, 1.5)⌉ (CHỌN: the original formula is server script). */

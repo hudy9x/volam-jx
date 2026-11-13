@@ -1,13 +1,16 @@
 {
  "map": 40,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thiết tháp tầng 3, cấp 160–169, vùng Hoa Bắc: Bò cạp, Dơi chúa đỏ, Đông Bắc hổ, Hoa Nam hổ, Hoa Bắc sơn tặc 2, Hoa Bắc sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thiết tháp tầng 3, cấp 160–169, vùng Hoa Bắc: Bò cạp, Dơi chúa đỏ, Đông Bắc hổ, Hoa Nam hổ, Hoa Bắc sơn tặc 2, Hoa Bắc sơn tặc 1; Boss Xanh + Boss Hoàng Kim Cổ Bách.",
  "zones": [
   {"x":2704,"y":520,"r":220,"monsters":[[0,160],[28,160]],"count":7,"respawn":73},
   {"x":2960,"y":3288,"r":220,"monsters":[[160,166],[0,166]],"count":6,"respawn":76},
   {"x":2416,"y":1976,"r":220,"monsters":[[160,163]],"count":7,"respawn":74},
   {"x":3760,"y":1464,"r":220,"monsters":[[44,161],[0,163]],"count":5,"respawn":74},
   {"x":3888,"y":2424,"r":220,"monsters":[[44,161],[28,161]],"count":6,"respawn":73},
-  {"x":1424,"y":1464,"r":220,"monsters":[[0,169]],"count":6,"respawn":76}
+  {"x":1424,"y":1464,"r":220,"monsters":[[0,169]],"count":6,"respawn":76},
+  {"x":1424,"y":1464,"r":60,"monsters":[[159,169]],"count":1,"respawn":60,"boss":1},
+  {"x":2960,"y":3288,"r":60,"monsters":[[159,169]],"count":1,"respawn":60,"boss":1},
+  {"x":2704,"y":520,"r":40,"monsters":[[566,169]],"count":1,"respawn":180,"boss":2}
  ]
 }

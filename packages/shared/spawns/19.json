@@ -1,7 +1,7 @@
 {
  "map": 19,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Kiếm Các Tây Nam, cấp 20–29, vùng Tây Nam: Bò cạp, Thanh Lang, Sài, Rắn xanh, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Kiếm Các Tây Nam, cấp 20–29, vùng Tây Nam: Bò cạp, Thanh Lang, Sài, Rắn xanh, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1; Boss Xanh + Boss Hoàng Kim Tuyền Cơ Tử.",
  "zones": [
   {"x":4848,"y":14344,"r":220,"monsters":[[151,20]],"count":7,"respawn":27},
   {"x":10800,"y":4936,"r":220,"monsters":[[7,25],[151,24]],"count":7,"respawn":28},
@@ -30,6 +30,9 @@
   {"x":5424,"y":11768,"r":220,"monsters":[[21,22]],"count":4,"respawn":28},
   {"x":8272,"y":4776,"r":220,"monsters":[[151,26],[152,24]],"count":5,"respawn":28},
   {"x":11504,"y":5576,"r":220,"monsters":[[44,23]],"count":7,"respawn":28},
-  {"x":3888,"y":12328,"r":220,"monsters":[[44,23],[151,23]],"count":6,"respawn":28}
+  {"x":3888,"y":12328,"r":220,"monsters":[[44,23],[151,23]],"count":6,"respawn":28},
+  {"x":9936,"y":1432,"r":60,"monsters":[[151,29]],"count":1,"respawn":60,"boss":1},
+  {"x":8368,"y":3736,"r":60,"monsters":[[151,29]],"count":1,"respawn":60,"boss":1},
+  {"x":11664,"y":1368,"r":40,"monsters":[[747,29]],"count":1,"respawn":180,"boss":2}
  ]
 }

@@ -1,7 +1,7 @@
 {
  "map": 193,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Vũ Di sơn, cấp 120–129, vùng Giang Nam: Xích Luyện mãng xà, Đông Bắc hổ, Voi Hoàng hà, Kền Kền, Giang Nam sơn tặc 2, Giang Nam sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Vũ Di sơn, cấp 120–129, vùng Giang Nam: Xích Luyện mãng xà, Đông Bắc hổ, Voi Hoàng hà, Kền Kền, Giang Nam sơn tặc 2, Giang Nam sơn tặc 1; Boss Xanh + Boss Hoàng Kim Mạnh Thương Lương.",
  "zones": [
   {"x":4272,"y":6024,"r":220,"monsters":[[0,120]],"count":6,"respawn":60},
   {"x":18672,"y":10040,"r":220,"monsters":[[23,121]],"count":6,"respawn":60},
@@ -30,6 +30,9 @@
   {"x":1008,"y":5336,"r":220,"monsters":[[153,129],[154,129]],"count":6,"respawn":63},
   {"x":12880,"y":6984,"r":220,"monsters":[[23,124],[153,124]],"count":5,"respawn":61},
   {"x":1232,"y":6408,"r":220,"monsters":[[0,129],[14,128]],"count":4,"respawn":63},
-  {"x":12016,"y":5240,"r":220,"monsters":[[14,124],[26,123]],"count":6,"respawn":61}
+  {"x":12016,"y":5240,"r":220,"monsters":[[14,124],[26,123]],"count":6,"respawn":61},
+  {"x":1008,"y":5336,"r":60,"monsters":[[153,129]],"count":1,"respawn":60,"boss":1},
+  {"x":1232,"y":6408,"r":60,"monsters":[[153,129]],"count":1,"respawn":60,"boss":1},
+  {"x":592,"y":5896,"r":40,"monsters":[[583,129]],"count":1,"respawn":180,"boss":2}
  ]
 }

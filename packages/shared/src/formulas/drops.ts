@@ -10,10 +10,12 @@ import { DROPS, LUCK } from './tuning.js';
 export const DETAIL_KINDS: ItemKind[] = ['melee', 'range', 'armor', 'ring', 'amulet', 'boot', 'belt', 'helm', 'cuff', 'pendant'];
 
 /**
- * Drop table of a monster: the band of its level (npcdroprate10 … 90). The original picks it per map (maplist.ini
- * NormalDropRate; maps 37 / 140 use npcdroprate10) or per boss; by level is our simplification (CHỌN).
+ * Drop table of a monster: its custom table (`boss/*`, `goldennpc/*`) when present, else the band of its level
+ * (npcdroprate10 … 90). The original picks it per map (maplist.ini NormalDropRate) or per boss; by level is our
+ * simplification (CHỌN).
  */
-export function dropTableFor(level: number): DropTable | undefined {
+export function dropTableFor(level: number, customTable?: string): DropTable | undefined {
+  if (customTable && DROP_TABLES[customTable]) return DROP_TABLES[customTable];
   const band = Math.max(10, Math.min(90, Math.ceil(Math.max(1, level) / 10) * 10));
   return DROP_TABLES[`npcdroprate${band}`];
 }

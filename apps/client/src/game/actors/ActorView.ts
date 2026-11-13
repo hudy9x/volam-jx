@@ -135,8 +135,9 @@ export class ActorView {
     if (this.shown && this.jx!.height > 0) this.headHeight = this.jx!.height + 8;
     const top = Math.round(this.y - this.lift - this.headHeight);
     // Players: the colour of their camp (own, or the team leader's) — shared CAMP_COLORS; Đồ sát is marked.
+    // Monsters (USER 2026-11-14): normal = white (#ffffff), Boss Xanh (1) = blue (#5cb8ff), Boss Hoàng Kim (2) = gold (#ffd700).
     const color = s.kind === 'npc' ? '#9cf08a'
-      : s.kind === 'monster' ? (s.boss ? '#ff9b3d' : '#9fd8ff')
+      : s.kind === 'monster' ? (Number(s.boss) >= 2 || s.boss === true ? '#ffd700' : s.boss === 1 ? '#5cb8ff' : '#ffffff')
       : CAMP_COLORS[(s.camp || 'new') as Camp] ?? '#ffffff';
     const text = s.kind === 'monster' ? `${s.name} (${s.level})` : `${s.name}${s.pk === 2 ? ' [Đồ sát]' : s.pk === 1 ? ' [Chiến đấu]' : ''}`;
     if (this.label.text !== text) this.label.setText(text);

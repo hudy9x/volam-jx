@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { MAP_CATALOG } from '../../../packages/shared/src/maps/catalog.gen.ts';
 import { formatSpawnFile, type SpawnFile, type SpawnZone } from '../../../packages/shared/src/maps/spawns.ts';
 import { GEN_MONSTERS } from '../../../packages/shared/src/monsters/monsters.gen.ts';
+import { GOLDEN_BOSS_LIST } from '../../../packages/shared/src/monsters/monsters.ts';
 import { decodeGrid } from '../../../packages/shared/src/maps/nav/grid.ts';
 import { TRAINING_BANDS } from '../../../packages/shared/src/maps/training-levels.ts';
 
@@ -143,10 +144,29 @@ function generate(m: (typeof MAP_CATALOG)[number]): SpawnFile | null {
       respawn: Math.round(20 + level / 3),
     };
   });
+  // Sort spots by distance from map entry so Boss Xanh and Boss Hoàng Kim sit deeper inside the map.
+  const deepSpots = [...spots].sort((a, b) => iso(b, m.entry) - iso(a, m.entry));
+  const bossLevel = p.band[1];
+  const blueMonsterId = pool[pool.length - 1];
+  for (const bs of deepSpots.slice(1, 3)) {
+    zones.push({
+      x: Math.round(bs.x), y: Math.round(bs.y), r: 60,
+      monsters: [[blueMonsterId, bossLevel]],
+      count: 1, respawn: 60, boss: 1,
+    });
+  }
+  const goldBoss = GOLDEN_BOSS_LIST[m.id % GOLDEN_BOSS_LIST.length];
+  if (goldBoss && deepSpots[0]) {
+    zones.push({
+      x: Math.round(deepSpots[0].x), y: Math.round(deepSpots[0].y), r: 40,
+      monsters: [[goldBoss.id, bossLevel]],
+      count: 1, respawn: 180, boss: 2,
+    });
+  }
   const names = [...new Set(pool.map(id => nameOf.get(id)))].join(', ');
   return {
     map: m.id, auto: true,
-    note: `Tự sinh (${TRAINING_BANDS.has(m.id) ? 'cấp theo yêu cầu 2026-11-13' : 'ước lượng'}): ${m.name}, cấp ${p.band[0]}–${p.band[1]}${m.region ? `, vùng ${m.region}` : ''}: ${names}.`,
+    note: `Tự sinh (${TRAINING_BANDS.has(m.id) ? 'cấp theo yêu cầu 2026-11-13' : 'ước lượng'}): ${m.name}, cấp ${p.band[0]}–${p.band[1]}${m.region ? `, vùng ${m.region}` : ''}: ${names}; Boss Xanh + Boss Hoàng Kim ${goldBoss.name}.`,
     zones,
   };
 }

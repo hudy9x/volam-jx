@@ -1,9 +1,11 @@
 {
  "map": 28,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Trúc Tơ động tầng 3, cấp 140–149, vùng Tây Nam: Rết, Dơi chúa, Bạch Hổ, Kim Điêu, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Trúc Tơ động tầng 3, cấp 140–149, vùng Tây Nam: Rết, Dơi chúa, Bạch Hổ, Kim Điêu, Tây Nam sơn tặc 1, Tây Nam sơn tặc 2; Boss Xanh + Boss Hoàng Kim Thanh Tuyệt Sư Thái.",
  "zones": [
   {"x":1040,"y":872,"r":220,"monsters":[[27,140]],"count":5,"respawn":67},
-  {"x":2032,"y":504,"r":220,"monsters":[[152,146],[24,148]],"count":5,"respawn":69}
+  {"x":2032,"y":504,"r":220,"monsters":[[152,146],[24,148]],"count":5,"respawn":69},
+  {"x":2032,"y":504,"r":60,"monsters":[[152,149]],"count":1,"respawn":60,"boss":1},
+  {"x":1040,"y":872,"r":40,"monsters":[[743,149]],"count":1,"respawn":180,"boss":2}
  ]
 }

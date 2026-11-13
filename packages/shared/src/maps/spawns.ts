@@ -17,7 +17,15 @@ export interface SpawnZone {
   count: number;
   /** Seconds before a dead monster comes back. */
   respawn: number;
-  boss?: boolean;
+  /** Boss tier: undefined/false = normal, 1 = Boss Xanh (blue), 2/true = Boss Hoàng Kim (gold). */
+  boss?: boolean | 1 | 2;
+}
+
+/** Normalize a boss flag or tier number into 0 (normal), 1 (Boss Xanh), or 2 (Boss Hoàng Kim). */
+export function bossTierOf(b?: boolean | number): 0 | 1 | 2 {
+  if (b === 1) return 1;
+  if (b === 2 || b === true) return 2;
+  return 0;
 }
 
 /** A single monster at an exact spot (training dummies). */

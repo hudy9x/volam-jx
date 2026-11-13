@@ -2,7 +2,7 @@ import { equipSkillBonus, wornActiveCount, itemNeeds, planPotential, planSkills,
   BASIC_SKILLS, FACTIONS, LEVEL, POTENTIALS, addAttr, addExp, mergeBag, moveFactor, passiveBag, playerCombat, skillBonuses, stateBag, baseValue, characterStats, expAfterGap, expShare,
   expToNext, getSkill, isoDistance, itemDef, joinFactionError, learnableSkills, levelCap, monsterExp, newProgress, practicePerHit,
   TIER_BOOKS, learnTiers, raiseError, skillExpToNext, skillGrowth, startLevel, tierOf, weaponBaseDamage, weaponTypeOf,
-  QUALITY, activeLines, seriesOf,
+  QUALITY, activeLines, bossMultiplier, seriesOf,
   type AttrBag, type BookEffect, type ItemViewer, type Element, type EquipSlot, type Equipment, type Item, type Potential, type Progress,
 } from '@vltk/shared';
 import type { Sim } from './entity.js';
@@ -165,10 +165,11 @@ export function recordDamage(target: Sim, attacker: Sim, dmg: number): void {
  * (USER 2026-11-13, hit or not); any other player who hurt it gets exp × damage ÷ max Sinh lực. All after the level gap.
  */
 export function shareKillExp(w: World, monster: Sim, killer?: Sim): void {
-  const total = monsterExp(monster.a.level, monster.a.boss ? 12 : 1);
+  const total = monsterExp(monster.a.level, bossMultiplier(monster.a.boss));
   const near = (p: Sim | undefined): p is Sim => !!p && !p.dead && p.kind === 'player' && !!p.progress
     && isoDistance(p.a.x, p.a.y, monster.a.x, monster.a.y) <= LEVEL.expShareRange;
-  const who = `${monster.a.name} (cấp ${monster.a.level})`;
+  const tag = monster.a.boss >= 2 ? 'Boss Hoàng Kim ' : monster.a.boss === 1 ? 'Boss Xanh ' : '';
+  const who = `${tag}${monster.a.name} (cấp ${monster.a.level})`;
   // Kênh Hệ thống (USER 2026-11-13): the killer sees the kill (with its exp), the others the exp they got.
   const give = (p: Sim, exp: number, kill = false) => {
     const gain = expAfterGap(exp, p.progress!.prog.level, monster.a.level);

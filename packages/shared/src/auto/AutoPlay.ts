@@ -21,7 +21,7 @@ export interface AutoActorState {
   maxHp: number;
   mp: number;
   maxMp: number;
-  boss: boolean;
+  boss: boolean | number;
   /** Monsters: original npc res name (training dummies are skipped by it). */
   sprite: string;
   /** Bùa lợi / bùa hại (skill ids) on it. */
@@ -499,7 +499,7 @@ export class AutoPlay {
       if (!this.candidate(v, opts, now)) continue;
       if (radius !== Infinity && isoDistance(anchor.x, anchor.y, v.x, v.y) > radius) continue;
       const d = isoDistance(self.x, self.y, v.x, v.y);
-      const boss = opts.autoPriority === 'boss' && v.state.boss;
+      const boss = opts.autoPriority === 'boss' && !!v.state.boss;
       if ((boss && !bestBoss) || (boss === bestBoss && d < bestD)) { best = v; bestD = d; bestBoss = boss; }
     }
     let cur = this.target ? this.find(this.target) : undefined;

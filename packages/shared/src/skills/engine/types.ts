@@ -14,7 +14,7 @@ export interface Combatant {
   id: string;
   kind: 'player' | 'monster';
   /** Position (world px), facing (0–7) and the few drawn fields the engine needs. */
-  a: { x: number; y: number; dir: number; mounted: boolean; maxHp: number; boss?: boolean };
+  a: { x: number; y: number; dir: number; mounted: boolean; maxHp: number; boss?: boolean | number };
   hp: number;
   dead: boolean;
   element: Element;

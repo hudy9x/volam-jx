@@ -1,7 +1,7 @@
 {
  "map": 68,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thanh Loa đảo, cấp 130–139, vùng Lưỡng Hồ: Cá sấu, Cóc, Xích Luyện mãng xà, Hoa Nam hổ, Hoa Nam sơn tặc 1, Hoa Nam sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Thanh Loa đảo, cấp 130–139, vùng Lưỡng Hồ: Cá sấu, Cóc, Xích Luyện mãng xà, Hoa Nam hổ, Hoa Nam sơn tặc 1, Hoa Nam sơn tặc 2; Boss Xanh + Boss Hoàng Kim Thanh Tuyệt Sư Thái.",
  "zones": [
   {"x":6832,"y":5528,"r":220,"monsters":[[18,130],[41,130]],"count":7,"respawn":63},
   {"x":6704,"y":1832,"r":220,"monsters":[[156,139]],"count":6,"respawn":66},
@@ -12,6 +12,9 @@
   {"x":5648,"y":4856,"r":220,"monsters":[[18,135]],"count":7,"respawn":65},
   {"x":3824,"y":4504,"r":220,"monsters":[[23,133],[156,134]],"count":5,"respawn":64},
   {"x":4880,"y":2600,"r":220,"monsters":[[155,132],[1,134]],"count":4,"respawn":64},
-  {"x":1488,"y":2712,"r":220,"monsters":[[23,134]],"count":5,"respawn":65}
+  {"x":1488,"y":2712,"r":220,"monsters":[[23,134]],"count":5,"respawn":65},
+  {"x":6704,"y":1832,"r":60,"monsters":[[156,139]],"count":1,"respawn":60,"boss":1},
+  {"x":2096,"y":4888,"r":60,"monsters":[[156,139]],"count":1,"respawn":60,"boss":1},
+  {"x":6832,"y":5528,"r":40,"monsters":[[743,139]],"count":1,"respawn":180,"boss":2}
  ]
 }

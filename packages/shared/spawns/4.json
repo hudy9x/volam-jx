@@ -1,7 +1,7 @@
 {
  "map": 4,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Kim Quang động, cấp 20–29, vùng Tây Bắc: Rết, Rắn xanh, Sói đỏ, Nhãn Kính Mãng xà, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Kim Quang động, cấp 20–29, vùng Tây Bắc: Rết, Rắn xanh, Sói đỏ, Nhãn Kính Mãng xà, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Đường Bất Nhiễm.",
  "zones": [
   {"x":13776,"y":5880,"r":220,"monsters":[[6,20],[46,20]],"count":5,"respawn":27},
   {"x":9744,"y":5800,"r":220,"monsters":[[150,21],[6,22]],"count":7,"respawn":27},
@@ -29,6 +29,9 @@
   {"x":15120,"y":5000,"r":220,"monsters":[[46,25],[149,25]],"count":6,"respawn":29},
   {"x":12976,"y":2424,"r":220,"monsters":[[6,27],[20,25]],"count":4,"respawn":29},
   {"x":16624,"y":5048,"r":220,"monsters":[[20,27]],"count":5,"respawn":29},
-  {"x":9136,"y":6888,"r":220,"monsters":[[46,26],[21,24]],"count":4,"respawn":28}
+  {"x":9136,"y":6888,"r":220,"monsters":[[46,26],[21,24]],"count":4,"respawn":28},
+  {"x":16624,"y":5048,"r":60,"monsters":[[150,29]],"count":1,"respawn":60,"boss":1},
+  {"x":15248,"y":6488,"r":60,"monsters":[[150,29]],"count":1,"respawn":60,"boss":1},
+  {"x":8880,"y":8808,"r":40,"monsters":[[741,29]],"count":1,"respawn":180,"boss":2}
  ]
 }

@@ -166,7 +166,10 @@ export class BigMap {
       if (a.id === selfId) { self = a; continue; }
       const s = a.state;
       if (s.hp <= 0 || s.kind === 'npc') continue;
-      if (s.kind === 'monster') dot(a.x, a.y, s.boss ? 4.5 : 2, s.boss ? '#ff9b3d' : '#e0503c', s.boss);
+      if (s.kind === 'monster') {
+        const gold = Number(s.boss) >= 2 || s.boss === true;
+        dot(a.x, a.y, gold ? 4.5 : s.boss === 1 ? 3.4 : 2, gold ? '#ffd700' : s.boss === 1 ? '#5cb8ff' : '#e0503c', !!s.boss);
+      }
       else dot(a.x, a.y, 3, (CAMP_COLORS[(s.camp || 'new') as Camp] ?? '#ffffff'), true);
     }
     if (self) {

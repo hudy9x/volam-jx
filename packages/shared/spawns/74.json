@@ -1,7 +1,7 @@
 {
  "map": 74,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Miêu Lĩnh, cấp 80–89, vùng Lưỡng Hồ: Sói tuyết, Tuyết Báo, Hoa Nam hổ, Kim Hoàn Mãng Xà, Hoa Nam sơn tặc 1, Hoa Nam sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Miêu Lĩnh, cấp 80–89, vùng Lưỡng Hồ: Sói tuyết, Tuyết Báo, Hoa Nam hổ, Kim Hoàn Mãng Xà, Hoa Nam sơn tặc 1, Hoa Nam sơn tặc 2; Boss Xanh + Boss Hoàng Kim Gia Luật Tị Ly.",
  "zones": [
   {"x":13712,"y":3864,"r":220,"monsters":[[1,80],[156,80]],"count":7,"respawn":47},
   {"x":2800,"y":3352,"r":220,"monsters":[[8,87],[155,87]],"count":6,"respawn":49},
@@ -30,6 +30,9 @@
   {"x":19504,"y":9000,"r":220,"monsters":[[22,88]],"count":7,"respawn":49},
   {"x":16304,"y":3992,"r":220,"monsters":[[156,86],[4,86]],"count":4,"respawn":48},
   {"x":14160,"y":7544,"r":220,"monsters":[[8,84],[156,84]],"count":6,"respawn":48},
-  {"x":12464,"y":2120,"r":220,"monsters":[[22,86]],"count":5,"respawn":49}
+  {"x":12464,"y":2120,"r":220,"monsters":[[22,86]],"count":5,"respawn":49},
+  {"x":7760,"y":856,"r":60,"monsters":[[156,89]],"count":1,"respawn":60,"boss":1},
+  {"x":19504,"y":9000,"r":60,"monsters":[[156,89]],"count":1,"respawn":60,"boss":1},
+  {"x":9552,"y":264,"r":40,"monsters":[[563,89]],"count":1,"respawn":180,"boss":2}
  ]
 }

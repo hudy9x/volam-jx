@@ -1,7 +1,7 @@
 {
  "map": 341,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Mạc Bắc Thảo Nguyên, cấp 200–200, vùng Đông Bắc: Rết, Kền Kền, Voi Hoàng hà, Bạch Hổ, Đông Bắc sơn tặc 2, Đông Bắc sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Mạc Bắc Thảo Nguyên, cấp 200–200, vùng Đông Bắc: Rết, Kền Kền, Voi Hoàng hà, Bạch Hổ, Đông Bắc sơn tặc 2, Đông Bắc sơn tặc 1; Boss Xanh + Boss Hoàng Kim Vương Tá.",
  "zones": [
   {"x":10352,"y":2856,"r":220,"monsters":[[2,200]],"count":6,"respawn":87},
   {"x":1872,"y":13096,"r":220,"monsters":[[26,200]],"count":4,"respawn":87},
@@ -30,6 +30,9 @@
   {"x":11856,"y":13704,"r":220,"monsters":[[26,200]],"count":6,"respawn":87},
   {"x":5456,"y":9096,"r":220,"monsters":[[157,200]],"count":6,"respawn":87},
   {"x":13296,"y":11272,"r":220,"monsters":[[46,200]],"count":7,"respawn":87},
-  {"x":6608,"y":3608,"r":220,"monsters":[[46,200]],"count":4,"respawn":87}
+  {"x":6608,"y":3608,"r":220,"monsters":[[46,200]],"count":4,"respawn":87},
+  {"x":1872,"y":13096,"r":60,"monsters":[[157,200]],"count":1,"respawn":60,"boss":1},
+  {"x":9648,"y":1688,"r":60,"monsters":[[157,200]],"count":1,"respawn":60,"boss":1},
+  {"x":11856,"y":13704,"r":40,"monsters":[[739,200]],"count":1,"respawn":180,"boss":2}
  ]
 }

@@ -22,7 +22,7 @@ export interface PendingCast {
 }
 
 /** One monster place of the map (systems/spawner.ts): who spawns there, and when again after dying. */
-export interface SpawnSlot { monsterId: number; level: number; x: number; y: number; respawnMs: number; respawnAt: number; simId: string | null; boss: boolean; fixed: boolean }
+export interface SpawnSlot { monsterId: number; level: number; x: number; y: number; respawnMs: number; respawnAt: number; simId: string | null; boss: 0 | 1 | 2; fixed: boolean }
 
 export interface Sim {
   id: string;

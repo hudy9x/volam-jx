@@ -1,7 +1,7 @@
 {
  "map": 6,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Tỏa Vân động, cấp 100–109, vùng Tây Bắc: Bò cạp, Rắn xanh, Tuyết Quái, Kền Kền, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Tỏa Vân động, cấp 100–109, vùng Tây Bắc: Bò cạp, Rắn xanh, Tuyết Quái, Kền Kền, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Bạch Doanh Doanh.",
  "zones": [
   {"x":6480,"y":2072,"r":220,"monsters":[[44,100],[21,100]],"count":4,"respawn":53},
   {"x":10736,"y":3512,"r":220,"monsters":[[150,104]],"count":4,"respawn":54},
@@ -20,6 +20,9 @@
   {"x":9456,"y":3944,"r":220,"monsters":[[44,102],[40,102]],"count":4,"respawn":54},
   {"x":2032,"y":2632,"r":220,"monsters":[[44,106]],"count":7,"respawn":56},
   {"x":4912,"y":7176,"r":220,"monsters":[[44,109]],"count":6,"respawn":56},
-  {"x":1520,"y":3896,"r":220,"monsters":[[150,108],[40,107]],"count":6,"respawn":56}
+  {"x":1520,"y":3896,"r":220,"monsters":[[150,108],[40,107]],"count":6,"respawn":56},
+  {"x":4912,"y":7176,"r":60,"monsters":[[150,109]],"count":1,"respawn":60,"boss":1},
+  {"x":720,"y":3576,"r":60,"monsters":[[150,109]],"count":1,"respawn":60,"boss":1},
+  {"x":6256,"y":7688,"r":40,"monsters":[[742,109]],"count":1,"respawn":180,"boss":2}
  ]
 }

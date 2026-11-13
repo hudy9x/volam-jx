@@ -2,6 +2,41 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Điều tra & lập tài liệu Tốc độ đánh / Xuất chiêu (`docs/formulas/speed.md`, `BACKLOG.md` mục `GP6`)
+
+- Người dùng: phản ánh tốc độ đánh đang cố định (chỉ thấy giá trị tốc độ thay đổi về mặt số liệu, còn tốc độ thực tế luôn cố định và rất nhanh); yêu cầu kiểm tra rà soát dựa vào `/Users/hudy/ws/volam-shxt/Client_VLTK_SHXT`, sau đó tạo tài liệu chi tiết (đường dẫn file, công thức, tình trạng hiện tại, nhận định, hướng xử lý) và lưu vào backlog để triển khai sau.
+- Đã làm:
+  - Đối chiếu `/Users/hudy/ws/volam-shxt/Client_VLTK_SHXT/settings/npc/player/basevalue.ini` (`AttackFrame = 18`, `CastFrame = 18`), binary `game.exe` (`0x57ee99`–`0x57eec9`), `/Users/hudy/ws/volam-shxt/docs/breakpoints_speed_and_attack.md`, `settings/npcres/{男,女}主角躯体信息.txt`, `settings/magicdesc.ini` và `script/skill/*.lua`.
+  - Xác định 4 nguyên nhân trực tiếp trong `jx-system-online`:
+    1. **Client (`apps/client/src/game/actors/ActorView.ts:11-12,111-116`)**: khóa cứng hoạt ảnh `attack1`/`attack2`/`magic` ở `30 FPS` (~400–533 ms); trên server `combat.ts:28` gọi `playOnce` quên nhân `scale` và chưa đồng bộ thời lượng động tác xuống client.
+    2. **Server (`packages/shared/src/skills/engine/SkillEngine.ts:144`)**: đặt chu kỳ gốc `530–600 ms` thay vì chuẩn `18 frames = 1000 ms`, khiến ở 0% tốc độ đánh đã nhanh ngang mốc +81%..+101% của VLTK gốc.
+    3. **Server (`packages/shared/src/skills/engine/SkillEngine.ts:172-174,237-248,324-327`)**: độ trễ `wait` và khoảng cách giữa các thức liên hoàn (`genData` của `SkillStyle.Melee` / `GenerateStyle.Order`) hẹn giờ theo `JX_TICK_MS` cố định, không co giãn theo `scale`.
+    4. **Shared & UI (`packages/shared/src/formulas/speed.ts:16-18`, `apps/client/src/ui/windows/character.ts:142`)**: mới đọc `attackspeed_v` / `castspeed_v`, chưa cộng thuộc tính Dương `attackspeed_yan_v` / `castspeed_yan_v`.
+  - Ghi tài liệu đầy đủ tại `docs/formulas/speed.md` và cập nhật `docs/formulas/README.md`, `tasks/BACKLOG.md` (`GP6`), `tasks/CURRENT.md`. Chưa sửa code gameplay.
+
+## 2026-11-14 · Điều tra & ghi nhận backlog: Lỗi hỗ trợ kỹ năng (addskilldamage) và thông số sát thương chiêu 150 (KN14)
+
+- Người dùng: điều tra các skill 80, 150 bên `Client_VLTK_SHXT` và đối chiếu với skill hiện tại; hỏi rõ nguyên nhân vì sao chiêu 60 có sát thương lớn hơn rất nhiều so với chiêu 80, 150 và vì sao các thuộc tính hỗ trợ từ chiêu 10-60/70 cho chiêu 80, 150 không thấy; yêu cầu tóm tắt và lưu lại vào backlog.
+- Đã làm:
+  - Khảo sát mã nguồn và 2 nguồn dữ liệu trong `/Users/hudy/ws/volam-shxt/Client_VLTK_SHXT` (`data_extract/slistcache` vs file rời `script/skill/*.lua` + `settings/skills.txt`).
+  - Phát hiện nguyên nhân cốt lõi:
+    1. Tool `gen-skills.ts` đang đọc nhầm bản `.pak` cũ trong `slistcache` thay vì file rời `.lua` của SHXT (file rời SHXT đã buff sát thương chiêu 150 gấp 2 đến 9 lần để cân bằng).
+    2. Tooltip kỹ năng (`describe.ts`) chỉ hiển thị chỉ số gốc, chưa tính `%` hỗ trợ `addskilldamage` và chưa có mục `[Hỗ trợ từ các kỹ năng khác]`.
+    3. Thiếu khai báo `skill_addskilldamage7..12` trong `magicdesc.gen.ts` khiến dòng hỗ trợ 150 trên chiêu cấp 10 của Đường Môn, Thiên Vương bị nuốt mất khỏi tooltip.
+    4. Bảng thuộc tính nhân vật F3/C (`character.ts`) chỉ tính lực tay tầng 1, không tính tầng 2 (chiêu nổ phụ) nên các chiêu có hỗ trợ nằm ở tầng 2 (Côn Lôn sét 1081/1109, Võ Đang kiếm 1079/1107...) bị báo lực tay rất thấp.
+    5. Thiếu dòng hỗ trợ cho chiêu 150 Hoa Sơn Khí Tông (1384), Côn Lôn 173 và Thúy Yên 111.
+  - Cập nhật mục **`KN14`** vào `tasks/BACKLOG.md` và cập nhật `tasks/CURRENT.md`. Chưa chỉnh sửa mã nguồn.
+
+## 2026-11-14 · Màu tên Quái / Boss chuẩn VLTK 1 + Phân loại & xuất hiện Boss Xanh / Boss Hoàng Kim trên 40 bãi (GP11, `git log -1`)
+
+- Người dùng: hỏi vì sao quái toàn màu xanh dương và trong game có Boss không; chọn làm **cả 2**: (1) chỉnh lại màu tên chuẩn VLTK 1 (quái thường màu trắng, boss thường màu xanh dương, boss hoàng kim màu vàng) và (2) phân loại + cho xuất hiện Boss Xanh và Boss Hoàng Kim trên các bãi luyện công.
+- Đã làm:
+  - Phân 3 bậc `boss: 0 | 1 | 2` trong `Actor` schema (`apps/server/src/net/schema.ts`), `SpawnSlot`, `SpawnZone`, `MonsterDef` và `ActorState`.
+  - Màu tên trên đầu (`ActorView.ts`) & chấm bản đồ (`minimap.ts`, `bigmap.ts`): Quái thường (`0`) = Trắng `#ffffff` (chấm đỏ), Boss Xanh (`1`) = Xanh dương `#5cb8ff` (chấm xanh dương), Boss Hoàng Kim (`2`) = Vàng `#ffd700` (chấm vàng lớn có viền).
+  - Hằng số trong `formulas/tuning.ts` (`DROPS`) và `monsters/scaling.ts`: Boss Xanh sinh lực/exp `×5`, tung đồ `4` lần, tiền rơi `×2`; Boss Hoàng Kim sinh lực/exp `×12`, tung đồ `8` lần theo bảng riêng `boss/*droprate` (có tỉ lệ rơi Hoàng Kim môn phái) kết hợp bảng cấp, tiền rơi `×4`, thông báo toàn bản đồ khi bị hạ gục.
+  - Thêm `GOLDEN_BOSS_LIST` (20 Boss Hoàng Kim kinh điển Việt hóa: *Cổ Bách, Vương Tá, Huyền Giác Đại Sư, Hàn Mông, Đường Bất Nhiễm, Lam Y Y, Bạch Doanh Doanh, Đường Phong, Thanh Tuyệt Sư Thái, Hà Liên Phiêu, Chung Linh Tú, Yến Hiểu Tranh, Hà Nhân Ngã, Mạnh Thương Lương, Gia Luật Tị Ly, Đoan Mộc Duệ, Hoàn Nhan Tuyết Y, Đạo Thanh Chân Nhân, Đơn Tư Nam, Tuyền Cơ Tử*) với chiêu 90 môn phái trong `packages/shared/src/monsters/monsters.ts`.
+  - Cập nhật `gen-spawns.ts` + `spawns/140.json`, chạy lại `gen:spawns`, `gen:skills`, `gen:assets` (sinh thêm 103 sprite sheet hình + bóng của 20 Boss Hoàng Kim): mỗi bãi có 2 khu Boss Xanh cố định + 1 khu Boss Hoàng Kim cố định ở sâu trong bản đồ + 3% xác suất quái thường tự hóa thành Boss Xanh khi hồi sinh (`spawner.ts`).
+
 ## 2026-11-14 · Chỉnh Trang bị & Thuộc tính, Tooltip ngũ hành / kích dòng ẩn đồ xanh, và hiệu ứng viền tia beam Hoàng kim (`git log -1`)
 
 - Người dùng:
@@ -655,3 +690,11 @@ Người dùng yêu cầu commit trạng thái hiện tại. Commit `fix(server)
 
 - Chuyển cột `Khác` sang bên trái đầu tiên và đổi tiêu đề thành `0`; bỏ chữ `Cấp` ở các cột còn lại (`10` … `150`).
 - Kỹ năng cột `0` (`common`) tự động học / dùng được ngay không cần cộng điểm; độ rộng cột bằng đúng độ rộng ô icon (`40px`); tách hàng `.sk-foot` bên dưới icon chứa số cấp bên trái và nút `+` đỏ đô chữ vàng bên phải; tăng độ sáng màu xanh dương `.boosted` (`#66e6ff`). Đã commit `feat(skills): restyle skill window layout and auto-learn common skills`.
+
+## Review tài liệu Tống Kim — 2026-11-14
+
+- Người dùng yêu cầu điều tra/review `docs/tong-kim-battlefield.md`, chưa yêu cầu triển khai hoặc sửa thiết kế. Đã đối chiếu tài liệu với mã hiện tại, nguồn volamidle được dẫn và bảng loose `Client_VLTK_SHXT/settings/item/004/magicscript.txt` (nguồn mod, không đồng nhất với PAK gốc).
+- Commit hiện tại `bb9ae2e`; có nhiều thay đổi gameplay/quái/drop/map chưa commit từ công việc khác, giữ nguyên.
+- Phát hiện: BACKLOG ghi 18 Hoàn nhưng danh mục đủ 26 = 20 Hoàn + 3 hiệu lệnh + 3 bẫy; nhiều dẫn chiếu dòng magicscript sai (Chiến Cổ thực tế dòng158, Kháng Đơn Chi Giác216; các dẫn chiếu bẫy cần phân biệt bao sự kiện với món dùng trực tiếp); đường dẫn formulas/stats.ts không tồn tại (hiện có character.ts/combat.ts).
+- Cần bổ sung trước triển khai: vòng đời/trận độc lập theo phân tầng; lịch mở, giới hạn và cân bằng phe; quyền vào/ra mọi đường chuyển map + Auto/respawn/token; tách score/rank/tk_merit, cấp/trừ điểm một lần và lưu bền; cấu hình spawn/AI/NPC theo tầng và tọa độ nav; thứ tự công thức và buff khi chết/rời/reconnect; stack Item + giao dịch nguyên tử; tiêu chí nghiệm thu Web/Desktop/Mobile. Luật drop120s/chỉ killer khác quyết định chung60s/killer+tổ đội phải ghi rõ ngoại lệ/chờ duyệt.
+- Chưa sửa tài liệu thiết kế/code, không commit/push; chỉ ghi điểm dừng theo quy ước tasks. Các đề xuất review chưa là quyết định USER.

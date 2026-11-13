@@ -30,23 +30,28 @@ let nextDrop = 1;
 export function dropLoot(w: World, monster: Sim, killer: Sim | undefined): void {
   if (!killer || killer.kind !== 'player' || monster.def?.dummy) return;
   const level = monster.a.level;
-  const t = dropTableFor(level);
+  const tier = monster.a.boss;
+  const levelTable = dropTableFor(level);
+  const t = (tier >= 2 ? dropTableFor(level, monster.def?.dropTable) : undefined) ?? levelTable;
   if (!t) return;
   const luck = killer.stats?.luck ?? 5;
-  const rolls = monster.a.boss ? DROPS.bossRolls : DROPS.rolls;
+  const rolls = tier >= 2 ? DROPS.bossRolls : tier === 1 ? DROPS.blueBossRolls : DROPS.rolls;
   const out: { item: Item | null; money: number }[] = [];
   for (let i = 0; i < rolls; i++) {
-    const def = rollItem(t, level, Math.random);
+    let def = rollItem(t, level, Math.random);
+    if (!def && t !== levelTable && levelTable) def = rollItem(levelTable, level, Math.random);
     if (!def) continue;
     const item = def.gold ? createGold(def, newItemUid(), luck) : createItem(def, newItemUid());
-    if (t.magic && !def.gold) {
+    if ((t.magic || levelTable?.magic) && !def.gold) {
       const series = Math.floor(Math.random() * 5);
-      const lines = rollMagicLines(def, series, luck, Math.random);
+      const lines = rollMagicLines(def, series, luck + (tier >= 2 ? 3 : tier === 1 ? 1 : 0), Math.random);
       if (lines.length) { item.q = 1; item.magic = lines; item.series = series; }
     }
     out.push({ item, money: 0 });
   }
-  const money = rollMoney(t, level, Math.random);
+  const moneyTable = t.moneyRate > 0 ? t : (levelTable ?? t);
+  const moneyMul = tier >= 2 ? 4 : tier === 1 ? 2 : 1;
+  const money = rollMoney(moneyTable, level, Math.random) * moneyMul;
   if (money) out.push({ item: null, money });
   out.forEach((d, i) => put(w, monster.a.x, monster.a.y, i, d.item, d.money, killer.id));
 }

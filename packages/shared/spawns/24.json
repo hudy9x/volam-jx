@@ -1,7 +1,7 @@
 {
  "map": 24,
  "auto": true,
- "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Hưởng Thủy động, cấp 50–59, vùng Tây Nam: Nhãn Kính Mãng xà, Rắn xanh, Cá sấu, Dơi chúa đỏ, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1.",
+ "note": "Tự sinh (cấp theo yêu cầu 2026-11-13): Hưởng Thủy động, cấp 50–59, vùng Tây Nam: Nhãn Kính Mãng xà, Rắn xanh, Cá sấu, Dơi chúa đỏ, Tây Nam sơn tặc 2, Tây Nam sơn tặc 1; Boss Xanh + Boss Hoàng Kim Đường Bất Nhiễm.",
  "zones": [
   {"x":14384,"y":10056,"r":220,"monsters":[[152,50]],"count":4,"respawn":37},
   {"x":19216,"y":6296,"r":220,"monsters":[[20,58],[21,56]],"count":4,"respawn":39},
@@ -30,6 +30,9 @@
   {"x":4176,"y":7880,"r":220,"monsters":[[28,56]],"count":4,"respawn":39},
   {"x":9104,"y":6984,"r":220,"monsters":[[28,51],[18,51]],"count":5,"respawn":37},
   {"x":12560,"y":5640,"r":220,"monsters":[[20,52]],"count":7,"respawn":37},
-  {"x":11056,"y":8744,"r":220,"monsters":[[20,55],[21,53]],"count":5,"respawn":38}
+  {"x":11056,"y":8744,"r":220,"monsters":[[20,55],[21,53]],"count":5,"respawn":38},
+  {"x":12720,"y":1528,"r":60,"monsters":[[151,59]],"count":1,"respawn":60,"boss":1},
+  {"x":2576,"y":4888,"r":60,"monsters":[[151,59]],"count":1,"respawn":60,"boss":1},
+  {"x":12496,"y":11096,"r":40,"monsters":[[741,59]],"count":1,"respawn":180,"boss":2}
  ]
 }
