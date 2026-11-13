@@ -24,7 +24,7 @@ export const LEVEL = {
    */
   teamExpPct: 80,
   /** Level difference: full exp up to this gap (SRC KPlayer::AddSelfExp). */
-  fullExpGap: 5,
+  fullExpGap: 200,
   /** Gap up to which exp falls as (295 − 19 × gap) / 200 (SRC); beyond it 1 exp. */
   reducedExpGap: 15,
   /** Server exp rate (SRC: server config; 1 = original). */
