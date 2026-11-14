@@ -36,13 +36,15 @@ export interface ActiveState { until: number; by: string; kind: StateKind; level
 export type ActiveStates = Map<number, ActiveState>;
 
 /** Attributes of state skill `skillId` at `level` with their own end times from `now`. */
-export function stateAttrsAt(skillId: number, level: number, stateUntil: number, now: number): StateAttr[] {
+export function stateAttrsAt(skillId: number, level: number, stateUntil: number, now: number, isAura = false): StateAttr[] {
   const s = getSkill(skillId);
   if (!s || level <= 0) return [];
+  const aura = isAura || !!s.aura;
   return stateAttrs(s).flatMap(name => {
     const v = attr(s, name, level);
     if (!v) return [];
-    const own = v[1] > 0 ? now + Math.round(v[1] * FRAME_MS) : 0;
+    // Aura attributes last as long as the aura state itself (refreshed by pulses); they do not expire early on P2.
+    const own = !aura && v[1] > 0 ? now + Math.round(v[1] * FRAME_MS) : 0;
     // Its own time when shorter than the state's; P2 −1 / 0 = as long as the state.
     const until = own && (stateUntil === 0 || own < stateUntil) ? own : 0;
     return [{ name, value: [v[0], v[1], v[2]] as AttrValue, until }];
@@ -55,7 +57,12 @@ export function applyState(states: ActiveStates, st: StateApply, now: number): b
   const fresh = !prev || (prev.until > 0 && prev.until <= now);
   const until = st.ms > 0 ? now + st.ms : 0;
   const level = st.level ?? prev?.level ?? 1;
-  states.set(st.skill, { until, by: st.by, kind: st.kind, level, attrs: stateAttrsAt(st.skill, level, until, now), ...(st.aura ? { aura: true } : {}) });
+  const aura = st.aura || !!getSkill(st.skill)?.aura;
+  states.set(st.skill, {
+    until, by: st.by, kind: st.kind, level,
+    attrs: stateAttrsAt(st.skill, level, until, now, aura),
+    ...(aura ? { aura: true } : {}),
+  });
   return fresh;
 }
 

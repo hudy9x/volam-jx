@@ -1,8 +1,11 @@
 import Phaser from 'phaser';
-import { traceFrame } from './frameTrace';
-import { CAMP_COLORS, SPEED, resolveSpeed, type Camp, jumpHeight } from '@vltk/shared';
+import {
+  CAMP_COLORS, SPEED, resolveSpeed, type Camp, jumpHeight,
+  attackSpeedPct, castSpeedPct, speedPoints, totalSpeedPercents, attrOf,
+} from '@vltk/shared';
 import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
 import type { ActorState } from '../../state/actor';
+import { progress } from '../../state/progress';
 import { FRAME_MS, JxSprite, type Source } from './PaperDoll';
 import { ui, uiPx, zoomPlate } from '../display';
 import { StateDecor } from '../fx/StateDecor';
@@ -40,6 +43,30 @@ export class ActorView {
   private loopFrame = 0;
   private oneShot: { key: AssocKey; start: number; ms: number; hold: boolean } | null = null;
   private seq = -1;
+  private attackTrace: {
+    key: AssocKey;
+    start: number;
+    ms: number;
+    frames: number;
+    drawCount: number;
+    phaseFps: number;
+    phasePercent: number;
+    cycleMs: number;
+    totalPct: number;
+    aspdText: string;
+  } | null = null;
+  private runTrace: {
+    start: number;
+    moveScale: number;
+    loop: AssocKey;
+    frames: number;
+    cycleMs: number;
+    phaseFps: number;
+    phasePercent: number;
+    runPoints: number;
+    runBonus: number;
+    totalRun: number;
+  } | null = null;
 
   constructor(private scene: Phaser.Scene, readonly id: string, readonly state: ActorState, readonly isSelf: boolean,
     private peaceful: boolean) {
@@ -69,12 +96,6 @@ export class ActorView {
     this.lift = 0;
     this.shown = !!this.jx && this.renderSprite();
     this.drawPlate();
-    if (import.meta.env.DEV && this.isSelf) traceFrame({
-      time: this.scene.time.now, dtMs: dt * 1000, x: s.x, y: s.y, drawnX: this.x, drawnY: this.y,
-      anim: s.anim, animSeq: s.animSeq, action: this.jx?.action, frame: this.jx?.frame,
-      frameCount: this.jx?.frames, moveScale: s.moveScale, runMs: s.runMs, actionMs: s.actionMs,
-      mounted: s.mounted, ctl: s.ctl, shot: this.oneShot ? {...this.oneShot} : null,
-    });
   }
 
   /** (Re)build the sprite source when equipment, horse or res changes. */
@@ -120,13 +141,53 @@ export class ActorView {
       const frames = jx.framesOf(key) || 10;
       const ms = key === 'jump' ? Math.max(1, s.jumpMs || 800) : s.actionMs || (key === 'attack1' || key === 'attack2' || key === 'magic' ? resolveSpeed('attack', SPEED.basePercent).cycleMs : (frames * 1000) / ONE_SHOT_FPS[key]!);
       this.oneShot = { key, start: now, ms, hold: key === 'die' };
+      if (this.isSelf && (key === 'attack1' || key === 'attack2' || key === 'magic')) {
+        const p = progress.get();
+        const slowed = !!((s.ctl ?? 0) & 2);
+        const totals = p?.combat ? totalSpeedPercents(p.combat.bag, slowed) : null;
+        const isCast = key === 'magic';
+        const aspdBonus = p?.combat ? `${attackSpeedPct(p.combat.bag)}% / ${castSpeedPct(p.combat.bag)}%` : '0% / 0%';
+        const totalPct = totals ? (isCast ? totals.cast : totals.attack) : SPEED.basePercent;
+        const resolved = resolveSpeed('attack', totalPct);
+        this.attackTrace = {
+          key, start: now, ms, frames, drawCount: 0,
+          phaseFps: resolved.fps, phasePercent: resolved.phasePercent,
+          cycleMs: resolved.cycleMs, totalPct, aspdText: aspdBonus,
+        };
+        const fpsVeLyThuyet = (frames * 1000 / ms).toFixed(2);
+        console.log([
+          `[TỐC ĐỘ ĐÁNH - BẮT ĐẦU]`,
+          `• Hành động: ${key} (${isCast ? 'Nội công/magic' : 'Ngoại công/vũ khí'})`,
+          `• Hiển thị F3/N: T.Độ đánh = ${aspdBonus} (Ngoại / Nội cộng thêm)`,
+          `• Cài đặt tuning.ts: Nền ${SPEED.basePercent}% | Tổng ${totalPct}% -> Mốc: ${resolved.phasePercent}% | Chuẩn: ${SPEED.attack.referenceFrames} frames @ ${resolved.fps} FPS -> Thời lượng chuẩn: ${Math.round(resolved.cycleMs)}ms`,
+          `• Server đồng bộ: actionMs = ${s.actionMs ?? 0}ms`,
+          `• Client vẽ Canvas: Sprite sheet có ${frames} frames | Thời lượng vẽ: ${Math.round(ms)}ms -> FPS vẽ sprite: ${fpsVeLyThuyet} FPS`,
+          `• So sánh: Chuẩn ${SPEED.attack.referenceFrames} frames @ ${resolved.fps} FPS (${Math.round(resolved.cycleMs)}ms) <=> Sprite ${frames} frames @ ${fpsVeLyThuyet} FPS (${Math.round(ms)}ms)`,
+        ].join('\n'));
+      }
     }
     this.seq = s.animSeq;
     let shot = this.oneShot;
-    if (shot && !shot.hold && (now - shot.start >= shot.ms || s.anim === 'run')) shot = this.oneShot = null;
+    if (shot && !shot.hold && (now - shot.start >= shot.ms || s.anim === 'run')) {
+      if (this.isSelf && this.attackTrace) {
+        const actualMs = Math.max(1, now - this.attackTrace.start);
+        const actualFps = (this.attackTrace.frames * 1000 / actualMs).toFixed(2);
+        const screenFps = (this.attackTrace.drawCount * 1000 / actualMs).toFixed(1);
+        console.log([
+          `[TỐC ĐỘ ĐÁNH - KẾT THÚC]`,
+          `• Hành động: ${this.attackTrace.key} | Thời gian chạy thực tế: ${Math.round(actualMs)}ms (Dự kiến: ${Math.round(this.attackTrace.ms)}ms)`,
+          `• Canvas đã vẽ: ${this.attackTrace.drawCount} frames (FPS màn hình: ${screenFps} FPS)`,
+          `• Sprite hoàn tất: ${this.attackTrace.frames} frames -> FPS vẽ thực tế đo được: ${actualFps} FPS`,
+          `• So sánh đối chiếu: Cài đặt ${this.attackTrace.phaseFps} FPS (${Math.round(this.attackTrace.cycleMs)}ms) <=> Đo thực tế ${actualFps} FPS (${Math.round(actualMs)}ms) [Lệch: ${Math.round(actualMs - this.attackTrace.ms)}ms]`,
+        ].join('\n'));
+        this.attackTrace = null;
+      }
+      shot = this.oneShot = null;
+    }
     if (shot?.key === 'die' && s.anim !== 'die') shot = this.oneShot = null; // revived
 
     if (shot) {
+      if (this.isSelf && this.attackTrace) this.attackTrace.drawCount++;
       this.loopKey = null;
       const t = (now - shot.start) / shot.ms;
       if (shot.key === 'jump') this.lift = jumpHeight(now - shot.start, shot.ms);
@@ -146,6 +207,43 @@ export class ActorView {
     // Only the running gait follows movement; standing and one-shot actions keep their own clocks.
     const running = loop === 'run' || loop === 'townRun';
     const cycleMs = s.runMs ?? resolveSpeed('run', SPEED.basePercent).cycleMs / Math.max(0.001, s.moveScale ?? 1);
+    if (this.isSelf) {
+      if (running) {
+        const p = progress.get();
+        const slowed = !!((s.ctl ?? 0) & 2);
+        const totals = p?.combat ? totalSpeedPercents(p.combat.bag, slowed) : null;
+        const runBonus = p?.combat ? attrOf(p.combat.bag, 'fastwalkrun_p') : 0;
+        const totalRun = totals ? totals.run : SPEED.basePercent;
+        const runResolved = resolveSpeed('run', totalRun);
+        const points = speedPoints(totalRun);
+        const frames = jx.framesOf(loop) || 14;
+        const spriteFps = (frames * 1000 / cycleMs).toFixed(2);
+
+        if (!this.runTrace || this.runTrace.moveScale !== s.moveScale || this.runTrace.loop !== loop) {
+          this.runTrace = {
+            start: now, moveScale: s.moveScale ?? 1, loop,
+            frames, cycleMs, phaseFps: runResolved.fps, phasePercent: runResolved.phasePercent,
+            runPoints: points, runBonus, totalRun,
+          };
+          console.log([
+            `[TỐC ĐỘ DI CHUYỂN - BẮT ĐẦU / ĐỔI TỐC]`,
+            `• Hiển thị F3/N: T.Độ Chạy = ${points} điểm (Cộng thêm: ${runBonus}%)`,
+            `• Cài đặt tuning.ts: Nền ${SPEED.basePercent}% | Tổng ${totalRun}% -> Mốc: ${runResolved.phasePercent}% | Chuẩn: ${SPEED.run.referenceFrames} frames @ ${runResolved.fps} FPS -> Chu kỳ chuẩn: ${Math.round(runResolved.cycleMs)}ms | moveScale: ${runResolved.multiplier.toFixed(2)}`,
+            `• Server đồng bộ: moveScale = ${s.moveScale ?? 1} | Đang cưỡi: ${s.mounted ? 'Có' : 'Không'}`,
+            `• Client vẽ Canvas: Sprite sheet có ${frames} frames | Chu kỳ vẽ 1 vòng bước: ${Math.round(cycleMs)}ms -> FPS vẽ sprite: ${spriteFps} FPS`,
+            `• So sánh: Chuẩn ${SPEED.run.referenceFrames} frames @ ${runResolved.fps} FPS (${Math.round(runResolved.cycleMs)}ms) <=> Sprite ${frames} frames @ ${spriteFps} FPS (${Math.round(cycleMs)}ms)`,
+          ].join('\n'));
+        }
+      } else if (this.runTrace) {
+        const ranMs = now - this.runTrace.start;
+        const cycles = (ranMs / this.runTrace.cycleMs).toFixed(1);
+        console.log([
+          `[TỐC ĐỘ DI CHUYỂN - DỪNG]`,
+          `• Thời gian chạy: ${Math.round(ranMs)}ms | Hoàn thành: ~${cycles} chu kỳ bước chân (chu kỳ: ${Math.round(this.runTrace.cycleMs)}ms/bước)`,
+        ].join('\n'));
+        this.runTrace = null;
+      }
+    }
     this.loopFrame += Math.max(0, now - this.loopAt) / (running ? cycleMs : FRAME_MS);
     this.loopAt = now;
     return jx.render(this.x, this.y, this.y, loop, s.dir & 7, n => Math.floor(running ? this.loopFrame * n : this.loopFrame) % n);

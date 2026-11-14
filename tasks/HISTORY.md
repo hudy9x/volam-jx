@@ -2,6 +2,17 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Sửa lỗi giật tốc độ chạy (Aura) & bổ sung log đối chiếu tốc độ đánh/chạy
+
+- Theo yêu cầu USER: điều tra tốc độ đánh/di chuyển trong `tuning.ts`, so sánh frame cài đặt và FPS vẽ thực tế trên console devtools (chỉ log khi đánh và chạy, format plain-text dễ copy).
+- Phân tích log thực tế của USER: phát hiện tốc độ chạy dao động luân phiên giữa 1.67 (10 FPS / 800ms) và 1.166 (7 FPS / 1143ms).
+- Nguyên nhân: trạng thái hào quang (Aura, ví dụ *Lưu Thủy* Nga My skill 86 tăng `fastwalkrun_p` +66%) có P2 = 18 frames (~1000ms). Trong `packages/shared/src/status/states.ts`, thuộc tính của trạng thái bị gán `until = now + 1000ms`, trong khi chu kỳ đập aura `pulseAura()` là 1000ms và thời lượng aura là 2500ms. Thuộc tính bị hết hạn sớm trước 1 tick khiến tốc chạy tụt về 1.17 trước khi aura đập lại lên 1.67.
+- Xử lý: cập nhật `stateAttrsAt()` và `applyState()` trong `packages/shared/src/status/states.ts` để các thuộc tính thuộc hào quang (`isAura` / `st.aura` / `s.aura`) tồn tại suốt thời lượng của hào quang (không hết hạn sớm theo P2).
+- Thêm unit test `'aura speed attributes must not expire before the next aura pulse'` trong `tests/speed-phases.test.ts`. Kiểm tra `npm run test:speed` đạt 5/5 tests.
+- Cập nhật log plain-text chuẩn hóa trong `ActorView.ts` so sánh chuẩn reference frames/FPS và sprite frames/FPS vẽ thực tế khi đánh (bắt đầu + kết thúc) và chạy (bắt đầu/đổi tốc + dừng).
+- `npm run test:speed` (5/5), `npm run typecheck` (0 lỗi), `npm run build` đạt. Commit theo yêu cầu USER (`ok commit code này lên nhé`), không push.
+
+
 ## 2026-11-14 · Commit toàn bộ tích hợp tạo Boss theo USER
 
 - USER chấp nhận kết quả kiểm chứng5Boss và yêu cầu commit toàn bộ mã liên quan. Commit `feat(boss): integrate configurable golden boss spawning and drops` (hash xem git log -1) bổ sung lên aec1052: monsters theo config44Boss, spawner tránh trùng nguồn spawn cũ, lịch/hồi sinh trong combat, drop theo cấu hình, dev route reload và generator ảnh.

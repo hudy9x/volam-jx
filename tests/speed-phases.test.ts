@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   SPEED, SkillEngine, attackTiming, getSkill, monsterCombat, moveFactor, resolveSpeed, totalSpeedPercents, validateSpeedConfiguration,
+  applyState, expireStates, stateBag, attrOf, type ActiveStates,
   type Combatant, type EnginePort, type FxEvent,
 } from '../packages/shared/src/index.js';
 import { speedLabUrl, readSpeedSample } from '../apps/client/src/dev/skill-lab/speedSample.js';
@@ -90,4 +91,26 @@ test('game bonuses and run points must be converted to lab totals before compari
   assert.deepEqual(totalSpeedPercents({attackspeed_v:[90,0,0],fastwalkrun_p:[90,0,0]},true),{attack:50,cast:5,run:50});
   assert.equal(readSpeedSample('?speedSample=broken'),null);
   assert.equal(readSpeedSample('?speedSample=%7B%7D'),null);
+});
+
+test('aura speed attributes must not expire before the next aura pulse', () => {
+  const states: ActiveStates = new Map();
+  const now = 10000;
+  // Emei aura 86 Lưu Thủy: has fastwalkrun_p with P2 = 18 frames (~1000ms), aura duration = 2500ms
+  applyState(states, { skill: 86, kind: 'buff', ms: 2500, aura: true, by: 'self', level: 20 }, now);
+  assert.equal(states.size, 1);
+  assert.equal(attrOf(stateBag(states, -1), 'fastwalkrun_p'), 66);
+
+  // At now + 1000ms, a non-aura attribute with P2=18 would expire, but aura attributes must stay active!
+  expireStates(states, now + 1000);
+  assert.equal(attrOf(stateBag(states, -1), 'fastwalkrun_p'), 66);
+
+  // At now + 1500ms, still active:
+  expireStates(states, now + 1500);
+  assert.equal(attrOf(stateBag(states, -1), 'fastwalkrun_p'), 66);
+
+  // After 2500ms (end of aura duration when not pulsed), the entire state expires:
+  expireStates(states, now + 2501);
+  assert.equal(states.size, 0);
+  assert.equal(attrOf(stateBag(states, -1), 'fastwalkrun_p'), 0);
 });
