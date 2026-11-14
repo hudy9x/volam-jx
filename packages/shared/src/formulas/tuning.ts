@@ -143,12 +143,12 @@ export const SPEED = {
     phases: [
       { minPercent: 5, fps: 13 }, { minPercent: 10, fps: 14 },
       { minPercent: 20, fps: 15 }, { minPercent: 30, fps: 16 },
-      { minPercent: 50, fps: 17 }, { minPercent: 70, fps: 18 },
-      { minPercent: 85, fps: 19 }, { minPercent: 110, fps: 20 },
-      { minPercent: 130, fps: 21 }, { minPercent: 150, fps: 22 },
-      { minPercent: 160, fps: 23 }, { minPercent: 180, fps: 24 },
-      { minPercent: 200, fps: 25 }, { minPercent: 220, fps: 26 },
-      { minPercent: 240, fps: 27 }, { minPercent: 260, fps: 28 },
+      { minPercent: 50, fps: 17 }, { minPercent: 70, fps: 28 },
+      { minPercent: 85, fps: 32 }, { minPercent: 110, fps: 35 },
+      { minPercent: 130, fps: 38 }, { minPercent: 150, fps: 41 },
+      { minPercent: 160, fps: 44 }, { minPercent: 180, fps: 47 },
+      { minPercent: 200, fps: 50 }, { minPercent: 220, fps: 53 },
+      { minPercent: 240, fps: 56 }, { minPercent: 260, fps: 59 },
     ],
   },
 } as const;

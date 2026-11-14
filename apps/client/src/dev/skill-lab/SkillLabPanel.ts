@@ -93,10 +93,10 @@ const CSS = `
 .lab-base-actions button { font-size: 10px; padding: 2px 6px; cursor: pointer; }
 
 .lab-phase-table { display: flex; flex-direction: column; gap: 2px; max-height: 200px; overflow-y: auto; padding-right: 2px; }
-.lab-phase-header { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 4px; font-size: 10px; color: #8d7c60; font-weight: bold; padding: 2px 4px; text-transform: uppercase; }
+.lab-phase-header { display: grid; grid-template-columns: 1fr 1fr 1fr 34px 24px; gap: 4px; font-size: 10px; color: #8d7c60; font-weight: bold; padding: 2px 4px; text-transform: uppercase; }
 .lab-phase-header.run { grid-template-columns: 44px 36px 36px 30px 42px 50px 20px; gap: 3px; }
 
-.lab-phase-row { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 4px; align-items: center; padding: 1px 0; }
+.lab-phase-row { display: grid; grid-template-columns: 1fr 1fr 1fr 34px 24px; gap: 4px; align-items: center; padding: 1px 0; }
 .lab-phase-row.run { grid-template-columns: 44px 36px 36px 30px 42px 50px 20px; gap: 3px; }
 .lab-phase-row.is-base input { border-color: var(--gold); color: #fff3db; background: #2a2010; font-weight: bold; }
 .lab-phase-row input { width: 100%; box-sizing: border-box; text-align: center; }
@@ -201,7 +201,7 @@ function createPhaseTable(
   if (isRun) {
     header.append(div('', 'Mốc (%)'), div('', 'FPS'), div('', 'Step'), div('', 'Áp'), div('', 'Sải (px)'), div('', 'V.Tốc'), div('', ''));
   } else {
-    header.append(div('', 'Mốc (%)'), div('', 'FPS'), div('', ''));
+    header.append(div('', 'Mốc (%)'), div('', 'FPS'), div('', 'Step'), div('', 'Áp'), div('', ''));
   }
 
   // 3. Rows container
@@ -233,6 +233,33 @@ function createPhaseTable(
       fpsInput.value = String(p.fps);
       fpsInput.title = `FPS cho mốc ${p.minPercent}%`;
 
+      const stepVal = p.step ?? (Number(stepInput.value) || (isRun ? 1 : 2));
+      const rowStepInput = document.createElement('input');
+      rowStepInput.type = 'number';
+      rowStepInput.value = String(stepVal);
+      rowStepInput.title = `Step (+FPS) cho mốc ${p.minPercent}%`;
+      rowStepInput.addEventListener('change', () => {
+        const val = Number(rowStepInput.value);
+        if (Number.isFinite(val)) p.step = val;
+      });
+
+      const applyRowBtn = document.createElement('button');
+      applyRowBtn.type = 'button';
+      applyRowBtn.className = 'btn-apply-row';
+      applyRowBtn.textContent = 'Áp';
+      applyRowBtn.title = `Áp dụng Step ${rowStepInput.value} từ mốc ${p.minPercent}% cho tới các mốc còn lại`;
+      applyRowBtn.addEventListener('click', () => {
+        const startFps = p.fps;
+        const sVal = Number(rowStepInput.value);
+        if (!Number.isFinite(startFps) || !Number.isFinite(sVal)) return;
+        p.step = sVal;
+        for (let i = idx + 1; i < currentPhases.length; i++) {
+          currentPhases[i].fps = startFps + (i - idx) * sVal;
+        }
+        renderRows();
+        onDirty();
+      });
+
       const delBtn = document.createElement('button');
       delBtn.type = 'button';
       delBtn.className = 'btn-del';
@@ -251,33 +278,6 @@ function createPhaseTable(
         strideRowInput.type = 'number';
         strideRowInput.value = String(strideVal);
         strideRowInput.title = `Độ dài sải chân 1 chu kỳ bước (px) tại mốc ${p.minPercent}%`;
-
-        const stepVal = p.step ?? (Number(stepInput.value) || 1);
-        const rowStepInput = document.createElement('input');
-        rowStepInput.type = 'number';
-        rowStepInput.value = String(stepVal);
-        rowStepInput.title = `Step (+FPS) cho mốc ${p.minPercent}%`;
-        rowStepInput.addEventListener('change', () => {
-          const val = Number(rowStepInput.value);
-          if (Number.isFinite(val)) p.step = val;
-        });
-
-        const applyRowBtn = document.createElement('button');
-        applyRowBtn.type = 'button';
-        applyRowBtn.className = 'btn-apply-row';
-        applyRowBtn.textContent = 'Áp';
-        applyRowBtn.title = `Áp dụng Step ${rowStepInput.value} từ mốc ${p.minPercent}% cho tới các mốc còn lại`;
-        applyRowBtn.addEventListener('click', () => {
-          const startFps = p.fps;
-          const sVal = Number(rowStepInput.value);
-          if (!Number.isFinite(startFps) || !Number.isFinite(sVal)) return;
-          p.step = sVal;
-          for (let i = idx + 1; i < currentPhases.length; i++) {
-            currentPhases[i].fps = startFps + (i - idx) * sVal;
-          }
-          renderRows();
-          onDirty();
-        });
 
         const velLabel = div('lab-row-vel', `${Math.round((p.fps / 8) * strideVal)} px/s`);
 
@@ -311,7 +311,7 @@ function createPhaseTable(
             onDirty();
           }
         });
-        row.append(pctInput, fpsInput, delBtn);
+        row.append(pctInput, fpsInput, rowStepInput, applyRowBtn, delBtn);
       }
 
       tableRows.appendChild(row);

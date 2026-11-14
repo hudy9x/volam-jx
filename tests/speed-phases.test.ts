@@ -15,9 +15,9 @@ test('both tracks match the approved phases and cap after composition', () => {
       [180, 16], [200, 18], [220, 20], [240, 22], [260, 24],
     ],
     attack: [
-      [5, 13], [10, 14], [20, 15], [30, 16], [50, 17], [70, 18],
-      [85, 19], [110, 20], [130, 21], [150, 22], [160, 23], [180, 24],
-      [200, 25], [220, 26], [240, 27], [260, 28],
+      [5, 13], [10, 14], [20, 15], [30, 16], [50, 17], [70, 28],
+      [85, 32], [110, 35], [130, 38], [150, 41], [160, 44], [180, 47],
+      [200, 50], [220, 53], [240, 56], [260, 59],
     ],
   };
   for (const kind of ['run','attack'] as const) {
@@ -90,8 +90,8 @@ test('game bonuses and run points must be converted to lab totals before compari
     ...totals,attackBonus:79,castBonus:60,runPoints:20};
   const url=speedLabUrl('http://localhost:5174/?server=unused#ignored',sample);
   assert.deepEqual(readSpeedSample(new URL(url).search),sample);
-  assert.equal(resolveSpeed('attack',totals.attack).cycleMs,20 * 1000 / 19);
-  assert.equal(resolveSpeed('attack',totals.cast).cycleMs,20 * 1000 / 18);
+  assert.equal(resolveSpeed('attack',totals.attack).cycleMs,20 * 1000 / 32);
+  assert.equal(resolveSpeed('attack',totals.cast).cycleMs,20 * 1000 / 28);
   assert.equal(resolveSpeed('run',totals.run).multiplier,moveFactor({fastwalkrun_p:[104,0,0]},false));
   assert.notEqual(resolveSpeed('attack',sample.attackBonus).cycleMs,attackTiming({attackspeed_v:[79,0,0]},true,false).cycleMs);
   assert.notEqual(resolveSpeed('run',sample.runPoints).multiplier,resolveSpeed('run',totals.run).multiplier);

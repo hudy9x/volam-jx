@@ -2,6 +2,20 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Thêm cột Step cho bảng Mốc Tốc Độ Đánh & cập nhật mốc FPS tấn công mới
+
+- Theo yêu cầu USER:
+  + Thêm cột Step (+FPS) và nút "Áp" tại từng hàng cho tab Mốc Tốc Độ Đánh trên panel `?skills` (tương tự như bảng Mốc Tốc Độ Chạy) để cài đặt hàng loạt nhanh hơn.
+  + Cập nhật CSS header & row cho tab đánh (`50px 44px 44px 34px 24px`).
+  + Đồng bộ bảng FPS tấn công mới do người dùng tinh chỉnh trong `packages/shared/src/formulas/tuning.ts` (mốc 70%: 28 FPS, mốc 85%->260% áp step 3 FPS từ 32 FPS đến 59 FPS).
+  + Cập nhật assertion trong `tests/speed-phases.test.ts`.
+- File cập nhật:
+  + `apps/client/src/dev/skill-lab/SkillLabPanel.ts`
+  + `packages/shared/src/formulas/tuning.ts`
+  + `tests/speed-phases.test.ts`
+  + `tasks/CURRENT.md`, `tasks/HISTORY.md`
+- Kiểm tra: `npm run test:speed` (5/5 pass), `npm run typecheck` (0 lỗi), `npm run build` hoàn tất. Commit theo yêu cầu USER, không push.
+
 ## 2026-11-14 · Cập nhật nền chạy 100% (10 điểm), đồng bộ Sải Chân & Vận Tốc và nâng cấp panel ?skills
 
 - Theo yêu cầu USER:
@@ -1013,3 +1027,17 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - Tạo `docs/research/market-pricing-plan.md`: trạng thái mã giá cấu hình, nơi lưu/giao dịch marketSales và giới hạn, dữ liệu còn thiếu để học, giá trị vs giá thị trường, tác động chế tạo miễn phí, gom món tương đương, độ tin cậy/trung vị, chống thao túng, tiền gốc và KNB một chiều, thời gian online có thể bán, lộ trình/tiêu chí kiểm chứng. Công thức/biên/số mẫu của bước học là đề xuất chưa chốt.
 - AGENTS/CLAUDE/GEMINI và rule always_on chỉ dẫn đọc theo từ khóa định giá/giá thị trường/kinh tế game/cung cầu/học giá/tự tăng giảm giá/marketSales; docs/rao-ban liên kết trực tiếp. Không khẳng định AI ngoài repo sẽ tự biết; session cần quyền đọc repo và tuân thủ entrypoint.
 - HEAD36c9489; không sửa mã/cấu hình giá/DB/asset, không commit/push; giữ thay đổi triển khai bot/speed/boss và việc khác. Kiểm liên kết nội bộ và diff-check cho phần tài liệu.
+
+## Bảng bot chia tab và chọn hàng loạt bằng checkbox — 2026-11-14
+
+- USER đưa ảnh và yêu cầu ba tab trạng thái có tổng, bỏ select trạng thái, ghép giới tính emoji sau tên, thêm emoji xanh/đỏ trước Online/Offline và thay hai nút chọn/bỏ bằng checkbox đầu bảng.
+- Sửa `tools/bots/ui/BotPanel.ts`/CSS theo guideline; giữ lọc phái/giới/tìm kiếm. Chọn tất cả chỉ trong kết quả lọc tab hiện tại, bỏ chọn cùng phạm vi; giữ các lựa chọn ngoài tab/lọc. Header indeterminate, disabled khi rỗng. Tab ARIA và phím trái/phải/Home/End; vùng bấm checkbox44px, mobile bảng cuộn riêng.
+- Typecheck/build/diff-check đạt; Chromium1440×1000/390×844 với API giả lập kiểm các tab/tổng/emoji/header checkbox/filter/selection preservation/empty/refresh online→offline/bàn phím/vùng bấm. Đã xem ảnh, khôngpageerror/tràn trang. Chỉ UI/API giả lập, không chạy/dừng/sửa bot hoặc DB thật; chưa native/mobile thật. Script/ảnh `/tmp/jx-bot-tabs/`, tool thử4578 đã dừng.
+- HEAD03be358, cây sạch đầu lượt; CURRENT cũ còn ghi chuẩn bị commit tốc độ nhưng git đã có commit03be358. Cập nhật README/AGENTS/tracking. Chưa commit/push; không restart app thật vì restart sẽ dừng các bot do app quản lý.
+
+## Tab Tất cả và ký hiệu giới tính của bot — 2026-11-14
+
+- USER đổi 👨/👩 sang ♂/♀, màu vàng/xanh dương tương ứng Nam/Nữ; thêm tab Tất cả cạnh các tab trạng thái.
+- Sửa BotPanel/CSS: ký hiệu dạng text để CSS đổi màu ổn định; nhãn Nam/Nữ cho truy cập. Tất cả có tổng số, tương thích lọc/checkbox header/indeterminate/giữ lựa chọn, bộ tab dùng bàn phím; giữ Online mặc định.
+- Typecheck/build đạt; Chromium/API giả lập1440/390 kiểm200hàng/Tất cả/chọn-bỏ200/lọc, màu computed/ký hiệu, regression tab/refresh/bàn phím/không tràn; ảnh đã xem. Tool thử4578 đã dừng, script/ảnh `/tmp/jx-bot-tabs/`, không đụng bot hoặc DB thật. Chưa native/mobile thật.
+- HEAD03be358, giữ thay đổi speed/skill-lab từ phiên khác; cập nhật README/AGENTS/tasks, chưa commit/push.
