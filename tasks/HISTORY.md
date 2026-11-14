@@ -1102,3 +1102,9 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 
 - USER yêu cầu kiểm đúng mã rồi commit để tránh lẫn/conflict. Chỉ stage code/docs/test của Auto/bot và tracking tương ứng; không lấy tooltip.css/skillTip.ts/scenario mới hoặc ghi chú tooltip của phiên khác.
 - Kiểm bản tree sẽ commit trong thư mục riêng với workspace dependency trỏ đúng bản snapshot: typecheck, auto12+bots10+market13 và build. Kết quả được xác nhận trước khi commit; diff-check và kiểm phạm vi staged đạt. Commit theo USER, mã xem git log -1, không push. Các kiểm WS/Chromium của vòng trước vẫn giữ như ghi ở trên; không chạy lại game thật.
+
+## Chia tab cài đặt Auto — 2026-11-14
+
+- USER yêu cầu gom cài đặt Auto thành tab và tăng độ rộng. `auto.ts/.css`: 4 tab Chiến đấu/Bãi luyện/Nhặt đồ/Thuốc, rộng340→560px và co theo viewport; nút Chạy/Dừng và tab ở ngoài vùng nội dung cuộn, hướng dẫn đặt theo nhóm. ARIA tab/panel, roving tabindex, trái/phải/Home/End. Giữ binding/lưu cài đặt và gameplay hiện tại.
+- Typecheck/build đạt (cảnh báo chunk lớn có sẵn). Chromium harness dùng AutoWindow thật: chuyển4tab, chỉ1panel hiện, giữ priority qua đổi tab, bàn phím, Chạy/Dừng và không tràn nội dung ở1440×1000/390×844/844×390 đạt; xem ảnh390. Harness không tải artwork gốc, chưa kiểm toàn luồng đăng nhập hoặc wrapper Desktop/Mobile thật. Script/ảnh `/tmp/jx-auto-tabs/`.
+- HEAD `7bd7da5` mới hơn phần đầu bàn giao (đã báo USER); giữ untracked `tools/bots/data/san-ban-do-hkmp.json`. USER đã yêu cầu commit riêng phần Auto và tài liệu liên quan; không push, không tác động server/DB người dùng. Các thay đổi Kỹ năng/Hoa Sơn đồng thời giữ ngoài commit. Commit xem `git log -1` với tiêu đề `style(auto): organize settings into wider tabbed dialog`.

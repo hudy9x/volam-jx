@@ -271,3 +271,5 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 - [x] USER2026-11-14 Bỏ yêu cầu chọn nhân vật khi Lưu kịch bản; cho lưu/nạp danh sách rỗng, không tự chạy, Chạy vẫn cần chọn người. Typecheck/build/Chromium đạt; chưa commit.
 
 - [x] USER2026-11-14 Checkpoint0d9c684; Auto/bot thêm Xanh→thường, chọn bậc cao nhất/gần nhất rồi hạ hết mục tiêu, không đổi giữa trận/không đi nhặt hủy lock/bùa không quên focus. Auto12+bots10+market13/typecheck/build, WS mục tiêu kiểm soát và Chromium1440/390/lưu blue đạt. Commit riêng phần Auto/bot theo USER sau kiểm bản index độc lập; chưa cân bằng boss thật/native.
+
+- [x] USER2026-11-14 Cài đặt Auto: 4 tab Chiến đấu/Bãi luyện/Nhặt đồ/Thuốc, rộng560px và co theo màn hình, bàn phím/cảm ứng, nội dung cuộn riêng; typecheck/build và Chromium harness1440/390/ngang đạt. Chưa native thật; commit riêng theo USER, không push.
