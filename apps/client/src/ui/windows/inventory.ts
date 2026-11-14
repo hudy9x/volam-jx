@@ -1,14 +1,14 @@
 import { initMarket, openMarketPost } from './market';
 import {
-  BAG_CELL_PX, BAG_COLS, BAG_PAGES, BAG_PAGE_SIZE, BAG_ROWS, KIND_SLOTS, bagCover, bagPage, canWear, equipError, findPlace, fitsAt, itemDef,
-  itemSize, moneyText,
-  sellPrice, usableItem, type InventoryMsg, type Item, type ItemViewer,
+  BAG_CELL_PX, BAG_COLS, BAG_PAGES, BAG_PAGE_SIZE, BAG_ROWS, BAG_SIZE, KIND_SLOTS, bagCover, bagPage, canWear, equipError, findPlace, itemDef,
+  itemSize, moneyText, overlappingAt, sellPrice, usableItem, type InventoryMsg, type Item, type ItemViewer,
 } from '@vltk/shared';
 import { itemViewer, progress } from '../../state/progress';
 import { inventory } from '../../state/inventory';
 import { trade } from '../../state/trade';
 import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
+import { getActiveGridDrag, gridCellAt, setActiveGridDrag } from '../kit/itemGrid';
 import { moneyHtml, setMoney } from '../kit/money';
 import { setSlotIcon } from '../kit/slot';
 import { tooltip } from '../kit/tooltip';
@@ -23,8 +23,8 @@ const ID = 'bag-panel';
 const HTML = `
 <section id="${ID}" class="dlg hidden" data-title="Hành trang">
   <div id="bag-tabs" class="bag-tabs">${Array.from({ length: BAG_PAGES }, (_, p) =>
-    `<button type="button" class="bag-tab${p ? '' : ' on'}" data-page="${p}">${p ? `Rương ${p}` : 'Túi'}</button>`).join('')}</div>
-  <div class="row spread muted"><span id="bag-mode-hint">Vật phẩm</span><span id="bag-count"></span></div>
+  `<button type="button" class="bag-tab${p ? '' : ' on'}" data-page="${p}">${p + 1}</button>`).join('')}</div>
+  <div class="row spread muted"><span id="bag-mode-hint">Vật phẩm</span><span class="row" style="gap:6px"><span id="bag-count"></span><button type="button" class="btn sm" id="bag-sort" title="Sắp xếp gọn lại trang hiện tại">Xếp</button></span></div>
   <div id="bag-grid" style="--cell: ${BAG_CELL_PX}px; --cols: ${BAG_COLS}; --rows: ${BAG_ROWS}"></div>
   <div class="bag-money">${moneyHtml('bag-money')}</div><div id="bag-knb">0 Kim nguyên bảo</div>
   <div class="row bag-actions">
@@ -48,6 +48,7 @@ export class InventoryWindow {
   private page = 0;
   /** Click mode of the bag's own buttons: throw on the ground / sell (USER 2026-11-12). */
   private mode: 'none' | 'throw' | 'sell' | 'announce' = 'none';
+  private pendingRender = false;
 
   constructor(parent: HTMLElement, private ctx: HudContext, private confirm: TradeConfirm) {
     mount(parent, HTML);
@@ -58,12 +59,37 @@ export class InventoryWindow {
     $('bag-tabs').querySelectorAll<HTMLElement>('.bag-tab').forEach(tab => {
       const page = Number(tab.dataset.page);
       tab.addEventListener('click', () => this.showPage(page));
-      // Drop a piece on a tab: it goes to the first place it fits in that page.
-      tab.addEventListener('dragover', e => { if (this.dragging >= 0) { e.preventDefault(); this.showPage(page); } });
+      // Do NOT switch page on dragover: replacing the grid DOM mid-drag cancels the browser drag session.
+      tab.addEventListener('dragover', e => {
+        if (!getActiveGridDrag()) return;
+        e.preventDefault();
+        tab.classList.add('drop-over');
+      });
+      tab.addEventListener('dragleave', () => tab.classList.remove('drop-over'));
+      tab.addEventListener('drop', e => {
+        tab.classList.remove('drop-over');
+        const drag = getActiveGridDrag();
+        if (!drag) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (drag.source === 'stash') {
+          this.ctx.actions()?.stashToBag(drag.index, undefined, page);
+          return;
+        }
+        const from = drag.index;
+        const to = findPlace(this.inv.bag, itemDef(this.inv.bag[from]), from, page, BAG_SIZE);
+        if (to < 0) this.ctx.notice('Trang này không đủ chỗ.');
+        else if (to !== from) this.ctx.actions()?.bagMove(from, to);
+      });
     });
+    $('bag-sort').addEventListener('click', () => this.ctx.actions()?.bagSort(this.page, 'bag'));
     $('bag-throw').addEventListener('click', () => this.setMode(this.mode === 'throw' ? 'none' : 'throw'));
     $('bag-sell').addEventListener('click', () => this.setMode(this.mode === 'sell' ? 'none' : 'sell'));
-    inventory.watch(inv => { this.inv = inv; this.renderBag(); }, false);
+    inventory.watch(inv => {
+      this.inv = inv;
+      if (getActiveGridDrag()?.source === 'bag') { this.pendingRender = true; return; }
+      this.renderBag();
+    }, false);
     // Green / dark red cells follow level and potentials (S2C.stats), not only bag changes.
     // Only when what wearing depends on changed (exp arrives every kill and would redraw the bag mid-drag).
     let wearKey = '', retries = 0;
@@ -116,39 +142,37 @@ export class InventoryWindow {
   }
 
   /** Bag cell under a point of the grid (for drops), with the grab offset of the dragged piece. */
-  private cellAt(e: DragEvent): number {
-    const r = $('bag-grid').getBoundingClientRect();
-    const x = Math.floor((e.clientX - r.left - this.grab[0]) / BAG_CELL_PX + 0.5);
-    const y = Math.floor((e.clientY - r.top - this.grab[1]) / BAG_CELL_PX + 0.5);
-    return x < 0 || y < 0 || x >= BAG_COLS || y >= BAG_ROWS ? -1 : this.page * BAG_PAGE_SIZE + y * BAG_COLS + x;
+  private cellAt(e: DragEvent, grab: [number, number]): number {
+    return gridCellAt($('bag-grid'), e, grab, this.page);
   }
-
-  /** Bag index being dragged inside the grid and where in the piece it was grabbed (px). */
-  private dragging = -1;
-  private grab: [number, number] = [0, 0];
 
   private buildBag(): void {
     const grid = $('bag-grid');
     grid.addEventListener('dragover', e => {
-      if (this.dragging < 0) return;
+      const drag = getActiveGridDrag();
+      if (!drag) return;
       e.preventDefault();
-      const to = this.cellAt(e);
-      const ok = to >= 0 && fitsAt(this.inv.bag, itemDef(this.inv.bag[this.dragging]), to, this.dragging);
+      if (drag.source === 'stash') {
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        return;
+      }
+      const to = this.cellAt(e, drag.grab);
+      const def = itemDef(this.inv.bag[drag.index]);
+      const hits = to >= 0 ? overlappingAt(this.inv.bag, def, to, drag.index, BAG_SIZE) : null;
+      const ok = !!hits && (hits.length === 0 || hits.length === 1);
       if (e.dataTransfer) e.dataTransfer.dropEffect = ok ? 'move' : 'none';
     });
-    $('bag-tabs').addEventListener('drop', e => {
-      if (this.dragging < 0) return;
-      e.preventDefault();
-      const from = this.dragging;
-      const to = findPlace(this.inv.bag, itemDef(this.inv.bag[from]), from, this.page);
-      if (to < 0) this.ctx.notice('Rương này không đủ chỗ.');
-      else if (to !== from) this.ctx.actions()?.bagMove(from, to);
-    });
     grid.addEventListener('drop', e => {
-      if (this.dragging < 0) return;
+      const drag = getActiveGridDrag();
+      if (!drag) return;
       e.preventDefault();
-      const from = this.dragging, to = this.cellAt(e);
-      if (to >= 0 && to !== from && fitsAt(this.inv.bag, itemDef(this.inv.bag[from]), to, from)) this.ctx.actions()?.bagMove(from, to);
+      const to = this.cellAt(e, drag.grab);
+      if (to < 0) return;
+      if (drag.source === 'stash') {
+        this.ctx.actions()?.stashToBag(drag.index, to);
+        return;
+      }
+      if (to !== drag.index) this.ctx.actions()?.bagMove(drag.index, to);
     });
   }
 
@@ -190,17 +214,19 @@ export class InventoryWindow {
     el.addEventListener('contextmenu', e => { e.preventDefault(); wearOrUse(); });
     el.addEventListener('dragstart', e => {
       tooltip.hide();
-      this.dragging = i;
       const r = el.getBoundingClientRect();
-      this.grab = [e.clientX - r.left, e.clientY - r.top];
+      setActiveGridDrag({ source: 'bag', index: i, grab: [e.clientX - r.left, e.clientY - r.top] });
       e.dataTransfer?.setData('text/bag', String(i));
       if (usableItem(def)) e.dataTransfer?.setData('text/item', item.def);
     });
-    el.addEventListener('dragend', () => { this.dragging = -1; });
+    el.addEventListener('dragend', () => {
+      if (getActiveGridDrag()?.source === 'bag') setActiveGridDrag(null);
+      if (this.pendingRender) { this.pendingRender = false; this.renderBag(); }
+    });
     el.addEventListener('mouseenter', () => {
       const hint = this.mode === 'throw' ? 'Click: vứt xuống đất'
         : this.selling() ? `Click: bán (${moneyText(sellPrice(def))} lượng)`
-        : '';
+          : '';
       this.tip(item, el, hint);
     });
     el.addEventListener('mouseleave', () => showItemTip(null));

@@ -29,7 +29,12 @@ export function fillItemTip(tip: HTMLElement, def: ItemDef, opts: ItemTipOptions
   const t = describeItem(def, opts.item ?? undefined, opts.viewer ?? undefined, {
     active: opts.active, slot: opts.slot, equip: inventory.get().equip,
   });
-  const put = (lines: TipLine[], cls: string) => {
+  const section = (): HTMLElement => {
+    const s = document.createElement('div');
+    s.className = 'tip-section';
+    return s;
+  };
+  const put = (parent: HTMLElement, lines: TipLine[], cls: string) => {
     for (const l of lines) {
       const d = document.createElement('div');
       d.className = cls;
@@ -39,22 +44,45 @@ export function fillItemTip(tip: HTMLElement, def: ItemDef, opts: ItemTipOptions
         if (span.color) e.style.color = span.color;
         d.appendChild(e);
       }
-      tip.appendChild(d);
+      parent.appendChild(d);
     }
   };
-  const text = (cls: string, value: string, color = TIP_COLORS.text) => { if (value) put([[{ text: value, color }]], cls); };
-  put([t.name], 'tip-name');
-  text('tip-sub', t.sub, '');
-  if (t.price) text('tip-price', `Giá: ${moneyText(t.price)} lượng`);
-  put(t.series, 'tip-series');
-  put(t.desc, 'tip-desc');
-  put(t.base, 'tip-stats');
+  const text = (parent: HTMLElement, cls: string, value: string, color = TIP_COLORS.text) => {
+    if (value) put(parent, [[{ text: value, color }]], cls);
+  };
+  const flush = (sec: HTMLElement) => { if (sec.childElementCount) tip.appendChild(sec); };
+
+  // Section 1: Thông tin mô tả trang bị
+  const s1 = section();
+  put(s1, [t.name], 'tip-name');
+  text(s1, 'tip-sub', t.sub, '');
+  if (t.price) text(s1, 'tip-price', `Giá: ${moneyText(t.price)} lượng`);
+  put(s1, t.series, 'tip-series');
+  put(s1, t.desc, 'tip-desc');
+  flush(s1);
+
+  // Section 2: Giá trị mặc định & yêu cầu
+  const s2 = section();
+  put(s2, t.base, 'tip-stats');
   const horse = def.kind === 'horse' ? HORSES[def.id] : undefined;
-  if (horse) text('tip-note', `Khi cưỡi: tốc độ chạy +${speedPoints(horse.speedPct)}.`, '');
-  put(t.req.map(r => r.line), 'tip-req');
-  put(t.magic, 'tip-magic');
-  put(t.suite, 'tip-suite');
-  text('tip-hint', opts.hint ?? '', '');
+  if (horse) text(s2, 'tip-note', `Khi cưỡi: tốc độ chạy +${speedPoints(horse.speedPct)}.`, '');
+  put(s2, t.req.map(r => r.line), 'tip-req');
+  flush(s2);
+
+  // Section 3: Các dòng ẩn / hiện
+  const s3 = section();
+  put(s3, t.magic, 'tip-magic');
+  flush(s3);
+
+  // Section 4: Danh sách trang bị của bộ / kích hoạt dòng ẩn
+  const s4 = section();
+  put(s4, t.suite, 'tip-suite');
+  flush(s4);
+
+  // Section 5: Mô tả khác
+  const s5 = section();
+  text(s5, 'tip-hint', opts.hint ?? '', '');
+  flush(s5);
 }
 
 /** Run speed bonus of a horse as tốc độ chạy points (formulas/speed.ts speedPoints; the horse shop shows it too). */

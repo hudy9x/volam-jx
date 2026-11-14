@@ -64,6 +64,7 @@ export interface Sim {
   jump?: { fx: number; fy: number; tx: number; ty: number; start: number; ms: number };
   // players
   charId?: string;
+  owner?: string;
   /** Hào quang on a hand slot of the skill bar (C2S.aura): kept on by world/players.ts holdSlotAura. */
   slotAura?: number;
   /** Drop the player is walking to pick up (systems/drops.ts). */

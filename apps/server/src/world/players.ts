@@ -1,4 +1,5 @@
-import { levelOf, campOf,
+import {
+  levelOf, campOf,
   FACTIONS, HORSES, LEGACY_HORSES, MAX_MONEY, MissileForm, PLAYER_SPEED, PROGRESS_VERSION, SPAWN_PROTECTION, START_MONEY,
   SkillStyle, attrOf, canStandAt, castRange, weaponOk, getSkill, isoDistance, nearestWalkable, skillCategory, starterEquipment,
   type Element, type Progress,
@@ -23,7 +24,7 @@ import type { World } from './World.js';
 
 /** What the world needs from a stored character. */
 export interface PlayerRecord {
-  id: string; name: string; faction: string; gender: string; level: number; x: number; y: number;
+  id: string; owner?: string; name: string; faction: string; gender: string; level: number; x: number; y: number;
   horse?: string | null; mounted?: boolean;
   /** Stored hành trang / worn items: concrete items, or table ids from older builds (restored by inventory.ts). */
   bag?: unknown; bagSpill?: unknown; equip?: unknown; skills?: Record<string, number>;
@@ -61,6 +62,7 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
   const sim = makeSim(sessionId, 'player', a, series, PLAYER_SPEED);
   updateSpeed(sim);
   sim.charId = char.id;
+  sim.owner = char.owner;
   sim.sessionId = sessionId;
   sim.progress = {
     series, prog,

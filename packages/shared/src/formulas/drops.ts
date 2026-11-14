@@ -55,21 +55,33 @@ export function rollMoney(t: DropTable, level: number, rng: () => number): numbe
 export const luckFactor = (luck: number): number => Math.max(LUCK.minFactor, 1 + LUCK.perPoint * (luck - LUCK.neutral));
 
 /**
- * Blue lines of a new piece (SRC KItemGenerator::Gen_MagicAttrib, R INFERRED): for each of the 6 positions (even =
- * prefix, always on; odd = suffix of the item's ngũ hành, hidden until activated) a threshold = rand(1 000 000) / luck
- * factor; every table row of that kind / level / series with weight > threshold and an attribute not used yet is a
- * candidate; one is picked at random, its value rolled in [min, max]. No candidate: the position stays empty.
+ * Blue lines of a new piece (SRC KItemGenerator::Gen_MagicAttrib, R INFERRED):
+ * Odd human lines (1, 3, 5 → index 0, 2, 4) are ALWAYS visible prefixes; even human lines (2, 4, 6 → index 1, 3, 5)
+ * are ALWAYS hidden suffixes of the item's ngũ hành. Never skip a position and shift later lines into the wrong parity.
  */
 export function rollMagicLines(def: ItemDef, series: number, luck: number, rng: () => number): MagicLine[] {
-  const out: MagicLine[] = [];
-  const used = new Set<string>();
   const f = luckFactor(luck);
+  // Count how many lines pass the luck threshold across the 6 slots (preserves drop-rate & luck scaling).
+  let hits = 0;
   for (let pos = 0; pos < MAGIC_LINES; pos++) {
     const prefix = pos % 2 === 0;
     const threshold = Math.floor(rng() * LUCK.range) / f;
-    const cands = MAGIC_ATTRIBS.filter(r => r.prefix === prefix && r.level <= def.level && !used.has(r.attr)
+    const hasCand = MAGIC_ATTRIBS.some(r => r.prefix === prefix && r.level <= def.level
       && (prefix || r.series === -1 || r.series === series) && (r.weights[def.kind] ?? 0) > threshold);
-    if (!cands.length) continue;
+    if (hasCand) hits++;
+  }
+  const out: MagicLine[] = [];
+  const used = new Set<string>();
+  for (let pos = 0; pos < hits; pos++) {
+    const prefix = pos % 2 === 0;
+    const threshold = Math.floor(rng() * LUCK.range) / f;
+    let cands = MAGIC_ATTRIBS.filter(r => r.prefix === prefix && r.level <= def.level && !used.has(r.attr)
+      && (prefix || r.series === -1 || r.series === series) && (r.weights[def.kind] ?? 0) > threshold);
+    if (!cands.length) {
+      cands = MAGIC_ATTRIBS.filter(r => r.prefix === prefix && r.level <= def.level && !used.has(r.attr)
+        && (prefix || r.series === -1 || r.series === series) && (r.weights[def.kind] ?? 0) > 0);
+    }
+    if (!cands.length) break;
     const r = cands[Math.floor(rng() * cands.length)];
     used.add(r.attr);
     const v = r.min + Math.floor(rng() * (Math.max(r.min, r.max) - r.min + 1));

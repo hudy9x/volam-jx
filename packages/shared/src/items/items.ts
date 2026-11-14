@@ -93,6 +93,9 @@ export const BAG_PAGE_SIZE = 60;
 export const BAG_PAGES = 5;
 /** Entries of a stored bag: page p holds indices p × BAG_PAGE_SIZE … (p + 1) × BAG_PAGE_SIZE − 1. */
 export const BAG_SIZE = BAG_PAGE_SIZE * BAG_PAGES;
+/** Pages of the account-shared stash (NPC Rương chứa đồ, USER 2026-11-14). */
+export const STASH_PAGES = 3;
+export const STASH_SIZE = BAG_PAGE_SIZE * STASH_PAGES;
 export type Equipment = Partial<Record<EquipSlot, Item>>;
 export type Bag = (Item | null)[];
 /** Table rows per slot (starter outfits, previews): no rolled values. */

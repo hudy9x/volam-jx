@@ -3,9 +3,11 @@ import { buyKnb, marketOnline, marketOffline, marketPost, marketBuy } from '../w
 import fs from 'node:fs';
 import path from 'node:path';
 import { Room, ServerError, type Client } from 'colyseus';
-import { bestTrainingMap, trainingMaps, type TrainingMap, type TrainMsg, type TeamOrderMsg, type SuggestMsg, type TokenMsg,
-  C2S, MAPS, PROGRESS_VERSION, S2C, expToNext, TICK_MS, TOWN_MAP_ID, getGrid,
-  type BagMoveMsg, type BuyMsg, type CastMsg, type DevMoneyMsg, type DiscardMsg, type EquipMsg, type ForgeMsg, type InventoryMsg, type MountMsg, type AuraMsg, type ChatMsg, type ChatMoreMsg, type ChatReactMsg, type MoveMsg,
+import {
+  bestTrainingMap, trainingMaps, type TrainingMap, type TrainMsg, type TeamOrderMsg, type SuggestMsg, type TokenMsg,
+  BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, expToNext, TICK_MS, TOWN_MAP_ID, getGrid,
+  type BagMoveMsg, type BagSortMsg, type BagStashTransferMsg, type StashMoveMsg, type StashMsg,
+  type BuyMsg, type CastMsg, type DevMoneyMsg, type DiscardMsg, type EquipMsg, type ForgeMsg, type InventoryMsg, type MountMsg, type AuraMsg, type ChatMsg, type ChatMoreMsg, type ChatReactMsg, type MoveMsg,
   type AddPotentialMsg, type DevLevelMsg, type PickupMsg, type JoinFactionMsg, type Potential, type RaiseSkillMsg, type StatsMsg, type LogMsg, type NoticeMsg, type OnlineMsg, type PkMsg, type SellMsg, type SkillLevelMsg, type SkillsMsg, type TeleportMsg, type TransferMsg,
   type UnequipMsg, type UseMsg,
 } from '@vltk/shared';
@@ -14,7 +16,7 @@ import { db } from '../account/db.js';
 import { commandCast, commandMove, setMounted, setPk, setSkillLevel, setSlotAura } from '../world/commands.js';
 import type { Sim } from '../world/entity.js';
 import {
-  addMoney, buyItem, discardItem, equipItem, forgeItem, moveBagItem, sellItem, unequipItem, useItem,
+  addMoney, buyItem, discardItem, equipItem, forgeItem, moveBagItem, moveStashItem, restoreStash, sellItem, sortGrid, transferBetweenGrids, unequipItem, useItem,
 } from '../world/inventory.js';
 import { useToken } from '../world/token.js';
 import { teamOffline, teamOnline, teamOrder } from '../world/teams.js';
@@ -42,6 +44,12 @@ export const isOnline = (charId: string): boolean => online.has(charId);
 
 /** Live maps (dev tool: reload spawns after saving them). */
 export const LIVE_WORLDS = new Map<number, World>();
+
+function accountStash(sim: Sim) {
+  const user = sim.owner ? db.getUser(sim.owner) : undefined;
+  if (!user) return null;
+  return user.stash ??= restoreStash(user.stash);
+}
 
 /**
  * One room instance per map (`filterBy(['mapId'])`). The room only checks messages and wires the network to the
@@ -168,6 +176,51 @@ export class MapRoom extends Room<{ state: MapState }> {
     inventoryOp<ForgeMsg>(C2S.forge, (sim, msg) => forgeItem(this.world, sim, String(msg?.item), Number(msg?.series),
       Array.isArray(msg?.lines) ? msg.lines.map(l => (Array.isArray(l) ? [String(l[0]), Number(l[1])] as [string, number] : null)) : [], msg?.token === true));
     inventoryOp<BagMoveMsg>(C2S.bagMove, (sim, msg) => moveBagItem(sim, Number(msg?.from), Number(msg?.to)));
+    const sendStash = (client: Client, sim: Sim) => {
+      const stash = accountStash(sim);
+      if (stash) client.send(S2C.stash, { stash } satisfies StashMsg);
+    };
+    this.onMessage(C2S.bagSort, (client, msg: BagSortMsg) => {
+      const sim = this.simOf(client);
+      if (!sim) return;
+      const page = Number(msg?.page);
+      if (msg?.target === 'stash') {
+        const stash = accountStash(sim);
+        if (stash && sortGrid(stash, page, STASH_SIZE)) { db.touch(); sendStash(client, sim); }
+        return;
+      }
+      if (sim.bag && sortGrid(sim.bag, page, BAG_SIZE)) { this.sendInventory(client, sim); this.saveCharacter(sim); }
+    });
+    this.onMessage(C2S.stashMove, (client, msg: StashMoveMsg) => {
+      const sim = this.simOf(client);
+      const stash = sim ? accountStash(sim) : null;
+      if (!sim || !stash) return;
+      if (!moveStashItem(stash, Number(msg?.from), Number(msg?.to))) return;
+      db.touch();
+      sendStash(client, sim);
+    });
+    this.onMessage(C2S.bagToStash, (client, msg: BagStashTransferMsg) => {
+      const sim = this.simOf(client);
+      const stash = sim ? accountStash(sim) : null;
+      if (!sim || !sim.bag || !stash) return;
+      if (!transferBetweenGrids(this.world, sim, sim.bag, BAG_SIZE, stash, STASH_SIZE,
+        Number(msg?.from), typeof msg?.to === 'number' ? msg.to : undefined, typeof msg?.page === 'number' ? msg.page : undefined, 'rương chứa đồ')) return;
+      db.touch();
+      this.sendInventory(client, sim);
+      sendStash(client, sim);
+      this.saveCharacter(sim);
+    });
+    this.onMessage(C2S.stashToBag, (client, msg: BagStashTransferMsg) => {
+      const sim = this.simOf(client);
+      const stash = sim ? accountStash(sim) : null;
+      if (!sim || !sim.bag || !stash) return;
+      if (!transferBetweenGrids(this.world, sim, stash, STASH_SIZE, sim.bag, BAG_SIZE,
+        Number(msg?.from), typeof msg?.to === 'number' ? msg.to : undefined, typeof msg?.page === 'number' ? msg.page : undefined, 'hành trang')) return;
+      db.touch();
+      this.sendInventory(client, sim);
+      sendStash(client, sim);
+      this.saveCharacter(sim);
+    });
     inventoryOp<PickupMsg>(C2S.pickup, (sim, msg) => pickup(this.world, sim, String(msg?.id)));
 
     // ---- progression: potential points (F3), faction at level 10, skill points, suggestions (world/progress.ts) ----
@@ -264,6 +317,8 @@ export class MapRoom extends Room<{ state: MapState }> {
     marketOnline(sim, () => { this.sendInventory(client, sim); this.saveCharacter(sim); });
     client.send(S2C.autoConfig, char.auto ?? { enabled: false, settings: { ...DEFAULT_AUTO }, revision: 0 });
     this.sendInventory(client, sim);
+    const userStash = accountStash(sim);
+    if (userStash) client.send(S2C.stash, { stash: userStash } satisfies StashMsg);
     this.sendSkills(client, sim);
     this.sendStats(client, sim);
     if (!char.equip) this.saveCharacter(sim); // persist the starter outfit

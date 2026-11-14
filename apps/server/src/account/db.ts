@@ -12,6 +12,8 @@ export interface UserRecord {
   chat?: number[];
   /** Made by the bot dev API (dev/botAdmin.ts): only such accounts can be reset / deleted / logged in there. */
   bot?: true;
+  /** Account-shared stash (3 pages = STASH_SIZE, shared across all characters of this account). */
+  stash?: Bag;
 }
 
 /** Bot character: the template it was made / reset with, applied when it next enters the game (world/botSetup.ts). */

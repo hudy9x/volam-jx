@@ -25,6 +25,7 @@ import { NpcTalkWindow } from '../windows/npcTalk';
 import { SettingsWindow } from '../windows/settings';
 import { ShopWindow } from '../windows/shop';
 import { SkillsWindow } from '../windows/skills';
+import { StashWindow } from '../windows/stash';
 import { SystemWindow } from '../windows/system';
 import { TradeConfirm } from '../windows/tradeConfirm';
 import { TravelWindow } from '../windows/travel';
@@ -61,6 +62,7 @@ export class Hud implements WorldUi {
   private readonly quickbar: Quickbar;
   private readonly notices: Notices;
   private readonly bag: InventoryWindow;
+  private readonly stash: StashWindow;
   private readonly team: TeamWindow;
   private suggestWin?: SuggestWindow;
   private readonly shop: ShopWindow;
@@ -123,6 +125,7 @@ export class Hud implements WorldUi {
     tooltip.mount(root);
     const trade = new TradeConfirm(root);
     this.bag = new InventoryWindow(root, ctx, trade);
+    this.stash = new StashWindow(root, ctx);
     const token = new TokenWindow(root, ctx);
     this.team = new TeamWindow(root, ctx);
     this.suggestWin = new SuggestWindow(root, ctx);
@@ -269,6 +272,7 @@ export class Hud implements WorldUi {
   toggleWindow(id: WindowId, open?: boolean): void {
     switch (id) {
       case 'bag': this.bag.toggle(open); break;
+      case 'stash': this.stash.toggle(open); break;
       case 'char': this.character.toggle(open); break;
       case 'skills': this.skills.toggle(open); break;
       case 'bigmap': this.bigmap.toggle(open); break;

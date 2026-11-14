@@ -4,22 +4,22 @@
  * the game sees it. Touch screens (mobile) will get buttons for the same actions.
  */
 export const KEYS = {
-  skills: { code: 'F', label: 'F' },
-  bag: { code: 'I', label: 'I' },
+  skills: { code: 'E', label: 'E' },
+  bag: { code: 'W', label: 'W' },
   /**
    * Trang bị và Thuộc tính. Was F3 like SHXT; no F-row keys (USER 2026-11-13: hard to press on some keyboards,
-   * e.g. laptops with Fn). USER 2026-11-14: N replaces the conflicting C shortcut.
+   * e.g. laptops with Fn). USER 2026-11-14: Q-W-E-R-T / A-S-Z-D-V-P layout (Phương án B).
    */
-  char: { code: 'N', label: 'N' },
+  char: { code: 'Q', label: 'Q' },
   travel: { code: 'T', label: 'T' },
   bigmap: { code: 'TAB', label: 'Tab' },
-  mount: { code: 'M', label: 'M' },
-  pk: { code: 'P', label: 'P' },
+  mount: { code: 'R', label: 'R' },
+  pk: { code: 'A', label: 'A' },
   auto: { code: 'Z', label: 'Z' },
   /** Tổ đội, Kỳ Trân Các, Thợ rèn (USER 2026-11-12: phím tắt cho thanh dưới). */
-  team: { code: 'G', label: 'G' },
-  kytran: { code: 'K', label: 'K' },
-  shop: { code: 'B', label: 'B' },
+  team: { code: 'P', label: 'P' },
+  kytran: { code: 'V', label: 'V' },
+  shop: { code: 'D', label: 'D' },
   system: { code: 'ESC', label: 'Esc' },
 } as const;
 

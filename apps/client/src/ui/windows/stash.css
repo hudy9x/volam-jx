@@ -1,0 +1,57 @@
+#stash-panel {
+  width: auto;
+}
+
+#stash-panel:not(.placed) {
+  left: auto;
+  right: 256px;
+  transform: none;
+}
+
+#stash-grid {
+  position: relative;
+  width: calc(var(--cols) * var(--cell));
+  height: calc(var(--rows) * var(--cell));
+  margin-top: 6px;
+  background-color: #000;
+  border: 1px solid var(--line);
+  box-sizing: content-box;
+  background-image: linear-gradient(to right, #2a342f 1px, transparent 1px), linear-gradient(to bottom, #2a342f 1px, transparent 1px);
+  background-size: var(--cell) var(--cell);
+}
+
+#stash-grid .bag-item {
+  position: absolute;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+
+#stash-grid .bag-item:not(.q-gold):not(.q-purple):not(.q-plat) {
+  border-color: transparent;
+}
+
+#stash-grid .bag-item.wear-ok {
+  background: rgba(4, 86, 59, 0.6);
+}
+
+#stash-grid .bag-item.wear-no {
+  background: rgba(109, 4, 6, 0.6);
+}
+
+#stash-grid .bag-item:hover {
+  outline: 1px solid var(--hl);
+  outline-offset: -1px;
+}
+
+#stash-grid .bag-item img {
+  max-width: none;
+  max-height: none;
+}
+
+.stash-note {
+  margin-top: 6px;
+  max-width: calc(var(--cols, 6) * var(--cell, 28px));
+  font-size: 11px;
+  line-height: 1.35;
+}
+

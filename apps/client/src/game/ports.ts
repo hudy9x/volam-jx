@@ -36,6 +36,14 @@ export interface WorldActions {
   forge: (item: string, series: number, lines: ([string, number] | null)[], token?: boolean) => void;
   /** Move a bag piece so its top-left cell is `to`. */
   bagMove: (from: number, to: number) => void;
+  /** Sort/compact one page of bag or stash. */
+  bagSort: (page: number, target?: 'bag' | 'stash') => void;
+  /** Move/swap a piece inside the account stash. */
+  stashMove: (from: number, to: number) => void;
+  /** Transfer a piece from bag to account stash. */
+  bagToStash: (from: number, to?: number, page?: number) => void;
+  /** Transfer a piece from account stash to bag. */
+  stashToBag: (from: number, to?: number, page?: number) => void;
   teleport: (mapId: number) => void;
   /** Dev: level of a learned skill. */
   setSkillLevel: (skill: number, level: number) => void;
@@ -60,10 +68,10 @@ export interface WorldActions {
 }
 
 /** Windows the scene opens (keys, NPCs). */
-export type WindowId = 'bag' | 'char' | 'skills' | 'bigmap' | 'travel' | 'shop' | 'drugstore' | 'kytran' | 'horse-shop' | 'system' | 'team';
+export type WindowId = 'bag' | 'char' | 'skills' | 'bigmap' | 'travel' | 'shop' | 'drugstore' | 'kytran' | 'horse-shop' | 'system' | 'team' | 'stash';
 
 /** Which window each NPC action opens. */
-export const NPC_WINDOWS: Record<NpcAction, WindowId> = { shop: 'shop', drug: 'drugstore', kytran: 'kytran', travel: 'travel', horse: 'horse-shop' };
+export const NPC_WINDOWS: Record<NpcAction, WindowId> = { shop: 'shop', drug: 'drugstore', kytran: 'kytran', travel: 'travel', horse: 'horse-shop', stash: 'stash' };
 
 /** One line of an NPC conversation. */
 export interface NpcTalk {

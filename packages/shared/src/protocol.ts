@@ -93,6 +93,12 @@ export interface UseMsg { index: number }
 export interface ForgeMsg { item: string; series: number; lines: ([string, number] | null)[]; token?: boolean }
 /** Move the bag piece at `from` so its top-left cell is `to` (it must fit there; items/bag.ts). */
 export interface BagMoveMsg { from: number; to: number }
+/** Move/swap a piece inside the account stash. */
+export interface StashMoveMsg { from: number; to: number }
+/** Transfer a piece between bag and account stash (optional `to` cell or `page` tab). */
+export interface BagStashTransferMsg { from: number; to?: number; page?: number }
+/** Sort / compact one page of bag or stash. */
+export interface BagSortMsg { page: number; target?: 'bag' | 'stash' }
 /** Throw away the item in bag slot `index`. */
 export interface DiscardMsg { index: number }
 /** Auto-play: go to the bãi luyện công of the own level (maps/training.ts; the server picks the map). */
@@ -136,6 +142,10 @@ export const C2S = {
   discard: 'discard',
   forge: 'forge',
   bagMove: 'bagMove',
+  bagSort: 'bagSort',
+  stashMove: 'stashMove',
+  bagToStash: 'bagToStash',
+  stashToBag: 'stashToBag',
   teleport: 'teleport',
   skillLevel: 'skillLevel',
   addPotential: 'addPotential',
@@ -192,6 +202,8 @@ export interface TeamMsg {
 export interface TeamInviteMsg { from: string }
 /** Owner-only, after any change: hành trang + worn items of the own character (concrete items, items/items.ts) + tiền túi. */
 export interface InventoryMsg { pickedUp?: Item; bag: (Item | null)[]; equip: Partial<Record<string, Item>>; money: number; knb?: number }
+/** Account-shared stash (3 pages = STASH_SIZE). */
+export interface StashMsg { stash: (Item | null)[] }
 export interface NoticeMsg { text: string }
 /** Characters online on every map (kênh Thế giới header — USER 2026-11-13). */
 export interface OnlineMsg { n: number }
@@ -222,6 +234,7 @@ export const S2C = {
   transfer: 'transfer',
   notice: 'notice',
   inventory: 'inventory',
+  stash: 'stash',
   skills: 'skills',
   stats: 'stats',
   /** TeamMsg | null (not in a team). */

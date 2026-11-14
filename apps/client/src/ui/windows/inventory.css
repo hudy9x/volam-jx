@@ -82,8 +82,11 @@
 .bag-tab {
   flex: 1 1 0;
   min-width: 0;
-  padding: 2px 0;
-  font-size: 10px;
+  height: 20px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
   white-space: nowrap;
   overflow: hidden;
   background: #101412;
@@ -96,6 +99,20 @@
   color: var(--hl, #ffd94e);
   background: #1c2620;
   border-color: var(--hl, #ffd94e);
+}
+
+.bag-tab.drop-over {
+  border-color: var(--gold, #ffe27a);
+  color: var(--gold, #ffe27a);
+  background: #223027;
+}
+
+#bag-sort,
+#stash-sort {
+  min-width: 34px;
+  height: 18px;
+  padding: 0 6px;
+  font-size: 11px;
 }
 
 .bag-actions {
@@ -121,5 +138,15 @@
 #bag-grid.selling-own .slot,
 #bag-grid.selling-own .slot * {
   cursor: var(--cur-sell, pointer);
-}.bag-actions { gap: 4px; }
-.bag-actions .btn { min-width: 0; white-space: nowrap; padding-left: 5px; padding-right: 5px; }
+}
+
+.bag-actions {
+  gap: 4px;
+}
+
+.bag-actions .btn {
+  min-width: 0;
+  white-space: nowrap;
+  padding-left: 5px;
+  padding-right: 5px;
+}

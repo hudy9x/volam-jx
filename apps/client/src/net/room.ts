@@ -5,8 +5,9 @@ import { marketResult, knbPurchaseResult } from '../state/market';
 import { team, teamInvites } from '../state/team';
 import { chatOnlineCount, receiveChat, receiveOlder, receiveReacts } from '../state/chat';
 import { addSyslog } from '../state/syslog';
-import { type TeamMsg, type TeamInviteMsg, MAP_ROOM, S2C, type InventoryMsg, type SkillsMsg, type StatsMsg, type ChatLine, type ChatOlderMsg, type ChatReactsMsg, type LogMsg, type OnlineMsg } from '@vltk/shared';
+import { type TeamMsg, type TeamInviteMsg, MAP_ROOM, S2C, type InventoryMsg, type StashMsg, type SkillsMsg, type StatsMsg, type ChatLine, type ChatOlderMsg, type ChatReactsMsg, type LogMsg, type OnlineMsg } from '@vltk/shared';
 import { inventory } from '../state/inventory';
+import { stash } from '../state/stash';
 import { progress } from '../state/progress';
 import { skillbar } from '../state/skillbar';
 import { SERVER_URL, currentToken } from './api';
@@ -25,6 +26,7 @@ export async function joinMap(mapId: number, charId: string): Promise<Room> {
   room.onMessage(S2C.tradePost, (msg: { error?: string }) => marketResult.set({ kind: 'post', ...msg }));
   room.onMessage(S2C.tradeBuy, (msg: { error?: string }) => marketResult.set({ kind: 'buy', ...msg }));
   room.onMessage(S2C.inventory, (msg: InventoryMsg) => inventory.set(msg));
+  room.onMessage(S2C.stash, (msg: StashMsg) => stash.set(msg));
   room.onMessage(S2C.skills, (msg: SkillsMsg) => skillbar.setLevels(msg.levels, msg.exp, msg.bonus));
   room.onMessage(S2C.stats, (msg: StatsMsg) => progress.set(msg));
   room.onMessage(S2C.team, (msg: TeamMsg | null) => team.set(msg));

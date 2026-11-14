@@ -3,9 +3,9 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, TOKEN_ITEM_ID, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF, addToBag, bagValid, createGold, createItem,
-  equipError, findPlace, fitsAt, forgeError, forgePrice, forgedMagic, itemDef, lookOf, packBag, restoreItem,
-  roomFor, sellPrice, usableItem, weaponTypeOf,
+  BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, STASH_SIZE, TOKEN_ITEM_ID, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF, addToBag, bagValid, createGold, createItem,
+  equipError, findPlace, fitsAt, forgeError, forgePrice, forgedMagic, itemDef, lookOf, moveOrSwapInGrid, overlappingAt, packBag, restoreItem,
+  roomFor, sellPrice, sortGridPage, usableItem, weaponTypeOf,
   type Bag, type EquipSlot, type Equipment, type ForgeLines, type Item, type Outfit,
 } from '@vltk/shared';
 import type { Sim } from './entity.js';
@@ -109,13 +109,72 @@ export function forgeItem(w: World, sim: Sim, defId: string, series: number, lin
   return true;
 }
 
-/** Move a bag piece so its top-left cell is `to` (where it fits, the cells it leaves counting as free). */
+/** Move or swap a bag piece so its top-left cell is `to`. */
 export function moveBagItem(sim: Sim, from: number, to: number): boolean {
-  const bag = sim.bag!;
-  const item = bag[from];
-  if (!item || from === to || !fitsAt(bag, itemDef(item), to, from)) return false;
-  bag[from] = null;
-  bag[to] = item;
+  return !!sim.bag && moveOrSwapInGrid(sim.bag, from, to, BAG_SIZE);
+}
+
+/** Sort/compact one page of bag or stash. */
+export function sortGrid(grid: Bag, page: number, size: number): boolean {
+  return sortGridPage(grid, page, size);
+}
+
+/** Restore an account's shared stash (STASH_SIZE slots). */
+export function restoreStash(raw: unknown): Bag {
+  const list = Array.isArray(raw) ? raw : [];
+  let stash: Bag = Array.from({ length: STASH_SIZE }, (_, i) => restoreItem(list[i], newItemUid));
+  if (!bagValid(stash, STASH_SIZE)) {
+    stash = packBag(stash.filter((it): it is Item => !!it), STASH_SIZE).bag;
+  }
+  return stash;
+}
+
+/** Move or swap a piece inside the account stash. */
+export function moveStashItem(stash: Bag, from: number, to: number): boolean {
+  return moveOrSwapInGrid(stash, from, to, STASH_SIZE);
+}
+
+/** Transfer a piece between two grids (bag <-> account stash), supporting swap when dropping onto 1 item. */
+export function transferBetweenGrids(
+  w: World, sim: Sim, src: Bag, srcSize: number, dst: Bag, dstSize: number,
+  from: number, to?: number, page?: number, dstName = 'rương',
+): boolean {
+  if (sim.dead) return false;
+  if (!w.rules.safe) { w.hooks.notify(sim, 'Chỉ sử dụng rương chứa đồ trong thành.'); return false; }
+  const item = src[from];
+  const def = itemDef(item);
+  if (!item || !def || from < 0 || from >= srcSize) return false;
+
+  if (to !== undefined && Number.isInteger(to) && to >= 0 && to < dstSize) {
+    if (fitsAt(dst, def, to, -1, undefined, dstSize)) {
+      src[from] = null;
+      dst[to] = item;
+      return true;
+    }
+    const hits = overlappingAt(dst, def, to, -1, dstSize);
+    if (hits && hits.length === 1) {
+      const otherIdx = hits[0];
+      const other = dst[otherIdx];
+      const otherDef = itemDef(other);
+      if (other && otherDef && fitsAt(src, otherDef, from, from, undefined, srcSize)) {
+        src[from] = other;
+        dst[otherIdx] = null;
+        dst[to] = item;
+        return true;
+      }
+    }
+    w.hooks.notify(sim, `Vị trí này trong ${dstName} không đủ chỗ.`);
+    return false;
+  }
+
+  const targetPage = page !== undefined && Number.isInteger(page) && page >= 0 ? page : -1;
+  const place = findPlace(dst, def, -1, targetPage, dstSize);
+  if (place < 0) {
+    w.hooks.notify(sim, `${dstName.charAt(0).toUpperCase() + dstName.slice(1)} không đủ chỗ.`);
+    return false;
+  }
+  src[from] = null;
+  dst[place] = item;
   return true;
 }
 

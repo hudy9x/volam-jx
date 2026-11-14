@@ -2,7 +2,7 @@
 // opens its talk window on the client; the server validates what the chosen action does (buying only in town, …).
 import { MAPS } from '../maps/index.js';
 
-export type NpcAction = 'shop' | 'drug' | 'kytran' | 'travel' | 'horse';
+export type NpcAction = 'shop' | 'drug' | 'kytran' | 'travel' | 'horse' | 'stash';
 
 export interface TownNpc {
   id: string;
@@ -23,9 +23,10 @@ export const NPC_LINES: Record<NpcAction, { text: string; option: string }> = {
   kytran: { text: 'Kỳ Trân Các có đủ bí kíp võ công thượng thừa. Khách quan muốn xem quyển nào?', option: 'Xem bí kíp' },
   travel: { text: 'Khách quan muốn đi đâu? Ngồi xe của ta, đường xa mấy cũng tới nơi.', option: 'Đi bản đồ khác' },
   horse: { text: 'Ngựa của ta toàn là giống tốt, ngày đi nghìn dặm. Khách quan xem thử con nào?', option: 'Mua ngựa' },
+  stash: { text: 'Rương chứa đồ này liên thông giữa mọi nhân vật trong cùng tài khoản. Khách quan cứ yên tâm cất giữ bảo vật.', option: 'Mở rương chứa đồ' },
 };
 
-/** Thợ rèn, Chủ dược điếm, Xa phu and Bán ngựa around the entry of every city (Biện Kinh, Lâm An, Phượng Tường, …). */
+/** Thợ rèn, Chủ dược điếm, Xa phu, Bán ngựa và Rương chứa đồ around the entry of every city (Biện Kinh, Lâm An, Phượng Tường, …). */
 const CITY: TownNpc[] = [
   { id: 'npc-thoren', name: 'Thợ rèn', res: 'passerby004_1', action: 'shop', dx: -150, dy: -50, dir: 0 },
   { id: 'npc-duocdiem', name: 'Chủ dược điếm', res: 'passerby007', action: 'drug', dx: -110, dy: 90, dir: 0 },
@@ -33,6 +34,7 @@ const CITY: TownNpc[] = [
   { id: 'npc-kytran', name: 'Bách Bảo Lão Nhân', res: 'passerby023', action: 'kytran', dx: 90, dy: 100, dir: 0 },
   { id: 'npc-xaphu', name: 'Xa phu', res: 'passerby040_1', action: 'travel', dx: 160, dy: -40, dir: 0 },
   { id: 'npc-banngua', name: 'Bán ngựa', res: 'passerby037_1', action: 'horse', dx: 10, dy: -140, dir: 0 },
+  { id: 'npc-ruong', name: 'Rương chứa đồ', res: 'passerby023', action: 'stash', dx: -70, dy: -130, dir: 0 },
 ];
 
 export const TOWN_NPCS: Record<number, TownNpc[]> = {
