@@ -2,6 +2,25 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Cập nhật nền chạy 100% (10 điểm), đồng bộ Sải Chân & Vận Tốc và nâng cấp panel ?skills
+
+- Theo yêu cầu USER:
+  + Đặt tốc độ chạy mức nền mặc định là 100% (hiển thị 10 điểm chạy trên bảng F3 / N), mốc chạy rút gọn 11 mốc: `50, 70, 100, 120, 140, 160, 180, 200, 220, 240, 260`.
+  + Tốc độ đánh giữ nguyên nền độc lập 10%.
+  + Thêm tham số thứ 3 Sải chân (`stridePixels`: 120px cho người, 180px cho ngựa) và tính vận tốc thực tế `velocity = (fps / 8) * stride` giúp nhịp bước chân khớp hoàn hảo với tốc độ dịch chuyển bản đồ, xóa bỏ hiện tượng trượt chân / trôi nền.
+  + Đổi title trang `?skills` thành `VTLK - SKILL Test`.
+  + Giao diện cài đặt mốc chạy có thêm cột Step và nút "Áp" tại từng hàng để áp dụng step dồn cho các hàng phía dưới; hiển thị nhãn `Base Đánh (%)` và `Base Chạy (%)` riêng biệt tránh nhầm lẫn; tự động tính Vận tốc (px/s).
+  + Nút sao chép mã SPEED xuất đầy đủ cấu trúc TypeScript chuẩn.
+- Cập nhật các file:
+  + `packages/shared/src/formulas/speed.ts`: thêm `trackBasePercent`, `SpeedConfig` hỗ trợ `basePercent` riêng cho từng track, nới lỏng validation.
+  + `packages/shared/src/formulas/tuning.ts`: cấu hình `SPEED.run.basePercent = 100`, 11 mốc chạy mới.
+  + `apps/client/src/dev/skill-lab/SkillLabPanel.ts`: panel 2 tab, cấu hình hàng, cột Step + nút Áp, Base Chạy 100%, copy code TS.
+  + `apps/client/src/dev/skill-lab/SkillLabScene.ts`: đọc `trackBasePercent` cho `attackPercent` và `runPercent`.
+  + `tests/speed-phases.test.ts`: đồng bộ assertion theo 11 mốc mới và nền 100%.
+  + `docs/formulas/speed.md`: ghi chú mục §14.
+  + `AGENTS.md`, `tasks/CURRENT.md`, `tasks/HISTORY.md`.
+- Kiểm tra: `npm run test:speed` (5/5 pass), `npm run typecheck` (0 lỗi), `npm run build` hoàn tất. Commit theo yêu cầu USER, không push.
+
 ## 2026-11-14 · Cập nhật bảng mốc tốc độ đánh & nâng cấp panel thử tốc độ (?skills)
 
 - Theo yêu cầu USER: tách bảng điều khiển `?skills` thành 2 tab (Chiêu thức & Tốc độ), chuyển tab qua lại không bị rối và danh sách chiêu rộng rãi.

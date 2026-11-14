@@ -154,7 +154,7 @@ function createPhaseTable(
   const baseBar = div(`lab-base-bar${isRun ? ' has-stride' : ''}`);
 
   const basePctLabel = document.createElement('label');
-  basePctLabel.textContent = 'Base (%)';
+  basePctLabel.textContent = isRun ? 'Base Chạy (%)' : 'Base Đánh (%)';
   const basePctInput = document.createElement('input');
   basePctInput.type = 'number';
   basePctInput.value = String(basePercent);

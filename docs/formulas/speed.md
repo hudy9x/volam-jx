@@ -573,3 +573,50 @@ USER yêu cầu: **tốc độ ban đầu mặc định là 10% (10% = 1 điểm
   - `T.Độ đánh`: hiển thị % cộng thêm từ đồ/kỹ năng (`attackspeed_v + _yan_v`), tooltip ghi rõ nền 10%, tổng % và ms/đòn.
 - Trang thử `/?skills`: tiêu đề hiện `Thử tốc độ · 10% = tốc nền`, mặc định nạp `10%`, danh sách preset cập nhật đầy đủ theo bảng mốc mới.
 - Kiểm chứng: `npm run test:speed` (4 test pass), `npm run typecheck`, `npm run build` đều đạt 100%.
+
+---
+
+## 14. Cập nhật nền chạy 100% (10 điểm), đồng bộ Sải Chân & Vận Tốc — 2026-11-14
+
+USER yêu cầu tinh chỉnh chuyên sâu hệ thống tốc độ chạy:
+1. **Tách biệt mức nền (`basePercent`)**:
+   - **Tốc độ chạy (`run`)**: Mức nền chuẩn là **`100%`** (tương ứng hiển thị **`10`** điểm chạy trên bảng thuộc tính F3 / N, vì `speedPoints(100) = 10`).
+   - **Tốc độ đánh (`attack`)**: Giữ nguyên nền là **`10%`**.
+   - Công thức tổng tốc chạy: `totalRun = (100 + fastwalkrun_p) * slowFactor`.
+     - Chưa có trang bị: $100\%$ $\rightarrow$ 10 điểm chạy.
+     - Giày $+20\%$: $120\%$ $\rightarrow$ 12 điểm chạy.
+     - Lên ngựa $+80\%$: $180\%$ $\rightarrow$ 18 điểm chạy.
+     - Bị làm chậm $50\%$: $100\% \times 0.5 = 50\%$ $\rightarrow$ rơi vào mốc sàn 50% (5 điểm chạy).
+2. **Bảng 11 mốc chạy rút gọn (`run.phases`)**:
+   Chỉ bao gồm 11 mốc: `50, 70, 100, 120, 140, 160, 180, 200, 220, 240, 260`.
+   - `50%` $\rightarrow$ `5 FPS` (`1600 ms` - sàn làm chậm)
+   - `70%` $\rightarrow$ `6 FPS` (`1333 ms`)
+   - `100%` $\rightarrow$ `8 FPS` (`1000 ms` - mốc nền cơ bản)
+   - `120%` $\rightarrow$ `10 FPS` (`800 ms`)
+   - `140%` $\rightarrow$ `12 FPS` (`667 ms`)
+   - `160%` $\rightarrow$ `14 FPS` (`571 ms`)
+   - `180%` $\rightarrow$ `16 FPS` (`500 ms`)
+   - `200%` $\rightarrow$ `18 FPS` (`444 ms`)
+   - `220%` $\rightarrow$ `20 FPS` (`400 ms`)
+   - `240%` $\rightarrow$ `22 FPS` (`364 ms`)
+   - `260%` $\rightarrow$ `24 FPS` (`333 ms` - trần)
+3. **Đồng bộ bước chân với dịch chuyển bản đồ qua tham số Sải Chân (`stridePixels`)**:
+   - Để loại bỏ cảm giác nhân vật bị "trượt chân" (chân bước một đằng, dịch chuyển bản đồ một nẻo), đưa thêm tham số sải chân:
+     - Đi bộ / chạy bộ: `stridePixels = 120` px/chu kỳ (8 frame).
+     - Cưỡi ngựa: `horseStridePixels = 180` px/chu kỳ (8 frame).
+   - Vận tốc di chuyển thực tế trên giây được tính theo công thức khớp hoạt ảnh:
+     $$\text{velocity} = \frac{\text{FPS}}{\text{referenceFrames}} \times \text{stridePixels}$$
+     - Tại mốc nền `100%` (8 FPS, 8 referenceFrames): vận tốc đúng bằng $120$ px/giây. Mỗi chu kỳ bước đi trọn vẹn đúng 120px trên màn hình.
+     - Tại mốc `180%` cưỡi ngựa (16 FPS, 8 referenceFrames, sải 180px): vận tốc $= (16 / 8) \times 180 = 360$ px/giây.
+4. **Nâng cấp trang thử nghiệm `http://localhost:5173/?skills`**:
+   - Đổi title: `VTLK - SKILL Test`.
+   - Chia 2 tab độc lập `Chiêu thức` & `Tốc độ`.
+   - Bảng cài đặt mốc chạy dạng hàng:
+     - Hàng Base hiển thị rõ `Base Chạy (%) = 100`.
+     - Cột **Step** và nút **Áp**: Cho phép nhập step riêng tại một hàng bất kỳ và nhấn "Áp" để tự động cộng dồn FPS cho các mốc phía dưới.
+     - Cột **Sải (px)** và nhãn **V.Tốc (px/s)** tự động tính toán và hiển thị trực tiếp.
+     - Nút **📋 Sao chép mã SPEED (TypeScript)** xuất ra đầy đủ mã cấu hình chuẩn để dán vào `tuning.ts`.
+5. **Kiểm chứng**:
+   - `npm run test:speed`: 5/5 tests pass.
+   - `npm run typecheck`: 0 lỗi.
+   - `npm run build`: hoàn tất.
