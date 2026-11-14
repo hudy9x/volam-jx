@@ -300,4 +300,4 @@ Danh sách đầy đủ có trạng thái: `tasks/BACKLOG.md`; điểm dừng hi
 
 Tài nguyên hình ảnh/âm thanh là của game gốc (Kingsoft/VNG), chỉ dùng cho prototype nội bộ.
 
-Auto theo nhân vật, kênh Mua bán và Kim nguyên bảo: xem [hướng dẫn](docs/auto-and-market.md).
+**Auto theo nhân vật:** [hướng dẫn và bản đồ mã nguồn](docs/auto.md). **Rao bán / Mua bán / Kim nguyên bảo:** [hướng dẫn và bản đồ mã nguồn](docs/rao-ban.md).

@@ -251,3 +251,5 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 
 - [x] USER2026-11-14 Auto theo nhân vật: Z mở dialog, chạy/dừng riêng, DB + localStorage theocharId, reload tiếp tục nếu bật, quick play/pause cạnh tên; WS/browser đạt.
 - [x] USER2026-11-14 Mua bán + KNB: chat công khai, rao món từ hành trang, preview snapshot, mua bằng lượng/KNB, liên hệ; KNB100vạn tại Kỳ Trân Các, tiền hiển thị vạn; unit/WS/browser đạt, checkpoint theo USER (mã xem git log -1). Đổi trang bị/offline/escrow không trong phạm vi.
+
+- [x] USER2026-11-14 Tách nguồn chuẩn Auto (`docs/auto.md`) và Rao bán (`docs/rao-ban.md`), quy tắc tra cứu theo từ khóa cho Codex/Claude/Gemini/Antigravity, cập nhật link và trang tương thích; commit tài liệu theo USER.

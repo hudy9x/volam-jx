@@ -129,4 +129,4 @@ Auto xoay chiêu cả trên boss, tìm chiêu tấn công khác đang sẵn sàn
 
 Preset `luyen-cong-30` bật đánh boss, nhặt tiền và bán xanh có bảo vệ. Các kịch bản tùy chỉnh cũ không bị tự ghi đè. Sau khi đổi mã tool, khởi động lại `npm run bots:ui`; dừng/chạy lại kịch bản để runner nhận thiết lập mới.
 
-Auto lưu theo nhân vật và giao dịch lượng/KNB: [docs/auto-and-market.md](auto-and-market.md).
+Auto lưu theo nhân vật: [Auto](auto.md). Rao bán trên kênh Mua bán và giao dịch lượng/KNB: [Rao bán](rao-ban.md).

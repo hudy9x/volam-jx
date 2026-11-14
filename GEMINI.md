@@ -1,5 +1,7 @@
 # GEMINI.md — jx-system-online
 
+**Tra cứu Auto / Rao bán — bắt buộc:** khi người dùng đề cập **Auto, AUTO, tự động đánh** trong game/bot, đọc toàn bộ [docs/auto.md](docs/auto.md) trước khi giải thích hành vi, điều tra, đề xuất hoặc sửa mã. Khi đề cập **Rao bán, Mua bán, marketplace, KNB, Kim nguyên bảo**, đọc toàn bộ [docs/rao-ban.md](docs/rao-ban.md). Có cả hai chủ đề thì đọc cả hai. Không suy đoán đường dẫn hoặc dùng tài liệu gộp cũ làm nguồn chuẩn; chỉ dẫn kỹ thuật và giới hạn đã triển khai nằm trong hai tài liệu này. Áp dụng cho mọi AI session có quyền truy cập repo; không áp dụng từ “auto” nói về tác vụ tự động không liên quan game/bot.
+
 Đọc [AGENTS.md](AGENTS.md) và [tasks/CURRENT.md](tasks/CURRENT.md) để nắm luật và điểm dừng; giữ nguyên yêu cầu không tự commit/push.
 
 ## Bắt buộc khi đề cập công cụ

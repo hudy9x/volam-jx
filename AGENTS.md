@@ -5,6 +5,9 @@ không làm sai.
 
 ## 0. Bắt đầu và kết thúc phiên (bắt buộc)
 
+- **Tra cứu Auto / Rao bán — bắt buộc:** khi người dùng đề cập **Auto, AUTO, tự động đánh** trong game/bot, đọc toàn bộ [docs/auto.md](docs/auto.md) trước khi giải thích hành vi, điều tra, đề xuất hoặc sửa mã. Khi đề cập **Rao bán, Mua bán, marketplace, KNB, Kim nguyên bảo**, đọc toàn bộ [docs/rao-ban.md](docs/rao-ban.md). Có cả hai chủ đề thì đọc cả hai. Không suy đoán đường dẫn hoặc dùng tài liệu gộp cũ làm nguồn chuẩn; chỉ dẫn kỹ thuật và giới hạn đã triển khai nằm trong hai tài liệu này. Áp dụng cho mọi AI session có quyền truy cập repo; không áp dụng từ “auto” nói về tác vụ tự động không liên quan game/bot.
+
+
 - **UI/UX tool — bắt buộc đọc trước:** khi người dùng đề cập tạo tool/công cụ quản trị, giao diện tool, dashboard, form, component hoặc style của bất kỳ công cụ nào trong `tools/` (kể cả lúc chưa có thư mục), đọc toàn bộ [`docs/tools-ui-ux-guidelines.md`](docs/tools-ui-ux-guidelines.md) **trước khi đề xuất thiết kế, lập kế hoạch hoặc viết/sửa mã**. Áp dụng cho mọi AI session (ChatGPT/Codex, Claude, Gemini, Antigravity); dùng guideline làm nguồn chuẩn duy nhất, không tự tạo style riêng. Đọc thêm `tools/AGENTS.md` khi làm trong tools.
 
 - **Đầu phiên:** đọc `tasks/CURRENT.md` — commit cuối, việc dở dang, điều đang chờ người dùng quyết định, bước tiếp theo gợi ý.
@@ -111,7 +114,7 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
 
-- **Auto theo nhân vật + Mua bán/KNB (USER2026-11-14):** Z và nút AUTO chỉ mở cài đặt; chạy/dừng qua dialog hoặc play/pause cạnh bảng tên. `CharacterRecord.auto` lưu enabled/settings, cache `vltk.auto.character.<charId>`, server đối chiếu và reload tiếp tục nếu enabled; không dùng Auto toàn máy cho nhân vật khác. Tắt autoMap trong thành thì chờ, không tự tắt. Bot ghi Auto từ kịch bản vào char; rao món đủ tiêu chí lên kênh Mua bán dạng liên hệ. Mua bán có lịch sử công khai, item snapshot do server lấy, preview đầy đủ; giá lượng/KNB hoặc liên hệ, chưa đổi trang bị. Mua trực tiếp yêu cầu seller online và món chưa đổi; không escrow/offline. KNB là ví riêng, mặc định0, mua ở Kỳ Trân Các trong thành100vạn/đơn vị. Tiền hiển thị qua moneyText theo vạn từ10000. Chi tiết `docs/auto-and-market.md`.
+- **Auto theo nhân vật + Mua bán/KNB (USER2026-11-14):** Z và nút AUTO chỉ mở cài đặt; chạy/dừng qua dialog hoặc play/pause cạnh bảng tên. `CharacterRecord.auto` lưu enabled/settings, cache `vltk.auto.character.<charId>`, server đối chiếu và reload tiếp tục nếu enabled; không dùng Auto toàn máy cho nhân vật khác. Tắt autoMap trong thành thì chờ, không tự tắt. Bot ghi Auto từ kịch bản vào char; rao món đủ tiêu chí lên kênh Mua bán dạng liên hệ. Mua bán có lịch sử công khai, item snapshot do server lấy, preview đầy đủ; giá lượng/KNB hoặc liên hệ, chưa đổi trang bị. Mua trực tiếp yêu cầu seller online và món chưa đổi; không escrow/offline. KNB là ví riêng, mặc định0, mua ở Kỳ Trân Các trong thành100vạn/đơn vị. Tiền hiển thị qua moneyText theo vạn từ10000. Chi tiết Auto ở [`docs/auto.md`](docs/auto.md); Rao bán/Mua bán/KNB ở [`docs/rao-ban.md`](docs/rao-ban.md).
 
 - **Design tool dùng chung (USER2026-11-14, GD8):** nguồn duy nhất là [`docs/tools-ui-ux-guidelines.md`](docs/tools-ui-ux-guidelines.md). Mọi AI phải đọc trước khi đề xuất/lập kế hoạch/tạo/sửa UI/UX tool theo điều kiện ở mục0; không tự dùng style riêng. Các entrypoint Claude/Gemini/Antigravity và tools/AGENTS chỉ dẫn lại nguồn này.
 

@@ -952,3 +952,7 @@ Kiểm cuối: typecheck/build, auto4/market6/bots6; WS DB/rejoin/mua lượng/K
 Checkpoint `feat(game): persist character auto and add item marketplace with KNB` (mã xem git log -1). Chỉ phần Auto/Mua bán/KNB và tài liệu/test liên quan; keymap chỉ hướng dẫn Z. Giữ ngoài commit ActorView, staged xóa frameTrace, đổi C→N, kiến trúc và nghiên cứu Tống Kim. Không push.
 
 Bản snapshot chuẩn bị commit được kiểm riêng: typecheck toàn repo + auto4/market6/bots6 đạt. Không lấy thay đổi ActorView hay staged xóa frameTrace làm phụ thuộc.
+
+## 2026-11-14 — Tách tài liệu Auto và Rao bán, chỉ dẫn AI
+
+Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sung chọn chiêu/boss/loot và tiêu chí rao bot, bản đồ mã nguồn, commit triển khai và giới hạn kiểm chứng. Bản gộp thành trang chỉ dẫn tương thích. AGENTS mục0, CLAUDE/GEMINI và rule Antigravity always_on chỉ đúng nguồn theo Auto/Rao bán/KNB, không sao chép nghiệp vụ vào entrypoint. README và bots-guide cập nhật link. Kiểm link nội bộ, frontmatter, diff; không đổi mã hay chạy lại test gameplay. Commit riêng tài liệu theo yêu cầu USER; không push, giữ mọi thay đổi ngoài phạm vi và staged xóa frameTrace.
