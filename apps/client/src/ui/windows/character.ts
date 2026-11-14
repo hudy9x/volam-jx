@@ -1,5 +1,5 @@
 import { PK_MODE_NAMES,
-  ELEMENT_NAMES, SLOT_NAMES, wornActiveCount, canWear, getSkill, itemDef, moveFactor, portraitFaction, speedPoints, attackSpeedPct, castSpeedPct, seriesOf, skillDamage,
+  ELEMENT_NAMES, SLOT_NAMES, wornActiveCount, canWear, getSkill, itemDef, portraitFaction, speedPoints, attackSpeedPct, castSpeedPct, totalSpeedPercents, resolveSpeed, seriesOf, skillDamage,
   type EquipSlot, type Gender, type InventoryMsg, type Item,
 } from '@vltk/shared';
 import { itemViewer, ownSeries, progress } from '../../state/progress';
@@ -76,6 +76,7 @@ const HTML = `
   </div>
   <div class="char-foot">
     ${import.meta.env.DEV ? '<button type="button" class="btn" id="char-dev-level" title="Dev: lên 1 cấp (Shift: 10)">+1 cấp</button>' : ''}
+    ${import.meta.env.DEV ? '<button type="button" class="btn" id="char-speed-test">Thử tốc độ</button>' : ''}
     <button type="button" class="btn" id="char-items">Vật phẩm</button>
     <button type="button" class="btn" id="char-close">Đóng</button>
   </div>
@@ -86,7 +87,7 @@ const NA = '—';
 const NA_TIP = 'Chưa có trong bản thử nghiệm';
 
 /**
- * Trang bị và Thuộc tính (C, quick-bar button), laid out like the merged SHXT window: the character page of
+ * Trang bị và Thuộc tính (N, quick-bar button), laid out like the merged SHXT window: the character page of
  * ui3/玩家装备与人物状态_属性.ini on the left (value colours from it), the worn items of _装备.ini on the right, "Vật phẩm"
  * opens the bag. Values without a source yet show "—". Click a worn item: take it off into the bag.
  */
@@ -98,6 +99,20 @@ export class CharacterWindow {
     mount(parent, HTML);
     dialogs.register(ID);
     this.buildSlots();
+    if (import.meta.env.DEV) $('char-speed-test').addEventListener('click', async () => {
+      const p = progress.get(), self = this.ctx.self();
+      if (!p?.combat || !self) return;
+      const id = skillbar.skillAt('left') ?? BASIC_SKILL;
+      const totals = totalSpeedPercents(p.combat.bag, !!((self.ctl ?? 0) & 2));
+      const { speedLabUrl } = await import('../../dev/skill-lab/speedSample');
+      const url = speedLabUrl(location.href, {
+        name: self.name, faction: self.faction, gender: self.gender, mounted: self.mounted, horse: self.horse,
+        skill: id, level: Math.max(1, skillbar.levelOf(id)), ...totals,
+        attackBonus: attackSpeedPct(p.combat.bag), castBonus: castSpeedPct(p.combat.bag),
+        runPoints: speedPoints(totals.run),
+      });
+      window.open(url, '_blank', 'noopener');
+    });
     $('char-items').addEventListener('click', () => this.ctx.toggleBag());
     $('char-close').addEventListener('click', () => dialogs.close(ID));
     for (const id of ['ca-title', 'ca-luck', 'ca-fame', 'ca-rank', 'ca-sta']) {
@@ -138,9 +153,12 @@ export class CharacterWindow {
     };
     set('ca-dmg-l', hand('left')); set('ca-dmg-r', hand('right'));
     if (p.combat) {
-      set('ca-run', String(speedPoints(moveFactor(p.combat.bag, false) * 100)));
+      const totals = totalSpeedPercents(p.combat.bag, !!((this.ctx.self()?.ctl ?? 0) & 2));
+      const run = resolveSpeed('run', totals.run), attack = resolveSpeed('attack', totals.attack), cast = resolveSpeed('attack', totals.cast);
+      set('ca-run', String(speedPoints(totals.run)));
       set('ca-aspd', `${attackSpeedPct(p.combat.bag)}/${castSpeedPct(p.combat.bag)}`);
-      $('ca-aspd').title = 'Tốc độ đánh ngoại công / nội công (formulas/speed.ts)';
+      $('ca-run').title = `Điểm chạy (nền 10% = 1 điểm). Tổng ${totals.run}% → mốc ${run.phasePercent}% · ${Math.round(run.cycleMs)} ms/vòng. Dùng Thử tốc độ để chuyển đúng chỉ số sang ?skills.`;
+      $('ca-aspd').title = `Ngoại / nội công: % cộng thêm (nền 10%). Tổng ${totals.attack}/${totals.cast}% → mốc ${attack.phasePercent}/${cast.phasePercent}% · ${Math.round(attack.cycleMs)}/${Math.round(cast.cycleMs)} ms/đòn. ?skills nhập tổng %, không phải số cộng thêm.`;
     }
     set('ca-res-phy', `${st.resist.phys}%`); set('ca-res-cold', `${st.resist.cold}%`); set('ca-res-light', `${st.resist.light}%`);
     set('ca-res-fire', `${st.resist.fire}%`); set('ca-res-poison', `${st.resist.poison}%`);
@@ -159,7 +177,7 @@ export class CharacterWindow {
   /** Values from the own character (called every frame by the HUD; writes only what changed, only while open). */
   update(self: ActorState | null = this.ctx.self()): void {
     if (!self || !dialogs.isOpen(ID)) return;
-    const key = `${self.name}|${self.level}|${self.hp}|${self.maxHp}|${self.mp}|${self.maxMp}|${self.pk}|${self.faction}`;
+    const key = `${self.name}|${self.level}|${self.hp}|${self.maxHp}|${self.mp}|${self.maxMp}|${self.pk}|${self.faction}|${self.ctl}|${self.moveScale}|${self.actionMs}`;
     if (key === this.shown) return;
     this.shown = key;
     $('ca-name').textContent = self.name;

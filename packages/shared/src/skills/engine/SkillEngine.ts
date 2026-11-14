@@ -14,6 +14,7 @@ import {
 } from '../core/types.js';
 import { healAmount } from './damage.js';
 import { resolveHit, skillDamage } from '../../formulas/damage.js';
+import { SPEED } from '../../formulas/tuning.js';
 import { resolveSpeed } from '../../formulas/speed.js';
 import { hitEffects } from '../../formulas/effects.js';
 import type { Combatant, EnginePort } from './types.js';
@@ -131,7 +132,7 @@ export class SkillEngine {
    * melee hits, a bùa lợi on yourself (and allies), an aura switched on or off, a jump (Khinh công) or a blink
    * (Mê Ảnh Tung).
    */
-  cast(c: Combatant, id: number, target: Combatant | undefined, aim: Point, actionMs = resolveSpeed('attack', 100).cycleMs): CastResult {
+  cast(c: Combatant, id: number, target: Combatant | undefined, aim: Point, actionMs = resolveSpeed('attack', SPEED.basePercent).cycleMs): CastResult {
     const s = getSkill(id)!;
     const level = levelOf(c, id) ?? 1;
     const now = this.port.now();

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import {
   SPEED, HORSE_IDS, PLAYER_SPEED, resolveSpeed, stepToward, type SpeedConfiguration,
   FACTIONS, FACTION_IDS, ITEM_LIST, SKILL_CATEGORY_NAMES, SkillEngine, getSkill, isCastable, learnTiers, lookOfOutfit,
-  JUMP, SkillStyle, TRIGGER_NAMES, castRange, direction8, isoDistance, maxLevelOf, skillCategory, skillRange, starterEquipment, stateDurationMs, stateLines,
+  JUMP, SkillStyle, isExternal, TRIGGER_NAMES, castRange, direction8, isoDistance, maxLevelOf, skillCategory, skillRange, starterEquipment, stateDurationMs, stateLines,
   jumpMs, tierOf, triggersOf, weaponName,
   type Combatant, type EnginePort, type FxEvent, type Outfit, type SkillDef,
  monsterCombat,} from '@vltk/shared';
@@ -10,6 +10,7 @@ import { ActorView, type ActorState } from '../../game/actors/ActorView';
 import { Effects } from '../../game/fx/Effects';
 import { DPR, uiPx } from '../../game/display';
 import { SkillLabPanel } from './SkillLabPanel';
+import { readSpeedSample, type GameSpeedSample } from './speedSample';
 
 interface LabActor { state: ActorState; c: Combatant; view: ActorView; states: Map<number, number> }
 
@@ -37,8 +38,10 @@ export class SkillLabScene extends Phaser.Scene {
   private level = 10;
   private auto = false;
   private autoRun = false;
-  private attackPercent = 100;
-  private runPercent = 100;
+  private speedSample: GameSpeedSample | null = readSpeedSample(location.search);
+  private useSampleSpeeds = true;
+  private attackPercent: number = SPEED.basePercent;
+  private runPercent: number = SPEED.basePercent;
   private speedConfig: SpeedConfiguration = structuredClone(SPEED);
   private runDirection = 1;
   private castCount = 0;
@@ -113,7 +116,7 @@ export class SkillLabScene extends Phaser.Scene {
       level: d => { this.level += d; this.refresh(); },
       cast: () => this.castAt(this.actors[1]),
       auto: () => { this.auto = !this.auto; this.refresh(); },
-      speed: (kind, percent) => { if (kind === 'attack') this.attackPercent = percent; else this.runPercent = percent; this.refresh(); },
+      speed: (kind, percent) => { this.useSampleSpeeds = false; if (kind === 'attack') this.attackPercent = percent; else this.runPercent = percent; this.refresh(); },
       mode: mode => { this.auto = mode === 'attack' || mode === 'both'; this.autoRun = mode === 'run' || mode === 'both'; this.refresh(); },
       mounted: on => { this.caster.c.a.mounted = this.caster.state.mounted = on; this.caster.state.horse = on ? HORSE_IDS[0] : ''; this.refresh(); },
       configuration: config => { this.speedConfig = config; this.refresh(); },
@@ -137,6 +140,16 @@ export class SkillLabScene extends Phaser.Scene {
       if (hit) this.castAt(hit);
       else this.castAt(undefined, { x: p.worldX, y: p.worldY });
     });
+    const sample = this.speedSample;
+    if (sample) {
+      const factionIndex = FACTION_IDS.indexOf(sample.faction as typeof FACTION_IDS[number]);
+      if (factionIndex >= 0) this.faction = factionIndex;
+      const skillIndex = this.skills().findIndex(s => s.id === sample.skill);
+      if (skillIndex >= 0) this.skillIndex = skillIndex;
+      this.level = sample.level;
+      this.caster.c.a.mounted = this.caster.state.mounted = sample.mounted;
+      this.caster.state.horse = sample.horse;
+    }
     this.refresh();
   }
 
@@ -181,8 +194,11 @@ export class SkillLabScene extends Phaser.Scene {
 
   /** Skills of the current faction in tier order: everything castable plus the passives (120 ones included). */
   private skills(): SkillDef[] {
-    return learnTiers(FACTION_IDS[this.faction]).flatMap(t => t.skills).map(id => getSkill(id)!)
+    const skills = learnTiers(FACTION_IDS[this.faction]).flatMap(t => t.skills).map(id => getSkill(id)!)
       .filter(s => s && (isCastable(s) || skillCategory(s) === 'passive'));
+    const sampled = this.speedSample && getSkill(this.speedSample.skill);
+    if (sampled && isCastable(sampled) && !skills.some(s => s.id === sampled.id)) skills.unshift(sampled);
+    return skills;
   }
 
   /** Passive shown as "always on" on the caster while it is selected. */
@@ -194,6 +210,11 @@ export class SkillLabScene extends Phaser.Scene {
 
   /** Dress the caster for the faction and the weapon the current skill needs. */
   private refresh(): void {
+    const sample = this.speedSample, current = this.current();
+    if (sample && this.useSampleSpeeds) {
+      this.attackPercent = current && isExternal(current, this.level) ? sample.attack : sample.cast;
+      this.runPercent = sample.run;
+    }
     const run = resolveSpeed('run', this.runPercent, this.speedConfig);
     this.caster.state.moveScale = run.multiplier;
     this.caster.state.runMs = run.cycleMs;
@@ -202,7 +223,7 @@ export class SkillLabScene extends Phaser.Scene {
     const faction = FACTIONS[fid];
     const s = this.current();
     if (s) this.level = Math.max(1, Math.min(maxLevelOf(s), this.level));
-    const gender = faction.gender ?? 'male';
+    const gender = this.speedSample?.gender === 'female' ? 'female' : this.speedSample?.gender === 'male' ? 'male' : faction.gender ?? 'male';
     const equip: Outfit = { ...starterEquipment(fid, gender) };
     const w = weaponItem(s?.weapon);
     if (w === '') delete equip.weapon;
@@ -226,6 +247,7 @@ export class SkillLabScene extends Phaser.Scene {
       maxLevel: s ? maxLevelOf(s) : 0, auto: this.auto,
       autoRun: this.autoRun, mounted: this.caster.state.mounted,
       attackPercent: this.attackPercent, runPercent: this.runPercent, config: this.speedConfig,
+      source: sample && this.useSampleSpeeds ? `Từ ${sample.name}: game đánh +${sample.attackBonus}/+${sample.castBonus}%, chạy ${sample.runPoints} điểm. Đã tính ngựa/bùa/chậm vào tổng %; chọn chiêu để dùng tốc ngoại/nội tương ứng.` : 'Game hiển thị % cộng thêm và điểm chạy. Trang này nhập tổng %: ví dụ đánh +125% → nhập 225.',
     });
     if (!s) { this.info.setText(`${faction.name}: không có chiêu chủ động`); return; }
     const cat = skillCategory(s);

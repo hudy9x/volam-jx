@@ -1,7 +1,9 @@
 # Tốc độ (Đánh, Xuất chiêu, Di chuyển) — Công thức, Hiện trạng & Hướng xử lý
 
 > Cập nhật rà soát: **2026-11-14** (đối chiếu trực tiếp `/Users/hudy/ws/volam-shxt/Client_VLTK_SHXT` và binary `game.exe`).
-> Trạng thái hiện tại: **USER đã chọn bảng mốc volamidle; đã triển khai đánh + chạy, giới hạn25–300%, chuẩn hóa hoạt ảnh và cài đặt/thử tại `?skills` (§10). §1–9 là lịch sử điều tra/phương án trước quyết định này, không còn là đặc tả đang chạy.**
+> Trạng thái hiện tại: **USER duyệt cài đặt mới: Mức nền mặc định 10% (10% = 1 điểm chạy, frame bằng 50% bảng cũ), dải mốc 5%–150% (§13). Đã triển khai vào SPEED, totalSpeedPercents(), chuẩn hóa hoạt ảnh và trang thử `?skills`. §1–9 là lịch sử điều tra/phương án trước đó.**
+
+> **Tra cứu cấu hình nhanh:** xem **`packages/shared/src/formulas/tuning.ts` → `SPEED`** và **§13** ở cuối tài liệu.
 
 ---
 
@@ -424,3 +426,150 @@ Bố cục nhỏ có khung cuộn, camera giữ nhân vật ở vùng bên phả
 - Hai WebSocket thật, DB riêng: cả chủ nhân/người quan sát nhận đúng rate và actionMs ở các mốc/trần; mặc ngựa+100% lên/xuống nhận2→1; quãng đường dùng đúng distanceScale và phase. Cổng2568 đang có tiến trình thử khác nên dùng2569 riêng, không đụng server chính hoặc DB thật.
 - Màn390×844 có kiểm tra bố cục và vị trí nhân vật ngoài bảng; kiểm tra DPR1/2. Chưa kiểm wrapper native hoặc thiết bị cảm ứng thật. Cùng mã công thức/render chạy trên Web/Desktop/Mobile.
 - Script/ảnh thử ở `/tmp/jx-speed-phases/`; test cốt lõi được lưu trong repo. Đã commit phần GP6 theo yêu cầu USER (hash xem git log); không push. Giữ các thay đổi Bot/KN14/Tống Kim đang có ngoài commit.
+
+
+## 11. Đối chiếu tốc game và `?skills` — 2026-11-14
+
+USER phản ánh cả tốc đánh và chạy nhìn khác trang thử sau khi chạy npm run dev. Đã xác minh một vấn đề trong phép so sánh: cửa sổ Trang bị và Thuộc tính (N) dùng **% cộng thêm** cho đánh và **điểm** cho chạy, còn `?skills` nhập **tổng %**. Không được đưa trực tiếp các số ở cửa sổ nhân vật vào hai ô tổng.
+
+Ví dụ xác minh bằng một nhân vật thử trên server thật/DB riêng:
+
+| Giá trị trong game | Tổng % đúng để nhập `?skills` |
+|---|---:|
+| Đánh ngoại +125 | 225% → mốc200% →400ms/đòn |
+| Đánh nội +90 | 190% → mốc150% →500ms/đòn |
+| Chạy20điểm (trong mẫu này) | 200% → mốc200% →333,3ms/vòng |
+
+Điểm chạy là kết quả hiển thị đã chọn mốc/làm tròn, nên không luôn khôi phục được tổng thô khi có bảng tùy chỉnh. Bùa/chậm và ngựa cũng phải giống nhau. Cách đối chiếu chính xác:
+
+1. Trong bản dev, mở **N → Thử tốc độ**. Game mở `?skills` kèm snapshot trong URL: tổng ngoại/nội/chạy sau bùa/chậm trước cap, phái/chiêu/cấp/giới/ngựa. Không gửi token/tài khoản, không sửa nhân vật và không ghi DB thật.
+2. Trang thử hiển thị nguồn nhân vật, tự chọn đúng chiêu và dùng tốc ngoại hoặc nội theo chiêu đã chọn. Chiêu chung không có trong bảng phái được hiện ở nhóm “Chiêu từ nhân vật”. Đổi tốc bằng tay vẫn giữ chiêu đó và chuyển về chế độ chỉnh tay.
+3. Ô nhập ghi rõ **Đánh tổng % / Chạy tổng %**. Tooltip hai chỉ số trong cửa sổ nhân vật nêu tổng/mốc/ms và đơn vị gốc; ctl/chậm và rate thay đổi làm cập nhật tooltip.
+4. Snapshot là trạng thái tại lúc bấm. Nếu buff/ngựa/chậm thay đổi ở game sau đó, bấm lại để lấy mẫu mới; cấu hình thử khác SPEED cần khôi phục trước khi đối chiếu.
+
+Mã liên quan: `formulas/speed.ts totalSpeedPercents` dùng chung để chuyển thuộc tính thành tổng; `ui/windows/character.ts` tạo mẫu; `dev/skill-lab/speedSample.ts` mã hóa/kiểm tra URL; Scene/Panel đọc và trình bày. Cấu hình cân bằng vẫn chỉ ở **`packages/shared/src/formulas/tuning.ts` → `SPEED`**, không thay mốc/FPS để che sai đơn vị.
+
+Kiểm chứng: typecheck,4test:speed,build đạt; test mới kiểm quy đổi/cộng chậm trước cap và URL roundtrip/lỗi. Chromium chạy game đầy đủ qua WebSocket trên2568, DB riêng và Vite5174; từ cửa sổ C bấm nút thật mở trang thử, nhận đúng225/200%, skill14. Đo ActorView thực: game3vòng/s, lab2,999999999999999vòng/s; thời lượng one-shot hai bên400ms; không pageerror. Kết quả chứng minh hai luồng khớp khi dùng cùng bộ mẫu, chưa chứng minh mọi chênh lệch người dùng đã gặp chỉ do đơn vị (chưa có số cụ thể từ tài khoản người dùng). Ảnh/script `/tmp/jx-speed-parity/`. Chưa kiểm native wrapper, không thay nhịp tick20Hz hay luật hồi chiêu. Chưa commit/push phần bổ sung này.
+
+
+### Phím mở cửa sổ nhân vật — USER2026-11-14
+
+Phím hiện tại là **N**, thay C do trùng. Khai báo duy nhất `apps/client/src/input/keymap.ts` → `KEYS.char`; nhãn trên nút HUD và hướng dẫn phím tự lấy từ bảng này. Mở **N → Thử tốc độ** để đối chiếu game với `?skills`. Các kiểm chứng cũ ghi C là phím trước khi đổi.
+
+
+## Log frame thực tế (dev, 2026-11-14)
+
+Trong game có nút **Ghi frame 10 giây** ở góc phải trên. Bấm rồi chạy/đánh liên tục; sau10giây tải JSON tự động. Ghi riêng mỗi tình huống đi chân/cưỡi/đánh để đối chiếu. File chứa frame đã chọn thực tế/số frame, thời gian render/dt, vị trí server và vị trí vẽ, animSeq, moveScale/actionMs, tư thế one-shot, cưỡi/ctl, thuộc tính và tổng/mốc ngoại/nội/chạy cùng cấu hình SPEED. Không có token đăng nhập. Mã: game/actors/frameTrace.ts; PaperDoll ghi frame thực đã render (kể cả fallback khi chưa tải sprite). Kết luận trước chỉ xác minh bộ mẫu thử, chưa xác minh số79 của USER; cần log để kết luận trường hợp này.
+
+
+## Kết quả log USER số79 — 2026-11-14
+
+Nguồn `/Users/hudy/Downloads/speed-frames-1794623781070.json`:320mẫu/10,005s. Thuộc tính giữ nguyên: attackspeed_v79, castspeed_v75, fastwalkrun_p104; đi chân, moveScale2. Tổng ngoại179/nội175/chạy204; cả hai tốc đánh chọn mốc150, duration500ms, chạy chọn200, chu kỳ333,333ms. Magic có12ảnh, chạy11ảnh. FPS ảnh tương ứng24 và33; khác FPS tham chiếu40(20ảnh)/24(8ảnh).
+
+Quan sát thực:10animSeq xuất chiêu,8khoảng bắt đầu liền nhau không tính ngắt quãng có trung vị500ms (483,3–533,3ms); đoạn chạy2,6998s có89bước frame, suy ra2,996855vòng/s, khớp3vòng/s. Renderer ghi khoảng31,885mẫu/s, nên có frame lặp/bỏ qua giữa các mẫu; chưa chứng minh nguyên nhân vì sao tốc render thấp hơn60.
+
+Log xác nhận game dùng79là phần trăm cộng thêm→tổng179 (nội75→175); nếu lab nhập tổng79 thì chọn mốc75,1000ms/đòn, khác500ms trong log. Chưa có log cùng điều kiện của tranglab nên chỉ kết luận game khớp cấu hình với bộ dữ liệu này, không kết luận mọi cảm nhận khác biệt đều đã giải thích. Không sửa công thức/cân bằng từ log này.
+
+
+## 12. Cài đặt trong speed.ts và tuning.ts — hướng dẫn cho người dùng và AI
+
+Cập nhật **2026-11-14**, đã đối chiếu mã hiện tại. Phần này mô tả hiện trạng, không phải yêu cầu tự thay công thức hoặc cân bằng.
+
+### 12.1. Tìm đúng file khi cần chỉnh
+
+| File / vị trí | Vai trò và các giá trị hiện có |
+|---|---|
+| `packages/shared/src/formulas/tuning.ts` → `SPEED` | Bảng cấu hình chung: sàn `minPercent=25`, trần `maxPercent=300`, `run.phases` và `attack.phases` (mốc tổng% / FPS), `run.referenceFrames=8`, `attack.referenceFrames=20`, `run.distanceScale=1.15`. Bảng đầy đủ ở §9–10. |
+| `packages/shared/src/formulas/speed.ts` → `totalSpeedPercents()` | **Mức nền100% đang ghi trực tiếp** ở ba biểu thức `100 + ...` cho ngoại công, nội công và chạy. **Chưa có** `basePercent` hoặc cấu hình mức nền tương đương trong `SPEED`. |
+| `speed.ts` → `attackSpeedPct()` / `castSpeedPct()` | Cộng thuộc tính `_v` và `_yan_v`; kết quả là **% cộng thêm**, chưa cộng nền. |
+| `speed.ts` → `resolveSpeed()` | Kẹp tổng vào sàn/trần rồi chọn mốc cao nhất không vượt tổng; `cycleMs = referenceFrames × 1000 / fps`. `multiplier` là FPS mốc chia FPS tại mốc chuẩn100%. |
+| `speed.ts` → `attackTiming()` / `moveFactor()` | Nối thuộc tính nhân vật với bảng mốc; chọn ngoại/nội theo chiêu hoặc lấy hệ số chạy. |
+| `speed.ts` → `speedPoints()` | Chỉ đổi số để hiển thị:10%=1điểm; phần lẻ từ0,8 mới làm tròn lên. Không quyết định nhịp hoạt ảnh. |
+| `tuning.ts` → `EFFECTS.slowFactor` | Hệ số chậm hiện0,5; áp vào tổng sau khi cộng nền/thuộc tính, **trước** khi chọn mốc và kẹp trần. |
+| `packages/shared/src/characters/player.ts` → `PLAYER_SPEED` | Tốc di chuyển nền260iso px/s, khác mức nền100% của thuộc tính tốc. Quãng đường còn nhân `SPEED.run.distanceScale` và hệ số mốc. |
+
+### 12.2. Ý nghĩa số79 và thứ tự tính
+
+```text
+% cộng thêm từ đồ + kỹ năng + bùa (gồm Dương)
+                 + mức nền100%
+                        ↓
+                nhân hệ số chậm nếu có
+                        ↓
+                 kẹp25–300%, chọn mốc
+                        ↓
+                thời lượng / hệ số di chuyển
+```
+
+Số đánh79 trong cửa sổ nhân vật nghĩa là **+79%**. Hiện tại tổng ngoại công là **179%**, chọn mốc150% →40FPS chuẩn →20/40giây = **500ms/đòn**. Nó không phải tổng79%. Trang `?skills` nhập **tổng%**, nên để thử trường hợp này phải nhập179, hoặc dùng **N → Thử tốc độ** để chuyển đúng bộ chỉ số. Tốc chạy ở cửa sổ nhân vật là điểm, không nhập thẳng số điểm vào ô tổng% của trang thử.
+
+Ví dụ sau **chỉ minh họa nếu đổi mức nền**, giữ bonus79, không bị chậm, bảng mốc mặc định:
+
+| Mức nền giả định | Tổng | Mốc áp dụng | Thời lượng đòn |
+|---|---:|---:|---:|
+| 100% (hiện tại) | 179% | 150% | 500ms |
+| 50% | 129% | 125% | khoảng571ms |
+| 0% | 79% | 75% | 1000ms |
+
+**Chưa áp dụng mức nền50% hoặc0%.** Giảm tổng trong cùng một khoảng mốc không đổi tốc thực tế; ví dụ179→159 vẫn cùng mốc150%.
+
+### 12.3. Các lưu ý bắt buộc khi cân chỉnh
+
+- **Muốn giảm mức nền cộng vào thuộc tính:** hiện chưa có cài đặt riêng. Khi người dùng yêu cầu triển khai, đưa các mức nền ngoại/nội/chạy vào `tuning.ts SPEED` rồi để `totalSpeedPercents()` đọc chúng; không tiếp tục rải số cố định trong công thức. Cập nhật kiểu cấu hình, validation, trang thử và test nếu bổ sung khóa. Chưa tự làm chỉ vì đọc ghi chú này.
+- **Đừng thay mọi số100 trong speed.ts.** Số100 tại mốc chuẩn, giá trị fallback khi NaN và số100 cộng nền có vai trò khác nhau. `resolveSpeed`/validation hiện yêu cầu mốc chuẩn100% để tính hệ số; giảm nền thuộc tính không đồng nghĩa đổi mốc chuẩn đó.
+- **Muốn mọi đòn chậm hơn ở cùng mốc:** cân chỉnh `attack.phases[].fps` hoặc `attack.referenceFrames`. Tăng referenceFrames hoặc giảm FPS làm chu kỳ dài hơn. Đây là thay thời lượng theo bảng, khác với giảm nền khiến nhân vật rơi sang mốc thấp hơn.
+- **Với chạy:** `run.referenceFrames` đổi chu kỳ chân/ngựa; `run.distanceScale` đổi quãng đường mà không đổi nhịp chân. Hạ mọi FPS chạy theo cùng tỷ lệ làm hoạt ảnh chậm hơn nhưng **không tự giảm vận tốc**, vì hệ số là tỷ số với FPS mốc100%. Muốn đổi tốc dịch chuyển tổng thể phải xét distanceScale/PLAYER_SPEED hoặc tỷ lệ giữa các mốc.
+- **FPS tham chiếu khác số frame ảnh thật.** Mốc đánh40FPS trên chuẩn20frame cho500ms; sprite12ảnh phát24ảnh/s trong500ms. Không đổi cách dựng1:1 hoặc sửa asset để cân tốc.
+- **Trang thử và game phải cùng cấu hình/điều kiện.** Editor `?skills` chỉ đổi bộ nhớ phiên thử, không ghi vào tuning.ts hay server. Khôi phục mặc định trước khi so game; dùng cùng ngoại/nội, cấp chiêu, ngựa, bùa/chậm và hồi chiêu riêng. Đổi SPEED cần nạp lại cả server/client.
+- **Kiểm chứng sau thay đổi:** `npm run test:speed`, `npm run typecheck`, `npm run build`; đo lại game và `?skills`, đi chân/cưỡi và bị/hết chậm. Dùng nút **Ghi frame10giây** nếu cần số liệu thực. Cùng công thức cho Web/Desktop/Mobile; wrapper native vẫn cần thử riêng.
+
+Không thêm bảng tốc riêng ở renderer, server hoặc SkillLab; không sửa file sinh tự động. Lưu quyết định mới và phạm vi thay đổi vào AGENTS/tasks nếu người dùng chốt cách cân chỉnh.
+
+
+## 13. Cài đặt áp dụng theo USER: Nền 10%, dải 5%–260% — 2026-11-14
+
+USER yêu cầu: **tốc độ ban đầu mặc định là 10% (10% = 1 điểm chạy), lượng frame ở mốc 10% này bằng với mốc 50% trước đây, mở rộng dải mốc lên tới 260%**.
+Đã cấu hình chính thức tại `packages/shared/src/formulas/tuning.ts` → `SPEED` và triển khai vào `totalSpeedPercents()`:
+
+### 13.1. Cấu hình bảng mốc mới
+- `basePercent: 10`, `minPercent: 5`, `maxPercent: 260`.
+- **Tốc độ đánh / xuất chiêu (`attack.phases`, chuẩn 20 frames):**
+  - `5%` $\rightarrow$ `10 FPS` (`2000 ms` - sàn khi trúng chậm 50%)
+  - `10%` $\rightarrow$ `16 FPS` (`1250 ms` - nền cơ bản 0% cộng thêm)
+  - `20%` $\rightarrow$ `17 FPS` (`1176 ms`)
+  - `30%` $\rightarrow$ `18 FPS` (`1111 ms`)
+  - `50%` $\rightarrow$ `20 FPS` (`1000 ms`)
+  - `70%` $\rightarrow$ `22 FPS` (`909 ms`)
+  - `85%` $\rightarrow$ `23 FPS` (`870 ms`)
+  - `110%` $\rightarrow$ `24 FPS` (`833 ms`)
+  - `130%` $\rightarrow$ `26 FPS` (`769 ms`)
+  - `150%` $\rightarrow$ `28 FPS` (`714 ms`)
+  - `160%` $\rightarrow$ `30 FPS` (`667 ms`)
+  - `180%` $\rightarrow$ `32 FPS` (`625 ms`)
+  - `200%` $\rightarrow$ `34 FPS` (`588 ms`)
+  - `220%` $\rightarrow$ `36 FPS` (`556 ms`)
+  - `240%` $\rightarrow$ `38 FPS` (`526 ms`)
+  - `260%` $\rightarrow$ `40 FPS` (`500 ms` - trần)
+- **Tốc độ di chuyển / chạy (`run.phases`, chuẩn 8 frames):**
+  - `5%` $\rightarrow$ `3 FPS` (`2667 ms` - sàn khi trúng chậm 50%)
+  - `10%` $\rightarrow$ `6 FPS` (`1333 ms` - nền cơ bản không giày/ngựa, 1 điểm)
+  - `20%` $\rightarrow$ `7 FPS` (`1143 ms` - giày sơ cấp +10% ~ 2 điểm)
+  - `30%` $\rightarrow$ `7 FPS` (`1143 ms`)
+  - `50%` $\rightarrow$ `7 FPS` (`1143 ms`)
+  - `70%` $\rightarrow$ `8 FPS` (`1000 ms`)
+  - `110%` $\rightarrow$ `8 FPS` (`1000 ms`)
+  - `130%` $\rightarrow$ `9 FPS` (`889 ms`)
+  - `150%` $\rightarrow$ `10 FPS` (`800 ms`)
+  - `170%` $\rightarrow$ `10 FPS` (`800 ms`)
+  - `190%` $\rightarrow$ `10 FPS` (`800 ms`)
+  - `210%` $\rightarrow$ `10 FPS` (`800 ms`)
+  - `230%` $\rightarrow$ `12 FPS` (`667 ms`)
+  - `250%` $\rightarrow$ `12 FPS` (`667 ms`)
+  - `260%` $\rightarrow$ `13 FPS` (`615 ms` - trần)
+
+### 13.2. Hiển thị & Đồng bộ
+- Bảng F3 / phím `N`:
+  - `T.Độ Chạy`: hiển thị số điểm `= speedPoints(totals.run)`. Khởi đầu 10% hiển thị `1` điểm. Có giày/ngựa cộng vào điểm tăng trực quan.
+  - `T.Độ đánh`: hiển thị % cộng thêm từ đồ/kỹ năng (`attackspeed_v + _yan_v`), tooltip ghi rõ nền 10%, tổng % và ms/đòn.
+- Trang thử `/?skills`: tiêu đề hiện `Thử tốc độ · 10% = tốc nền`, mặc định nạp `10%`, danh sách preset cập nhật đầy đủ theo bảng mốc mới.
+- Kiểm chứng: `npm run test:speed` (4 test pass), `npm run typecheck`, `npm run build` đều đạt 100%.

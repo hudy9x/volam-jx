@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { CAMP_COLORS, resolveSpeed, type Camp, jumpHeight } from '@vltk/shared';
+import { traceFrame } from './frameTrace';
+import { CAMP_COLORS, SPEED, resolveSpeed, type Camp, jumpHeight } from '@vltk/shared';
 import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
 import type { ActorState } from '../../state/actor';
 import { FRAME_MS, JxSprite, type Source } from './PaperDoll';
@@ -68,6 +69,12 @@ export class ActorView {
     this.lift = 0;
     this.shown = !!this.jx && this.renderSprite();
     this.drawPlate();
+    if (import.meta.env.DEV && this.isSelf) traceFrame({
+      time: this.scene.time.now, dtMs: dt * 1000, x: s.x, y: s.y, drawnX: this.x, drawnY: this.y,
+      anim: s.anim, animSeq: s.animSeq, action: this.jx?.action, frame: this.jx?.frame,
+      frameCount: this.jx?.frames, moveScale: s.moveScale, runMs: s.runMs, actionMs: s.actionMs,
+      mounted: s.mounted, ctl: s.ctl, shot: this.oneShot ? {...this.oneShot} : null,
+    });
   }
 
   /** (Re)build the sprite source when equipment, horse or res changes. */
@@ -111,7 +118,7 @@ export class ActorView {
     // A jump lasts its flight time (Actor.jumpMs).
     if (isOneShot && s.animSeq !== this.seq) {
       const frames = jx.framesOf(key) || 10;
-      const ms = key === 'jump' ? Math.max(1, s.jumpMs || 800) : s.actionMs || (key === 'attack1' || key === 'attack2' || key === 'magic' ? resolveSpeed('attack', 100).cycleMs : (frames * 1000) / ONE_SHOT_FPS[key]!);
+      const ms = key === 'jump' ? Math.max(1, s.jumpMs || 800) : s.actionMs || (key === 'attack1' || key === 'attack2' || key === 'magic' ? resolveSpeed('attack', SPEED.basePercent).cycleMs : (frames * 1000) / ONE_SHOT_FPS[key]!);
       this.oneShot = { key, start: now, ms, hold: key === 'die' };
     }
     this.seq = s.animSeq;
@@ -138,7 +145,7 @@ export class ActorView {
     // Integrate each interval so changing speed never rescales the elapsed history (which skips frames).
     // Only the running gait follows movement; standing and one-shot actions keep their own clocks.
     const running = loop === 'run' || loop === 'townRun';
-    const cycleMs = s.runMs ?? resolveSpeed('run', 100).cycleMs / Math.max(0.001, s.moveScale ?? 1);
+    const cycleMs = s.runMs ?? resolveSpeed('run', SPEED.basePercent).cycleMs / Math.max(0.001, s.moveScale ?? 1);
     this.loopFrame += Math.max(0, now - this.loopAt) / (running ? cycleMs : FRAME_MS);
     this.loopAt = now;
     return jx.render(this.x, this.y, this.y, loop, s.dir & 7, n => Math.floor(running ? this.loopFrame * n : this.loopFrame) % n);

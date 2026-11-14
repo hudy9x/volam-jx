@@ -27,6 +27,7 @@ export interface LabPanelState {
   attackPercent: number;
   runPercent: number;
   config: SpeedConfiguration;
+  source: string;
 }
 
 const ELEMENT_COLORS: Record<Element, string> = { kim: '#e8c879', moc: '#86d67d', thuy: '#86c8ff', hoa: '#ff8f63', tho: '#cfa877' };
@@ -40,6 +41,7 @@ const CSS = `
 #lab-speed output { font-size:11px; line-height:1.4; color:#e8c879; white-space:pre-line; }
 #lab-speed textarea { width:100%; height:140px; box-sizing:border-box; font-size:11px; }
 #lab-speed details { font-size:12px; }
+#lab-speed .lab-source { font-size:11px; line-height:1.4; color:#bfb59b; }
 #lab-speed summary { cursor:pointer; }
 #lab-speed .lab-error { color:#ff9988; font-size:11px; }
 @media(max-width:600px) { #lab-panel { width:220px!important; top:90px!important; } #lab-factions img { height:24px!important; width:30px!important; } #lab-panel .lab-fname { font-size:9px!important; } }
@@ -99,6 +101,7 @@ export class SkillLabPanel {
   private modeInput = document.createElement('select');
   private mountedInput = document.createElement('input');
   private speedInfo = document.createElement('output');
+  private sourceInfo = div('lab-source');
   private configInput = document.createElement('textarea');
   private speedPresets: HTMLSelectElement[] = [];
   private configKey = '';
@@ -148,10 +151,10 @@ export class SkillLabPanel {
 
   private buildSpeedControls(): HTMLElement {
     const box = div(''); box.id = 'lab-speed';
-    box.append(div('lab-head', 'Thử tốc độ · 100% = tốc nền'));
-    for (const [kind, text, input] of [['attack', 'Đánh', this.attackInput], ['run', 'Chạy', this.runInput]] as const) {
+    box.append(div('lab-head', `Thử tốc độ · ${SPEED.basePercent}% = tốc nền`));
+    for (const [kind, text, input] of [['attack', 'Đánh tổng', this.attackInput], ['run', 'Chạy tổng', this.runInput]] as const) {
       const row = document.createElement('label'); row.textContent = text + ' %';
-      input.type = 'number'; input.step = '1'; input.value = '100'; input.id = `lab-${kind}-percent`;
+      input.type = 'number'; input.step = '1'; input.value = String(SPEED.basePercent); input.id = `lab-${kind}-percent`;
       input.addEventListener('input', () => { if (input.value !== '' && Number.isFinite(input.valueAsNumber)) this.hooks.speed(kind, input.valueAsNumber); });
       const preset = document.createElement('select'); preset.setAttribute('aria-label', `Mốc ${text.toLowerCase()}`);
       preset.addEventListener('change', () => { input.value = preset.value; this.hooks.speed(kind, Number(preset.value)); });
@@ -175,11 +178,13 @@ export class SkillLabPanel {
     });
     reset.addEventListener('click', () => { const config = structuredClone(SPEED); this.configInput.value = JSON.stringify(config,null,2); this.hooks.configuration(config); error.textContent = ''; });
     details.append(summary, this.configInput, apply, reset, error);
-    box.append(mode, mounted, this.speedInfo, details);
+    this.sourceInfo.id = 'lab-speed-source';
+    box.append(mode, mounted, this.speedInfo, this.sourceInfo, details);
     return box;
   }
 
   render(st: LabPanelState): void {
+    this.sourceInfo.textContent = st.source;
     if (document.activeElement !== this.attackInput) this.attackInput.value = String(st.attackPercent);
     if (document.activeElement !== this.runInput) this.runInput.value = String(st.runPercent);
     this.modeInput.value = st.autoRun ? st.auto ? 'both' : 'run' : st.auto ? 'attack' : 'idle';
@@ -206,7 +211,9 @@ export class SkillLabPanel {
     this.skillEls = [];
     const index = new Map(st.skills.map((s, i) => [s.id, i]));
     const nodes: HTMLElement[] = [];
-    for (const tier of learnTiers(FACTION_IDS[st.faction])) {
+    const tiers = learnTiers(FACTION_IDS[st.faction]);
+    const imported = st.skills.filter(s => !tiers.some(t => t.skills.includes(s.id))).map(s => s.id);
+    for (const tier of [{ label: 'Chiêu từ nhân vật', skills: imported }, ...tiers]) {
       const ids = tier.skills.filter(id => index.has(id));
       if (!ids.length) continue;
       nodes.push(div('lab-tier', tier.label));
