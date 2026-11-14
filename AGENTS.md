@@ -5,6 +5,8 @@ không làm sai.
 
 ## 0. Bắt đầu và kết thúc phiên (bắt buộc)
 
+- **UI/UX tool — bắt buộc đọc trước:** khi người dùng đề cập tạo tool/công cụ quản trị, giao diện tool, dashboard, form, component hoặc style của bất kỳ công cụ nào trong `tools/` (kể cả lúc chưa có thư mục), đọc toàn bộ [`docs/tools-ui-ux-guidelines.md`](docs/tools-ui-ux-guidelines.md) **trước khi đề xuất thiết kế, lập kế hoạch hoặc viết/sửa mã**. Áp dụng cho mọi AI session (ChatGPT/Codex, Claude, Gemini, Antigravity); dùng guideline làm nguồn chuẩn duy nhất, không tự tạo style riêng. Đọc thêm `tools/AGENTS.md` khi làm trong tools.
+
 - **Đầu phiên:** đọc `tasks/CURRENT.md` — commit cuối, việc dở dang, điều đang chờ người dùng quyết định, bước tiếp theo gợi ý.
   Toàn bộ đầu việc ở `tasks/BACKLOG.md`, lịch sử các vòng ở `tasks/HISTORY.md`, quy ước ở `tasks/README.md`.
   Kiểm tra nhanh `git status` / `git log -1` có khớp với `CURRENT.md` không; lệch thì báo người dùng.
@@ -108,6 +110,8 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 8. Dữ liệu tài khoản ở `apps/server/data/db.json` (bị `.gitignore`); xóa file để reset.
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
+
+- **Design tool dùng chung (USER2026-11-14, GD8):** nguồn duy nhất là [`docs/tools-ui-ux-guidelines.md`](docs/tools-ui-ux-guidelines.md). Mọi AI phải đọc trước khi đề xuất/lập kế hoạch/tạo/sửa UI/UX tool theo điều kiện ở mục0; không tự dùng style riêng. Các entrypoint Claude/Gemini/Antigravity và tools/AGENTS chỉ dẫn lại nguồn này.
 
 - **Công cụ bot độc lập (USER2026-11-14):** UI/runner/cấu hình ở `tools/bots`, mở `npm run bots:ui` → localhost4568, không Vite/HMR theo game. Game chỉ giữ API tác động thế giới, shared giữ luật. Bảng chọn nhân vật có chọn/chạy kịch bản theo checkbox, Online theo kết nối thật và cột tên kịch bản; dừng riêng ID qua IPC. Có3template40–69/70–90/110–150 và `luyen-cong-30` (10tên/dải,3bot/s,liên tục); initialSetup chỉ khởi tạo tài khoản thiếu, không reset tiến trình cũ. Spawn cho phép `both` thành+bãi; không chặn Auto về thành mua thuốc.
 

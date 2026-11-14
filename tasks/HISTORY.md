@@ -890,3 +890,18 @@ Người dùng yêu cầu commit trạng thái hiện tại. Commit `fix(server)
 - Kiểm index độc lập phát hiện HEAD nền thiếu speedSample/frameTrace và phần khai báo PaperDoll/ActorState đi kèm. Stage đúng4phụthuộc này để checkpoint build được; không lấy keymap, asset hay thay đổi Boss.
 
 - Bản index độc lập `/tmp/jx-bot-commit-mlsjaoa9`: typecheck, bot6checks, speed4checks, clientbuild đều đạt (assetảnh không nằm trong snapshot, giữ runtime URLs theo thiết kế). Checkpoint title `feat(bots): ship standalone bot tools and continuous scenarios`; mã thực tế xem git log. Không push; phần còn lại không stage.
+
+
+## 2026-11-14 · GD8 guideline UI/UX cho mọi tools và AI session
+
+- USER yêu cầu một file quy tắc UI/UX/component/style trong docs và dẫn vào AGENTS/CLAUDE; mọi phiên ChatGPT/Claude/Gemini/Antigravity phải đọc khi đề cập tạo/giao diện tool.
+- Tạo docs/tools-ui-ux-guidelines.md theo tools/bots/ui: ngữ cảnh và phạm vi, palette/type/spacing/size tokens, semantic HTML/scopedCSS, form/template readonly/save-apply, bulk bảng, dialogs/preview/OK-Cancel, async real status, commandcopy, responsive/a11y, reuse và tính độc lập game, checklist QA. Phân biệt thiết kế chuẩn với chi tiết chưa hoàn thiện của app cũ; không giả định đã có thư viện tools/ui, không tự rewrite tool khác.
+- Root AGENTS và CLAUDE có trigger bắt buộc đọc trước thiết kế/kế hoạch/code; thêm GEMINI.md, tools/AGENTS.md và .agents/rules/tools-ui-ux.md trigger:always_on. Một nguồn chuẩn, wrapper không sao chép luật. Không chỉnh cấu hình AI toàn máy/tài khoản.
+- Đối chiếu nguồn chính thức geminicli.com/docs/cli/gemini-md và antigravity.google/docs/rules cho context/rule path và frontmatter. Nêu giới hạn chat không có repo phải được cung cấp guideline; không hứa enforce ứng dụng ngoài workspace.
+- Kiểm local links, file targets, entrypoints/frontmatter và git diff --check. Chỉ tài liệu/rule nên không chạy lại build/test hoặc thay UI. HEAD465ae65/main đúng CURRENT; không commit/push, giữ Boss/asset/keymap/nghiên cứu đang có.
+
+
+## 2026-11-14 · Commit guideline UI/UX theo yêu cầu USER
+
+- Commit riêng docs/tools-ui-ux-guidelines.md và các entrypoint AGENTS/CLAUDE/GEMINI/tools/AGENTS/Antigravity always_on, kèm tasks GD8.
+- Kiểm local links, frontmatter và diff-check đạt. Chỉ tài liệu nên không chạy lại build/test. Giữ Boss/asset/keymap/nghiên cứu ngoài commit; không push. Title: `docs(tools): establish shared UI UX guidelines for AI agents`, mã checkpoint xem git log.

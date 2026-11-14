@@ -124,9 +124,11 @@ Hai nghĩa (xem `docs/architecture.md` §3): **trạng thái** = luật chơi (`
 | ⏸ | GD5 | Làm lại toàn bộ giao diện: chốt công nghệ (đề xuất lai HTML/CSS + canvas), thư viện component, bố cục mobile | Người dùng sẽ làm sau |
 | ⏸ | GD6 | Hình 1:1 trên điện thoại: có phóng to theo bội số nguyên không (đụng `AGENTS.md` §5.5) | Quyết khi làm mobile |
 | 🟡 | GD7 | Dùng các con trỏ gốc còn lại (nhặt, bán, sửa, xem…) | Mua / bán đã dùng (cửa hàng, hành trang ở chế độ Bán). Còn nhặt, sửa, xem: VT7, TB9 |
+| ✅ | GD8 | Guideline UI/UX chung cho tool và chỉ dẫn mọi AI đọc trước khi làm | USER2026-11-14: docs/tools-ui-ux-guidelines.md; root AGENTS/CLAUDE/GEMINI, tools/AGENTS và Antigravity .agents/rules/tools-ui-ux.md(always_on). Quy định token/component/form/template/bảng/dialog/trạng thái/responsive/QA; chưa tự đổi các tool hiện có. |
 
 - [x] 2026-11-13: Thay ảnh nhân vật màn chọn/tạo bằng bộ SPR động gốc 5 hệ × 2 giới; sinh bằng `gen:ui`, chọn ảnh theo hệ của phái và giới tính.
 - [x] 2026-11-13: Sửa nhịp SPR interval=1; nhân vật chưa chọn idle tối, click phát hoạt cảnh chọn một lần rồi về idle, có phát lại/hủy khi đổi mục tiêu.
+
 
 ## 6. Gameplay (GP)
 

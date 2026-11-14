@@ -1,5 +1,7 @@
 # Điểm dừng hiện tại
 
+> **2026-11-14 · GD8 guideline tool (checkpoint theo yêu cầu USER; mã xem git log -1):** tạo `docs/tools-ui-ux-guidelines.md` làm nguồn duy nhất dựa trên Bot UI: tokens/style/component, form/template readonly, save-vs-apply, bulk selection, bảng/dialog/status, responsive/a11y, app độc lập và checklist tự kiểm. Root AGENTS/CLAUDE/GEMINI + tools/AGENTS + `.agents/rules/tools-ui-ux.md` always_on yêu cầu đọc toàn bộ trước khi đề xuất/kế hoạch/code tool. Đã đối chiếu tài liệu chính thức Gemini/Antigravity cho vị trí rule, kiểm link/frontmatter/diff; không thay UI hoặc mã chạy. USER đã yêu cầu commit riêng guideline với title `docs(tools): establish shared UI UX guidelines for AI agents`; không push. Commit nền465ae65/main; giữ thay đổi Boss/asset/keymap/nghiên cứu đang có. Quy tắc repo không tự áp dụng được cho chat không truy cập repo.
+
 > **2026-11-14 · Checkpoint bot theo yêu cầu USER:** checkpoint `feat(bots): ship standalone bot tools and continuous scenarios` (mã commit: `git log -1`) gồm tools/bots, roster200, UI chạy trực tiếp, preset30, protocol pickup và tài liệu. Kèm4phụthuộc client bị thiếu ở HEAD nền: speedSample/frameTrace/PaperDoll.frame-action/ActorState.ctl; không thay công thức tốc độ. Đã kiểm bản index độc lập tại/tmp: typecheck, test:bots6checks, test:speed4checks, build và diff-check đều đạt. Giữ Boss/asset/keymap/Tống Kim/nghiên cứu ngoài commit; không push. Các điểm dừng cũ bên dưới là lịch sử, mốc mã hiện tại xem git log.
 
 > **2026-11-14 · BT10 app bot riêng + preset + chạy từ bảng (hoàn tất):** UI/runner/config chuyển `tools/bots`, `npm run bots:ui`→localhost4568, build UI1lần không Vite/HMR; ConfigStore tự đọc/lưu và preview không cần gamefrontend. App.ts?bots chỉ chuyển4568. Spawn thêmboth thành+bãi(default). Có3templatecap40–69/70–90/110–150 và `luyen-cong-30` (30têncốđịnh,10/dải,3/s,liên tục), initialSetup chỉtạoaccountthiếu/giữprogresscũ. Bảng có chọn/chạy kịchbản chỉkhichecktên, Online theoIPC/connection vàcộtKịchbản, dừngriêngIDkhôngdừngngườikhác. CLI/root/serveraliases vàpaths/types/checks/docs đãđổi. Typecheck/test:bots6checks/build/diff đạt; Chromium desktop/mobile,2botđúngcheckbox/levels/stopsubset, UIreloadvẫnonline,invalid/cross-originblock, chạyđủ30botOnline10/dải vàdọnsạch đềuđạt trênDBriêng/tmp/jx-bots-tool. HEAD897f9ec/main khớp bàn giao, giữ việcboss/speed/assetskhác; khôngcommit/push, khôngchạybotởDBthật. Côngcụ4568 đượcgiữmở; test2568/4570 đãdừngcuốivòng.
@@ -111,7 +113,7 @@ Server dev của người dùng (nếu đang chạy từ đường dẫn cũ) ph
 | Vật phẩm, tiền, rơi đồ | VT | 2 | 1 | 8 | 1 | VT12 nghiên cứu may mắn, VT7–VT9 rơi đồ (cả tiền), VT5 kho (VT1, VT3 xong) |
 | Kỹ năng | KN | 6 | 1 | 8 | 0 | KN12 giới hạn cấp chiêu, KN5 học chiêu bằng điểm, KN1 rà phase 2 |
 | Hiệu ứng | HU | 6 | 0 | 1 | 2 | HU7; HU1–HU2 trạng thái có tác dụng (⏸) — HU3–HU6 bóng đổ xong |
-| Giao diện | GD | 2 | 2 | 3 | 2 | GD1 F3, GD2 chat, GD4 mobile |
+| Giao diện | GD | 3 | 2 | 3 | 2 | GD1 F3, GD2 chat, GD4 mobile |
 | Gameplay | GP | 3 | 7 | 8 | 1 | GP1–GP2 cấp / tiềm năng; GP4 công thức sát thương (⏸) |
 | Event và nhiệm vụ | SK | 0 | 1 | 10 | 0 | SK1 đang nghiên cứu SHXT, cao cấp trước; thiếu script điều phối/điểm/thưởng; chưa có gameplay |
 | Hạ tầng | HT | 2 | 1 | 7 | 0 | HT1 đóng gói Desktop / Mobile |
