@@ -29,7 +29,6 @@ export function fillSkillTip(box: HTMLElement, s: SkillDef, tier?: string): void
       for (const span of l) {
         const e = document.createElement('span');
         e.textContent = span.text;
-        if (span.color) e.style.color = span.color;
         d.appendChild(e);
       }
       parent.appendChild(d);
@@ -41,7 +40,7 @@ export function fillSkillTip(box: HTMLElement, s: SkillDef, tier?: string): void
   // Section 1: Tên, phân loại, mô tả cơ bản & cấp hiện tại
   const s1 = section();
   put(s1, t.head.slice(0, 1), 'tip-name');
-  text(s1, `muted ${CATEGORY_CLASS[cat]}`, `${SKILL_CATEGORY_NAMES[cat]}${s.aura ? ' (hào quang)' : ''}${tier ? ` · ${tier}` : ''}`);
+  text(s1, 'tip-head', `${SKILL_CATEGORY_NAMES[cat]}${s.aura ? ' (hào quang)' : ''}${tier ? ` · ${tier}` : ''}`);
   put(s1, t.head.slice(1), 'tip-head');
   flush(s1);
 
@@ -69,7 +68,7 @@ export function fillSkillTip(box: HTMLElement, s: SkillDef, tier?: string): void
   const hint = blocked ? 'Vũ khí đang cầm không dùng được chiêu này'
     : s.aura ? 'Đặt vào ô tay trái / phải: hào quang tự bật (phím 1–9: bấm để bật / tắt)'
       : isCastable(s) ? 'Kéo xuống thanh phím tắt, hoặc chọn rồi bấm Trái / Phải' : 'Bị động: luôn có hiệu lực';
-  text(s5, blocked ? 'tip-bad' : 'muted', hint);
+  text(s5, blocked ? 'tip-bad' : 'tip-note', hint);
   flush(s5);
 }
 
