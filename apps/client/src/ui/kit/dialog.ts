@@ -33,6 +33,7 @@ export class Dialogs {
     // Capture phase: ESC works even while a text box has focus, before the game sees the key.
     window.addEventListener('keydown', e => {
       if (e.key !== 'Escape' || e.repeat) return;
+      if (document.querySelector('dialog[open]')) return;
       const typing = (document.activeElement as HTMLElement | null)?.matches?.('input, textarea');
       if (typing) (document.activeElement as HTMLElement).blur();
       if (this.closeTop()) { e.preventDefault(); return; }

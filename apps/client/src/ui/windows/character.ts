@@ -1,6 +1,6 @@
 import { PK_MODE_NAMES,
   ELEMENT_NAMES, SLOT_NAMES, wornActiveCount, canWear, getSkill, itemDef, portraitFaction, speedPoints, attackSpeedPct, castSpeedPct, totalSpeedPercents, resolveSpeed, seriesOf, skillDamage,
-  type EquipSlot, type Gender, type InventoryMsg, type Item,
+  type EquipSlot, type Gender, type InventoryMsg, type Item, type Potential,
 } from '@vltk/shared';
 import { itemViewer, ownSeries, progress } from '../../state/progress';
 import { BASIC_SKILL, skillbar } from '../../state/skillbar';
@@ -30,7 +30,8 @@ const SLOT_BOXES: [EquipSlot, number, number, number, number][] = [
 
 /** One "label value" cell; `id` = the value element. */
 const cell = (label: string, id: string, cls = '') => `<span class="ca-l">${label}</span><span class="ca-v ${cls}" id="${id}"></span>`;
-const plus = (id: string) => `<button type="button" class="ca-plus" id="${id}" disabled title="Cộng 1 điểm tiềm năng (Shift: 10)">+</button>`;
+const plus = (id: string) => `<button type="button" class="ca-plus" id="${id}" disabled title="Cộng điểm tiềm năng">+</button>`;
+const POT_LABELS: Record<Potential, string> = { str: 'Sức mạnh', dex: 'Thân pháp', vit: 'Sinh khí', eng: 'Nội công' };
 
 const HTML = `
 <section id="${ID}" class="dlg hidden" data-title="Trang bị và Thuộc tính">
@@ -80,7 +81,28 @@ const HTML = `
     <button type="button" class="btn" id="char-items">Vật phẩm</button>
     <button type="button" class="btn" id="char-close">Đóng</button>
   </div>
-</section>`;
+</section>
+<dialog id="ca-pot-dlg" class="ca-pot-dlg" closedby="any" aria-labelledby="ca-pot-title">
+  <form method="dialog" class="ca-pot-form" id="ca-pot-form">
+    <div class="ca-pot-head" id="ca-pot-title"></div>
+    <div class="ca-pot-row ca-pot-presets">
+      <button type="button" class="btn2 ca-pot-preset" data-v="10">10</button>
+      <button type="button" class="btn2 ca-pot-preset" data-v="20">20</button>
+      <button type="button" class="btn2 ca-pot-preset" data-v="50">50</button>
+      <button type="button" class="btn2 ca-pot-preset" data-v="100">100</button>
+      <button type="button" class="btn2 ca-pot-preset" data-v="all">Tất cả</button>
+    </div>
+    <div class="ca-pot-row ca-pot-actions">
+      <input type="number" class="ca-pot-input" id="ca-pot-input" min="1" step="1" inputmode="numeric" autofocus aria-label="Số điểm tiềm năng" />
+      <button type="submit" class="btn2 ca-pot-icon ca-pot-ok" value="ok" title="Đồng ý (Enter)" aria-label="Đồng ý">
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M6.2 11.4 2.8 8l1.1-1.1 2.3 2.3 5.9-5.9L13.2 4.4z"/></svg>
+      </button>
+      <button type="button" class="btn2 ca-pot-icon ca-pot-cancel" id="ca-pot-cancel" title="Hủy bỏ (Esc)" aria-label="Hủy bỏ">
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M4.2 3.1 8 6.9l3.8-3.8 1.1 1.1L9.1 8l3.8 3.8-1.1 1.1L8 9.1l-3.8 3.8-1.1-1.1L6.9 8 3.1 4.2z"/></svg>
+      </button>
+    </div>
+  </form>
+</dialog>`;
 
 /** Shown for values the prototype does not have yet (danh hiệu, danh vọng, xếp hạng, thể lực). */
 const NA = '—';
@@ -94,6 +116,7 @@ const NA_TIP = 'Chưa có trong bản thử nghiệm';
 export class CharacterWindow {
   private inv: InventoryMsg = inventory.get();
   private shown = '';
+  private potStat: Potential | null = null;
 
   constructor(parent: HTMLElement, private ctx: HudContext) {
     mount(parent, HTML);
@@ -123,8 +146,9 @@ export class CharacterWindow {
     }
     inventory.watch(inv => { this.inv = inv; this.renderEquip(); }, false);
     for (const [stat, id] of [['str', 'ca-add-str'], ['dex', 'ca-add-dex'], ['vit', 'ca-add-vit'], ['eng', 'ca-add-ene']] as const) {
-      $(id).addEventListener('click', e => this.ctx.actions()?.addPotential(stat, (e as MouseEvent).shiftKey ? 10 : 1));
+      $(id).addEventListener('click', () => this.openPotDialog(stat));
     }
+    this.setupPotDialog();
     $('ca-suggest').addEventListener('click', () => this.ctx.suggest?.('potential'));
     progress.watch(() => this.renderStats(), false);
     skillbar.watch(() => this.renderStats());
@@ -164,9 +188,63 @@ export class CharacterWindow {
     set('ca-res-fire', `${st.resist.fire}%`); set('ca-res-poison', `${st.resist.poison}%`);
     set('ca-series', `hệ ${ELEMENT_NAMES[p.series]}`);
     for (const id of ['ca-add-str', 'ca-add-dex', 'ca-add-vit', 'ca-add-ene']) ($(id) as HTMLButtonElement).disabled = pr.potentialPoints <= 0;
+    const potDlg = $('ca-pot-dlg') as HTMLDialogElement;
+    if (potDlg.open && this.potStat) {
+      if (pr.potentialPoints <= 0) potDlg.close();
+      else {
+        $('ca-pot-title').textContent = `${POT_LABELS[this.potStat]} (còn ${pr.potentialPoints})`;
+        ($('ca-pot-input') as HTMLInputElement).max = String(pr.potentialPoints);
+      }
+    }
     const self = this.ctx.self();
     if (self) $<HTMLImageElement>('ca-face').src = assetUrl(`portraits/${portraitFaction(self.faction, p.series, self.gender as Gender)}.png`);
     this.renderEquip();
+  }
+
+  private openPotDialog(stat: Potential): void {
+    const avail = progress.get()?.progress.potentialPoints ?? 0;
+    if (avail <= 0) return;
+    this.potStat = stat;
+    $('ca-pot-title').textContent = `${POT_LABELS[stat]} (còn ${avail})`;
+    const input = $('ca-pot-input') as HTMLInputElement;
+    input.max = String(avail);
+    input.value = '1';
+    const dlg = $('ca-pot-dlg') as HTMLDialogElement;
+    dlg.returnValue = '';
+    dlg.showModal();
+    input.select();
+  }
+
+  private setupPotDialog(): void {
+    const dlg = $('ca-pot-dlg') as HTMLDialogElement;
+    const input = $('ca-pot-input') as HTMLInputElement;
+    dlg.querySelectorAll<HTMLButtonElement>('.ca-pot-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const avail = progress.get()?.progress.potentialPoints ?? 0;
+        const raw = btn.dataset.v;
+        const val = raw === 'all' ? avail : Math.min(Number(raw), avail);
+        input.value = String(Math.max(1, val));
+        input.focus();
+      });
+    });
+    $('ca-pot-cancel').addEventListener('click', () => dlg.close('cancel'));
+    $('ca-pot-form').addEventListener('submit', () => {
+      const n = Math.floor(Number(input.value));
+      if (this.potStat && Number.isFinite(n) && n > 0) this.ctx.actions()?.addPotential(this.potStat, n);
+    });
+    dlg.addEventListener('close', () => {
+      dlg.returnValue = '';
+      this.potStat = null;
+    });
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+      let pressedOutside = false;
+      const outside = (e: PointerEvent) => {
+        const r = dlg.getBoundingClientRect();
+        return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      };
+      dlg.addEventListener('pointerdown', e => { pressedOutside = outside(e); });
+      dlg.addEventListener('pointerup', e => { if (pressedOutside && outside(e)) dlg.close(); });
+    }
   }
 
   toggle(open?: boolean): void {

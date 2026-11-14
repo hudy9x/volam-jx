@@ -34,3 +34,30 @@
   .char-attr { width: auto; }
   .char-equip { align-self: center; }
 }
+
+/* Dialog cộng nhanh điểm tiềm năng */
+.ca-pot-dlg {
+  padding: 8px 10px; max-width: calc(100vw - 24px); margin: auto;
+  border: 1px solid var(--teal); background: var(--body); color: var(--text);
+  box-shadow: 0 8px 24px #000c; font: 12px Tahoma, sans-serif;
+}
+.ca-pot-dlg:modal { overscroll-behavior: contain; }
+.ca-pot-dlg::backdrop {
+  background: rgba(0, 0, 0, 0.45); overflow: hidden; overscroll-behavior: contain;
+}
+.ca-pot-form { display: flex; flex-direction: column; gap: 6px; }
+.ca-pot-head { color: var(--gold); font-weight: 700; text-align: center; white-space: nowrap; }
+.ca-pot-row { display: flex; align-items: center; gap: 4px; }
+.ca-pot-presets { justify-content: space-between; }
+.ca-pot-preset { min-width: 0; flex: 1; height: 22px; padding: 0 6px; font-size: 11px; }
+.ca-pot-input {
+  flex: 1; min-width: 72px; height: 24px; padding: 0 6px; text-align: center;
+  border: 1px solid var(--teal); background: #050706; color: var(--gold); font: 700 12px Tahoma, sans-serif;
+}
+.ca-pot-input:focus { outline: none; border-color: var(--teal-hi); }
+.ca-pot-icon {
+  min-width: 28px; width: 28px; height: 24px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.ca-pot-ok { color: var(--green); }
+.ca-pot-cancel { color: var(--danger); }

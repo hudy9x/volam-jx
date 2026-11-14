@@ -1085,3 +1085,7 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - Lưu bots.usernames=[]/count0 để dùng làm mẫu; không tự chạy. Thông báo sau lưu hướng dẫn chọn nhân vật và kịch bản khi chạy; không cung cấp copyCLI cho mẫu chưa có nhân vật.
 - Typecheck/build/diff-check và Chromium với API giả lập đạt: lưu/nạp0người, file rỗng đúng, không request start, chọn người rồi chọn mẫu thì nút Chạy mở. Tool4578/config riêng `/tmp/jx-bot-empty-scenario`, script `/tmp/jx-bot-empty-check/check.cjs`, đã dừng tool thử, không bot/DB thật.
 - HEAD8a7517e (commit kho/hành trang từ phiên khác), giữ mọi thay đổi kho/gợi ý/UI bot/cấu hình đang có. Cập nhật README/AGENTS/tracking; không commit/push.
+
+## Checkpoint trước sửa ưu tiên mục tiêu Auto — 2026-11-14
+
+- USER yêu cầu commit code hiện tại rồi bổ sung ưu tiên Boss Xanh→Quái thường và điều tra/sửa việc bỏ boss giữa chừng. Checkpoint toàn bộ tooltip/dialog/nhập điểm tiềm năng đang dở theo USER, nền26cfb31, không push.

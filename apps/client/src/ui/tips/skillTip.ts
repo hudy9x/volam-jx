@@ -17,7 +17,12 @@ export function fillSkillTip(box: HTMLElement, s: SkillDef, tier?: string): void
   const max = maxLevelOf(s);
   const t = describeSkill(s, level, max);
   const cat = skillCategory(s);
-  const put = (lines: TipLine[], cls = '') => {
+  const section = (): HTMLElement => {
+    const sec = document.createElement('div');
+    sec.className = 'tip-section';
+    return sec;
+  };
+  const put = (parent: HTMLElement, lines: TipLine[], cls = '') => {
     for (const l of lines) {
       const d = document.createElement('div');
       if (cls) d.className = cls;
@@ -27,24 +32,45 @@ export function fillSkillTip(box: HTMLElement, s: SkillDef, tier?: string): void
         if (span.color) e.style.color = span.color;
         d.appendChild(e);
       }
-      box.appendChild(d);
+      parent.appendChild(d);
     }
   };
-  const text = (cls: string, value: string) => put([[{ text: value }]], cls);
-  put(t.head.slice(0, 1), 'tip-name');
-  text(`muted ${CATEGORY_CLASS[cat]}`, `${SKILL_CATEGORY_NAMES[cat]}${s.aura ? ' (hào quang)' : ''}${tier ? ` · ${tier}` : ''}`);
-  put(t.head.slice(1), 'tip-head');
-  if (t.current.length) put(t.current, 'tip-attr');
+  const text = (parent: HTMLElement, cls: string, value: string) => put(parent, [[{ text: value }]], cls);
+  const flush = (sec: HTMLElement) => { if (sec.childElementCount) box.appendChild(sec); };
+
+  // Section 1: Tên, phân loại, mô tả cơ bản & cấp hiện tại
+  const s1 = section();
+  put(s1, t.head.slice(0, 1), 'tip-name');
+  text(s1, `muted ${CATEGORY_CLASS[cat]}`, `${SKILL_CATEGORY_NAMES[cat]}${s.aura ? ' (hào quang)' : ''}${tier ? ` · ${tier}` : ''}`);
+  put(s1, t.head.slice(1), 'tip-head');
+  flush(s1);
+
+  // Section 2: Chỉ số / hiệu quả ở cấp hiện tại
+  const s2 = section();
+  if (t.current.length) put(s2, t.current, 'tip-attr');
+  flush(s2);
+
+  // Section 3: Yêu cầu vũ khí / cưỡi ngựa
   const blocked = isCastable(s) && !weaponOk(s, skillbar.weapon);
-  put(t.limits, blocked ? 'tip-bad' : 'tip-limit');
+  const s3 = section();
+  put(s3, t.limits, blocked ? 'tip-bad' : 'tip-limit');
+  flush(s3);
+
+  // Section 4: Đẳng cấp kế tiếp
   if (t.next) {
-    text('tip-next', 'Đẳng cấp kế tiếp');
-    put(t.next.length ? t.next : [[{ text: '(không đổi)' }]], 'tip-attr');
+    const s4 = section();
+    text(s4, 'tip-next', 'Đẳng cấp kế tiếp');
+    put(s4, t.next.length ? t.next : [[{ text: '(không đổi)' }]], 'tip-attr');
+    flush(s4);
   }
+
+  // Section 5: Ghi chú / cảnh báo
+  const s5 = section();
   const hint = blocked ? 'Vũ khí đang cầm không dùng được chiêu này'
     : s.aura ? 'Đặt vào ô tay trái / phải: hào quang tự bật (phím 1–9: bấm để bật / tắt)'
       : isCastable(s) ? 'Kéo xuống thanh phím tắt, hoặc chọn rồi bấm Trái / Phải' : 'Bị động: luôn có hiệu lực';
-  text(blocked ? 'tip-bad' : 'muted', hint);
+  text(s5, blocked ? 'tip-bad' : 'muted', hint);
+  flush(s5);
 }
 
 /** Skill tooltip next to `anchor` (null hides it). */

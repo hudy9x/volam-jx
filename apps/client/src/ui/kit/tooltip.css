@@ -55,10 +55,9 @@
   font-size: 13px;
 }
 
-#item-tip.item-tip .tip-section+.tip-section {
+#item-tip .tip-section + .tip-section,
+#skill-detail .tip-section + .tip-section {
   margin-top: 9px;
-  padding-top: 9px;
-  border-top: 1px solid rgba(61, 107, 95, 0.45);
 }
 
 #item-tip .tip-sub {
@@ -75,6 +74,7 @@
 /* skill tooltip in the original layout (shared describeSkill): coloured spans come from magicdesc.ini */
 #item-tip.skill-tip {
   max-width: 340px;
+  padding: 12px 16px;
 }
 
 #item-tip .tip-head,

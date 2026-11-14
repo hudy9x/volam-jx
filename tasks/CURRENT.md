@@ -1,5 +1,11 @@
 # Điểm dừng hiện tại
 
+> **2026-11-14 · Checkpoint toàn bộ hiện tại theo USER:** commit tooltip kỹ năng/nhập điểm tiềm năng/dialog và tài liệu điểm dừng đang có, nền26cfb31; không push. Tiếp theo USER đã duyệt: thêm ưu tiên Boss Xanh→Quái thường dùng chung Auto/bot, điều tra/sửa chọn bậc cao nhất gần nhất và giữ đánh đến chết, tránh đánh một cái bỏ đi.
+
+> **2026-11-14 · Chia section tooltip kỹ năng & bỏ đường kẻ phân cách tooltip theo USER (hoàn tất, chưa commit):** cập nhật `apps/client/src/ui/tips/skillTip.ts` và `apps/client/src/ui/kit/tooltip.css`. `fillSkillTip` chia thành 5 `.tip-section` tương tự trang bị (tên/mô tả cơ bản, chỉ số hiện tại, giới hạn vũ khí/ngựa, đẳng cấp kế tiếp, ghi chú); bỏ `border-top` divider line ở `.tip-section + .tip-section` (chỉ giữ khoảng cách `margin-top: 9px`) và đồng bộ padding `12px 16px` cho `#item-tip.skill-tip`. `npm run typecheck` và `npm run build` đạt. Không commit/push.
+
+> **2026-11-14 · Dialog nhập nhanh điểm tiềm năng ở Trang bị và Thuộc tính theo USER (hoàn tất, chưa commit):** cập nhật `apps/client/src/ui/windows/character.ts`, `apps/client/src/ui/windows/character.css` và `apps/client/src/ui/kit/dialog.ts`. Ấn dấu `+` bên cạnh 4 chỉ số tiềm năng (`Sức mạnh`, `Thân pháp`, `Sinh khí`, `Nội công`) sẽ mở dialog nhỏ (`<dialog id="ca-pot-dlg">` dùng `showModal()` + `closedby="any"` + fallback click ngoài): hàng 1 gồm các nút fill nhanh `10`, `20`, `50`, `100`, `Tất cả` vào input; hàng 2 gồm ô input số điểm tiềm năng và 2 nút icon tick (đồng ý) / cancel (hủy bỏ). `npm run typecheck` và `npm run build` đạt. Không commit/push.
+
 > **2026-11-14 · Phím tắt mới, Hành trang 1–5 + Sắp xếp/Swap, NPC Rương chứa đồ tài khoản (vật phẩm + Ngân lượng/KNB), Tooltip 5 section & Dòng rơi Hiện/Ẩn (đã commit theo USER):**
 > - Phím tắt Phương án B (`keymap.ts`): `Q` Nhân vật, `W` Hành trang, `E` Kỹ năng, `R` Ngựa, `A` PK, `D` Thợ rèn, `Z` Auto, `P` Tổ đội, `T` Chuyển map, `V` Kỳ Trân Các.
 > - Hành trang (`inventory.ts/.css`): giữ 5 tab đánh số `1–5` cao `20px`; thêm nút `Xếp` (`C2S.bagSort` / `sortGridPage`); `moveOrSwapInGrid` cho phép thả đè hoán đổi 1 món; sửa lỗi đứt drag khi rê qua tab và hoãn render giữa lúc đang kéo.
