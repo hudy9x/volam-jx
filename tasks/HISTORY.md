@@ -1,3 +1,48 @@
+## 2026-11-15 · Tách module hiệu ứng và commit theo USER
+
+- USER yêu cầu tổ chức độc lập, tài liệu AI tự tra cứu và commit code hiện tại. Commit phần hiệu ứng + refactor + docs/tests với tiêu đề `feat(effects): render control states and isolate effect formulas` (mã xem git log); không push. Giữ scenario untracked không liên quan ngoài commit. HEAD nền6d8df48.
+- Gameplay thuần ở shared/formulas/effects/{cold,stun,poison,hurt,types,tuning}.ts; effects.ts giữ API hitEffects/mergePoison và thứ tựRNG. tuning.ts chung xuất lại EFFECTS, khôngnhân bản cấuhình. Client fx/controlEffects.ts giữ CONTROL_VISUALS/controlAppearance cho màu, nhịpvẽ và vịtrívòngsáng; ActorView giữ clock/frame, StateDecor giữ preload/render/lifecycle. Server tiếp tục hệ effects chung.
+- Đã gộp code trước: băngvàng/độcxanh, giữframe/hướngchoáng, Status50thaychữ và preload, hurt ngắt primarycast chưaphát, choángthật×2. Băng75px/s+4FPS vẫn CHỈđềxuất chưa duyệt/triểnkhai; refactor giữ nguyên hànhvi trước tách.
+- docs/formulas/effects.md là nguồnchuẩn: bảng file cầnchỉnh, sơđồ luồng, côngthức/nguồn, quytrìnhkiểm, đãlàm/chưalàm. AGENTS/CLAUDE/GEMINI bắtbuộc đọc khinhắc hiệuứng; docs/formulas/README và architecture đãcậpnhật ngoại lệ tuning chủđề.
+- Kiểm đạt: effects18 + speed5/typecheck/build/diff-check; 96tổhợp chiêu/cấp/giảmthờigian/RNG/tốcđộ/gộpđộc trước-sau refactor bằngnhau chínhxác. Chromium/Phaser/ảnhgốc4loại đãkiểm ở lượtsửa trước, khôngchạy lại native/luồngWS trậnthật. Build còn cảnhbáochunklớncũ.
+- GitNexusCLI1.6.12 đã cậpnhật index --index-only --pdg, kiểmimpact trước tách: hitEffects/mergePoisonLOW; speedCRITICAL/viewHIGH nên giữ API và đốichiếu bằngnguồn/test. Index cógiới hạn flow và bỏfiledata.gen>512KB; khôngcoi kếtquảgraph là chứngminh khôngcó phụthuộc khác. Phân tích staged trướccommit; chi tiết output ở /tmp/jx-effects-*.
+- Không sửa DB thật hoặc asset bằngtay; Status50 sinh qua gen-skills trong lượttrước, cần chạy gen:skills với JX_CLIENTSHXT khi máy khác thiếu sheet. Web/Desktop/Mobile dùngchung, chưa kiểm wrappernative. Khôngpush.
+
+## 2026-11-15 · USER duyệt thử choáng gấp đôi; thảo luận băng cố định
+
+- USER chọn tăng thời gian choáng thật gấp đôi. Thêm EFFECTS.stunDurationMultiplier=2 (USER), nhân trước làm tròn ms tại hitEffects; không đổi xác suất, giảm thời gian từ trang bị, tăng thời gian từ người đánh hoặc luật khôngchồngchoáng.
+- test:effects18 đạt; ca mới skill20lv20 1500→3000ms, giảm40/80/100(trần95) còn1800/600/150ms; enhancer50%=4500ms; miss/chance khôngđổi. Player/monster ctl bật tớiđúng hạn rồi tắt. Typecheck đạt; không đổi mã vẽ so với Chromium lượt trước, chưaWS/native cho multiplier.
+- USER hỏi ý kiến băng dùng tốcchạy+FPS cố định, hếtphụchồi: đồngý hướng thiết kế; cần tính lại tốc hiện tại lúc hết thay vì restore snapshot cũ nếu gear/buffđổi. Chưa tự triển khai hoặc chọn số cố định; chưa chốt xửlý tốcđánh, ngựa, người đangchậm hơn ngưỡng. Đềxuất cấu hình chung fixedrun ở tuning, server/client cùng đọc, bỏ nhânchậm thêm phía vẽ khi triểnkhai. Đây là phần thảo luận, chưaduyệt số cụ thể.
+- HEAD6d8df48; giữ toàn bộ sửaFX trước và scenario, khôngcommit/push/DB/assets trong lượt này.
+
+## 2026-11-15 · Giảm FPS băng và vòng sáng choáng (chưa commit)
+
+- USER phản hồi nhịp quái bị băng vẫn nhanh, yêu cầu thử giảm frame; choáng dùng vòng sáng trên đầu thay chữ và thời gian khó thấy. Hỏi lựa chọn giảm vận tốc thật/chỉ FPS và giữ/tăng thời gian qua câu hỏi bất đồng bộ; chưa có đáp án ở lúc ghi. Giữ công thức/vận tốc thật/thời gian choáng theo chỉ đạo trước, chỉ thử giảm thêm50% nhịp hoạt ảnh chạy đang bị băng.
+- Generator gen-skills thu riêng Status50 thành CONTROL_FX.stun (skill/fx/072376a5,10frame50ms). Đã chạy với JX_CLIENT SHXT; chỉ fx.gen và cachemeta thay đổi, thêm1sheet, manifest tựcậpnhật; khôngsửa tay gen/assets. 5missingart cũ không liênquan Status50.
+- StateDecor preload vòng sáng trước choáng ngắn, vẽ ở đầu theo chiều cao thật của player/quái, chạy độc lập khi thân đóngbăng; hếtchoáng/chết/destroy xóa ngay. Effects bỏ chữChoáng. Khôngkéo dài vòngsáng giả sau khi đãhồi phục.
+- Dữ liệu skill cấp20:271choáng5frame~278ms;16510frame~556ms;20=27frame1.5s;40=18frame1s;181=36frame2s, trướcgiảmthờigian. Chưa có cơsở quy lỗi timing; chờUSER chọn nếu muốn thay gameplay.
+- test:effects17 + speed5/typecheck/build/diff-check đạt; Chromium/Phaser/ảnhgốc4loại player/thường/Xanh/Vàng: ringhiện/đổiframe trongkhi thânđứngim/hếtẩn, khôngpageerror, đãxemảnh /tmp/control-stun-glow.png. Testpage tạm đãxóa; cổng5174 thử đãdừng. ChưaWS trậnthật/native. Cùngbộvẽ3nềntảng.
+- HEAD6d8df48, giữ côngviệc trước và scenario untracked; khôngcommit/push/DBthật. Hai lựa chọn cân bằng còn chờUSER; khôngtự tăngduration hoặcgiảmvậntốc.
+
+## 2026-11-15 · Sửa biểu hiện băng/độc/choáng và co giật ngắt chiêu (hoàn tất, chưa commit)
+
+- USER duyệt sửa bốn lỗi, giữ công thức hiện tại, kiểm người chơi/quái và không commit. HEAD đầu lượt1c6d0bb; phiên UI khác commit6d8df48 trong lượt, giữ nguyên. Không có GitNexus tool khả dụng, kiểm phụ thuộc bằng nguồn và kiểm thử trực tiếp.
+- PaperDoll nhuộm từng lớp thân vàng0xffdf55 khi băng, xanh0x70ff70 khi độc; độc ưu tiên màu khi cảhai, bóng khôngnhuộm, hết trạngthái/chết trảtrắng. ActorView giữ đúng action/frame/hướng khi choáng, loại thời gian pause khỏi clocks khi thả; chết vẫn chạy ngay. FPS đứng chờ khi băng theo slowFactor hiệncó; chạy/đánh dùng tốc/thời lượng server đãtínhchậm, khôngnhânlần2; đánh vẫn snapshot lúc bắt đầu như trước.
+- Server hurt bỏ điều kiện chờ castUntil kết thúc, ưu tiên choáng; xóa path/pending, thay posehurt và hạnkhóa theo hurtMs hiệncó. SkillEngine.interrupt chỉ hủy primarycast chưaphát, giữ aura/đạnđãbay/secondaryđãphát. Timer có cờcancel để đòn bịngắt cùngtick khôngvẫnphát; giữ attackTarget/cooldown/chi phí đãtrừ. Khôngsửa tuning/hitEffects/damage/stat/formula.
+- Kiểm đạt: npm run test:effects16ca + test:speed5ca, typecheck, build, diff-check. 8ca render chạy với mãHEAD trước sửa đều fail đúng lỗi freeze/FPS, bản sửa đạt. Server dùng enginecast thật: cả player/monster đònchờ bịhủy khôngphátmissile, sauphụchồi cast mới hoạtđộng; giữ aura/launched work, same-tickcancel, stun ưu tiên và poison tick/expiry.
+- Chromium thật/Phaser+sheetgốc qua harness cổng5174: player6lớp, thường/Xanh/Vàng1lớp; kiểm tint/reset/bóng, run/cast đóngbăng+giữhướng, thaw khôngnhảyframe, FPSidle nửa, die vẫnchạy; khôngpageerror, đãxemảnh /tmp/control-effects-browser.png. Harness /tmp/check-control-browser.cjs; trangtest tạm đãxóa, Vite thử đãdừng. Đây là harness bộvẽ thật và engine server; chưa kiểm cảluồng WS trận thật hoặc wrapper Desktop/Mobile/điệnthoại. Dùngchung logic3nềntảng.
+- Giữ scenario untracked; khôngassetgen/DBthật, khôngcommit/push. Docs effects và script test:effects đãcậpnhật. Build còn cảnhbáochunklớncũ.
+
+
+## 2026-11-15 · Điều tra biểu hiện choáng/băng/độc/co giật (chưa sửa)
+
+- USER yêu cầu tìm nguyên nhân trước, đối chiếu SHXT và volamidle. HEAD1c6d0bb khớp điểm dừng; giữ thay đổi tasks/scenario có sẵn. Không có GitNexus tool khả dụng, đọc nguồn trực tiếp, chưa tái hiện runtime.
+- Client Effects chỉ floatText ctl; ActorView/PaperDoll không tint theo ctl và không khóa frame khi stun. Server stun khóa castUntil/xóa path/pending nhưng resolveAnim không giữ frame; hoạt ảnh vẫn tiến.
+- Server effects chỉ áp hurt khi now>=castUntil nên không ngắt chiêu đang thi triển. Công thức DoHurt/recover<100 còn khiến nhiều quái miễn hurt theo cách diễn giải hiện tại; monsterHurtFrames cố định thay vì từng NPC.
+- Chậm có moveFactor/castTiming, độc có updateEffects→applyHit(dot), giảm thời gian poison/freeze/stun và fasthitrecover đã được đọc từ bag. Chưa xác minh dữ liệu nhân vật/chiêu cụ thể hoặc HP thực tế; không kết luận mọi trường hợp đều đúng.
+- SHXT thư mục chỉ có dữ liệu/script, không có cpp/c/h engine. Loose settings/gamesetting.ini có PlayerPoisonDamageMax600000 khác tuning600 và dữ liệu nghiên cứu PAK cũ; không tự thay chuẩn. volamidle cold-status/status.rs dùng chậm theo damage/(damage+200), độc budget và hurt ngưỡng15%HP, không phải công thức SHXT đã xác minh.
+- Chưa sửa gameplay/client/asset/DB, không commit/push; chỉ cập nhật tracking theo quy ước. Logic dùng chung Web/Desktop/Mobile, chưa kiểm runtime/native.
+
 # Nhật ký các vòng làm việc
 
 ## 2026-11-15 · Commit sửa die và xác chết theo USER

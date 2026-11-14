@@ -9,6 +9,7 @@ import { progress } from '../../state/progress';
 import { FRAME_MS, JxSprite, type Source } from './PaperDoll';
 import { ui, uiPx, zoomPlate } from '../display';
 import { StateDecor } from '../fx/StateDecor';
+import { controlAppearance } from '../fx/controlEffects';
 
 export type { ActorState };
 
@@ -44,6 +45,8 @@ export class ActorView {
   private loopFrame = 0;
   private oneShot: { key: AssocKey; start: number; ms: number; hold: boolean } | null = null;
   private seq = -1;
+  private frozen: { at: number; key: AssocKey; frame: number; dir: number } | null = null;
+  private drawnDir = 0;
   private attackTrace: {
     key: AssocKey;
     start: number;
@@ -140,6 +143,22 @@ export class ActorView {
 
   private renderSprite(): boolean {
     const s = this.state, now = this.scene.time.now, jx = this.jx!;
+    const alive = s.hp > 0 && s.kind !== 'npc';
+    const control = controlAppearance(s.ctl ?? 0, alive);
+    jx.tint = control.tint;
+    if (control.frozen) {
+      this.frozen ??= { at: now, key: (jx.action || this.wanted()) as AssocKey, frame: jx.frame, dir: this.drawnDir };
+      const held = this.frozen;
+      return jx.render(this.x, this.y, this.y, held.key, held.dir, () => held.frame);
+    }
+    if (this.frozen) {
+      // Exclude the pause from both animation clocks; death must always start immediately.
+      if (this.oneShot) this.oneShot.start += now - this.frozen.at;
+      this.loopAt = now;
+      if (this.wanted() !== this.frozen.key) this.oneShot = null;
+      this.frozen = null;
+    }
+    this.drawnDir = s.dir & 7;
     const key = this.wanted();
     const isOneShot = key in ONE_SHOT_FPS || key === 'jump';
     // Each server one-shot (new animSeq) plays once; moving cancels an unfinished attack; death holds its last frame.
@@ -251,7 +270,9 @@ export class ActorView {
         this.runTrace = null;
       }
     }
-    this.loopFrame += Math.max(0, now - this.loopAt) / (running ? cycleMs : FRAME_MS);
+    // Cold uses a deliberately slower visual gait; world movement still follows the server.
+    // Attack duration remains snapshotted by the server.
+    this.loopFrame += Math.max(0, now - this.loopAt) / (running ? cycleMs : FRAME_MS) * control.loopRate;
     this.loopAt = now;
     return jx.render(this.x, this.y, this.y, loop, s.dir & 7, n => Math.floor(running ? this.loopFrame * n : this.loopFrame) % n);
   }
@@ -274,7 +295,7 @@ export class ActorView {
     this.label.setPosition(Math.round(this.x), top - Math.max(2, ui(plate.gapY)));
     if (s.hp > 0 || s.kind === 'npc') {
       // Under-foot pictures stay on the ground during a jump, the others rise with the body.
-      this.decor.update([...(s.states ?? []), ...(s.passiveFx ?? [])], Math.round(this.x), Math.round(this.y), this.headHeight - 8 + this.lift);
+      this.decor.update([...(s.states ?? []), ...(s.passiveFx ?? [])], Math.round(this.x), Math.round(this.y), this.headHeight - 8 + this.lift, s.ctl ?? 0);
     } else this.decor.update([], 0, 0, 0);
 
     const w = Math.max(10, ui(s.boss ? plate.barBossW : plate.barW)), bh = Math.max(2, ui(plate.barH));

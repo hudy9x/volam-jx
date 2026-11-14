@@ -34,6 +34,8 @@ export class JxSprite {
   frames = 1;
   frame = 0;
   action = '';
+  /** Body tint only; ground shadows keep their original colour. */
+  tint = 0xffffff;
 
   constructor(private scene: Phaser.Scene, source: Source) {
     this.setSource(source);
@@ -107,6 +109,7 @@ export class JxSprite {
     for (const layer of layers) {
       const img = this.images[used] ?? (this.images[used] = this.scene.add.image(0, 0, '__DEFAULT').setOrigin(0, 0));
       this.place(img, layer, fx, by, depth + used * 0.001, dir, f, bodyFrames);
+      img.setTint(this.tint);
       used++;
       if (HEIGHT_PARTS.has(layer.part)) height = Math.max(height, FOOT_Y - layer.meta[3]);
     }

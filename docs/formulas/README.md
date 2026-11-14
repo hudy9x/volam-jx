@@ -1,7 +1,7 @@
 # Công thức trò chơi — mục lục
 
 Mọi phép tính chỉ số, cấp, sát thương, hiệu ứng, tốc độ nằm trong **`packages/shared/src/formulas/`** (TS thuần, server tính thật,
-client hiển thị cùng một hàm). **Mọi hằng số ở một chỗ: `formulas/tuning.ts`**, mỗi số ghi nguồn. Muốn cân bằng lại: sửa `tuning.ts`,
+client hiển thị cùng một hàm). **Điểm truy cập hằng số: `formulas/tuning.ts`** (riêng `EFFECTS` xuất lại từ nguồn độc lập `formulas/effects/tuning.ts`), mỗi số ghi nguồn. Muốn cân bằng lại: sửa đúng file tuning của chủ đề,
 không sửa rải rác.
 
 | Tài liệu | Mã | Nội dung |
@@ -10,7 +10,7 @@ không sửa rải rác.
 | [level.md](level.md) | `formulas/level.ts`, `formulas/monster.ts`, `characters/progression.ts` | Cấp, exp, chia exp, chênh lệch cấp, điểm tiềm năng / kỹ năng, vào phái cấp 10 |
 | [skills.md](skills.md) | `skills/core/learning.ts`, `skills/core/events.ts` | Chiêu hiện theo cấp, cộng điểm / thục luyện, giới hạn cấp chiêu, chiêu tiền đề, tầng chiêu |
 | [damage.md](damage.md) | `formulas/damage.ts`, `formulas/combat.ts` | Lực tay của chiêu, trúng / né, chí mạng / chí tử, kháng + xuyên kháng + trần, ngũ hành, PK |
-| [effects.md](effects.md) | `status/states.ts`, `formulas/effects.ts` | Bùa lợi / bùa hại / hào quang / bị động (thuộc tính, thời gian riêng), choáng / chậm / độc / co giật |
+| [effects.md](effects.md) | `status/states.ts`, `formulas/effects.ts`, `formulas/effects/` | Bùa lợi / bùa hại / hào quang / bị động (thuộc tính, thời gian riêng), choáng / chậm / độc / co giật |
 | [drops.md](drops.md) | `formulas/drops.ts` | Bảng rơi, cấp món, tiền, quyền nhặt, dòng xanh + may mắn, chỉ số đồ (TB8) |
 | [speed.md](speed.md) | `formulas/tuning.ts SPEED`, `formulas/speed.ts`, `SkillEngine.ts`, `ActorView.ts` | Mốc volamidle25–300%, chuẩn hóa đánh/chạy đi chân/cưỡi, cấu hình và trang thử `?skills` (§10); phần trước là lịch sử điều tra |
 
@@ -29,7 +29,7 @@ effects-buffs, luck-drops — 2026-11-12).
 
 ## Cách thêm / đổi một công thức
 
-1. Hằng số mới → `formulas/tuning.ts` (nhóm đúng chủ đề, ghi nguồn).
+1. Hằng số mới → `formulas/tuning.ts`; riêng hiệu ứng → `formulas/effects/tuning.ts` (ghi nguồn, không sao chép cấu hình).
 2. Hàm thuần trong `formulas/<chủ đề>.ts`, không đọc trạng thái server / client; đầu vào là số và `AttrBag`.
 3. Server gọi ở `apps/server/src/world/` (vd. `progress.ts`), client hiển thị cùng hàm.
 4. Ghi vào tài liệu chủ đề ở đây: công thức, nguồn, ví dụ số.

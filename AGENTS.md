@@ -1,5 +1,7 @@
 # AGENTS.md — hướng dẫn cho AI agent làm việc trong `jx-system-online`
 
+**Tra cứu hiệu ứng chiến đấu — bắt buộc:** khi nhắc **băng sát/làm chậm, choáng, trúng độc, co giật/thọ thương, phục hồi, giảm thời gian trạng thái hoặc vòng sáng/màu trạng thái**, đọc toàn bộ [docs/formulas/effects.md](docs/formulas/effects.md) trước khi giải thích, đề xuất hay sửa mã. Công thức và cấu hình độc lập ở `packages/shared/src/formulas/effects/`; hình ảnh ở `apps/client/src/game/fx/controlEffects.ts`. Nếu liên quan nhịp bước/vận tốc/FPS đọc thêm [docs/formulas/speed.md](docs/formulas/speed.md). Phân biệt phần đã triển khai với đề xuất băng tốc độ cố định chưa duyệt. Không yêu cầu người dùng nhắc lại đường dẫn.
+
 Đọc file này đầu mỗi phiên. Chi tiết người dùng chạy/đọc nằm trong `README.md`; ở đây chỉ có những điều agent cần biết để
 không làm sai.
 
@@ -148,7 +150,7 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 - **Phượng Tường + 40 bãi (USER 2026-11-13) & Quái / Boss 3 bậc (USER 2026-11-14):** thêm thành Phượng Tường (1), giữ Biện Kinh (37) / Dược Vương Cốc (140); 40 bãi Field + Cave chia cấp 10–200, hai bản đồ/mốc. Bảng chỉnh tay `packages/shared/src/maps/training-levels.ts`, tài liệu `docs/training-maps.md`; `gen-spawns` ưu tiên bảng này và giữ quái trong band. Đây là cấp riêng của project, không phải dữ liệu cấp từ client gốc. Tổng hiện có 43 bản đồ đã sinh. Bộ lọc Xa phu gộp `City` và `Capital` dưới nhãn **Thành thị** (USER 2026-11-13); giữ nguyên type gốc và luật thành an toàn. Quái chia 3 bậc (`Actor.boss = 0 | 1 | 2`): **Quái thường (`0`)** tên Trắng `#ffffff`, **Boss Xanh (`1`)** tên Xanh dương `#5cb8ff` (máu/exp ×5, 4 lần tung đồ, 2 điểm cố định/bãi + 3% tự hóa xanh khi hồi sinh), **Boss Hoàng Kim (`2`)** tên Vàng `#ffd700` (máu/exp ×12, 8 lần tung bảng `boss/*droprate`, 20 Đại/Tiểu Hoàng Kim trong `GOLDEN_BOSS_LIST` đặt 1 con ở sâu mỗi bãi).
 
 - **Công thức** (2026-11-12): mọi phép tính chỉ số / cấp / sát thương / hiệu ứng nằm ở `packages/shared/src/formulas/`, hằng số chỉ ở
-  `formulas/tuning.ts` (ghi nguồn DATA / SRC / WEB / JXWEB / CHỌN / USER), tài liệu `docs/formulas/`. Không viết công thức ở chỗ khác.
+  `formulas/tuning.ts` (riêng `EFFECTS` được xuất lại từ nguồn duy nhất `formulas/effects/tuning.ts`, USER 2026-11-15; ghi nguồn DATA / SRC / WEB / JXWEB / CHỌN / USER), tài liệu `docs/formulas/`. Không viết công thức ở chỗ khác.
 - **Tiến trình** (USER 2026-11-12): tạo nhân vật chọn hệ + giới, bắt đầu cấp 1; **cấp 10 gia nhập phái cùng hệ** (cửa sổ Kỹ năng);
   chiêu hiện khi đạt ReqLevel (không cần nhiệm vụ); chiêu thường cộng điểm, chiêu 90 thục luyện (5 chiêu 90 + 1110 cộng điểm, có
   tiền đề); nhân vật lưu trước đó về cấp 1. May mắn mặc định 5. Chi tiết `docs/formulas/level.md`, `skills.md`.

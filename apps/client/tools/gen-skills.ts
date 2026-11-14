@@ -545,6 +545,9 @@ async function runJobs(jobs: Map<string, () => Promise<void>>, label: string): P
 }
 
 const t0 = Date.now();
+// Control states are not learned skills, so their art must be collected explicitly.
+const stunFx = stateFx(50);
+if (!stunFx) throw new Error('Missing Status50 stun effect');
 console.log(`skills: ${skills.size}, missiles: ${missiles.size}, fx sheets: ${fxJobs.size} new / ${Object.keys(fxMeta).length} cached, icons: ${iconJobs.size} new`);
 await runJobs(fxJobs, 'fx');
 await runJobs(iconJobs, 'icons');
@@ -645,6 +648,7 @@ fs.writeFileSync(FX_TS, `${HEADER}.
 // Skill effect sheets in public/assets/<key>.webp (+ .1.webp … when paged):
 // [cell w, cell h, cell left from anchor, cell top from anchor, frames/dir, dirs, cols, additive, sprite ms/frame, pages]
 export const SKILL_FX: Record<string, readonly number[]> = ${JSON.stringify(usedFx)};
+export const CONTROL_FX = ${JSON.stringify({ stun: stunFx })} as const;
 `);
 
 // ======================= report =======================

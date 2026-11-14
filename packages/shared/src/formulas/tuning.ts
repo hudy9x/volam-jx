@@ -87,28 +87,8 @@ export const PVP = { damageScale: 0.5 } as const;
 /** Hút sinh lực / nội lực (formulas/damage.ts lifeSteal): cap of skill + item % (CHỌN, no data). */
 export const STEAL = { maxPct: 50 } as const;
 
-/** Control effects (choáng, chậm, độc, co giật). Docs: docs/formulas/effects.md. */
-export const EFFECTS = {
-  /** Cap of freezetimereduce_p (DATA gamesetting.ini [ServerConfig] FreezeTimeReduceMax=77). */
-  freezeReduceMax: 77,
-  /** Caps of stun / poison time reduction (SRC absolute 95 — CHỌN, no data). */
-  stunReduceMax: 95,
-  poisonReduceMax: 95,
-  /** Slow time when colddamage_v has no P2 (every Nga My / Thúy Yên / Thiếu Lâm cold skill): not in the data — CHỌN 1.5 s. */
-  defaultSlowFrames: 27,
-  /** Speed while slowed: the engine runs a slowed character every other frame (INFERRED, not verifiable) → 50 %. */
-  slowFactor: 0.5,
-  /** Highest poison damage per tick on a player / a monster after stacking (DATA [ServerConfig] PlayerPoisonDamageMax / NpcPoisonDamageMax). */
-  playerPoisonTickMax: 600,
-  npcPoisonTickMax: 123456,
-  /** Poison period when P3 is missing (DATA: almost every skill uses 10). */
-  defaultPoisonPeriod: 10,
-  /** Flinch length of players (DATA basevalue.ini HurtFrame=12) and their base hit recovery % (SRC 6). */
-  playerHurtFrames: 12,
-  playerHitRecover: 6,
-  /** Monsters without HurtFrame in npcs.txt (DATA: most common 10). */
-  monsterHurtFrames: 10,
-} as const;
+// Effect settings live with their formulas; keep the public tuning entry point stable.
+export { EFFECTS } from './effects/tuning.js';
 
 /** USER 2026-11-14: speed phases with run baseline = 100% (100% = 10 points) and attack baseline = 10%.
  * Percent is TOTAL speed (run: 100 = baseline, 120 = +20%; attack: 10 = baseline). Tune all platforms here.

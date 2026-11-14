@@ -70,9 +70,11 @@ export function applyHitEffects(w: World, attacker: Sim, target: Sim, fx: HitEff
     e.poisonBy = attacker.id;
     if (fresh) w.events.push({ t: 'ctl', id: target.id, kind: 'poison', ms: fx.poison.totalMs });
   }
-  if (fx.hurtMs > 0 && w.now >= target.castUntil) {
+  if (fx.hurtMs > 0 && e.stunUntil <= w.now) {
+    w.engine.interrupt(target.id);
     target.castUntil = w.now + fx.hurtMs;
     target.path = [];
+    target.pending = null;
     playOnce(w, target, 'hurt', fx.hurtMs / 1000);
   }
   syncEffects(w, target);

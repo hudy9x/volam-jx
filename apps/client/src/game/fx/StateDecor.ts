@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { JX_TICK_MS, getSkill, stateFxOf } from '@vltk/shared';
-import { SKILL_FX } from './fx.gen';
+import { CONTROL_FX, SKILL_FX } from './fx.gen';
+import { CONTROL_VISUALS } from './controlEffects';
 import { fxReady, showFx } from './SkillFx';
 
 interface Shown { start: number; fx?: Phaser.GameObjects.Image }
@@ -20,12 +21,33 @@ const FOOT_LIFT = 10;
  */
 export class StateDecor {
   private shown = new Map<number, Shown>();
+  private stun: Shown | null = null;
 
-  constructor(private scene: Phaser.Scene) {}
+  constructor(private scene: Phaser.Scene) {
+    // Load before a short stun starts, rather than spending its duration waiting for the sheet.
+    fxReady(scene, CONTROL_FX.stun.key);
+  }
 
   /** `ids` = state skill ids; (x, y) feet; `height` of the body. */
-  update(ids: Iterable<number>, x: number, y: number, height: number): void {
+  update(ids: Iterable<number>, x: number, y: number, height: number, ctl = 0): void {
     const now = this.scene.time.now;
+    if (ctl & 1) {
+      this.stun ??= { start: now };
+      const key = CONTROL_FX.stun.key;
+      if (fxReady(this.scene, key)) {
+        const m = SKILL_FX[key];
+        const ms = m[8] >= 20 ? m[8] : JX_TICK_MS;
+        const col = Math.floor((now - this.stun.start) / ms) % m[4];
+        this.stun.fx ??= this.scene.add.image(0, 0, '__DEFAULT').setOrigin(0, 0);
+        showFx(this.stun.fx, key, 0, col, x, y);
+        // SPR offsets refer to a human's feet; centre the glow above any actor's actual head.
+        this.stun.fx.setPosition(Math.round(x - m[0] / 2), Math.round(y - height - CONTROL_VISUALS.stunHeadGap - m[1] / 2))
+          .setDepth(y + CONTROL_VISUALS.stunDepth).setVisible(true);
+      }
+    } else {
+      this.stun?.fx?.destroy();
+      this.stun = null;
+    }
     const list = [...ids];
     for (const [id, v] of this.shown) {
       if (list.includes(id)) continue;
@@ -51,6 +73,8 @@ export class StateDecor {
   }
 
   destroy(): void {
+    this.stun?.fx?.destroy();
+    this.stun = null;
     for (const v of this.shown.values()) v.fx?.destroy();
     this.shown.clear();
   }

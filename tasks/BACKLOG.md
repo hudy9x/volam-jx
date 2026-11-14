@@ -288,5 +288,18 @@ Ghi chú GP8 — 2026-11-14 · Điều tra die (chưa sửa): HEAD8a8b6ff. Serve
 
 - [x] GP8 hiển thị die/xác: commit riêng theo USER2026-11-15, nền206b4be; typecheck/harness4loại/diff-check đạt, không push.
 
-
 - [x] Tooltip bị dialog che (2026-11-15): USER duyệt sửa; Dialogs.front đánh lại thứ tự từ20, tooltip1000. Typecheck/build/harness10.000lần chuyển đạt; chưa kiểm hình browser/native.
+
+### Điều tra biểu hiện khống chế — 2026-11-15 (HU1)
+
+- 🟡 Đã tìm đường thiếu tint/khóa frame client và điều kiện hurt chặn ngắt chiêu server; chậm/độc/giảm thời gian đã có logic. Chưa sửa, chưa kiểm runtime. Chi tiết CURRENT/HISTORY cùng ngày.
+
+### Sửa biểu hiện khống chế — 2026-11-15 (HU1)
+
+- ✅ Băng vàng/FPS chậm, độc xanh, choáng giữ frame/hướng, hurt ngắt primarycast chưaphát; giữ côngthức. test:effects16 + speed5/typecheck/build và ChromiumPhaser+sheetgốc4loại đạt. Chưa native/luồngWS trận thật, chưacommit theoUSER. Chi tiết CURRENT/HISTORY cùngngày.
+
+- ✅ HU1 follow-up2026-11-15: vòngsáng Status50 thay chữChoáng, preload và nhịp chạy khi băng giảmthêm50% phầnvẽ. 22ca/Chromium4loại đạt; thay tốc thật/thời gian choáng chờUSER, chưacommit.
+
+- ✅ HU1 USER2026-11-15 thử choángthật×2 bằng tuning;18caeffects/typecheck đạt. 🟡 Băng tốc/FPS cốđịnh đang thảo luận số, chưatriểnkhai.
+
+- ✅ HU1 USER2026-11-15: tách từng côngthức và tuning hiệuứng, gom visualconfig, thêm hướngdẫn bắtbuộc AI đọc docs/formulas/effects.md; giữ API/hànhvi qua96cađốichiếu; effects18/speed5/typecheck/build đạt. Commit theoUSER, khôngpush; băngcốđịnh chưa triểnkhai.

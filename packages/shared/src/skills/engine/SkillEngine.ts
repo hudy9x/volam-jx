@@ -56,7 +56,7 @@ interface Missile {
   done: boolean;
 }
 
-interface Timer { at: number; owner: string; run: () => void }
+interface Timer { at: number; owner: string; run: () => void; casting?: boolean; cancelled?: boolean }
 interface Aura { s: SkillDef; level: number; next: number }
 
 /** Level a combatant uses a skill at: learned + what its worn pieces add (only when learned above 0; common skills work at level 0+). */
@@ -176,7 +176,7 @@ export class SkillEngine {
     this.after(pose / JX_TICK_MS, c.id, () => {
       const owner = this.port.get(c.id);
       if (owner && !owner.dead) this.launch(c.id, s, level, from, destination, targetId, 0, 0, id);
-    });
+    }, true);
     return { anim, ms: pose };
   }
 
@@ -213,8 +213,15 @@ export class SkillEngine {
 
   /** Forget everything an owner still has scheduled (death, leaving the map). */
   cancel(ownerId: string): void {
+    for (const t of this.timers) if (t.owner === ownerId) t.cancelled = true;
     this.timers = this.timers.filter(t => t.owner !== ownerId);
     this.auras.delete(ownerId);
+  }
+
+  /** Interrupt unlaunched skill work; launched missiles and the held aura survive a flinch. */
+  interrupt(ownerId: string): void {
+    for (const t of this.timers) if (t.owner === ownerId && t.casting) t.cancelled = true;
+    this.timers = this.timers.filter(t => t.owner !== ownerId || !t.casting);
   }
 
   clear(): void {
@@ -387,9 +394,14 @@ export class SkillEngine {
     if (this.timers.length) {
       const due = this.timers.filter(t => t.at <= now);
       if (due.length) {
-        this.timers = this.timers.filter(t => t.at > now);
         due.sort((a, b) => a.at - b.at);
-        for (const t of due) t.run();
+        for (const t of due) {
+          // A preceding hit can interrupt a cast due in this same world tick.
+          if (t.cancelled) continue;
+          t.cancelled = true;
+          t.run();
+        }
+        this.timers = this.timers.filter(t => !t.cancelled);
       }
     }
     for (const m of this.missiles) this.step(m, now);
@@ -607,8 +619,8 @@ export class SkillEngine {
 
   // ======================= timers =======================
 
-  private after(ticks: number, owner: string, run: () => void): void {
+  private after(ticks: number, owner: string, run: () => void, casting = false): void {
     if (ticks <= 0) { run(); return; }
-    this.timers.push({ at: this.port.now() + ticks * JX_TICK_MS, owner, run });
+    this.timers.push({ at: this.port.now() + ticks * JX_TICK_MS, owner, run, casting });
   }
 }

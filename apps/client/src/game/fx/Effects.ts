@@ -8,9 +8,9 @@ import { fxSound } from '../audio/fxSounds';
 const STATE_COLORS = { buff: '#7dffa0', debuff: '#d99cff' } as const;
 
 /** Turns server fx events into skill effects (SkillFx) and floating numbers. */
-/** Control effect names / colours of the floating text (choáng gold, chậm ice blue, độc green). */
-const CTL_TEXT = { stun: 'Choáng', slow: 'Chậm', poison: 'Trúng độc' } as const;
-const CTL_COLOR = { stun: '#ffd24a', slow: '#8fd8ff', poison: '#8fe34a' } as const;
+/** Cold / poison floating labels; stun is drawn as a persistent head glow. */
+const CTL_TEXT = { slow: 'Chậm', poison: 'Trúng độc' } as const;
+const CTL_COLOR = { slow: '#8fd8ff', poison: '#8fe34a' } as const;
 
 export class Effects {
   readonly skills: SkillFx;
@@ -43,6 +43,7 @@ export class Effects {
           break;
         }
         case 'ctl': { // choáng / chậm / độc started (formulas/effects.ts)
+          if (e.kind === 'stun') break; // Actor.ctl drives the persistent glow above the head.
           const view = this.views.get(e.id);
           if (view) this.floatText(view, CTL_TEXT[e.kind], CTL_COLOR[e.kind], 13, -36);
           break;

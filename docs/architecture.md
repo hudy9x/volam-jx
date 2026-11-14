@@ -22,8 +22,8 @@ giống khuôn `skills/factions/<phái>/{skills.gen.ts, tuning.ts}`.
 index.ts          xuất mọi chủ đề (mỗi thư mục có index.ts riêng)
 protocol.ts       lệnh C2S / S2C, FxEvent, kiểu tin nhắn
 geometry.ts       khoảng cách isometric, hướng, bước đi, mulberry32
-formulas/         công thức trò chơi (docs/formulas/): tuning.ts (MỌI hằng số) · attrs.ts (túi thuộc tính) · character.ts (chỉ số)
-                  · level.ts (exp, chia exp) · monster.ts (đường cong quái) · combat.ts (CombatStats) · damage.ts · effects.ts · speed.ts · drops.ts
+formulas/         công thức trò chơi (docs/formulas/): tuning.ts (điểm xuất hằng số; EFFECTS ở effects/tuning.ts) · attrs.ts (túi thuộc tính) · character.ts (chỉ số)
+                  · level.ts (exp, chia exp) · monster.ts (đường cong quái) · combat.ts (CombatStats) · damage.ts · effects.ts (điểm gọi) · effects/ (công thức từng hiệu ứng + tuning) · speed.ts · drops.ts
 drops/            drops.gen.ts (bảng rơi gốc, gen:drops)
 characters/       factions.ts (11 phái, hệ) · player.gen.ts (bảng nhân vật gốc, gen:player) · progression.ts (hệ, cấp, điểm, vào phái)
                   · player.ts (PLAYER_SPEED) · look.ts (lookOf: trang bị → paper-doll)
@@ -85,7 +85,7 @@ game/             Phaser
   ports.ts        HỢP ĐỒNG với giao diện: WorldUi (cảnh cần gì từ giao diện), WorldActions (lệnh giao diện gửi), WindowId
   WorldScene.ts   bản đồ đang chơi: actor, hiệu ứng, chuột / phím → lệnh server, cấp dữ liệu cho WorldUi
   actors/         ActorView (vẽ + tên + máu trên đầu) · PaperDoll · sheets (nạp texture) · npcs (NPC thành actor)
-  fx/             Effects (fx từ server, số sát thương) · SkillFx · StateDecor (hình trạng thái trên người) · fx.gen.ts
+  fx/             Effects (fx từ server, số sát thương) · SkillFx · StateDecor (hình trạng thái trên người) · controlEffects (cấu hình/hàm thuần hình khống chế) · fx.gen.ts
   map/            MapView (bản đồ gốc theo vùng)
   audio/          Audio · fxSounds · sounds.gen.ts
 ui/               giao diện HTML (bố cục desktop)
