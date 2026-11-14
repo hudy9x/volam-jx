@@ -16,8 +16,20 @@
 - Người chơi dùng chiêu tấn công trên thanh phím; bot tự xếp chiêu đã học theo ReqLevel, vũ khí và trạng thái cưỡi. Chiêu có `noHorse` bị loại khi cưỡi; bot xếp lại khi lên/xuống ngựa.
 - Xoay chiêu áp dụng cả trên boss. Khi chiêu chính chưa sẵn sàng, tìm chiêu tấn công khác dùng được trước khi đánh thường. Không đưa đánh thường vào vòng xoay khi có chiêu tấn công thật.
 - Chiêu 90/120/150 vẫn cần đủ điều kiện cấp và đã học. Không có tầng chiêu 70 riêng trong dữ liệu hiện tại. Template bot có tùy chọn tự học đủ điều kiện; chạy kịch bản không tự reset tiến trình tài khoản cũ.
-- Mặc định mới không bỏ boss; ưu tiên **Hoàng Kim (2) → Boss Xanh (1) → quái thường (0)**. Sửa việc giữ mục tiêu thường khi có boss ưu tiên cao hơn. Vẫn có lựa chọn gần nhất và bỏ qua boss.
+- Có3chế độ dùng chung cho Auto và bot: **Hoàng Kim (2) → Boss Xanh (1) → quái thường (0)** (`boss`, mặc định); **Boss Xanh → Quái thường** (`blue`, bỏ Hoàng Kim); **Gần nhất** (`near`). Bật Bỏ qua boss vẫn loại mọi boss, chỉ đánh quái thường.
+- USER2026-11-14: khi chọn mục tiêu mới ở2chế độ boss, lấy **bậc cao nhất còn hợp lệ, rồi con gần nhất trong bậc đó** theo khoảng cách isometric. Giữ mục tiêu đó đến chết/mất/không còn hợp lệ; không đổi sang boss cùng bậc gần hơn hoặc bậc khác vừa xuất hiện giữa trận. Sau khi hạ nó, chọn lại từ đầu theo cùng quy tắc. Quyết định này thay hành vi trước đây có thể nâng bậc/ngắt mục tiêu đang đánh. Chế độ Gần nhất giữ cơ chế cũ: có thể đổi sang con gần hơn hẳn.
+- Mục tiêu tập trung (`focus`) tách khỏi lệnh đánh gần nhất (`target`): buff/debuff tạm thay lệnh server nhưng không làm quên mục tiêu; xong bùa khóa lại đúng con cũ. Không gửi lệnh nhặt giữa lúc có mục tiêu sống; nhặt gần giữa các lượt hạ mục tiêu hoặc khi hết mục tiêu. Thuốc/hồi sinh/về thành khẩn cấp, điều khiển tay và đổi cấu hình vẫn hoạt động.
 - Cài đặt cũ đã lưu không bị mặc định mới ghi đè. Muốn đánh boss, tắt **Bỏ qua boss** và chọn ưu tiên boss. Mục tiêu phải cùng bản đồ, còn sống, trong vùng tìm kiếm và không đang bị loại tạm vì kẹt/không gây sát thương.
+
+## Điều tra bỏ boss giữa trận và kiểm chứng (2026-11-14)
+
+Đã tái hiện2ca thất bại trên mã trước sửa: (1) boss cùng bậc khác gần hơn hẳn khiến đổi mục tiêu; (2) tiền rơi gần làm gửi pickup và xóa mục tiêu đang đánh. Server `world/systems/drops.ts` khi đi nhặt sẽ xóa `sim.pending`, nên nhân vật rời đòn đánh để chạy nhặt. Buff/curse cũng từng xóa trường giữ mục tiêu, lần chọn sau có thể đổi boss.
+
+Bản sửa `AutoPlay` tách focus/lệnh đánh, trì hoãn loot giữa các lượt hạ mục tiêu, giữ focus qua buff/curse và đặt lại đồng hồ chống kẹt khi dùng bùa. Vẫn có ngoại lệ an toàn: mục tiêu bị loại sau đứng không tiến được1,5giây hoặc ở tầm mà không mất máu6giây, bỏ tạm10giây; phạm vi `autoSeek:false` vẫn giới hạn theo bán kính. Đây là suy luận chống kẹt, không phải phát hiện đường đi/kháng hoàn hảo. Không khẳng định đã chẩn đoán dữ liệu phiên chơi cụ thể của USER.
+
+`test:auto`12ca gồm chọn bậc/gần nhất/giữ mục tiêu/chuỗi2Hoàng Kim→2Xanh→thường, blue bỏ vàng, buff/debuff, loot giữa trận, đổi cấu hình, chống kẹt và chuẩn hóa. Hai ca hồi quy được chạy fail trước sửa rồi pass sau sửa. `test:bots`10 + `test:market`13, typecheck/build đạt.
+
+WS thật trên2568, DB riêng `/tmp/jx-auto-focus/db.json`: runner Auto đánh mục tiêu kiểm soát, boss sống mất máu trong8giây dù đưa boss khác cùng bậc tới gần hơn và thêm tiền rơi cạnh nhân vật; không đổi khóa/không pickup giữa trận. Sau khi giảm HP các mục tiêu thử về1 để đòn engine kết liễu, quan sát đúng thứ tự Hoàng Kim1→Hoàng Kim2→Xanh→thường. Đây là kiểm luồng lệnh/engine, không đo cân bằng boss thật. Chromium1440/390 kiểm lựa chọn blue ở tool và Auto, lưu kịch bản, lưu DB nhân vật/reload vẫn blue; đã xem ảnh. Không sửa spawn/config/DB game thật; chưa native/mobile thật. Script/ảnh tại `/tmp/jx-auto-focus/`.
 
 ## Nhặt đồ và bán cho NPC
 
@@ -43,7 +55,7 @@
 
 ## Kiểm chứng và giới hạn
 
-- `npm run test:auto`: 4 ca chọn chiêu/boss, tiền khi túi đầy, bán xanh bảo vệ và chờ trong thành.
+- `npm run test:auto`: 12ca; xem phần kiểm chứng bổ sung ở trên.
 - `npm run test:market`: có ca tách cache từng nhân vật, server thay cache cũ và localStorage lỗi; các ca còn lại thuộc tài liệu Rao bán.
 - Typecheck/build và `npm run test:bots` đạt. WebSocket thật xác nhận lưu DB và khôi phục khi vào lại. Chromium desktop1440 và viewport390px xác nhận Z chỉ mở, nút chạy/dừng, reload tiếp tục và quick pause; đã xem ảnh.
 - Kiểm thử riêng cổng2568/5174, DB `/tmp/jx-market-auto/db.json`; không tác động game người dùng. Chưa kiểm wrapper native/điện thoại thật hoặc cân bằng kỹ năng/boss toàn bộ môn phái.

@@ -101,7 +101,7 @@ const POTION_SLACK_MS = 300;
 const POTION_RUSH_GAP_MS = 500;
 const STAT_NAMES: Record<PotionStat, string> = { hp: 'Sinh lực', mp: 'Nội lực' };
 const BASIC_ATTACK = 1;
-/** Target choice (jx-web-main state-and-save-01.js iD): keep the current one unless another is closer than half − 40. */
+/** Nearest-mode target choice (jx-web-main state-and-save-01.js iD): keep the current one unless another is closer than half − 40. */
 const SWITCH_FACTOR = 0.5;
 const SWITCH_MARGIN = 40;
 /**
@@ -142,11 +142,11 @@ const DUMMY_SPRITES = new Set(Object.values(MONSTERS).filter(d => d.dummy).map(d
  * Tự động đánh, after jx-web-main's auto-play (docs/auto-play.md):
  *  - drinks potions under the chosen % (and Nội lực under twice the skill's cost), buys them in town when the bag has none;
  *  - recasts the bùa lợi on keys 1–9, puts the bùa hại there on bosses / crowds;
- *  - picks the nearest monster (bosses first when asked), keeps it unless another is much closer; walks to far ones, locks near
+ *  - picks the highest-ranked nearest monster, finishes it in boss modes (nearest mode may switch); walks to far ones, locks near
  *    ones with an approach distance (close combat right up to it, ranged skills a % of their range — approachDistance);
  *  - leaves a target it cannot reach (not moving) or does not hurt (Sinh lực not dropping), and steps off a stuck spot;
- *    with rotation, cycles the attack skills of keys 1–9 (only the main skill on bosses);
- *  - picks up what it may take (quality filter), sells white pieces it cannot wear;
+ *    with rotation, cycles the attack skills of keys 1–9 (including bosses);
+ *  - picks up between kills what it may take (quality filter), sells white pieces it cannot wear;
  *  - looks for monsters further away when none is left (autoSeek), else walks back;
  *  - changes bãi luyện công with the level (autoMap; the server picks the map), revives and goes back after dying.
  * Runs like a player's hand — on the client (phím Z, game/WorldScene.ts) and as the bots' brain (apps/server/src/dev/bots/,
@@ -155,6 +155,10 @@ const DUMMY_SPRITES = new Set(Object.values(MONSTERS).filter(d => d.dummy).map(d
 export class AutoPlay {
   private running = false;
   private anchor: Point | null = null;
+  /** Selected enemy, independent of the last cast/lock interrupted by buffs or curses. */
+  private focus: string | null = null;
+  private focusPriority: Settings['autoPriority'] | null = null;
+  private lootAfterKill = false;
   private target: string | null = null;
   private lockedAt = 0;
   private skillUsed = 0;
@@ -194,6 +198,8 @@ export class AutoPlay {
     // Started before the own character is known (new map): the spot is taken on the first update.
     this.anchor = self ? { x: self.x, y: self.y } : null;
     this.target = null;
+    this.focus = null;
+    this.lootAfterKill = false;
     this.buffTried.clear();
     this.pickTried.clear();
     this.bans.clear();
@@ -207,6 +213,8 @@ export class AutoPlay {
     this.running = false;
     this.anchor = null;
     this.target = null;
+    this.focus = null;
+    this.lootAfterKill = false;
     this.picking = null;
   }
 
@@ -214,6 +222,8 @@ export class AutoPlay {
   pause(now: number): void {
     this.pausedUntil = now + MANUAL_PAUSE_MS;
     this.target = null;
+    this.focus = null;
+    this.lootAfterKill = false;
   }
 
   update(now: number, opts: Settings): void {
@@ -244,15 +254,18 @@ export class AutoPlay {
     if (now < this.pausedUntil) return;
     if ((opts.autoJunk || opts.autoSellBlue) && now - this.lastJunk > JUNK_GAP_MS) { this.lastJunk = now; this.sellJunk(opts); }
 
-    if (opts.autoBuff && this.buff(now, self)) return;
-
+    const previous = this.focus ? this.find(this.focus) : undefined;
+    if (this.focus && (!previous || previous.state.hp <= 0)) this.lootAfterKill = true;
     const radius = opts.autoSeek ? Infinity : opts.autoRadius;
-    let target = this.pickTarget(now, self, radius, opts);
-    if (opts.autoPickup || opts.autoMoney) {
+    const target = this.pickTarget(now, self, radius, opts);
+    // Never replace a live combat order with a walk-to-loot order. Loot between kills (or while idle).
+    if ((opts.autoPickup || opts.autoMoney) && (!target || this.lootAfterKill)) {
       const near = target ? LOOT_NEAR : opts.autoSeek ? 600 : opts.autoRadius;
       if (this.pick(now, self, near, !!target, opts)) { this.target = null; return; }
     }
-    if (!target && opts.autoSeek) target = this.pickTarget(now, self, Infinity, opts);
+    this.lootAfterKill = false;
+    this.focus = target?.id ?? null;
+    if (opts.autoBuff && this.buff(now, self)) return;
     if (target) {
       if (opts.autoSeek) this.anchor = { x: target.x, y: target.y };
       if (this.stuck(now, self, target, opts)) return;
@@ -418,6 +431,7 @@ export class AutoPlay {
     const futile = near && now - since > NO_DAMAGE_MS;
     if (!stalled && !futile) return false;
     this.ban(now, target.id);
+    this.focus = null;
     this.hurt = { id: '', hp: 0, at: now };
     this.target = null;
     if (stalled) {
@@ -453,6 +467,7 @@ export class AutoPlay {
       this.buffTried.set(s.id, now);
       this.lastBuff = now;
       this.target = null;
+      this.hurt.at = now; this.moved.at = now;
       this.host.cast(s.id, undefined, self.x, self.y, false);
       return true;
     }
@@ -478,6 +493,7 @@ export class AutoPlay {
       this.curseTried.set(k, now);
       if (this.curseTried.size > 200) this.curseTried.clear();
       this.host.cast(s.id, target, target.x, target.y, false);
+      this.hurt.at = now; this.moved.at = now;
       this.target = null;
       return true;
     }
@@ -494,31 +510,27 @@ export class AutoPlay {
   private candidate(v: AutoActor, opts: Settings, now: number): boolean {
     if (v.isSelf || v.state.kind !== 'monster' || v.state.hp <= 0 || DUMMY_SPRITES.has(v.state.sprite)) return false;
     if (opts.autoSkipBoss && v.state.boss) return false;
+    if (opts.autoPriority === 'blue' && Number(v.state.boss) >= 2) return false;
     return (this.bans.get(v.id) ?? 0) <= now;
   }
 
-  /**
-   * The current target while it lives (and is not left as stuck), unless another one is closer than half its distance − 40;
-   * else the nearest within `radius` of the spot — bosses first with autoPriority 'boss' (jx-web-main iD / c8).
-   */
+  /** Boss modes finish the selected enemy; nearest mode retains its historical distance hysteresis. */
   private pickTarget(now: number, self: AutoActor, radius: number, opts: Settings): AutoActor | undefined {
+    if (this.focusPriority !== opts.autoPriority) { this.focus = null; this.focusPriority = opts.autoPriority; }
     const anchor = this.anchor!;
-    let best: AutoActor | undefined, bestD = Infinity, bestBoss = 0;
+    let cur = this.focus ? this.find(this.focus) : undefined;
+    if (cur && !this.candidate(cur, opts, now)) cur = undefined;
+    if (cur && radius !== Infinity && isoDistance(anchor.x, anchor.y, cur.x, cur.y) > radius * 1.5) cur = undefined;
+    if (cur && opts.autoPriority !== 'near') return cur;
+    let best: AutoActor | undefined, bestD = Infinity, bestRank = -1;
     for (const v of this.host.actors()) {
       if (!this.candidate(v, opts, now)) continue;
       if (radius !== Infinity && isoDistance(anchor.x, anchor.y, v.x, v.y) > radius) continue;
       const d = isoDistance(self.x, self.y, v.x, v.y);
-      const boss = opts.autoPriority === 'boss' ? Number(v.state.boss) : 0;
-      if ((boss > bestBoss) || (boss === bestBoss && d < bestD)) { best = v; bestD = d; bestBoss = boss; }
+      const rank = opts.autoPriority === 'near' ? 0 : Number(v.state.boss);
+      if (rank > bestRank || rank === bestRank && d < bestD) { best = v; bestD = d; bestRank = rank; }
     }
-    let cur = this.target ? this.find(this.target) : undefined;
-    if (cur && !this.candidate(cur, opts, now)) cur = undefined;
-    if (cur && radius !== Infinity && isoDistance(anchor.x, anchor.y, cur.x, cur.y) > radius * 1.5) cur = undefined;
-    if (cur) {
-      const dCur = isoDistance(self.x, self.y, cur.x, cur.y);
-      const curRank = opts.autoPriority === 'boss' ? Number(cur.state.boss) : 0;
-      if (!best || best.id === cur.id || bestBoss < curRank || (bestBoss === curRank && bestD >= dCur * SWITCH_FACTOR - SWITCH_MARGIN)) return cur;
-    }
+    if (cur && (!best || best.id === cur.id || bestD >= isoDistance(self.x, self.y, cur.x, cur.y) * SWITCH_FACTOR - SWITCH_MARGIN)) return cur;
     return best;
   }
 

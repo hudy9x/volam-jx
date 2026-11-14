@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { AutoPlay, DEFAULT_AUTO, getSkill, skillCategory, isCastable, ITEMS, QUALITY, type AutoHost, type AutoActor, type Item } from '../packages/shared/src/index.js';
+import { AutoPlay, DEFAULT_AUTO, normalizeAuto, normalizeBotScenario, getSkill, skillCategory, isCastable, ITEMS, QUALITY, type AutoHost, type AutoActor, type Item } from '../packages/shared/src/index.js';
 
 function rig() {
   const actor = (id: string, boss: number, x: number): AutoActor => ({ id, x, y: 0, isSelf: false,
@@ -17,22 +17,24 @@ function rig() {
     wearable: () => false, drops: () => [{id: 'gear', def: Object.values(ITEMS).find(d => d.kind === 'melee')!.id, q: QUALITY.magic, owner: '', x: 1, y: 0}, {id: 'money', def: 'money', q: 0, owner: '', x: 5, y: 0}], pickup: (id: string) => pickups.push(id), train() {}, goTown() {}, respawn() {}, notice() {}, stop() {} } satisfies AutoHost;
   const auto = new AutoPlay(host);
   const opts = { ...DEFAULT_AUTO, autoMap: false, autoBuff: false, autoCurse: false, autoHp: 0, autoMp: 0, autoPickup: false, autoMoney: false, autoJunk: false };
-  return { auto, opts, actors, casts, pickups, sold, attack, slots, setBag: (b: (Item|null)[]) => { bag = b; } };
+  return { auto, opts, actors, casts, pickups, sold, attack, slots, host, self, setBag: (b: (Item|null)[]) => { bag = b; } };
 }
-test('priority upgrades current normal target to blue and golden boss; skip still works', () => {
+test('priority finishes the current target, then picks the highest tier; skip still works', () => {
   const r = rig(); const gold = r.actors.pop()!, blue = r.actors.pop()!;
   r.slots.push(r.attack); r.auto.start(); r.auto.update(1000, r.opts);
-  r.actors.push(blue); r.auto.update(4000, r.opts);
+  r.actors.push(blue); r.auto.update(2000, r.opts);
+  assert.equal((r.auto as unknown as { target: string }).target, 'normal');
+  r.actors[0].state.hp = 0; r.auto.update(4000, r.opts);
   // Observe cast target through host behavior separately by replacing actor hp: the internal target is what subsequent locks use.
   assert.equal((r.auto as unknown as { target: string }).target, 'blue');
-  r.actors.push(gold); r.auto.update(7000, r.opts);
+  r.actors.push(gold); blue.state.hp = 0; r.auto.update(7000, r.opts);
   assert.equal((r.auto as unknown as { target: string }).target, 'gold');
-  r.auto.update(10000, { ...r.opts, autoSkipBoss: true });
+  r.actors[0].state.hp = 100; r.auto.update(10000, { ...r.opts, autoSkipBoss: true });
   assert.equal((r.auto as unknown as { target: string }).target, 'normal');
   assert.ok(r.casts.every(id => id === r.attack));
 });
 test('money pickup independent of equipment pickup and full inventory', () => {
-  const r = rig(); r.setBag(Array.from({length: 300}, (_, i) => ({uid: String(i), def: 'potion-2-5'})));
+  const r = rig(); r.actors.forEach(a => { a.state.hp = 0; }); r.setBag(Array.from({length: 300}, (_, i) => ({uid: String(i), def: 'potion-2-5'})));
   r.auto.start(); r.auto.update(1000, {...r.opts, autoPickup: true, autoMoney: true});
   assert.deepEqual(r.pickups, ['money']);
 });
@@ -49,4 +51,67 @@ test('Auto waits in town instead of clearing enabled state when map travel is di
   host.safe = () => true; host.stop = () => { stopped = true; };
   r.auto.start(); r.auto.update(1000, {...r.opts, autoMap:false});
   assert.equal(stopped,false);
+});
+
+test('boss focus is retained when another boss of the same tier moves closer', () => {
+  const r = rig(); r.actors[2].x = 600; r.auto.start(); r.auto.update(1000, r.opts);
+  const other = {...r.actors[2], id:'other-gold', x:10, state:{...r.actors[2].state}}; r.actors.push(other);
+  r.auto.update(1250, r.opts);
+  assert.equal((r.auto as unknown as {target:string}).target, 'gold');
+});
+test('loot cannot interrupt a living boss lock', () => {
+  const r = rig(); r.auto.start(); r.auto.update(1000, r.opts);
+  r.auto.update(1250, {...r.opts, autoMoney:true});
+  assert.deepEqual(r.pickups, []);
+  assert.equal((r.auto as unknown as {target:string}).target, 'gold');
+});
+test('highest tier then nearest within tier; finish each gold, then each blue, then normal', () => {
+  const r=rig(), log:string[]=[];r.host.cast=(_skill,target)=>{if(target)log.push(target.id);};
+  const gold=r.actors[2],blue=r.actors[1];
+  r.actors.push({...gold,id:'far-gold',x:500,state:{...gold.state}}, {...blue,id:'near-blue',x:10,state:{...blue.state}});
+  r.auto.start();r.auto.update(1000,r.opts);assert.equal(log.at(-1),'gold');
+  // Movement makes another gold nearer, but cannot steal the active focus.
+  r.self.x=490;gold.state.hp=99;r.auto.update(1250,r.opts);assert.equal((r.auto as unknown as {focus:string}).focus,'gold');
+  gold.state.hp=0;r.auto.update(1500,r.opts);assert.equal(log.at(-1),'far-gold');
+  r.actors.find(a=>a.id==='far-gold')!.state.hp=0;r.auto.update(1750,r.opts);assert.equal(log.at(-1),'blue');
+  blue.state.hp=0;r.auto.update(2000,r.opts);assert.equal(log.at(-1),'near-blue');
+  r.actors.find(a=>a.id==='near-blue')!.state.hp=0;r.auto.update(2250,r.opts);assert.equal(log.at(-1),'normal');
+});
+test('blue priority excludes gold, chooses closest blue and finishes it before normal', () => {
+  const r=rig();const opts={...r.opts,autoPriority:'blue' as const};r.actors[2].x=1;
+  const blue=r.actors[1];r.actors.push({...blue,id:'other-blue',x:600,state:{...blue.state}});
+  r.auto.start();r.auto.update(1000,opts);assert.equal((r.auto as unknown as {focus:string}).focus,'blue');
+  blue.state.hp=0;r.auto.update(1250,opts);assert.equal((r.auto as unknown as {focus:string}).focus,'other-blue');
+  r.actors.find(a=>a.id==='other-blue')!.state.hp=0;r.auto.update(1500,opts);assert.equal((r.auto as unknown as {focus:string}).focus,'normal');
+  r.actors[0].state.hp=0;r.auto.update(1750,opts);assert.equal((r.auto as unknown as {focus:string|null}).focus,null);
+});
+test('buff and curse replace the server cast but preserve selected enemy and resume that enemy', () => {
+  for(const category of ['buff','debuff'] as const){
+    const r=rig();const skill=Array.from({length:1500},(_,id)=>getSkill(id)).find(s=>s&&!s.aura&&isCastable(s)&&skillCategory(s)===category)!;
+    assert.ok(skill);r.host.usable=()=>true;r.host.ready=()=>true;
+    r.actors[2].x=300;const gold=r.actors[2];r.auto.start();r.auto.update(1000,r.opts);
+    r.slots.push(skill.id);r.actors.push({...gold,id:'closer-gold',x:1,state:{...gold.state}});
+    const opts={...r.opts,autoBuff:category==='buff',autoCurse:category==='debuff'};
+    r.auto.update(1250,opts);assert.equal((r.auto as unknown as {focus:string}).focus,'gold');
+    r.auto.update(1500,opts);assert.equal((r.auto as unknown as {target:string}).target,'gold');
+  }
+});
+test('pickup after kill completes before next lock; cannot steal focus in the next fight', () => {
+  const r=rig();let ground=[{id:'money',def:'money',q:0,owner:'',x:5,y:0}];r.host.drops=()=>ground;
+  const opts={...r.opts,autoMoney:true};r.auto.start();r.auto.update(1000,opts);assert.deepEqual(r.pickups,[]);
+  r.actors[2].state.hp=0;r.auto.update(1250,opts);assert.deepEqual(r.pickups,['money']);
+  ground=[];r.auto.update(1500,opts);assert.equal((r.auto as unknown as {target:string}).target,'blue');
+  ground=[{id:'new-money',def:'money',q:0,owner:'',x:5,y:0}];r.auto.update(1750,opts);assert.deepEqual(r.pickups,['money']);
+});
+test('nearest mode may switch, policy changes apply immediately and genuine no-damage targets still time out', () => {
+  const r=rig();r.actors[2].x=600;r.auto.start();r.auto.update(1000,r.opts);
+  r.auto.update(1250,{...r.opts,autoPriority:'near'});assert.equal((r.auto as unknown as {focus:string}).focus,'normal');
+  r.auto.update(1500,{...r.opts,autoPriority:'blue'});assert.equal((r.auto as unknown as {focus:string}).focus,'blue');
+  r.auto.update(8000,{...r.opts,autoPriority:'blue'});assert.equal((r.auto as unknown as {focus:string|null}).focus,null);
+  r.auto.update(8250,{...r.opts,autoPriority:'blue'});assert.equal((r.auto as unknown as {focus:string}).focus,'normal');
+});
+
+test('blue preference survives both player and bot configuration normalizers', () => {
+  assert.equal(normalizeAuto({autoPriority:'blue'}).autoPriority,'blue');
+  assert.equal(normalizeBotScenario({auto:{autoPriority:'blue'}}).auto.autoPriority,'blue');
 });

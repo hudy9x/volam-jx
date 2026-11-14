@@ -13,7 +13,7 @@ const HTML = `
   <button type="button" class="btn" id="auto-on">▶ Chạy auto</button>
   <p class="muted">${keyLabel('auto')} mở cài đặt. Lưu riêng cho nhân vật; tự tiếp tục sau khi tải lại nếu đang bật.</p>
   <div class="auto-h">Đánh quái</div>
-  <label class="row">Ưu tiên mục tiêu <select data-set="autoPriority"><option value="near">Gần nhất</option><option value="boss">Hoàng Kim → Boss Xanh → quái thường</option></select></label>
+  <label class="row">Ưu tiên mục tiêu <select data-set="autoPriority"><option value="near">Gần nhất</option><option value="boss">Hoàng Kim → Boss Xanh → quái thường</option><option value="blue">Boss Xanh → Quái thường (bỏ Hoàng Kim)</option></select></label>
   <label class="check"><input type="checkbox" data-set="autoSkipBoss" /> Bỏ qua boss</label>
   <label class="check"><input type="checkbox" data-set="autoRotate" /> Xoay chiêu: dùng lần lượt chiêu tấn công trên phím 1 – 9 (cả khi đánh boss)</label>
   <label class="check"><input type="checkbox" data-set="autoBuff" /> Tự dùng bùa lợi đặt trên phím 1 – 9</label>
@@ -39,7 +39,7 @@ const HTML = `
   <label class="slider">Uống thuốc khi Sinh lực dưới (%) <input type="range" min="0" max="90" step="5" data-set="autoHp" /><span></span></label>
   <label class="slider">Uống thuốc khi Nội lực dưới (%) <input type="range" min="0" max="90" step="5" data-set="autoMp" /><span></span></label>
   <label class="check"><input type="checkbox" data-set="autoBuyPotion" /> Hết thuốc Sinh lực thì về thành mua (≤ 20% ngân lượng) rồi quay lại</label>
-  <p class="muted">Theo cơ chế tự động của jx-web-main: mục tiêu gần nhất (giữ mục tiêu trừ khi có con gần hơn hẳn, bỏ qua con không tới được),
+  <p class="muted">Chế độ ưu tiên boss: chọn bậc cao nhất rồi con gần nhất trong bậc đó, giữ đánh đến khi hạ mục tiêu; nhặt đồ giữa các lượt đánh. Chế độ Gần nhất vẫn có thể đổi sang con gần hơn hẳn.
     Quái ở xa thì đi bộ tới (tự tìm đường vòng vật cản); đứng kẹt hoặc đánh mãi không mất máu thì bỏ con đó 10 giây và bước sang chỗ khác.
     Nội lực dưới 2 lần chi phí chiêu cũng uống thuốc. Bấm đất hoặc ra chiêu bằng tay sẽ tạm dừng 3 giây. Tự động đánh vẫn bật khi đổi bản đồ;
     trong thành: mua thuốc, bán đồ thừa rồi đi bãi luyện công (cần "Tự đổi bãi"). Bản gốc cần Bạch Câu Hoàn; prototype cho dùng tự do.</p>

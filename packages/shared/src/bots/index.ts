@@ -199,7 +199,7 @@ export function normalizeBotScenario(raw: unknown): BotScenario {
     else if (typeof def === 'number') (auto as Record<string, unknown>)[k] = num(v, def, 0, 100_000);
     else if (typeof v === 'string') (auto as Record<string, unknown>)[k] = v;
   }
-  auto.autoPriority = pick(auto.autoPriority, ['near', 'boss'] as const, DEFAULT_AUTO.autoPriority);
+  auto.autoPriority = pick(auto.autoPriority, ['near', 'boss', 'blue'] as const, DEFAULT_AUTO.autoPriority);
   auto.autoLoot = pick(auto.autoLoot, ['all', 'magic', 'money'] as const, DEFAULT_AUTO.autoLoot);
   const rx = Array.isArray(h.reactionMs) ? h.reactionMs : [];
   const r0 = num(rx[0], d.human.reactionMs[0], 0, 5000), r1 = num(rx[1], d.human.reactionMs[1], 0, 5000);

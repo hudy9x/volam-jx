@@ -127,7 +127,7 @@ Giao diện co giãn cho web, cửa sổ desktop và màn hình mobile (bảng c
 
 Bot tự xếp chiêu đã học theo ReqLevel, vũ khí và trạng thái cưỡi; tầng 150 chỉ có khi đủ cấp và đã học. Không có tầng chiêu 70 riêng. Template bật tự học chỉ áp khi khởi tạo/cập nhật thiết lập; kịch bản không tự reset tiến trình tài khoản cũ.
 
-Auto xoay chiêu cả trên boss, tìm chiêu tấn công khác đang sẵn sàng trước khi dùng đánh thường. Ưu tiên Boss = Hoàng Kim → Boss Xanh → quái thường; bỏ chọn **Bỏ qua boss** để đánh boss. Thiết lập đã lưu vẫn giữ lựa chọn cũ, cần sửa trong Auto/kịch bản và chạy lại.
+Auto xoay chiêu cả trên boss, tìm chiêu tấn công khác đang sẵn sàng trước khi dùng đánh thường. Mục tiêu ưu tiên có **Hoàng Kim → Boss Xanh → Quái thường**, **Boss Xanh → Quái thường** (bỏ Hoàng Kim) và **Gần nhất**; bỏ chọn **Bỏ qua boss** để đánh boss. Hai chế độ boss lấy bậc cao nhất rồi con gần nhất trong bậc đó, giữ đánh đến chết/mất/không còn hợp lệ, sau đó mới chọn con tiếp theo; không đổi sang con gần hơn giữa trận. Bùa không làm quên mục tiêu, nhặt đồ/tiền giữa các lượt hạ mục tiêu. Vẫn có chống kẹt/không gây sát thương; chi tiết [Auto](auto.md). Thiết lập đã lưu vẫn giữ lựa chọn cũ, cần sửa trong Auto/kịch bản và chạy lại.
 
 **Tự nhặt ngân lượng** độc lập với nhặt trang bị và không cần chỗ trong túi. Trang bị chỉ nhặt khi còn vùng trống đủ kích thước. **Tự bán đồ xanh trong túi** kiểm tra mỗi 30 giây (và khi về thành), không bán đồ đang mặc, ngựa, hoàng kim, thuốc hoặc bí kíp. **Giữ đồ xanh có giá trị** bảo vệ món trên 5 dòng hoặc dòng ẩn hiếm/cao theo cùng tiêu chí rao bán. Nếu túi toàn món được bảo vệ, Auto bỏ qua trang bị không vừa, vẫn nhặt tiền; cần tự dọn túi. Bật bán xanh có thể bán cả đồ xanh dự trữ trong túi, nên chỉ bật khi đồng ý quy tắc này.
 

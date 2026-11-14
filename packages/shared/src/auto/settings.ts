@@ -1,5 +1,4 @@
-// Tùy chọn Tự động đánh (auto/AutoPlay.ts). Dùng chung cho client (state/settings.ts lưu theo máy) và bot (kịch bản
-// bots/<tên>.json, apps/server/src/dev/bots/). TS thuần.
+// Tùy chọn Auto dùng chung cho client (lưu theo nhân vật) và bot (tools/bots/data/<tên>.json). TS thuần.
 
 export interface AutoSettings {
   /** Bán kính quanh chỗ bắt đầu, bỏ qua boss, tự dùng bùa lợi trên thanh phím, quay về chỗ cũ khi hết quái. */
@@ -11,11 +10,11 @@ export interface AutoSettings {
   autoSeek: boolean;
   autoPickup: boolean;
   /**
-   * (jx-web-main auto-play) mục tiêu ưu tiên ('near' gần nhất / 'boss' boss trước), xoay chiêu phím 1–9, tự dùng bùa hại,
+   * (jx-web-main auto-play) mục tiêu ưu tiên ('near' gần nhất / 'boss' Hoàng Kim→Xanh→thường / 'blue' Xanh→thường, bỏ Hoàng Kim), xoay chiêu phím 1–9, tự dùng bùa hại,
    * tự đổi bãi luyện công theo cấp, tự hồi sinh rồi quay lại, tự về thành mua thuốc khi hết, tự bán đồ trắng không mặc được,
    * lọc đồ nhặt ('all' / 'magic' đồ xanh trở lên + tiền / 'money' chỉ tiền).
    */
-  autoPriority: 'near' | 'boss';
+  autoPriority: 'near' | 'boss' | 'blue';
   autoRotate: boolean;
   autoCurse: boolean;
   autoMap: boolean;
@@ -69,7 +68,7 @@ export function normalizeAuto(raw: unknown): AutoSettings {
   for (const [key, min, max] of [['autoRadius',200,1200],['autoReachPct',30,100],['autoHp',0,90],['autoMp',0,90]] as const) {
     if (typeof v[key] === 'number' && Number.isFinite(v[key])) out[key] = Math.max(min, Math.min(max, Math.round(v[key])));
   }
-  if (v.autoPriority === 'boss' || v.autoPriority === 'near') out.autoPriority = v.autoPriority;
+  if (v.autoPriority === 'boss' || v.autoPriority === 'near' || v.autoPriority === 'blue') out.autoPriority = v.autoPriority;
   if (v.autoLoot === 'all' || v.autoLoot === 'magic' || v.autoLoot === 'money') out.autoLoot = v.autoLoot;
   return out;
 }

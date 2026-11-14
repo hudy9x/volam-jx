@@ -95,3 +95,5 @@
 #bots-page .bp-quick-select>.bp-f { flex:0 1 160px; }
 #bots-page .bp-quick-select button,#bots-page .bp-quick-select input { min-height:44px; }
 #bots-page #bl-quick-status:empty { display:none; }
+
+#bots-page #sc-auto>.bp-f:has(#sc-a-autoPriority) { grid-column:1/-1; }

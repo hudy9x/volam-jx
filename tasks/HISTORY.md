@@ -1089,3 +1089,16 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 ## Checkpoint trước sửa ưu tiên mục tiêu Auto — 2026-11-14
 
 - USER yêu cầu commit code hiện tại rồi bổ sung ưu tiên Boss Xanh→Quái thường và điều tra/sửa việc bỏ boss giữa chừng. Checkpoint toàn bộ tooltip/dialog/nhập điểm tiềm năng đang dở theo USER, nền26cfb31, không push.
+
+## Auto giữ mục tiêu ưu tiên đến chết và thêm ưu tiên Boss Xanh — 2026-11-14
+
+- USER yêu cầu checkpoint code hiện tại rồi thêm Boss Xanh→thường ở bot và Auto, điều tra/sửa đánh một cái bỏ đi, chọn bậc cao nhất gần nhất và hạn chế đổi giữa trận. Checkpoint0d9c684 đã commit tooltip/dialog/nhập điểm trước sửa, không push.
+- Đã đối chiếu AutoPlay dùng chung qua behaviors/WorldScene. Không có GitNexus tool/index dùng được; dùng nguồn trực tiếp. Tạo2test hồi quy trước sửa, đều fail: same-tier gần hơn làm đổi mục tiêu và loot gần làm clear target. Đối chiếu server pickup khi xa hơn tầm nhặt sẽ sim.pending=null và setPath; buff/curse cũng clear trường target dùng chung.
+- Tách focus/lệnh cast; boss/blue giữ focus đến chết/mất/invalid, không preempt kể cả bậc cao hơn mới xuất hiện theo USER “hạ nó rồi mới tiếp”; near vẫn distance hysteresis. AutoPriority blue lọc vàng; normalizers/cả2UI hỗ trợ/lưu, không sửa mặc định/kịch bản cũ. Loot giữa kills/idle, bùa giữ focus và reset failure clocks. Giữ chống kẹt1,5s/noHPdrop6s/ban10s, scope/SkipBoss/manual/emergency. Cập nhật Auto/bots-guide/toolREADME/AGENTS/tracking.
+- Auto12+bots10+market13/typecheck/build/diff-check đạt. WS thật2568/DBriêng với mục tiêu kiểm soát, bất động và HP thử lớn:8s đánh giảm HP vẫn giữ vàng gần dù chuyển vàng khác lại gần và thêm tiền; sau giảm HP về1 để đòn engine hạ quan sát vàng1→vàng2→xanh→thường. Không coi là cân bằng boss thật. Chromium1440/390 kiểm tool/Auto blue, save scenario, DB và reload, ảnh đã xem. DB/config/script/ảnh `/tmp/jx-auto-focus/`, client5174/tool4578, đã dừng tiến trình thử; không game/DB thật, chưa native/mobile thật.
+- Phần mới chưa commit; giữ thay đổi tooltip/scenario mới từ phiên khác, không push.
+
+## Kiểm bản commit độc lập của Auto/bot — 2026-11-14
+
+- USER yêu cầu kiểm đúng mã rồi commit để tránh lẫn/conflict. Chỉ stage code/docs/test của Auto/bot và tracking tương ứng; không lấy tooltip.css/skillTip.ts/scenario mới hoặc ghi chú tooltip của phiên khác.
+- Kiểm bản tree sẽ commit trong thư mục riêng với workspace dependency trỏ đúng bản snapshot: typecheck, auto12+bots10+market13 và build. Kết quả được xác nhận trước khi commit; diff-check và kiểm phạm vi staged đạt. Commit theo USER, mã xem git log -1, không push. Các kiểm WS/Chromium của vòng trước vẫn giữ như ghi ở trên; không chạy lại game thật.

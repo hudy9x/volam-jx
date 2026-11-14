@@ -81,3 +81,9 @@ Chọn một radio: **Chủ động mời người khác**, **Tự chấp nhận
 Bot mời người chơi sống, chưa có đội trong cùng bản đồ, ưu tiên gần; chỉ mời khi chưa có đội hoặc là đội trưởng còn chỗ. Giãn5giây/bot,60giây/tên và giữ chỗ cho lời mời chờ đến hết hạn. Không mời quái/NPC/bản thân, không giành người đã có đội. File cũ thiếu `autoInviteTeam` giữ chế độ nhận cũ; file bật cả hai được chuẩn hóa ưu tiên mời. Giá rao mới của bot/người chơi chỉ bằng lượng/KNB, không còn Liên hệ; tin liên hệ cũ chỉ xem snapshot và phải đăng lại để mua.
 
 Kiểm thử mới: `test:bots` có `bot-team.test.ts` kiểm loại trừ/migration, chọn mục tiêu/cooldown/quyền đội trưởng/chỗ trống và nối protocol; WS thật với2bot +1người chơi trên server2568/DBriêng xác nhận mời→nhận→mời thêm người. UI desktop1440/390 kiểm radio, lưu/nạp/readonly và bàn phím. Chưa điện thoại/native thật.
+
+## Ưu tiên mục tiêu khi luyện công
+
+Dùng chung AutoPlay với Auto trong game: **Hoàng Kim → Boss Xanh → Quái thường**, **Boss Xanh → Quái thường** (bỏ Hoàng Kim), hoặc **Gần nhất**. Hai chế độ boss chọn bậc cao nhất rồi con gần nhất trong bậc đó; giữ đánh đến chết/mất/không còn hợp lệ, rồi chọn con kế tiếp. Không đổi giữa trận vì có con gần hơn; buff/debuff giữ mục tiêu và nhặt đồ giữa lượt hạ mục tiêu. Bỏ qua boss vẫn loại mọi boss. Có cơ chế chống kẹt/không gây sát thương như [tài liệu Auto](../../docs/auto.md), không thay công thức chiến đấu.
+
+Cấu hình mới `auto.autoPriority: "blue"` được chuẩn hóa/lưu ở cả kịch bản bot và Auto theo nhân vật. Sau khi sửa, restart tool và dừng/chạy lại runner để nạp mã; không tự ghi đè lựa chọn trong các kịch bản cũ. Đã kiểm WS thật trên mục tiêu kiểm soát + Chromium1440/390, chưa cân bằng chiến đấu hay native/mobile thật.

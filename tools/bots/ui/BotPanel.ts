@@ -32,7 +32,7 @@ const AUTO_LABELS: Record<keyof AutoSettings, string> = {
   autoMp: 'Uống thuốc khi Nội lực < %',
 };
 const SELECTS: Partial<Record<keyof AutoSettings, [string, string][]>> = {
-  autoPriority: [['near', 'Gần nhất'], ['boss', 'Hoàng Kim → Boss Xanh → quái thường']],
+  autoPriority: [['near', 'Gần nhất'], ['boss', 'Hoàng Kim → Boss Xanh → quái thường'], ['blue', 'Boss Xanh → Quái thường (bỏ Hoàng Kim)']],
   autoLoot: [['all', 'Tất cả'], ['magic', 'Đồ xanh trở lên + tiền'], ['money', 'Chỉ tiền']],
 };
 
@@ -176,7 +176,7 @@ class BotPanel {
     this.$('sc-auto').innerHTML = (Object.keys(DEFAULT_AUTO) as (keyof AutoSettings)[]).map(k => {
       const d = DEFAULT_AUTO[k];
       if (typeof d === 'boolean') return chk(`sc-a-${k}`, AUTO_LABELS[k]);
-      if (SELECTS[k]) return f(AUTO_LABELS[k], sel(`sc-a-${k}`, SELECTS[k]!.map(([v, l]) => opt(v, l)).join('')));
+      if (SELECTS[k]) return f(AUTO_LABELS[k], sel(`sc-a-${k}`, SELECTS[k]!.map(([v, l]) => opt(v, l)).join('')), k === 'autoPriority' ? 'Chọn bậc cao nhất, gần nhất rồi đánh đến chết. Boss Xanh bỏ Hoàng Kim; bật Bỏ qua boss thì chỉ đánh quái thường.' : '');
       return f(AUTO_LABELS[k], num(`sc-a-${k}`, 0, 100000));
     }).join('');
     this.setupDialogs = new SetupDialogs(root);

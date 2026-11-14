@@ -116,6 +116,8 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
 
+- **Ưu tiên mục tiêu Auto/bot (USER2026-11-14):** AutoPlay chung,3chế độ `boss` Hoàng Kim→Xanh→thường / `blue` Xanh→thường (bỏ Hoàng Kim) / `near` gần nhất. Hai chế độ boss chọn bậc cao nhất rồi con gần nhất theo isometric, giữ focus đến chết/mất/không hợp lệ, không đổi sang con mới giữa trận; quyết định này thay hành vi nâng bậc/ngắt đòn cũ. Focus tách khỏi lệnh cast, buff/debuff không làm quên mục tiêu; loot giữa các lượt hạ mục tiêu hoặc idle, không hủy lock để chạy nhặt giữa trận. Giữ ngoại lệ chống kẹt/không gây sát thương, radius/SkipBoss, điều khiển tay/đổi cấu hình và về thành khẩn cấp; xem `docs/auto.md`.
+
 - **Phím tắt, Hành trang, Rương chứa đồ tài khoản, Tooltip & Dòng rơi (USER 2026-11-14):**
   - **Phím tắt (`input/keymap.ts` — Phương án B):** `Q` Nhân vật (`char`), `W` Hành trang (`bag`), `E` Kỹ năng (`skills`), `R` Ngựa (`mount`), `A` PK (`pk`), `D` Thợ rèn (`shop`), `Z` Auto (`auto`), `P` Tổ đội (`team`), `T` Chuyển map (`travel`), `V` Kỳ Trân Các (`kytran`), `Tab` Bản đồ lớn, `Esc` Hệ thống.
   - **Hành trang & Kéo thả/Sắp xếp:** giữ đủ 5 tab đánh số `1–5` (cao `20px`); `moveOrSwapInGrid` (`items/bag.ts`) cho phép thả đè lên 1 món khác để hoán đổi vị trí; nút `Xếp` (`C2S.bagSort` / `sortGridPage`) gom gọn trang hiện tại. Không tự chuyển tab khi `dragover` lên tab (chỉ highlight và chuyển khi `drop`), hoãn redraw khi đang kéo.
