@@ -1,4 +1,4 @@
-import { DEFAULT_AUTO, normalizeAuto, type CharacterAuto, type TradePostMsg } from '@vltk/shared';
+import { DEFAULT_AUTO, normalizeAuto, normalizeBotTemplate, type CharacterAuto, type TradePostMsg } from '@vltk/shared';
 import { buyKnb, marketOnline, marketOffline, marketPost, marketBuy } from '../world/market.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -331,6 +331,10 @@ export class MapRoom extends Room<{ state: MapState }> {
       this.saveCharacter(sim);
     }
     marketOnline(sim, () => { this.sendInventory(client, sim); this.saveCharacter(sim); });
+    if (char.bot) {
+      const auto = char.auto ?? { enabled: false, settings: { ...DEFAULT_AUTO }, revision: 0 };
+      char.auto = { ...auto, settings: { ...normalizeAuto(auto.settings), autoBuff: normalizeBotTemplate(char.bot.setup).autoBuff } };
+    }
     client.send(S2C.autoConfig, char.auto ?? { enabled: false, settings: { ...DEFAULT_AUTO }, revision: 0 });
     this.sendInventory(client, sim);
     const user = db.getUser(char.owner);

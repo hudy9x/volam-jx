@@ -11,7 +11,7 @@ function rig() {
   let slots: (number | null)[] = [];
   const casts: number[] = [], pickups: string[] = [], sold: number[] = [];
   const attack = Array.from({ length: 1500 }, (_, id) => getSkill(id)).find(s => s && s.id !== 1 && isCastable(s) && skillCategory(s) === 'attack')!.id;
-  const host = { self: () => self, actors: () => actors, safe: () => false, skillAt: (slot: 'left' | number) => slot === 'left' ? 1 : slots[slot] ?? null,
+  const host = { learnedSkills: () => slots.filter((id): id is number => id !== null), aura: (_id: number | null) => {}, self: () => self, actors: () => actors, safe: () => false, skillAt: (slot: 'left' | number) => slot === 'left' ? 1 : slots[slot] ?? null,
     usable: (id: number) => id === 1 || id === attack, ready: (id: number) => id === attack, cost: () => 0, range: () => 500, melee: () => false,
     cast: (id: number) => casts.push(id), move() {}, bag: () => bag, money: () => 100000, use() {}, sell: (i: number) => sold.push(i), buy() {},
     wearable: () => false, drops: () => [{id: 'gear', def: Object.values(ITEMS).find(d => d.kind === 'melee')!.id, q: QUALITY.magic, owner: '', x: 1, y: 0}, {id: 'money', def: 'money', q: 0, owner: '', x: 5, y: 0}], pickup: (id: string) => pickups.push(id), train() {}, goTown() {}, respawn() {}, notice() {}, stop() {} } satisfies AutoHost;
@@ -114,4 +114,79 @@ test('nearest mode may switch, policy changes apply immediately and genuine no-d
 test('blue preference survives both player and bot configuration normalizers', () => {
   assert.equal(normalizeAuto({autoPriority:'blue'}).autoPriority,'blue');
   assert.equal(normalizeBotScenario({auto:{autoPriority:'blue'}}).auto.autoPriority,'blue');
+});
+
+test('all 11 factions maintain learned buffs with empty hotkeys, excluding stealth and manual cleanse', async () => {
+  const { allPacks, learnableSkills } = await import('../packages/shared/src/index.js');
+  const expected: Record<string, number[]> = {shaolin:[15,273], tianwang:[33,42], tangmen:[], wudu:[], emei:[], cuiyan:[100,109], gaibang:[277,130], tianren:[150,715], wudang:[157], kunlun:[171], huashan:[1376,1380,1358,1364,1369]};
+  for (const p of allPacks().filter(p => !['common', 'monsters'].includes(p.id))) {
+    const r = rig(); r.actors.length = 0;
+    const learned = [...learnableSkills(p.id), ...learnableSkills('common')];
+    r.host.learnedSkills = () => learned;
+    r.host.usable = () => true; r.host.ready = () => true;
+    r.host.cast = id => { r.casts.push(id); r.self.state.states = [...(r.self.state.states ?? []), id]; };
+    r.auto.start();
+    for (let i = 0; i < 20; i++) r.auto.update(1000 + i * 1000, {...r.opts, autoBuff: true});
+    assert.deepEqual(new Set(r.casts), new Set(expected[p.id]), p.name);
+    assert.ok(!r.casts.includes(713), 'never cast Ngự Tuyết Ẩn');
+    assert.ok(!r.casts.includes(716), 'do not spam manual cleanse');
+  }
+});
+
+test('Thúy Yên gets both real buffs despite knowing 120 stealth; does not require a shortcut', () => {
+  const r = rig(); r.actors.length = 0;
+  r.host.learnedSkills = () => [100, 109, 713]; r.host.usable = r.host.ready = () => true;
+  r.host.cast = id => { r.casts.push(id); r.self.state.states = [...(r.self.state.states ?? []), id]; };
+  r.auto.start();
+  for (let i = 0; i < 4; i++) r.auto.update(1000 + i * 1000, {...r.opts, autoBuff: true});
+  assert.deepEqual(r.casts, [100, 109]);
+});
+
+test('unready buffs do not block later buffs; active and unusable ones are skipped', () => {
+  const r = rig(); r.actors.length = 0;
+  r.host.learnedSkills = () => [15, 273, 33, 42];
+  r.host.usable = id => id !== 42; r.host.ready = id => id !== 15;
+  r.self.state.states = [273];
+  r.auto.start(); r.auto.update(1000, {...r.opts, autoBuff: true});
+  assert.deepEqual(r.casts, [33]);
+});
+
+test('aura chooses learned 120 Nga My over earlier auras, respects usability and restores manual aura on stop', () => {
+  const r = rig(); const aura: (number | null)[] = [];
+  r.host.learnedSkills = () => [86, 89, 92, 282, 332, 712, 1114];
+  r.host.usable = () => true; r.host.aura = id => aura.push(id);
+  r.host.safe = () => true;
+  r.auto.start(); r.auto.update(1000, {...r.opts, autoBuff: true}); assert.equal(aura.at(-1), 712);
+  r.host.usable = id => id !== 712;
+  r.auto.update(1250, {...r.opts, autoBuff: true}); assert.equal(aura.at(-1), 332);
+  r.auto.update(1500, r.opts); assert.equal(aura.at(-1), null);
+  r.auto.stop(); assert.equal(aura.at(-1), null);
+});
+
+test('death clears buff retry so revival immediately restores missing learned buffs', () => {
+  const r = rig(); r.actors.length = 0;
+  r.host.learnedSkills = () => [100]; r.host.usable = r.host.ready = () => true;
+  const opts = {...r.opts, autoBuff: true};
+  r.auto.start(); r.auto.update(1000, opts); assert.deepEqual(r.casts, [100]);
+  r.self.state.hp = 0; r.auto.update(1250, opts);
+  r.self.state.hp = 100; r.auto.update(1500, opts); assert.deepEqual(r.casts, [100, 100]);
+});
+
+test('acknowledged short buffs can be renewed before the 15s failure retry guard', () => {
+  const r = rig(); r.actors.length = 0;
+  r.host.learnedSkills = () => [100]; r.host.usable = r.host.ready = () => true;
+  const opts = {...r.opts, autoBuff: true};
+  r.auto.start(); r.auto.update(1000, opts);
+  r.self.state.states = [100]; r.auto.update(1250, opts);
+  r.self.state.states = []; r.auto.update(2000, opts);
+  assert.deepEqual(r.casts, [100,100]);
+});
+
+test('unacknowledged buff commands are throttled, and disabling autoBuff does not cast', () => {
+  const r = rig(); r.actors.length = 0;
+  r.host.learnedSkills = () => [100]; r.host.usable = r.host.ready = () => true;
+  r.auto.start();
+  for(let now=1000;now<15000;now+=1000)r.auto.update(now,{...r.opts,autoBuff:true});
+  assert.deepEqual(r.casts,[100]);
+  r.auto.update(17000,r.opts); assert.deepEqual(r.casts,[100]);
 });

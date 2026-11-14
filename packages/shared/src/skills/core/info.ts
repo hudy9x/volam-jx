@@ -103,3 +103,8 @@ export function weaponTypeOf(item: { kind: string; type: number } | undefined): 
   return -1;
 }
 
+
+/** Visuals only: their attributes already come from passiveBag, never from ActiveStates. */
+export function passiveVisualSkills(levels: Iterable<[number, number]>): number[] {
+  return [...levels].filter(([id, lv]) => lv > 0 && (id === 173 || id === 178)).map(([id]) => id);
+}

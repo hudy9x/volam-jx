@@ -6,6 +6,7 @@ import { KIND_SLOTS, QUALITY, SHOP_ITEMS, itemDef, potionMs, potionTotal, type I
 import { MONSTERS } from '../monsters/index.js';
 import { getSkill, isCastable, skillCategory } from '../skills/index.js';
 import { CLOSE_REACH, approachDistance, type AutoSettings } from './settings.js';
+import { autoAuraSkill, autoBuffSkills } from './buffs.js';
 
 type Settings = AutoSettings;
 
@@ -44,6 +45,10 @@ export interface AutoActor {
  * it is one more source of input, next to the mouse, the keyboard and (later) touch.
  */
 export interface AutoHost {
+  /** Only learned skills with effective level > 0, not the shortcut bar. */
+  learnedSkills(): Iterable<number>;
+  /** Auto override; null restores the manually selected hand aura. */
+  aura(skill: number | null): void;
   self(): AutoActor | undefined;
   actors(): Iterable<AutoActor>;
   /** Town / safe map: no fighting. */
@@ -141,7 +146,7 @@ const DUMMY_SPRITES = new Set(Object.values(MONSTERS).filter(d => d.dummy).map(d
 /**
  * Tự động đánh, after jx-web-main's auto-play (docs/auto-play.md):
  *  - drinks potions under the chosen % (and Nội lực under twice the skill's cost), buys them in town when the bag has none;
- *  - recasts the bùa lợi on keys 1–9, puts the bùa hại there on bosses / crowds;
+ *  - maintains learned beneficial buffs and a suitable aura, puts the hotkey bùa hại on bosses / crowds;
  *  - picks the highest-ranked nearest monster, finishes it in boss modes (nearest mode may switch); walks to far ones, locks near
  *    ones with an approach distance (close combat right up to it, ranged skills a % of their range — approachDistance);
  *  - leaves a target it cannot reach (not moving) or does not hurt (Sinh lực not dropping), and steps off a stuck spot;
@@ -201,6 +206,7 @@ export class AutoPlay {
     this.focus = null;
     this.lootAfterKill = false;
     this.buffTried.clear();
+    this.lastBuff = -Infinity;
     this.pickTried.clear();
     this.bans.clear();
     this.picking = null;
@@ -210,6 +216,7 @@ export class AutoPlay {
   }
 
   stop(): void {
+    this.host.aura(null);
     this.running = false;
     this.anchor = null;
     this.target = null;
@@ -235,11 +242,17 @@ export class AutoPlay {
     if (isoDistance(self.x, self.y, this.moved.x, this.moved.y) >= STALL_STEP) this.moved = { x: self.x, y: self.y, at: now };
     if (self.state.hp <= 0) {
       if (!opts.autoRevive) { this.host.stop('Trọng thương: đã dừng tự động đánh.'); return; }
-      if (!this.diedAt) this.diedAt = now;
+      if (!this.diedAt) {
+        this.diedAt = now;
+        this.buffTried.clear();
+        this.lastBuff = -Infinity;
+      }
       if (now - this.diedAt > REVIVE_AFTER_MS && now >= this.nextTravel) { this.nextTravel = now + TRAVEL_GAP_MS; this.host.respawn(); }
       return;
     }
     this.diedAt = 0;
+    const learned = [...this.host.learnedSkills()];
+    this.host.aura(opts.autoBuff ? autoAuraSkill(learned, id => this.host.usable(id)) : null);
     if (this.host.safe()) { this.town(now, opts); return; }
     this.townStep = 0;
 
@@ -265,7 +278,7 @@ export class AutoPlay {
     }
     this.lootAfterKill = false;
     this.focus = target?.id ?? null;
-    if (opts.autoBuff && this.buff(now, self)) return;
+    if (opts.autoBuff && this.buff(now, self, learned)) return;
     if (target) {
       if (opts.autoSeek) this.anchor = { x: target.x, y: target.y };
       if (this.stuck(now, self, target, opts)) return;
@@ -453,14 +466,18 @@ export class AutoPlay {
     if (this.bans.size > 50) for (const [k, until] of this.bans) if (until <= now) this.bans.delete(k);
   }
 
-  /** Recast one bùa lợi from keys 1–9 whose state is not on us (auras are toggles: left to the player). */
-  private buff(now: number, self: AutoActor): boolean {
-    if (now - this.lastBuff < BUFF_GAP_MS) return false;
+  /** Maintain learned beneficial states; aura upkeep uses its own server path. */
+  private buff(now: number, self: AutoActor, learned: number[]): boolean {
     const active = new Set(self.state.states ?? []);
-    for (let key = 0; key < 9; key++) {
-      const id = this.host.skillAt(key);
-      const s = id !== null ? getSkill(id) : undefined;
-      if (!s || s.aura || !isCastable(s) || skillCategory(s) !== 'buff' || !this.host.usable(s.id)) continue;
+    // An acknowledged buff may expire sooner than the retry guard. Reapply when it actually ends.
+    for (const id of this.buffTried.keys()) {
+      const s = getSkill(id);
+      if ([id, s?.events?.start, s?.child].some(k => k !== undefined && active.has(k))) this.buffTried.delete(id);
+    }
+    if (now - this.lastBuff < BUFF_GAP_MS) return false;
+    for (const id of autoBuffSkills(learned)) {
+      const s = getSkill(id)!;
+      if (!this.host.usable(id) || !this.host.ready(id)) continue;
       const carriers = [s.id, s.events?.start, s.child].filter((k): k is number => !!k);
       if (carriers.some(k => active.has(k))) continue;
       if (now - (this.buffTried.get(s.id) ?? -Infinity) < BUFF_RETRY_MS) continue;

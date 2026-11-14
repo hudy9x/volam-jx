@@ -1,5 +1,16 @@
 # Điểm dừng hiện tại
 
+## 2026-11-14 · Auto buff mọi kỹ năng đã học + bot mặc định bật + FX Côn Lôn (hoàn tất, commit theo USER)
+
+- USER yêu cầu commit phần đã kiểm chứng; không push. Commit xem `git log -1` với tiêu đề `feat(auto): maintain learned buffs and faction auras`. Chưa sửa chọn mục tiêu; USER yêu cầu trao đổi trước.
+- USER duyệt triển khai: Auto không phụ thuộc thanh phím, duy trì hào quang phù hợp; bỏ Ngự Tuyết Ẩn; Nga My712 gộp5aura; FX bị động Côn Lôn173/178. USER bổ sung checkbox thiết lập tạo bot mặc địnhcheck, kể cảbot cũ, chỉ tắt khi người dùng lưu lựa chọn mới.
+- Shared auto/buffs.ts chọn từ kỹ năng đã học>0; AutoHost bổ sung learnedSkills/aura, player/bot dùng chung. Kiểm ready/vũ khí/ngựa, không713/716/397, giữ focus qua buff. Buff server đã xác nhận rồi hết được tái dùng ngay theo gap800ms, lệnh chưa xác nhận vẫnretry15s; chết xóa lịchretry. Auto aura ưu tiên tầng cao/NgaMy712, stop/off trả lại aura tay người chơi; bot opt-out không tựaura. Reset cacheaura bot khi vào room mới.
+- Actor.passiveFx riêng, refreshStats chỉ cập nhật mảng khi thay đổi; ActorView dùng StateDecor/hìnhgốc, không cộng lạiActiveStates/thuộc tính. Bỏhọc/level0xóavisual; khi chết bộvẽ cósẵnẩn.
+- BotTemplate.autoBuff mặc địnhtrue; UI mớicheck/lưu/nạp/readonly/ápdụng. BotLogin gửi lựa chọn từngnhânvật, runtime/DBdùngeffective. Scenario cũautoBufffalse→true theoUSER, markerbuffVersion1 giữfalse khi ngườidùnglưulại; setupmớihoặcscenario mới chủđộngtắtthìkhôngbuff/aura. Botcũkhôngcầnresetprogressđểnhậnmặcđịnh; chưarestart app/runner/game thật.
+- Kiểm: test:auto22 + test:bots10 + test:market13/typecheck/build/diff-check đạt (build chỉcảnhbáochunklớncũ). WSthật11phái thanhphímtrống, CY100/109không713, EM712+5aura, KLvisual khôngnhânchỉsố. APIconfigure/login→runner/DBxácnhậnlegacyon/explicitoff. Chromium1440/390 tooldefaultcheck/savefalse/readonly/scenariomarker/reload/khôngtràn; gameKLhaiFXđổiframe/CYbuffkhôngphím/EMstoptrảaura86; đãxemảnh. DB/script/ảnhriêng `/tmp/jx-auto-buffs/`, server2568/client5174/tool4578; dừng tiếntrìnhthửsaukiểm.
+- Giới hạn: WS11phái dùng HoaSơnKhíTông; KiếmTông1349/1364/1369 làm hồiNLâm là vấnđềcũ đãđiềutra, chưasửacôngthức/khítrường/kíchnổ/cânbằng; hếtmpthìAutochờđủđiềukiện. Chưa wrapperDesktop/Mobile/điệnthoạithật. Codekhôngsửaassetgen/DBthật, khôngcommit/push. HEAD3fa3fff; giữscenario untracked vàghi chúGP8đồngthời.
+
+
 > **2026-11-14 · Commit Hoa Sơn theo USER:** commit KN15 + tài liệu điều tra nội lực, mã commit xem `git log -1`; không push. Lỗi hồi nội lực âm chỉ được điều tra, chưa sửa trong commit này. Giữ scenario `tools/bots/data/san-ban-do-hkmp.json` và ghi chú GP8 đang dở của phiên khác ngoài commit. Các kiểm chứng KN15 ở dưới đã đạt; diff-check và phân tích thay đổi trước commit đã chạy.
 
 2026-11-14 · Điều tra die (chưa sửa): HEAD8a8b6ff. Server gọi playOnce(die,999giây), actionMs999000 được client dùng làm thời lượng hoạt ảnh; phép tính8/10/16/20frames đều còn frame0 sau2,5s. Quái/boss xóa sau2,5s rồi fade600ms; tên không ẩn khi chết; player chưa có hạnẩnxác2s, giữ tới hồi sinh/rời map. USER yêu cầu chỉ điều tra trước; chưa sửa code/asset/DB/commit/push. Yêu cầu đích: die đúng tốc độ, ẩn tên, xác mất sau2s hoặc vềthành sớm hơn. Xác minh nguồn và phép tính, chưa kiểm hình thật/asset từng loại; không có GitNexus tool khả dụng. Giữ các thay đổi đồng thời.
@@ -529,3 +540,12 @@ Kiểm chứng cuối (2026-11-13): `npm run typecheck` và `npm run build` đ�
 - Kết luận: đủ thiết kế/phạm vi để bắt đầu bản cao cấp theo `docs/tong-kim-gameplay-proposal.md`; thiếu script SHXT đã được xử lý bằng phương án CHỌN theo ủy quyền thiết kế. Không cần tiếp tục chờ nguồn cũ.
 - Các việc gen/map logic/skill chiến trường còn thiếu/stack và charges/AI soái là hạng mục triển khai đã biết, không phải điều kiện bắt người dùng bổ sung. HP/damage/nhịp soái, cân bằng và tải32v32 phải đo khi thực hiện; chưa khẳng định đã đạt. Web là nơi kiểm chứng đầu, Desktop/Mobile dùng chung luật và cần kiểm chứng điều khiển/chạy native riêng.
 - Commit nền460930c, giữ nguyên thay đổi GP6/Hoa Sơn/công việc khác. Vẫn chờ USER duyệt thực hiện, không code/gen/commit/push trong lượt này.
+
+
+## 2026-11-14 · Điều tra buff có lợi và Auto (chưa sửa code)
+
+- USER: bỏ Ngự Tuyết Ẩn khỏi danh sách buff mong muốn của Thúy Yên; Nga My chỉ cần một hào quang ô tay khi đã đủ bộ; bổ sung Nhất Khí Tam Thanh/Thiên Thanh Địa Trọc Côn Lôn vào nhóm luôn có hiệu lực và điều tra thiếu animation. Chỉ kiểm tra Auto, chưa triển khai.
+- Xác minh: Nga My712 Bế Nguyệt Phất Trần là tầng120, tuning.appendSkills=[86,89,92,282,332], engine pulse cả5;150 là Ngọc Tuyền Tâm Kinh1114 tấn công/hồi phục, không phải hào quang gộp. Côn Lôn178/173 stylePassive, passiveBag cộng chỉ số; cả2 có stateFx và metadata FX. ActorView/StateDecor chỉ vẽ Actor.states, passive không được đưa vào danh sách này: thiếu đường nối hình ảnh, chưa kiểm hình runtime/PNG thật.
+- AutoPlay.buff chỉ quét keys1–9, không quét mọi chiêu đã học/ô tay; loại aura/passive/support, không kiểm host.ready trước cast, mỗi800ms/từng chiêu thử lại15s khi chưa thấy state; chỉ kiểm ID hiện diện, không thời hạn từng thuộc tính. Không buff trong thành. Hào quang ô tay có đường duy trì riêng, ưu tiên phải; server tự giữ/khôi phục sau hồi sinh hoặc hết hạn chế vũ khí/ngựa, độc lập autoBuff.
+- Bot layoutBar lấy tối đa2buff, ưu tiên ReqLevel cao: Thúy Yên đủ120 chọn713+109 bỏ100; Hoa Sơn đủ150 chọn1369+1364 bỏ1358/1376. Chưa có whitelist loại ẩn thân/chiêu đặc biệt, chính sách chọn bộ buff theo phái, hồi phục/giải trạng thái theo nhu cầu. Người chơi mặc định chỉ tự xếp chiêu tấn công.
+- Kiểm bằng đọc nguồn và truy vấn registry/metadata thực tế; chưa kiểm tích hợp mọi phái, chưa sửa code/asset/DB, không commit/push. HEAD hiện3fa3fff (phiên khác đã commit Hoa Sơn, khác8a8b6ff đầu lượt trước); giữ thay đổi BACKLOG/scenario đồng thời. Web/Desktop/Mobile dùng chung luật, chưa kiểm native.

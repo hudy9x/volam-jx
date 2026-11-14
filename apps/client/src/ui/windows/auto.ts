@@ -21,7 +21,7 @@ const HTML = `
   <label class="row">Ưu tiên mục tiêu <select data-set="autoPriority"><option value="near">Gần nhất</option><option value="boss">Hoàng Kim → Boss Xanh → quái thường</option><option value="blue">Boss Xanh → Quái thường (bỏ Hoàng Kim)</option></select></label>
   <label class="check"><input type="checkbox" data-set="autoSkipBoss" /> Bỏ qua boss</label>
   <label class="check"><input type="checkbox" data-set="autoRotate" /> Xoay chiêu: dùng lần lượt chiêu tấn công trên phím 1 – 9 (cả khi đánh boss)</label>
-  <label class="check"><input type="checkbox" data-set="autoBuff" /> Tự dùng bùa lợi đặt trên phím 1 – 9</label>
+  <label class="check"><input type="checkbox" data-set="autoBuff" /> Tự dùng bùa lợi đã học và duy trì hào quang</label>
   <label class="check"><input type="checkbox" data-set="autoCurse" /> Tự dùng bùa hại trên phím 1 – 9 (lên boss hoặc khi có từ 3 quái)</label>
   <div class="auto-h">Tiếp cận quái</div>
   <label class="slider">Chiêu tầm xa: đứng cách quái (% tầm chiêu) <input type="range" min="30" max="100" step="5" data-set="autoReachPct" /><span></span></label>

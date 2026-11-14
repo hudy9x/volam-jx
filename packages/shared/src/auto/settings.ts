@@ -1,7 +1,7 @@
 // Tùy chọn Auto dùng chung cho client (lưu theo nhân vật) và bot (tools/bots/data/<tên>.json). TS thuần.
 
 export interface AutoSettings {
-  /** Bán kính quanh chỗ bắt đầu, bỏ qua boss, tự dùng bùa lợi trên thanh phím, quay về chỗ cũ khi hết quái. */
+  /** Bán kính quanh chỗ bắt đầu, bỏ qua boss, tự dùng bùa lợi đã học và duy trì hào quang, quay về chỗ cũ khi hết quái. */
   autoRadius: number;
   autoSkipBoss: boolean;
   autoBuff: boolean;

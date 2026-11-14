@@ -87,3 +87,12 @@ Kiểm thử mới: `test:bots` có `bot-team.test.ts` kiểm loại trừ/migra
 Dùng chung AutoPlay với Auto trong game: **Hoàng Kim → Boss Xanh → Quái thường**, **Boss Xanh → Quái thường** (bỏ Hoàng Kim), hoặc **Gần nhất**. Hai chế độ boss chọn bậc cao nhất rồi con gần nhất trong bậc đó; giữ đánh đến chết/mất/không còn hợp lệ, rồi chọn con kế tiếp. Không đổi giữa trận vì có con gần hơn; buff/debuff giữ mục tiêu và nhặt đồ giữa lượt hạ mục tiêu. Bỏ qua boss vẫn loại mọi boss. Có cơ chế chống kẹt/không gây sát thương như [tài liệu Auto](../../docs/auto.md), không thay công thức chiến đấu.
 
 Cấu hình mới `auto.autoPriority: "blue"` được chuẩn hóa/lưu ở cả kịch bản bot và Auto theo nhân vật. Sau khi sửa, restart tool và dừng/chạy lại runner để nạp mã; không tự ghi đè lựa chọn trong các kịch bản cũ. Đã kiểm WS thật trên mục tiêu kiểm soát + Chromium1440/390, chưa cân bằng chiến đấu hay native/mobile thật.
+
+
+## Tự động buff
+
+Thiết lập nhân vật có **Tự động buff kỹ năng đã học và duy trì hào quang**, mặc định bật. Thiết lập cũ mặc định bật; kịch bản cũ từng tắt cũng chuyển sang bật theo yêu cầu USER2026-11-14. Không cần reset nhân vật cũ chỉ để nhận mặc định này.
+
+Bỏ tick rồi **Cập nhật thiết lập** để áp dụng cho nhân vật đã chọn; **Lưu Thiết lập** chỉ lưu mẫu. Kịch bản mới lưu quyết định tắt bằng `buffVersion:1`; reload/chạy lại không tự bật ngược. Thiết lập nhân vật hoặc kịch bản mới chủ động tắt thì bot không tự buff và không tự chọn hào quang.
+
+Auto lấy toàn bộ kỹ năng đã học, không phụ thuộc thanh phím hay giới hạn2buff. Bỏ Ngự Tuyết Ẩn, Nga My ưu tiên Bế Nguyệt Phất Trần; kiểm sẵn sàng và duy trì trạng thái/hào quang. Chi tiết/phạm vi đã kiểm ở [Auto](../../docs/auto.md#tự-buff-toàn-bộ-kỹ-năng-đã-học--user-2026-11-14). Sau cập nhật mã cần restart tool/runner/server và reload game; không tự dừng runner thật để nạp mã.

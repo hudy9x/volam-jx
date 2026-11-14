@@ -116,6 +116,8 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
 
+- **Auto buff toàn bộ kỹ năng + bot mặc định bật (USER2026-11-14):** lấy kỹ năng đã học, không phụ thuộc thanh phím/giới hạn2buff; bỏ Ngự Tuyết Ẩn, không spam hỗ trợ giải trạng thái. Hào quang phù hợp đã học, Nga My ưu tiên Bế Nguyệt Phất Trần120 gộp5aura; dừng Auto người chơi trả aura tay. BotTemplate.autoBuff mặc địnhtrue, bot cũ mặc địnhbật; scenario cũfalse cũng migrate bật, scenario mới buffVersion1 giữ lựa chọnfalse rõ ràng. Thiết lập nhân vật hoặc kịch bản mới bỏtick thì không tựbuff/aura. Côn Lôn173/178 dùng Actor.passiveFx riêng, không thêm vàoActiveStates hoặc nhân chỉ số. Chi tiết `docs/auto.md`.
+
 - **Ưu tiên mục tiêu Auto/bot (USER2026-11-14):** AutoPlay chung,3chế độ `boss` Hoàng Kim→Xanh→thường / `blue` Xanh→thường (bỏ Hoàng Kim) / `near` gần nhất. Hai chế độ boss chọn bậc cao nhất rồi con gần nhất theo isometric, giữ focus đến chết/mất/không hợp lệ, không đổi sang con mới giữa trận; quyết định này thay hành vi nâng bậc/ngắt đòn cũ. Focus tách khỏi lệnh cast, buff/debuff không làm quên mục tiêu; loot giữa các lượt hạ mục tiêu hoặc idle, không hủy lock để chạy nhặt giữa trận. Giữ ngoại lệ chống kẹt/không gây sát thương, radius/SkipBoss, điều khiển tay/đổi cấu hình và về thành khẩn cấp; xem `docs/auto.md`.
 
 - **Phím tắt, Hành trang, Rương chứa đồ tài khoản, Tooltip & Dòng rơi (USER 2026-11-14):**

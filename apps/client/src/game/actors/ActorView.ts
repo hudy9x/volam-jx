@@ -266,7 +266,7 @@ export class ActorView {
     this.label.setPosition(Math.round(this.x), top - Math.max(2, ui(plate.gapY)));
     if (s.hp > 0 || s.kind === 'npc') {
       // Under-foot pictures stay on the ground during a jump, the others rise with the body.
-      this.decor.update(s.states ?? [], Math.round(this.x), Math.round(this.y), this.headHeight - 8 + this.lift);
+      this.decor.update([...(s.states ?? []), ...(s.passiveFx ?? [])], Math.round(this.x), Math.round(this.y), this.headHeight - 8 + this.lift);
     } else this.decor.update([], 0, 0, 0);
 
     const w = Math.max(10, ui(s.boss ? plate.barBossW : plate.barW)), bh = Math.max(2, ui(plate.barH));

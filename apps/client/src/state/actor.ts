@@ -48,4 +48,6 @@ export interface ActorState {
   /** Bùa lợi / bùa hại (skill ids) and their ends (epoch seconds); recorded only. */
   states?: Iterable<number>;
   stateEnds?: Iterable<number>;
+  /** Visuals for learned passives; no timed buff or duplicated attributes. */
+  passiveFx?: Iterable<number>;
 }

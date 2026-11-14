@@ -51,6 +51,8 @@ export interface BotTemplate {
   skills: 'suggest' | 'none';
   /** Học hết chiêu 90 / 120 / 150 ở cấp tối đa nhân vật cho phép (như lệnh bài). */
   tiers: boolean;
+  /** Maintain learned beneficial buffs and the faction aura. */
+  autoBuff: boolean;
   /** Green forge loadout / faction gold suite; starter retained for legacy templates. */
   gear: 'starter' | 'green' | 'gold';
   /** Càn Khôn Giới Chỉ (bật mọi dòng ẩn). */
@@ -76,7 +78,7 @@ export const BOT_DUAL_POTION = 'potion-2-5';
 
 export const DEFAULT_BOT_TEMPLATE: BotTemplate = {
   prefix: 'bot', password: 'botpass', faction: 'all', gender: 'mix', level: [40, 69], potential: 'suggest', skills: 'suggest',
-  tiers: true, gear: 'green', ring: false, horse: 'random', money: 1_000_000,
+  tiers: true, autoBuff: true, gear: 'green', ring: false, horse: 'random', money: 1_000_000,
   hpPotion: BOT_DUAL_POTION, hpCount: 50, mpPotion: BOT_DUAL_POTION, mpCount: 50,
   map: { mode: 'both', maps: botMapIds('both'), radius: 200 },
 };
@@ -118,6 +120,8 @@ export interface BotScenario {
   crowd: { mapId: number; x: number; y: number; radius: number; cast: boolean };
   /** Tùy chọn Auto của hành vi Luyện quái (như cửa sổ Tự động đánh). */
   auto: AutoSettings;
+  /** Marks an explicit choice made after learned-skill buff migration. */
+  buffVersion?: 1;
   /** Giống người: chu kỳ ra quyết định (ms), độ trễ phản ứng ngẫu nhiên [min, max] ms, lệnh tối đa / giây mỗi bot. */
   human: { tickMs: number; reactionMs: [number, number]; maxOrdersPerSec: number };
   /** Rớt mạng / bị đá thì tự vào lại. */
@@ -131,7 +135,7 @@ export const DEFAULT_BOT_SCENARIO: BotScenario = {
   wander: { radius: 300 },
   travel: { every: 60, maps: [37, 140] },
   crowd: { mapId: 37, x: 0, y: 0, radius: 80, cast: false },
-  auto: { ...DEFAULT_AUTO },
+  auto: { ...DEFAULT_AUTO }, buffVersion: 1,
   human: { tickMs: 150, reactionMs: [80, 250], maxOrdersPerSec: 8 },
   reconnect: true,
 };
@@ -167,6 +171,7 @@ export function normalizeBotTemplate(raw: unknown): BotTemplate {
     potential: pick(r.potential, ['suggest', 'str', 'dex', 'vit', 'eng'] as const, d.potential),
     skills: pick(r.skills, ['suggest', 'none'] as const, d.skills),
     tiers: bool(r.tiers, d.tiers),
+    autoBuff: bool(r.autoBuff, true),
     gear: pick(r.gear, ['starter', 'green', 'gold'] as const, d.gear),
     ring: bool(r.ring, d.ring),
     horse: r.horse === 'random' || (typeof r.horse === 'string' && HORSES[r.horse]) ? r.horse as string : '',
@@ -199,6 +204,7 @@ export function normalizeBotScenario(raw: unknown): BotScenario {
     else if (typeof def === 'number') (auto as Record<string, unknown>)[k] = num(v, def, 0, 100_000);
     else if (typeof v === 'string') (auto as Record<string, unknown>)[k] = v;
   }
+  auto.autoBuff = r.buffVersion === 1 ? auto.autoBuff : true;
   auto.autoPriority = pick(auto.autoPriority, ['near', 'boss', 'blue'] as const, DEFAULT_AUTO.autoPriority);
   auto.autoLoot = pick(auto.autoLoot, ['all', 'magic', 'money'] as const, DEFAULT_AUTO.autoLoot);
   const rx = Array.isArray(h.reactionMs) ? h.reactionMs : [];
@@ -228,7 +234,7 @@ export function normalizeBotScenario(raw: unknown): BotScenario {
       x: num(cr.x, d.crowd.x, 0, 100_000), y: num(cr.y, d.crowd.y, 0, 100_000),
       radius: num(cr.radius, d.crowd.radius, 0, 2000), cast: bool(cr.cast, d.crowd.cast),
     },
-    auto,
+    auto, buffVersion: 1,
     human: {
       tickMs: num(h.tickMs, d.human.tickMs, 50, 5000),
       reactionMs: [Math.min(r0, r1), Math.max(r0, r1)],
@@ -272,4 +278,4 @@ export interface BotInfo {
 }
 
 /** A bot the runner may connect as (POST /api/dev/bots/login). */
-export interface BotLogin { username: string; token: string; charId: string; mapId: number }
+export interface BotLogin { username: string; token: string; charId: string; mapId: number; autoBuff?: boolean }

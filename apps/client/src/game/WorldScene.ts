@@ -98,10 +98,12 @@ export class WorldScene extends Phaser.Scene {
     this.effects = new Effects(this, this.views, this.room.sessionId, skill => skillbar.startCooldown(skill));
     // Hào quang on a hand slot: the server keeps it on (each map room is new, so send it again here).
     let aura = -1;
+    let autoAura: number | null = null;
     const sendAura = () => {
-      const id = skillbar.slotAura();
+      const id = autoAura ?? skillbar.slotAura();
       if (id !== aura) { aura = id; this.room.send(C2S.aura, { skill: id }); }
     };
+    this.setAutoAura = id => { autoAura = id; sendAura(); };
     sendAura();
     this.cleanups.push(skillbar.watch(sendAura));
     this.npcs = (TOWN_NPCS[this.meta.id] ?? []).map(npc => ({
@@ -351,13 +353,20 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /** Auto-fight (shared auto/AutoPlay.ts, also the bots' brain) sends the same orders as clicks; the interface's switch starts / stops it. */
+  private setAutoAura: (id: number | null) => void = () => {};
+
   private setupAuto(): void {
     const auto = new AutoPlay({
+      learnedSkills: () => Object.keys(skillbar.levels).map(Number).filter(id => skillbar.levelOf(id) > 0),
+      aura: id => this.setAutoAura(id),
       self: () => this.self,
       actors: () => this.views.values(),
       safe: () => this.meta.safe,
       skillAt: slot => skillbar.skillAt(slot),
-      usable: skill => skillbar.usable(skill),
+      usable: skill => {
+        const s = getSkill(skill);
+        return !!s && skillbar.levelOf(skill) > 0 && skillbar.usable(skill) && !(s.noHorse && this.self?.state.mounted);
+      },
       cost: skill => { const s = getSkill(skill); return s ? skillCost(s, Math.max(1, skillbar.levelOf(skill))) : 0; },
       ready: skill => {
         const s = getSkill(skill);

@@ -63,6 +63,32 @@ WS thật trên2568, DB riêng `/tmp/jx-auto-focus/db.json`: runner Auto đánh 
 - Kiểm thử riêng cổng2568/5174, DB `/tmp/jx-market-auto/db.json`; không tác động game người dùng. Chưa kiểm wrapper native/điện thoại thật hoặc cân bằng kỹ năng/boss toàn bộ môn phái.
 - Cache dùng localStorage trên web và wrapper cung cấp API này; server vẫn là nguồn đối chiếu. Trạng thái enabled không đồng nghĩa tự chơi khi đã đóng game.
 
+
+## Tự buff toàn bộ kỹ năng đã học — USER 2026-11-14
+
+- Auto người chơi và bot đọc các kỹ năng đã học có cấp hiệu lực >0, không cần đặt trên thanh phím, không giới hạn hai buff. Chỉ dùng khi đúng vũ khí/ngựa, đủ nội lực và hết hồi chiêu. Buff đang có không thi triển lại; sau khi server xác nhận rồi hết trạng thái thì được dùng lại, không phải chờ chặn thử lại15giây. Lệnh chưa được xác nhận vẫn giãn15giây; giữa các buff cách ít nhất800ms. Hồi sinh xóa lịch thử buff cũ.
+- Loại **Ngự Tuyết Ẩn713**, không tự spam giải trạng thái **Xuất Ứ Bất Nhiễm716**; hồi máu/dịch chuyển vẫn là hỗ trợ theo tình huống, không nằm trong vòng buff duy trì. Không tự thi triển Vũ Lộ Xuân Phong397 (bảng hiện tại không có thuộc tính có lợi để áp dụng).
+- Hào quang được chọn từ kỹ năng đã học, đủ điều kiện, ưu tiên tầng cao hơn. Thiếu Lâm La Hán Trận, Võ Đang Thất Tinh Trận; Nga My ưu tiên **Bế Nguyệt Phất Trần712 (cấp120)**, mang kèm86/89/92/282/332; chưa học712 thì chọn hào quang cấp cao nhất đã học. Ngũ Độc duy trì Vô Hình Độc (hào quang gây hại). Server giữ một hào quang chính, tự khôi phục sau hồi sinh/hết hạn chế trang bị. Hào quang được chọn cả trong thành, buff thi triển vẫn chỉ ngoài thành.
+- Auto người chơi dùng lựa chọn trên trong lúc bật **Tự buff**; dừng Auto/tắt Tự buff trả lại hào quang đặt ở tay (phải ưu tiên). Không sửa/lưu đè thanh phím. Hào quang tay do người chơi đặt vẫn chạy độc lập khi Auto tắt. Với bot bỏ tick tự buff thì không tự chọn hào quang.
+- Hoa Sơn có Huyễn Nhãn Vân Yên và các trạng thái kiếm pháp, trường có lợi1376/1380; ưu tiên buff thường trước hai trạng thái1364/1369 làm giảm hồi nội lực. Đây không phải triển khai thêm khí trường/kích nổ hay sửa lỗi hồi nội lực âm đã được điều tra. Nếu hết nội lực thì Auto chờ điều kiện thi triển; bộ kỹ năng Kiếm Tông có1349 vẫn chịu lỗi cũ. Kiểm WS11phái dùng Hoa Sơn Khí Tông; không khẳng định đã cân bằng hoặc hoàn thiện toàn bộ Hoa Sơn.
+
+### Thiết lập tạo bot và cấu hình cũ
+
+- **Thiết lập nhân vật** có checkbox **Tự động buff kỹ năng đã học và duy trì hào quang**, mặc định bật (`BotTemplate.autoBuff`). Template/nhân vật cũ thiếu trường này được hiểu là bật; không cần đặt lại cấp/trang bị của bot cũ. Bỏ tick rồi **Cập nhật thiết lập** mới áp dụng cho nhân vật; **Lưu Thiết lập** chỉ lưu template.
+- Kịch bản cũ, kể cả từng có `auto.autoBuff:false`, được chuyển mặc định sang bật theo USER. Kịch bản mới lưu `buffVersion:1` để giữ lựa chọn tắt rõ ràng qua lưu/nạp/chạy lại. Không đổi các lựa chọn Auto khác. Tùy chọn tự buff trong kịch bản vẫn là công tắc cho lượt chạy; một trong thiết lập nhân vật/kịch bản mới chủ động tắt thì bot không tự buff/hào quang.
+- API login bot gửi lựa chọn đã chuẩn hóa theo từng nhân vật; runner dùng riêng từng bot, không ghi đè cấu hình chung giữa các bot. Khi vào bằng game, cấu hình bot cũ cũng được đối chiếu với thiết lập này. Muốn áp dụng mã mới cần restart server/runner/tool và reload client; agent không restart tiến trình thật đang quản lý bot.
+
+### Hình ảnh bị động Côn Lôn
+
+- Nhất Khí Tam Thanh178 và Thiên Thanh Địa Trọc173 có chỉ số luôn được tính từ `passiveBag`. Server gửi riêng `Actor.passiveFx`; client vẽ cùng bộ StateDecor và hình gốc, giữ tỉ lệ1:1. Không đưa vào ActiveStates, không cộng hai lần hoặc tạo buff hết hạn giả. Người xung quanh cũng nhận được hình ảnh; chết thì ẩn theo đường vẽ có sẵn.
+- Khi kỹ năng về0/bỏ học thì danh sách hình ảnh tự cập nhật; không gửi lại mảng khi không đổi. Không sửa file sinh hoặc asset bằng tay.
+
+### Kiểm chứng lượt này
+
+- `test:auto`22ca:11phái với thanh phím trống, Thúy Yên100/109 không713, aura712/fallback/stop, sẵn sàng và trạng thái đang có, buff ngắn/hồi sinh/chống spam, migration cũ→bật và lựa chọn tắt mới, bot opt-out, passiveFX không nhân chỉ số.
+- WS thật11phái trên2568/DBriêng: lệnh buff dù thanh phím trống, Thúy Yên đủ100/109, Nga My712+5aura, Côn Lôn173/178 chỉ làvisual. APIconfigure/login→runner/DB xác nhận mặc định bật và bỏ tick tắt cả buff/hào quang. Chromium thật1440/390: template mặc định check/lưu/nạpfalse/readonly, scenariofalse+marker/reload, không tràn ngang; game: hai FX Côn Lôn thực sự đổi frame, Nga My dừngAuto trả về tay86, Thúy Yên thanh trống vẫn buff, không713. Đã xem ảnh.
+- Script/DB/ảnh riêng `/tmp/jx-auto-buffs/`, client5174/tool4578, không tác động DB/game thật. Chưa kiểm wrapper Desktop/Mobile hay điện thoại thật; ba nền tảng dùng chung luật và bộ vẽ.
+
 ## Tài liệu liên quan
 
 - [Rao bán, kênh Mua bán và Kim nguyên bảo](rao-ban.md): tin gắn vật phẩm, tiêu chí bot rao và thanh toán.

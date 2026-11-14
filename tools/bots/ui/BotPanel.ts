@@ -24,7 +24,7 @@ const LAST_KEY = 'vltk.botPanel.last';
 
 const AUTO_LABELS: Record<keyof AutoSettings, string> = {
   autoMoney: 'Tự nhặt ngân lượng', autoSellBlue: 'Tự bán đồ xanh trong túi', autoKeepValuable: 'Giữ đồ xanh có giá trị để rao bán',
-  autoRadius: 'Bán kính quanh chỗ bắt đầu', autoSkipBoss: 'Bỏ qua boss', autoBuff: 'Tự dùng bùa lợi', autoReturn: 'Quay về chỗ cũ khi hết quái',
+  autoRadius: 'Bán kính quanh chỗ bắt đầu', autoSkipBoss: 'Bỏ qua boss', autoBuff: 'Tự động buff kỹ năng đã học và duy trì hào quang', autoReturn: 'Quay về chỗ cũ khi hết quái',
   autoSeek: 'Tìm quái ở xa', autoPickup: 'Tự nhặt đồ', autoPriority: 'Mục tiêu ưu tiên', autoRotate: 'Xoay chiêu',
   autoCurse: 'Tự dùng bùa hại', autoMap: 'Tự đổi bãi luyện công theo cấp', autoRevive: 'Tự hồi sinh rồi quay lại',
   autoBuyPotion: 'Hết thuốc về thành mua', autoJunk: 'Tự bán đồ trắng không mặc được', autoLoot: 'Lọc đồ nhặt',
@@ -70,6 +70,7 @@ const PAGE = `
     <p class="bp-note">Chọn bản đồ xuất hiện ban đầu trong Nâng cao. Khi luyện công, Auto vẫn có thể về thành mua thuốc rồi quay lại bãi.</p>
     <label class="bp-c"><input id="bt-weapon-steal" type="checkbox" checked disabled>Vũ khí xanh bắt buộc hút Sinh lực + Nội lực tối đa (10% mỗi loại)</label>
     ${chk('bt-tiers', 'Tự học hết kỹ năng 90 / 120 / 150 khi đủ cấp')}
+    ${chk('bt-autobuff', 'Tự động buff kỹ năng đã học và duy trì hào quang')}
     <details><summary>Cài đặt thiết lập nâng cao</summary><div class="bp-grid">
       ${f('ID đăng nhập của nhân vật đã chọn', '<textarea id="bt-logins" readonly rows="2" placeholder="Chọn nhân vật ở mục 1"></textarea>', 'Mỗi nhân vật có một ID cố định. Dùng ID này để đăng nhập.')}
       ${f('Mật khẩu chung', '<input id="bt-password" autocomplete="off">', 'Dùng khi khởi tạo tài khoản chưa có; cập nhật không đổi mật khẩu tài khoản đã tồn tại.')}
@@ -280,7 +281,7 @@ class BotPanel {
     return {
       title: this.templateTitle, prefix: 'botfixed', password: this.val('bt-password'), faction: 'all', gender: 'mix', level,
       potential: this.val('bt-potential') as BotTemplate['potential'], skills: this.val('bt-skills') as BotTemplate['skills'],
-      tiers: this.on_('bt-tiers'), gear: this.val('bt-gear') as BotTemplate['gear'], ring: false, horse: 'random',
+      tiers: this.on_('bt-tiers'), autoBuff: this.on_('bt-autobuff'), gear: this.val('bt-gear') as BotTemplate['gear'], ring: false, horse: 'random',
       money: this.n('bt-money'), hpPotion: this.val('bt-hp'), hpCount: this.n('bt-hpn'), mpPotion: this.val('bt-mp'), mpCount: this.n('bt-mpn'),
       map: { mode: this.val('bt-mapmode') as BotTemplate['map']['mode'], maps: [...this.selectedMaps], radius: this.n('bt-radius') },
     };
@@ -294,7 +295,7 @@ class BotPanel {
     this.set('bt-level', band); this.set('bt-password', t.password);
     const gear = this.$<HTMLSelectElement>('bt-gear'); gear.innerHTML = opt('green', 'Đồ xanh') + opt('gold', 'Hoàng kim môn phái');
     if (t.gear === 'starter') gear.add(new Option('Đồ khởi đầu (template cũ)', 'starter'));
-    this.set('bt-potential', t.potential); this.set('bt-skills', t.skills); this.set('bt-tiers', t.tiers); this.set('bt-gear', t.gear);
+    this.set('bt-potential', t.potential); this.set('bt-skills', t.skills); this.set('bt-tiers', t.tiers); this.set('bt-autobuff', t.autoBuff); this.set('bt-gear', t.gear);
     this.set('bt-money', t.money); this.set('bt-hp', t.hpPotion); this.set('bt-hpn', t.hpCount); this.set('bt-mp', t.mpPotion); this.set('bt-mpn', t.mpCount);
     this.set('bt-mapmode', t.map.mode === 'list' ? 'both' : t.map.mode); this.set('bt-radius', t.map.radius);
     this.selectedMaps = [...t.map.maps]; this.templateTitle = t.title ?? ''; this.renderMapSelection();
@@ -352,7 +353,7 @@ class BotPanel {
     for (const k of Object.keys(DEFAULT_AUTO) as (keyof AutoSettings)[]) {
       const d = DEFAULT_AUTO[k]; auto[k] = typeof d === 'boolean' ? this.on_(`sc-a-${k}`) : typeof d === 'number' ? this.n(`sc-a-${k}`) : this.val(`sc-a-${k}`);
     }
-    return { ...this.scenarioBase, version: 1, duration: 0, note: this.val('sc-note'), server: this.val('sc-server'),
+    return { ...this.scenarioBase, version: 1, buffVersion: 1, duration: 0, note: this.val('sc-note'), server: this.val('sc-server'),
       bots: { prefix: 'botfixed', count: 0, usernames: [...this.picked] }, joinPerSecond: this.n('sc-join'), reconnect: this.on_('sc-reconnect'),
       activities: { grind: this.on_('sc-grind'), chat: this.on_('sc-chat'), sell: this.on_('sc-sell'), autoAcceptTeam: this.on_('sc-team'), autoInviteTeam: this.on_('sc-team-invite') }, auto: auto as unknown as AutoSettings };
   }

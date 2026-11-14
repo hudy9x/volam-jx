@@ -2,9 +2,10 @@ import { equipSkillBonus, wornActiveCount, itemNeeds, planPotential, planSkills,
   BASIC_SKILLS, FACTIONS, LEVEL, POTENTIALS, addAttr, addExp, mergeBag, moveFactor, passiveBag, playerCombat, skillBonuses, stateBag, baseValue, characterStats, expAfterGap, expShare,
   expToNext, getSkill, isoDistance, itemDef, joinFactionError, learnableSkills, levelCap, monsterExp, newProgress, practicePerHit,
   TIER_BOOKS, learnTiers, raiseError, skillExpToNext, skillGrowth, startLevel, tierOf, weaponBaseDamage, weaponTypeOf,
-  QUALITY, activeLines, bossMultiplier, seriesOf,
+  QUALITY, activeLines, bossMultiplier, seriesOf, passiveVisualSkills,
   type AttrBag, type BookEffect, type ItemViewer, type Element, type EquipSlot, type Equipment, type Item, type Potential, type Progress,
 } from '@vltk/shared';
+import { ArraySchema } from '@colyseus/schema';
 import type { Sim } from './entity.js';
 import { syncVitals } from './systems/sync.js';
 import { refreshCamp } from './teams.js';
@@ -90,6 +91,8 @@ export function refreshStats(sim: Sim, fresh = false): void {
     if (b) sim.skillBonus.set(id, b);
   }
   const levels = effectiveSkills(sim);
+  const visuals = passiveVisualSkills(levels);
+  if (visuals.join() !== [...sim.a.passiveFx].join()) sim.a.passiveFx = new ArraySchema<number>(...visuals);
   const bag = mergeBag(mergeBag(equipmentBag(equip, seriesOf(pp.series), sim.a.mounted), passiveBag(levels, wtype)), stateBag(sim.states, wtype));
   const stats = characterStats({
     series: pp.series, level: pp.prog.level, added: pp.prog.added, bag,

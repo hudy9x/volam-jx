@@ -1,8 +1,8 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
   BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillCost,
-  tuningOf, weaponOk, weaponTypeOf,
-  type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type InventoryMsg, type Item,
+  tuningOf, weaponOk, weaponTypeOf, autoAuraSkill,
+  type AutoSettings, type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type InventoryMsg, type Item,
   type SkillDef, type SkillsMsg, type StatsMsg, type TransferMsg, type TeamMsg,
 } from '@vltk/shared';
 import { TeamInviter, type TeamCandidate } from './TeamInviter.js';
@@ -53,7 +53,8 @@ export class BotClient {
   /** Skill bar: left hand + keys 1–9 (skill ids); the hào quang held by the hand slot. */
   left = BASIC_ATTACK;
   keys: (number | null)[] = Array(9).fill(null);
-  aura = 0;
+  aura = -1;
+  private autoAura: number | null = null;
   private barMounted = false;
   readonly host: AutoHost;
 
@@ -75,6 +76,10 @@ export class BotClient {
     this.host = this.makeHost();
   }
 
+  get autoSettings(): AutoSettings {
+    return { ...this.sc.auto, autoBuff: this.sc.auto.autoBuff && this.login.autoBuff !== false };
+  }
+
   get name(): string { return this.login.username; }
 
   // ======================= connection =======================
@@ -94,13 +99,15 @@ export class BotClient {
   async stop(): Promise<void> {
     this.stopped = true;
     this.leaving = true;
-    this.room?.send(C2S.autoConfig, { enabled: false, settings: this.sc.auto });
+    this.room?.send(C2S.autoConfig, { enabled: false, settings: this.autoSettings });
     try { await this.room?.leave(true); } catch { /* already gone */ }
     this.online = false;
   }
 
   private wire(room: Room): void {
     this.room = room;
+    this.aura = -1;
+    this.autoAura = null;
     this.leaving = false;
     this.online = true;
     this.actorCache.at = -1;
@@ -108,7 +115,7 @@ export class BotClient {
     let autoSynced = false;
     room.onMessage(S2C.autoConfig, () => {
       if (autoSynced) return; autoSynced = true;
-      room.send(C2S.autoConfig, { enabled: this.sc.activities.grind, settings: this.sc.auto });
+      room.send(C2S.autoConfig, { enabled: this.sc.activities.grind, settings: this.autoSettings });
     });
     room.onMessage(S2C.tradePost, () => {});
     room.onMessage(S2C.inventory, (msg: InventoryMsg) => {
@@ -265,7 +272,7 @@ export class BotClient {
   /**
    * Bar of a first-time player (state/skillbar.ts fillDefaults, plus what auto-fight looks for): learned attacks that work with
    * the weapon, latest learned first (stronger), on the left hand and keys; then bùa lợi and bùa hại; a hào quang on the right
-   * hand is sent once (C2S.aura, the server keeps it on).
+   * hand is sent once (C2S.aura, the server keeps it on). Buff upkeep reads all learned skills independently of this bar.
    */
   private layoutBar(): void {
     const weapon = this.weapon();
@@ -278,7 +285,12 @@ export class BotClient {
     this.left = attacks[0] ?? BASIC_ATTACK;
     const keys = [...attacks, ...of('buff', 2), ...of('debuff', 2)];
     this.keys = Array.from({ length: 9 }, (_, i) => keys[i] ?? null);
-    const aura = learned.find(s => s.aura)?.id ?? 0;
+    this.maintainAura(this.autoAura);
+  }
+
+  private maintainAura(override: number | null): void {
+    this.autoAura = override;
+    const aura = override ?? (this.autoSettings.autoBuff ? autoAuraSkill(Object.keys(this.levels).map(Number).filter(id => this.levelOf(id) > 0), id => this.usable(id)) : 0);
     if (aura !== this.aura) { this.aura = aura; this.send(C2S.aura, { skill: aura }); }
   }
 
@@ -297,6 +309,8 @@ export class BotClient {
 
   private makeHost(): AutoHost {
     return {
+      learnedSkills: () => Object.keys(this.levels).map(Number).filter(id => this.levelOf(id) > 0),
+      aura: id => this.maintainAura(id),
       self: () => this.actors().find(a => a.isSelf),
       actors: () => this.actors(),
       safe: () => this.safe(),

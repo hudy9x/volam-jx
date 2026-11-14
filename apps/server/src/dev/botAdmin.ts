@@ -139,7 +139,7 @@ export function registerBotRoutes(app: Application): void {
     const out: BotLogin[] = [];
     for (const user of explicit ? explicit.map(id => db.getUser(id)!) : botUsers().filter(u => u.username.startsWith(`${prefix}_`))) {
       const char = db.getCharacter(user.characters[0] ?? '');
-      if (char) out.push({ username: user.username, token: issueToken(user.username), charId: char.id, mapId: char.mapId });
+      if (char) out.push({ username: user.username, token: issueToken(user.username), charId: char.id, mapId: char.mapId, autoBuff: normalizeBotTemplate(char.bot?.setup).autoBuff });
     }
     if (!explicit) out.sort((a, b) => Number(isOnline(a.charId)) - Number(isOnline(b.charId)) || indexOf(a.username) - indexOf(b.username));
     res.json(!explicit && count ? out.slice(0, count) : out);
