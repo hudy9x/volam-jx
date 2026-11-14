@@ -16,9 +16,9 @@ test('both tracks match the approved phases and cap after composition', () => {
       [230, 12], [250, 12], [260, 13],
     ],
     attack: [
-      [5, 10], [10, 16], [20, 17], [30, 18], [50, 20], [70, 22],
-      [85, 23], [110, 24], [130, 26], [150, 28], [160, 30], [180, 32],
-      [200, 34], [220, 36], [240, 38], [260, 40],
+      [5, 11], [10, 14], [20, 17], [30, 20], [50, 23], [70, 26],
+      [85, 29], [110, 32], [130, 35], [150, 38], [160, 41], [180, 44],
+      [200, 47], [220, 50], [240, 53], [260, 56],
     ],
   };
   for (const kind of ['run','attack'] as const) {
@@ -46,6 +46,12 @@ test('config can be tuned without silently accepting broken phases', () => {
   assert.equal(resolveSpeed('run',260).fps,13);
   last.fps = -1;
   assert.throws(()=>validateSpeedConfiguration(config));
+
+  // Non-increasing FPS or custom phases are now allowed without increasing error
+  const nonIncreasing = structuredClone(SPEED) as unknown as Parameters<typeof validateSpeedConfiguration>[0];
+  nonIncreasing.run.phases = nonIncreasing.run.phases.map(p => ({ ...p }));
+  (nonIncreasing.run.phases[2] as { fps: number }).fps = 4; // lower than phase 1
+  assert.doesNotThrow(() => validateSpeedConfiguration(nonIncreasing));
 });
 
 function harness() {
@@ -83,8 +89,8 @@ test('game bonuses and run points must be converted to lab totals before compari
     ...totals,attackBonus:79,castBonus:60,runPoints:11};
   const url=speedLabUrl('http://localhost:5174/?server=unused#ignored',sample);
   assert.deepEqual(readSpeedSample(new URL(url).search),sample);
-  assert.equal(resolveSpeed('attack',totals.attack).cycleMs,20 * 1000 / 23);
-  assert.equal(resolveSpeed('attack',totals.cast).cycleMs,20 * 1000 / 22);
+  assert.equal(resolveSpeed('attack',totals.attack).cycleMs,20 * 1000 / 29);
+  assert.equal(resolveSpeed('attack',totals.cast).cycleMs,20 * 1000 / 26);
   assert.equal(resolveSpeed('run',totals.run).multiplier,moveFactor({fastwalkrun_p:[104,0,0]},false));
   assert.notEqual(resolveSpeed('attack',sample.attackBonus).cycleMs,attackTiming({attackspeed_v:[79,0,0]},true,false).cycleMs);
   assert.notEqual(resolveSpeed('run',sample.runPoints).multiplier,resolveSpeed('run',totals.run).multiplier);

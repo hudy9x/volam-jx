@@ -149,6 +149,7 @@ export class SkillLabScene extends Phaser.Scene {
       this.level = sample.level;
       this.caster.c.a.mounted = this.caster.state.mounted = sample.mounted;
       this.caster.state.horse = sample.horse;
+      this.panel.switchTab('speed');
     }
     this.refresh();
   }

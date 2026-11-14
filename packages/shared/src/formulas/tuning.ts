@@ -134,18 +134,18 @@ export const SPEED = {
   attack: {
     referenceFrames: 20,
     phases: [
-      { minPercent: 5, fps: 10 }, { minPercent: 10, fps: 16 },
-      { minPercent: 20, fps: 17 }, { minPercent: 30, fps: 18 },
-      { minPercent: 50, fps: 20 }, { minPercent: 70, fps: 22 },
-      { minPercent: 85, fps: 23 }, { minPercent: 110, fps: 24 },
-      { minPercent: 130, fps: 26 }, { minPercent: 150, fps: 28 },
-      { minPercent: 160, fps: 30 }, { minPercent: 180, fps: 32 },
-      { minPercent: 200, fps: 34 }, { minPercent: 220, fps: 36 },
-      { minPercent: 240, fps: 38 }, { minPercent: 260, fps: 40 },
-
+      { minPercent: 5, fps: 11 }, { minPercent: 10, fps: 14 },
+      { minPercent: 20, fps: 17 }, { minPercent: 30, fps: 20 },
+      { minPercent: 50, fps: 23 }, { minPercent: 70, fps: 26 },
+      { minPercent: 85, fps: 29 }, { minPercent: 110, fps: 32 },
+      { minPercent: 130, fps: 35 }, { minPercent: 150, fps: 38 },
+      { minPercent: 160, fps: 41 }, { minPercent: 180, fps: 44 },
+      { minPercent: 200, fps: 47 }, { minPercent: 220, fps: 50 },
+      { minPercent: 240, fps: 53 }, { minPercent: 260, fps: 56 },
     ],
   },
 } as const;
+
 
 /** Drops on the ground (VT7–VT9) and boss tier multipliers (GP11). Docs: docs/formulas/drops.md, research docs/research/luck-drops.md. */
 export const DROPS = {

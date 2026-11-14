@@ -15,20 +15,18 @@ export interface ResolvedSpeed { percent: number; phasePercent: number; fps: num
 export function validateSpeedConfiguration(config: SpeedConfiguration): void {
   const base = config.basePercent ?? 10;
   if (!(config.minPercent > 0 && config.minPercent <= base && config.maxPercent >= base) ||
-      !Number.isFinite(config.minPercent + config.maxPercent) ||
-      !Number.isFinite(config.run.distanceScale) || config.run.distanceScale <= 0)
+    !Number.isFinite(config.minPercent + config.maxPercent) ||
+    !Number.isFinite(config.run.distanceScale) || config.run.distanceScale <= 0)
     throw new Error(`Giới hạn tốc độ phải chứa mốc nền ${base}%; hệ số quãng đường phải dương.`);
   for (const kind of ['run', 'attack'] as const) {
     const track = config[kind];
     if (!Number.isInteger(track.referenceFrames) || track.referenceFrames < 1 ||
-        track.phases[0]?.minPercent !== config.minPercent ||
-        track.phases.at(-1)?.minPercent !== config.maxPercent || !track.phases.some(p => p.minPercent === base))
+      track.phases[0]?.minPercent !== config.minPercent ||
+      track.phases.at(-1)?.minPercent !== config.maxPercent || !track.phases.some(p => p.minPercent === base))
       throw new Error(`Bảng ${kind} phải có mốc sàn, mốc nền ${base}% và trần.`);
-    track.phases.forEach((p, i) => {
-      const prev = track.phases[i - 1];
-      if (!Number.isFinite(p.minPercent + p.fps) || p.fps <= 0 ||
-          (prev && (p.minPercent <= prev.minPercent || p.fps < prev.fps)))
-        throw new Error(`Mốc ${kind} phải tăng dần và FPS phải dương, không giảm.`);
+    track.phases.forEach((p) => {
+      if (!Number.isFinite(p.minPercent + p.fps) || p.fps <= 0)
+        throw new Error(`Mốc ${kind}: FPS và % phải là số hợp lệ, FPS phải dương.`);
     });
   }
 }
@@ -39,11 +37,14 @@ export function resolveSpeed(kind: SpeedKind, totalPercent: number, config: Spee
   const base = config.basePercent ?? 10;
   const percent = Math.max(config.minPercent, Math.min(config.maxPercent, Number.isNaN(totalPercent) ? base : totalPercent));
   const track = config[kind];
-  let phase = track.phases[0];
-  for (const p of track.phases) { if (p.minPercent > percent + 1e-9) break; phase = p; }
-  const baseline = track.phases.find(p => p.minPercent === base)!;
-  return { percent, phasePercent: phase.minPercent, fps: phase.fps,
-    multiplier: phase.fps / baseline.fps, cycleMs: track.referenceFrames * 1000 / phase.fps };
+  const sorted = [...track.phases].sort((a, b) => a.minPercent - b.minPercent);
+  let phase = sorted[0];
+  for (const p of sorted) { if (p.minPercent > percent + 1e-9) break; phase = p; }
+  const baseline = track.phases.find(p => p.minPercent === base) || sorted[0];
+  return {
+    percent, phasePercent: phase.minPercent, fps: phase.fps,
+    multiplier: phase.fps / baseline.fps, cycleMs: track.referenceFrames * 1000 / phase.fps
+  };
 }
 
 export function attackSpeedPct(bag: AttrBag): number {

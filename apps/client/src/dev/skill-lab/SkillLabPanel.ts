@@ -1,4 +1,4 @@
-import { SPEED, resolveSpeed, validateSpeedConfiguration, type SpeedConfiguration, ELEMENT_NAMES, FACTIONS, FACTION_IDS, SKILL_CATEGORY_NAMES, learnTiers, skillCategory, type Element, type SkillDef } from '@vltk/shared';
+import { SPEED, resolveSpeed, validateSpeedConfiguration, type SpeedConfiguration, type SpeedPhase, ELEMENT_NAMES, FACTIONS, FACTION_IDS, SKILL_CATEGORY_NAMES, learnTiers, skillCategory, type Element, type SkillDef } from '@vltk/shared';
 import { skillIconUrl } from '../../art/icons';
 import { assetUrl } from '../../art/assets';
 
@@ -33,22 +33,18 @@ export interface LabPanelState {
 const ELEMENT_COLORS: Record<Element, string> = { kim: '#e8c879', moc: '#86d67d', thuy: '#86c8ff', hoa: '#ff8f63', tho: '#cfa877' };
 
 const CSS = `
-#lab-panel { box-sizing:border-box; max-width:calc(100vw - 16px); overflow-y:auto; }
-#lab-speed { display:grid; gap:5px; border:1px solid #4a3a20; padding:6px; }
-#lab-speed label { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
-#lab-speed input[type=number] { width:65px; }
-#lab-speed input,#lab-speed select,#lab-speed button,#lab-speed textarea { color:#f1e6cf; background:#20190f; border:1px solid #675137; padding:4px; }
-#lab-speed output { font-size:11px; line-height:1.4; color:#e8c879; white-space:pre-line; }
-#lab-speed textarea { width:100%; height:140px; box-sizing:border-box; font-size:11px; }
-#lab-speed details { font-size:12px; }
-#lab-speed .lab-source { font-size:11px; line-height:1.4; color:#bfb59b; }
-#lab-speed summary { cursor:pointer; }
-#lab-speed .lab-error { color:#ff9988; font-size:11px; }
-@media(max-width:600px) { #lab-panel { width:220px!important; top:90px!important; } #lab-factions img { height:24px!important; width:30px!important; } #lab-panel .lab-fname { font-size:9px!important; } }
-
-#lab-panel { position: fixed; left: 8px; top: 76px; bottom: 8px; width: 300px; z-index: 20; display: flex; flex-direction: column; gap: 8px;
-  background: #0c0905e6; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 13px; color: #f1e6cf; user-select: none; }
+#lab-panel { box-sizing: border-box; max-width: calc(100vw - 16px); position: fixed; left: 8px; top: 76px; bottom: 8px; width: 330px; z-index: 20; display: flex; flex-direction: column; gap: 8px;
+  background: #0c0905f0; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 13px; color: #f1e6cf; user-select: none; }
 #lab-panel .lab-head { color: var(--gold); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+
+#lab-tabs { display: flex; gap: 4px; border-bottom: 1px solid #4a3a20; padding-bottom: 6px; }
+.lab-tab-btn { flex: 1; text-align: center; padding: 5px 8px; border: 1px solid #4a3a20; border-radius: 4px; background: #15100a; color: #b9ab90; cursor: pointer; font-size: 12px; font-weight: bold; }
+.lab-tab-btn:hover { border-color: var(--border); background: #1f170e; color: #f1e6cf; }
+.lab-tab-btn.on { border-color: var(--gold); background: #2a2010; color: var(--gold); box-shadow: 0 0 6px #e8c87955; }
+
+#lab-tab-skills { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow: hidden; min-height: 0; }
+#lab-tab-speed { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 2px; min-height: 0; }
+
 #lab-factions { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
 #lab-factions .lab-f { display: grid; justify-items: center; gap: 1px; padding: 3px 2px 2px; border: 1px solid #4a3a20; border-radius: 4px;
   background: #15100a; cursor: pointer; }
@@ -56,11 +52,13 @@ const CSS = `
 #lab-factions .lab-f.on { border-color: var(--gold); background: #2a2010; box-shadow: 0 0 6px #e8c87955; }
 #lab-factions img { height: 38px; width: 46px; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
 #lab-factions .lab-fname { font-size: 11px; line-height: 1.1; white-space: nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis; pointer-events: none; }
+
 #lab-controls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 #lab-controls .lab-btn { padding: 3px 8px; border: 1px solid #4a3a20; border-radius: 4px; background: #1a140c; cursor: pointer; }
 #lab-controls .lab-btn:hover { border-color: var(--gold); }
 #lab-controls .lab-btn.on { border-color: var(--gold); color: var(--gold); }
 #lab-controls .lab-level { min-width: 62px; text-align: center; }
+
 #lab-skills { flex: 1; min-height: 90px; overflow-y: auto; display: grid; align-content: start; gap: 2px; padding-right: 2px; }
 #lab-skills .lab-tier { margin-top: 6px; color: var(--gold); font-size: 12px; border-bottom: 1px solid #4a3a20; }
 #lab-skills .lab-s { display: flex; align-items: center; gap: 8px; padding: 3px 4px; border: 1px solid transparent; border-radius: 4px; cursor: pointer; }
@@ -73,6 +71,43 @@ const CSS = `
 #lab-skills .lab-sid { color: #8d7c60; font-size: 11px; }
 #lab-skills .lab-s.passive .lab-sname { color: #b9ab90; }
 #lab-skills .lab-s.passive .lab-icon { border-style: dashed; }
+
+#lab-speed { display: grid; gap: 6px; border: 1px solid #4a3a20; padding: 6px; border-radius: 4px; background: #120e08; }
+#lab-speed label { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+#lab-speed input[type=number] { width: 62px; }
+#lab-speed input, #lab-speed select, #lab-speed button { color: #f1e6cf; background: #20190f; border: 1px solid #675137; padding: 3px 5px; border-radius: 3px; font-size: 12px; }
+#lab-speed output { font-size: 11px; line-height: 1.4; color: #e8c879; white-space: pre-line; }
+#lab-speed .lab-source { font-size: 11px; line-height: 1.4; color: #bfb59b; }
+
+#lab-speed-tuning { margin-top: 4px; display: grid; gap: 6px; border: 1px solid #4a3a20; padding: 6px; border-radius: 4px; background: #100b06; }
+.lab-subtabs { display: flex; gap: 4px; }
+.lab-subtab-btn { flex: 1; text-align: center; padding: 4px 6px; border: 1px solid #4a3a20; border-radius: 3px; background: #15100a; color: #9d8c70; cursor: pointer; font-size: 11px; font-weight: bold; }
+.lab-subtab-btn.on { border-color: var(--gold); background: #22180c; color: var(--gold); }
+
+.lab-base-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: #18120a; border: 1px solid #3c2f1b; padding: 5px; border-radius: 4px; align-items: center; }
+.lab-base-bar label { display: flex; flex-direction: column; font-size: 10px; color: #bfb59b; gap: 2px; }
+.lab-base-bar input { width: 100%; box-sizing: border-box; }
+.lab-base-actions { grid-column: span 3; display: flex; justify-content: flex-end; margin-top: 2px; }
+.lab-base-actions button { font-size: 10px; padding: 2px 6px; cursor: pointer; }
+
+.lab-phase-table { display: flex; flex-direction: column; gap: 2px; max-height: 200px; overflow-y: auto; padding-right: 2px; }
+.lab-phase-header { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 4px; font-size: 10px; color: #8d7c60; font-weight: bold; padding: 2px 4px; text-transform: uppercase; }
+.lab-phase-row { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 4px; align-items: center; padding: 1px 0; }
+.lab-phase-row.is-base input { border-color: var(--gold); color: #fff3db; background: #2a2010; font-weight: bold; }
+.lab-phase-row input { width: 100%; box-sizing: border-box; text-align: center; }
+.lab-phase-row .btn-del { padding: 2px 0; text-align: center; cursor: pointer; border: 1px solid #4a2820; background: #20100c; color: #ff9988; border-radius: 3px; font-size: 11px; line-height: 1; }
+.lab-phase-row .btn-del:hover { background: #3a1610; border-color: #ff5544; }
+
+.lab-table-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.lab-table-footer button { padding: 2px 8px; font-size: 11px; cursor: pointer; }
+
+.lab-global-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 6px; }
+.lab-global-actions button { padding: 5px 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+.lab-global-actions .btn-copy { grid-column: span 2; background: #261e12; border-color: var(--gold); color: var(--gold); }
+.lab-global-actions .btn-copy:hover { background: #352a19; box-shadow: 0 0 6px #e8c87955; }
+.lab-error { color: #ff9988; font-size: 11px; min-height: 14px; }
+
+@media(max-width:600px) { #lab-panel { width:220px!important; top:90px!important; } #lab-factions img { height:24px!important; width:30px!important; } #lab-panel .lab-fname { font-size:9px!important; } }
 `;
 
 /** Element made of plain divs: nothing takes keyboard focus, so Space / arrows keep driving the lab. */
@@ -81,6 +116,236 @@ function div(cls: string, text = ''): HTMLDivElement {
   el.className = cls;
   if (text) el.textContent = text;
   return el;
+}
+
+interface TrackTableController {
+  container: HTMLDivElement;
+  getPhases(): SpeedPhase[];
+  setPhases(phases: readonly SpeedPhase[], basePercent: number): void;
+}
+
+function createPhaseTable(
+  _title: string,
+  initialPhases: readonly SpeedPhase[],
+  basePercent: number,
+  defaultStep: number,
+  onDirty: () => void,
+): TrackTableController {
+  const container = div('');
+  container.className = 'lab-track-table';
+
+  let currentPhases: SpeedPhase[] = initialPhases.map(p => ({ ...p }));
+  let currentBasePct = basePercent;
+
+  // 1. Fixed Base Bar on top
+  const baseBar = div('lab-base-bar');
+  const basePctLabel = document.createElement('label');
+  basePctLabel.textContent = 'Mốc Base (%)';
+  const basePctInput = document.createElement('input');
+  basePctInput.type = 'number';
+  basePctInput.value = String(basePercent);
+  basePctLabel.appendChild(basePctInput);
+
+  const baseFpsLabel = document.createElement('label');
+  baseFpsLabel.textContent = 'Base FPS';
+  const baseFpsInput = document.createElement('input');
+  baseFpsInput.type = 'number';
+  const initBasePhase = initialPhases.find(p => p.minPercent === basePercent) || initialPhases[0];
+  baseFpsInput.value = String(initBasePhase?.fps ?? 16);
+  baseFpsLabel.appendChild(baseFpsInput);
+
+  const stepLabel = document.createElement('label');
+  stepLabel.textContent = 'Step (+FPS)';
+  const stepInput = document.createElement('input');
+  stepInput.type = 'number';
+  stepInput.value = String(defaultStep);
+  stepLabel.appendChild(stepInput);
+
+  const baseActions = div('lab-base-actions');
+  const applyStepBtn = document.createElement('button');
+  applyStepBtn.type = 'button';
+  applyStepBtn.textContent = 'Điền tự động theo Step';
+  applyStepBtn.title = 'Lấy Base FPS làm chuẩn, mỗi hàng tiếp theo cộng dồn một lượng bằng Step';
+  baseActions.appendChild(applyStepBtn);
+
+  baseBar.append(basePctLabel, baseFpsLabel, stepLabel, baseActions);
+
+  // 2. Table Header
+  const header = div('lab-phase-header');
+  header.append(div('', 'Mốc (%)'), div('', 'FPS'), div('', ''));
+
+  // 3. Rows container
+  const tableRows = div('lab-phase-table');
+
+  function renderRows(): void {
+    tableRows.replaceChildren();
+    const sorted = [...currentPhases].sort((a, b) => a.minPercent - b.minPercent);
+    currentPhases = sorted;
+
+    sorted.forEach((p, idx) => {
+      const isBase = p.minPercent === currentBasePct;
+      const row = div(`lab-phase-row${isBase ? ' is-base' : ''}`);
+
+      const pctInput = document.createElement('input');
+      pctInput.type = 'number';
+      pctInput.value = String(p.minPercent);
+      pctInput.title = isBase ? 'Mốc nền (Base)' : `Mốc % thứ ${idx + 1}`;
+      pctInput.addEventListener('change', () => {
+        const val = Number(pctInput.value);
+        if (Number.isFinite(val)) {
+          p.minPercent = val;
+          onDirty();
+        }
+      });
+
+      const fpsInput = document.createElement('input');
+      fpsInput.type = 'number';
+      fpsInput.value = String(p.fps);
+      fpsInput.title = `FPS chuẩn cho mốc ${p.minPercent}%`;
+      fpsInput.addEventListener('change', () => {
+        const val = Number(fpsInput.value);
+        if (Number.isFinite(val) && val > 0) {
+          p.fps = val;
+          if (isBase) baseFpsInput.value = String(val);
+          onDirty();
+        }
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'btn-del';
+      delBtn.textContent = '×';
+      delBtn.title = 'Xóa mốc này';
+      delBtn.addEventListener('click', () => {
+        if (currentPhases.length <= 1) return;
+        currentPhases = currentPhases.filter(item => item !== p);
+        renderRows();
+        onDirty();
+      });
+
+      row.append(pctInput, fpsInput, delBtn);
+      tableRows.appendChild(row);
+    });
+  }
+
+  // Base changes
+  basePctInput.addEventListener('change', () => {
+    const val = Number(basePctInput.value);
+    if (Number.isFinite(val)) {
+      currentBasePct = val;
+      renderRows();
+      onDirty();
+    }
+  });
+
+  baseFpsInput.addEventListener('change', () => {
+    const val = Number(baseFpsInput.value);
+    if (Number.isFinite(val) && val > 0) {
+      const baseP = currentPhases.find(p => p.minPercent === currentBasePct);
+      if (baseP) baseP.fps = val;
+      renderRows();
+      onDirty();
+    }
+  });
+
+  // Apply step logic
+  applyStepBtn.addEventListener('click', () => {
+    const baseFps = Number(baseFpsInput.value);
+    const step = Number(stepInput.value);
+    if (!Number.isFinite(baseFps) || !Number.isFinite(step)) return;
+
+    // Ensure base exists in current phases
+    let baseIdx = currentPhases.findIndex(p => p.minPercent === currentBasePct);
+    if (baseIdx < 0) {
+      currentPhases.push({ minPercent: currentBasePct, fps: baseFps });
+      currentPhases.sort((a, b) => a.minPercent - b.minPercent);
+      baseIdx = currentPhases.findIndex(p => p.minPercent === currentBasePct);
+    }
+
+    currentPhases.forEach((p, i) => {
+      if (i === baseIdx) {
+        p.fps = baseFps;
+      } else if (i > baseIdx) {
+        p.fps = baseFps + (i - baseIdx) * step;
+      } else {
+        p.fps = Math.max(1, baseFps - (baseIdx - i) * step);
+      }
+    });
+
+    renderRows();
+    onDirty();
+  });
+
+  // 4. Footer: Add Row button
+  const footer = div('lab-table-footer');
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.textContent = '+ Thêm mốc mới';
+  addBtn.addEventListener('click', () => {
+    const last = currentPhases.at(-1);
+    const step = Number(stepInput.value) || 2;
+    const nextPct = last ? last.minPercent + 20 : 100;
+    const nextFps = last ? last.fps + step : 20;
+    currentPhases.push({ minPercent: nextPct, fps: nextFps });
+    renderRows();
+    onDirty();
+  });
+  footer.appendChild(addBtn);
+
+  renderRows();
+  container.append(baseBar, header, tableRows, footer);
+
+  return {
+    container,
+    getPhases(): SpeedPhase[] {
+      return currentPhases.map(p => ({ ...p }));
+    },
+    setPhases(phases: readonly SpeedPhase[], basePct: number): void {
+      currentPhases = phases.map(p => ({ ...p }));
+      currentBasePct = basePct;
+      basePctInput.value = String(basePct);
+      const bPhase = phases.find(p => p.minPercent === basePct) || phases[0];
+      if (bPhase) baseFpsInput.value = String(bPhase.fps);
+      renderRows();
+    },
+  };
+}
+
+/** Formats current speed configuration to exact TypeScript export string requested by user */
+function formatSpeedCode(config: SpeedConfiguration): string {
+  const formatPhases = (phases: readonly SpeedPhase[]): string => {
+    const lines: string[] = [];
+    for (let i = 0; i < phases.length; i += 2) {
+      const p1 = phases[i];
+      const p2 = phases[i + 1];
+      if (p2) {
+        lines.push(`      { minPercent: ${p1.minPercent}, fps: ${p1.fps} }, { minPercent: ${p2.minPercent}, fps: ${p2.fps} },`);
+      } else {
+        lines.push(`      { minPercent: ${p1.minPercent}, fps: ${p1.fps} },`);
+      }
+    }
+    return lines.join('\n');
+  };
+
+  return `export const SPEED = {
+  basePercent: ${config.basePercent},
+  minPercent: ${config.minPercent},
+  maxPercent: ${config.maxPercent},
+  run: {
+    distanceScale: ${config.run.distanceScale},
+    referenceFrames: ${config.run.referenceFrames},
+    phases: [
+${formatPhases(config.run.phases)}
+    ],
+  },
+  attack: {
+    referenceFrames: ${config.attack.referenceFrames},
+    phases: [
+${formatPhases(config.attack.phases)}
+    ],
+  },
+} as const;
+`;
 }
 
 /**
@@ -96,14 +361,26 @@ export class SkillLabPanel {
   private levelEl = div('lab-level');
   private autoEl = div('lab-btn', 'Tự đánh');
   private listFaction = -1;
+
+  // Tabs
+  private tabSkillsBtn = div('lab-tab-btn on', 'Chiêu thức');
+  private tabSpeedBtn = div('lab-tab-btn', 'Tốc độ');
+  private tabSkillsContent = div('');
+  private tabSpeedContent = div('');
+
+  // Speed controls
   private attackInput = document.createElement('input');
   private runInput = document.createElement('input');
   private modeInput = document.createElement('select');
   private mountedInput = document.createElement('input');
   private speedInfo = document.createElement('output');
   private sourceInfo = div('lab-source');
-  private configInput = document.createElement('textarea');
   private speedPresets: HTMLSelectElement[] = [];
+
+  // Track tables
+  private attackTableCtrl!: TrackTableController;
+  private runTableCtrl!: TrackTableController;
+  private lastConfig: SpeedConfiguration = SPEED;
   private configKey = '';
 
   constructor(private hooks: LabPanelHooks) {
@@ -111,6 +388,15 @@ export class SkillLabPanel {
     document.head.appendChild(this.style);
     this.root.id = 'lab-panel';
 
+    // Top Tab Switcher
+    const tabs = div('');
+    tabs.id = 'lab-tabs';
+    tabs.append(this.tabSkillsBtn, this.tabSpeedBtn);
+    this.tabSkillsBtn.addEventListener('click', () => this.switchTab('skills'));
+    this.tabSpeedBtn.addEventListener('click', () => this.switchTab('speed'));
+
+    // --- Tab 1: Chiêu thức ---
+    this.tabSkillsContent.id = 'lab-tab-skills';
     const factions = div('');
     factions.id = 'lab-factions';
     FACTION_IDS.forEach((id, i) => {
@@ -143,43 +429,202 @@ export class SkillLabPanel {
     controls.append(minus, this.levelEl, plus, cast, this.autoEl);
 
     this.list.id = 'lab-skills';
-    this.root.append(div('lab-head', 'Môn phái'), factions, controls, this.buildSpeedControls(), div('lab-head', 'Chiêu'), this.list);
+    this.tabSkillsContent.append(div('lab-head', 'Môn phái'), factions, controls, div('lab-head', 'Chiêu'), this.list);
+
+    // --- Tab 2: Tốc độ ---
+    this.tabSpeedContent.id = 'lab-tab-speed';
+    this.tabSpeedContent.style.display = 'none';
+    this.tabSpeedContent.append(this.buildSpeedControls());
+
+    this.root.append(tabs, this.tabSkillsContent, this.tabSpeedContent);
     document.body.appendChild(this.root);
     // Clicks on the panel stay off the game canvas underneath.
     this.root.addEventListener('pointerdown', e => e.stopPropagation());
   }
 
+  switchTab(tab: 'skills' | 'speed'): void {
+    const isSkills = tab === 'skills';
+    this.tabSkillsBtn.classList.toggle('on', isSkills);
+    this.tabSpeedBtn.classList.toggle('on', !isSkills);
+    this.tabSkillsContent.style.display = isSkills ? 'flex' : 'none';
+    this.tabSpeedContent.style.display = isSkills ? 'none' : 'flex';
+  }
+
+  private buildCurrentConfig(): SpeedConfiguration {
+    const attackPhases = this.attackTableCtrl.getPhases();
+    const runPhases = this.runTableCtrl.getPhases();
+    if (!attackPhases.length || !runPhases.length) {
+      throw new Error('Bảng mốc không được để trống.');
+    }
+
+    const config: SpeedConfiguration = structuredClone(this.lastConfig || SPEED);
+    config.attack = { ...config.attack, phases: attackPhases };
+    config.run = { ...config.run, phases: runPhases };
+
+    // Auto update minPercent / maxPercent from phases
+    const allMin = Math.min(...attackPhases.map(p => p.minPercent), ...runPhases.map(p => p.minPercent));
+    const allMax = Math.max(...attackPhases.map(p => p.minPercent), ...runPhases.map(p => p.minPercent));
+    if (Number.isFinite(allMin) && allMin > 0) config.minPercent = allMin;
+    if (Number.isFinite(allMax) && allMax >= (config.basePercent ?? 10)) config.maxPercent = allMax;
+    return config;
+  }
+
   private buildSpeedControls(): HTMLElement {
     const box = div(''); box.id = 'lab-speed';
     box.append(div('lab-head', `Thử tốc độ · ${SPEED.basePercent}% = tốc nền`));
-    for (const [kind, text, input] of [['attack', 'Đánh tổng', this.attackInput], ['run', 'Chạy tổng', this.runInput]] as const) {
-      const row = document.createElement('label'); row.textContent = text + ' %';
-      input.type = 'number'; input.step = '1'; input.value = String(SPEED.basePercent); input.id = `lab-${kind}-percent`;
-      input.addEventListener('input', () => { if (input.value !== '' && Number.isFinite(input.valueAsNumber)) this.hooks.speed(kind, input.valueAsNumber); });
-      const preset = document.createElement('select'); preset.setAttribute('aria-label', `Mốc ${text.toLowerCase()}`);
-      preset.addEventListener('change', () => { input.value = preset.value; this.hooks.speed(kind, Number(preset.value)); });
-      this.speedPresets.push(preset); row.append(input, preset); box.append(row);
+
+    // Attack speed row
+    {
+      const row = document.createElement('label'); row.textContent = 'Đánh tổng %';
+      this.attackInput.type = 'number'; this.attackInput.step = '1'; this.attackInput.value = String(SPEED.basePercent);
+      this.attackInput.id = 'lab-attack-percent';
+      this.attackInput.addEventListener('input', () => {
+        if (this.attackInput.value !== '' && Number.isFinite(this.attackInput.valueAsNumber)) {
+          this.hooks.speed('attack', this.attackInput.valueAsNumber);
+        }
+      });
+      const preset = document.createElement('select'); preset.setAttribute('aria-label', 'Mốc đánh');
+      preset.addEventListener('change', () => {
+        this.attackInput.value = preset.value;
+        this.hooks.speed('attack', Number(preset.value));
+      });
+      this.speedPresets.push(preset);
+      row.append(this.attackInput, preset);
+      box.append(row);
     }
+
+    // Run speed row
+    {
+      const row = document.createElement('label'); row.textContent = 'Chạy tổng %';
+      this.runInput.type = 'number'; this.runInput.step = '1'; this.runInput.value = String(SPEED.basePercent);
+      this.runInput.id = 'lab-run-percent';
+      this.runInput.addEventListener('input', () => {
+        if (this.runInput.value !== '' && Number.isFinite(this.runInput.valueAsNumber)) {
+          this.hooks.speed('run', this.runInput.valueAsNumber);
+        }
+      });
+      const preset = document.createElement('select'); preset.setAttribute('aria-label', 'Mốc chạy');
+      preset.addEventListener('change', () => {
+        this.runInput.value = preset.value;
+        this.hooks.speed('run', Number(preset.value));
+      });
+      this.speedPresets.push(preset);
+      row.append(this.runInput, preset);
+      box.append(row);
+    }
+
     const mode = document.createElement('label'); mode.textContent = 'Chế độ'; this.modeInput.id = 'lab-speed-mode';
-    for (const [value, text] of [['idle','Đứng'],['attack','Tự đánh'],['run','Tự chạy'],['both','Chạy & đánh']]) this.modeInput.add(new Option(text,value));
-    this.modeInput.addEventListener('change', () => this.hooks.mode(this.modeInput.value)); mode.append(this.modeInput);
+    for (const [value, text] of [['idle', 'Đứng'], ['attack', 'Tự đánh'], ['run', 'Tự chạy'], ['both', 'Chạy & đánh']]) {
+      this.modeInput.add(new Option(text, value));
+    }
+    this.modeInput.addEventListener('change', () => this.hooks.mode(this.modeInput.value));
+    mode.append(this.modeInput);
+
     const mounted = document.createElement('label'); this.mountedInput.type = 'checkbox'; this.mountedInput.id = 'lab-mounted';
-    this.mountedInput.addEventListener('change', () => this.hooks.mounted(this.mountedInput.checked)); mounted.append(this.mountedInput, 'Cưỡi ngựa (cùng tổng tốc đã nhập)');
+    this.mountedInput.addEventListener('change', () => this.hooks.mounted(this.mountedInput.checked));
+    mounted.append(this.mountedInput, 'Cưỡi ngựa (cùng tổng tốc đã nhập)');
+
     this.speedInfo.id = 'lab-speed-info';
-    const details = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Cài đặt bảng mốc · chỉ phiên thử';
-    this.configInput.id = 'lab-speed-config'; this.configInput.value = JSON.stringify(SPEED, null, 2);
-    this.configInput.setAttribute('aria-label', 'Cấu hình mốc tốc độ JSON');
-    const apply = document.createElement('button'); apply.textContent = 'Áp dụng bảng thử'; apply.type = 'button';
-    const reset = document.createElement('button'); reset.textContent = 'Khôi phục mặc định'; reset.type = 'button';
-    const error = div('lab-error'); error.setAttribute('role','alert');
-    apply.addEventListener('click', () => {
-      try { const config = JSON.parse(this.configInput.value) as SpeedConfiguration; validateSpeedConfiguration(config); this.hooks.configuration(config); error.textContent = ''; }
-      catch (e) { error.textContent = e instanceof Error ? e.message : String(e); }
-    });
-    reset.addEventListener('click', () => { const config = structuredClone(SPEED); this.configInput.value = JSON.stringify(config,null,2); this.hooks.configuration(config); error.textContent = ''; });
-    details.append(summary, this.configInput, apply, reset, error);
     this.sourceInfo.id = 'lab-speed-source';
-    box.append(mode, mounted, this.speedInfo, this.sourceInfo, details);
+
+    // Tuning section with 2 sub-tabs (Mốc Đánh & Mốc Chạy)
+    const tuningBox = div('');
+    tuningBox.id = 'lab-speed-tuning';
+    tuningBox.append(div('lab-head', 'Cài đặt mốc speed · theo hàng'));
+
+    const subtabs = div('lab-subtabs');
+    const attackSubtabBtn = div('lab-subtab-btn on', 'Mốc Tốc Độ Đánh');
+    const runSubtabBtn = div('lab-subtab-btn', 'Mốc Tốc Độ Chạy');
+    subtabs.append(attackSubtabBtn, runSubtabBtn);
+
+    const error = div('lab-error'); error.setAttribute('role', 'alert');
+    const onDirty = () => { error.textContent = ''; };
+
+    this.attackTableCtrl = createPhaseTable('Đánh', SPEED.attack.phases, SPEED.basePercent, 2, onDirty);
+    this.runTableCtrl = createPhaseTable('Chạy', SPEED.run.phases, SPEED.basePercent, 1, onDirty);
+
+    this.runTableCtrl.container.style.display = 'none';
+
+    attackSubtabBtn.addEventListener('click', () => {
+      attackSubtabBtn.classList.add('on');
+      runSubtabBtn.classList.remove('on');
+      this.attackTableCtrl.container.style.display = 'block';
+      this.runTableCtrl.container.style.display = 'none';
+    });
+
+    runSubtabBtn.addEventListener('click', () => {
+      runSubtabBtn.classList.add('on');
+      attackSubtabBtn.classList.remove('on');
+      this.runTableCtrl.container.style.display = 'block';
+      this.attackTableCtrl.container.style.display = 'none';
+    });
+
+    // Global action buttons
+    const actions = div('lab-global-actions');
+    const apply = document.createElement('button');
+    apply.textContent = 'Áp dụng bảng thử';
+    apply.type = 'button';
+    apply.title = 'Áp dụng cả bảng mốc đánh và mốc chạy vào game';
+
+    const reset = document.createElement('button');
+    reset.textContent = 'Khôi phục mặc định';
+    reset.type = 'button';
+    reset.title = 'Khôi phục bảng mốc chuẩn ban đầu';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn-copy';
+    copyBtn.textContent = '📋 Sao chép mã SPEED (TypeScript)';
+    copyBtn.type = 'button';
+    copyBtn.title = 'Sao chép toàn bộ khối mã export const SPEED = { ... } as const; để dán vào tuning.ts';
+
+    actions.append(apply, reset, copyBtn);
+
+    apply.addEventListener('click', () => {
+      try {
+        const config = this.buildCurrentConfig();
+        validateSpeedConfiguration(config);
+        this.hooks.configuration(config);
+        error.textContent = '';
+      } catch (e) {
+        error.textContent = e instanceof Error ? e.message : String(e);
+      }
+    });
+
+    reset.addEventListener('click', () => {
+      const config = structuredClone(SPEED);
+      this.attackTableCtrl.setPhases(config.attack.phases, config.basePercent);
+      this.runTableCtrl.setPhases(config.run.phases, config.basePercent);
+      this.hooks.configuration(config);
+      error.textContent = '';
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        const config = this.buildCurrentConfig();
+        const code = formatSpeedCode(config);
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(code);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = code;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+        }
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = '✓ Đã sao chép mã SPEED vào bộ nhớ đệm!';
+        setTimeout(() => {
+          copyBtn.textContent = originalText;
+        }, 2000);
+        error.textContent = '';
+      } catch (e) {
+        error.textContent = e instanceof Error ? e.message : String(e);
+      }
+    });
+
+    tuningBox.append(subtabs, this.attackTableCtrl.container, this.runTableCtrl.container, actions, error);
+    box.append(mode, mounted, this.speedInfo, this.sourceInfo, tuningBox);
     return box;
   }
 
@@ -189,13 +634,18 @@ export class SkillLabPanel {
     if (document.activeElement !== this.runInput) this.runInput.value = String(st.runPercent);
     this.modeInput.value = st.autoRun ? st.auto ? 'both' : 'run' : st.auto ? 'attack' : 'idle';
     this.mountedInput.checked = st.mounted;
+    this.lastConfig = st.config;
+
     const configKey = JSON.stringify(st.config);
     if (configKey !== this.configKey) {
       this.configKey = configKey;
-      this.speedPresets.forEach((el,i) => el.replaceChildren(...st.config[i === 0 ? 'attack' : 'run'].phases.map(p => new Option(`${p.minPercent}%`,String(p.minPercent)))));
+      this.speedPresets[0]?.replaceChildren(...st.config.attack.phases.map(p => new Option(`${p.minPercent}%`, String(p.minPercent))));
+      this.speedPresets[1]?.replaceChildren(...st.config.run.phases.map(p => new Option(`${p.minPercent}%`, String(p.minPercent))));
     }
+
     const attack = resolveSpeed('attack', st.attackPercent, st.config), run = resolveSpeed('run', st.runPercent, st.config);
-    this.speedPresets[0].value = String(attack.phasePercent); this.speedPresets[1].value = String(run.phasePercent);
+    if (this.speedPresets[0]) this.speedPresets[0].value = String(attack.phasePercent);
+    if (this.speedPresets[1]) this.speedPresets[1].value = String(run.phasePercent);
     this.speedInfo.textContent = `Giới hạn ${st.config.minPercent}–${st.config.maxPercent}%\nĐánh: mốc ${attack.phasePercent}% · ${attack.fps} FPS chuẩn · ${Math.round(attack.cycleMs)} ms/đòn\nChạy: mốc ${run.phasePercent}% · ${run.fps} FPS chuẩn · ${Math.round(run.cycleMs)} ms/vòng\nTốc đánh mới áp dụng từ đòn kế tiếp; giữ hồi chiêu riêng.`;
 
     this.factionEls.forEach((el, i) => el.classList.toggle('on', i === st.faction));
