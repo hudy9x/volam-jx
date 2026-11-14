@@ -4,10 +4,12 @@ import {
   type Item, type ItemViewer, type StashMsg,
 } from '@vltk/shared';
 import { itemViewer, progress } from '../../state/progress';
+import { inventory } from '../../state/inventory';
 import { stash } from '../../state/stash';
 import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
 import { getActiveGridDrag, gridCellAt, setActiveGridDrag } from '../kit/itemGrid';
+import { moneyHtml, setMoney } from '../kit/money';
 import { setSlotIcon } from '../kit/slot';
 import { tooltip } from '../kit/tooltip';
 import type { HudContext } from '../hud/context';
@@ -21,6 +23,19 @@ const HTML = `
     `<button type="button" class="bag-tab${p ? '' : ' on'}" data-page="${p}">${p + 1}</button>`).join('')}</div>
   <div class="row spread muted"><span>Dùng chung tài khoản</span><span class="row" style="gap:6px"><span id="stash-count"></span><button type="button" class="btn sm" id="stash-sort" title="Sắp xếp gọn lại trang hiện tại">Xếp</button></span></div>
   <div id="stash-grid" style="--cell: ${BAG_CELL_PX}px; --cols: ${BAG_COLS}; --rows: ${BAG_ROWS}"></div>
+  <div class="bag-money">${moneyHtml('stash-money')}</div>
+  <div id="stash-knb" class="stash-knb">0 Kim nguyên bảo</div>
+  <div class="stash-bank">
+    <div class="stash-bank-tabs">
+      <button type="button" class="btn sm on" id="stash-cur-money" data-cur="money">Ngân lượng</button>
+      <button type="button" class="btn sm" id="stash-cur-knb" data-cur="knb">KNB</button>
+    </div>
+    <div class="row stash-bank-row">
+      <input type="number" id="stash-amount" min="1" step="1" placeholder="Số lượng" />
+      <button type="button" class="btn sm" id="stash-deposit" title="Gửi từ hành trang vào rương">Gửi</button>
+      <button type="button" class="btn sm" id="stash-withdraw" title="Rút từ rương về hành trang">Rút</button>
+    </div>
+  </div>
   <div class="muted stash-note">Kéo thả vật phẩm qua lại giữa Hành trang và Rương chứa đồ.</div>
 </section>`;
 
@@ -30,6 +45,7 @@ const HTML = `
 export class StashWindow {
   private data: StashMsg = stash.get();
   private page = 0;
+  private currency: 'money' | 'knb' = 'money';
   private pendingRender = false;
 
   constructor(parent: HTMLElement, private ctx: HudContext) {
@@ -62,6 +78,29 @@ export class StashWindow {
       });
     });
     $('stash-sort').addEventListener('click', () => this.ctx.actions()?.bagSort(this.page, 'stash'));
+    const setCurrency = (c: 'money' | 'knb') => {
+      this.currency = c;
+      $('stash-cur-money').classList.toggle('on', c === 'money');
+      $('stash-cur-knb').classList.toggle('on', c === 'knb');
+    };
+    $('stash-cur-money').addEventListener('click', () => setCurrency('money'));
+    $('stash-cur-knb').addEventListener('click', () => setCurrency('knb'));
+    const sendCurrency = (op: 'deposit' | 'withdraw') => {
+      const input = $<HTMLInputElement>('stash-amount');
+      const raw = Math.floor(Number(input.value));
+      const fallback = op === 'deposit'
+        ? (this.currency === 'money' ? inventory.get().money : (inventory.get().knb ?? 0))
+        : (this.currency === 'money' ? this.data.money : this.data.knb);
+      const amount = Number.isFinite(raw) && raw > 0 ? raw : fallback;
+      if (!(amount > 0)) {
+        this.ctx.notice(op === 'deposit' ? 'Không có số dư để gửi.' : 'Trong rương không có số dư để rút.');
+        return;
+      }
+      this.ctx.actions()?.stashCurrency(op, this.currency, amount);
+      input.value = '';
+    };
+    $('stash-deposit').addEventListener('click', () => sendCurrency('deposit'));
+    $('stash-withdraw').addEventListener('click', () => sendCurrency('withdraw'));
     stash.watch(msg => {
       this.data = msg;
       if (getActiveGridDrag()?.source === 'stash') { this.pendingRender = true; return; }
@@ -164,6 +203,8 @@ export class StashWindow {
     const cover = bagCover(this.data.stash, -1, STASH_SIZE);
     const used = cover.slice(this.page * BAG_PAGE_SIZE, (this.page + 1) * BAG_PAGE_SIZE).filter(c => c >= 0).length;
     $('stash-count').textContent = `${used}/${BAG_PAGE_SIZE} ô`;
+    setMoney($('stash-money'), this.data.money ?? 0);
+    $('stash-knb').textContent = `${(this.data.knb ?? 0).toLocaleString('vi-VN')} Kim nguyên bảo`;
   }
 }
 

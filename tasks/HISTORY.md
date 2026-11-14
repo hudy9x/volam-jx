@@ -2,6 +2,16 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Phím tắt mới, Hành trang 1–5 & Swap/Sort, NPC Rương chứa đồ tài khoản (đồ + Lượng/KNB), Tooltip 5 section & Dòng rơi Hiện/Ẩn
+
+- Theo yêu cầu USER:
+  + Cập nhật phím tắt thanh dưới theo Phương án B (`keymap.ts`): `Q` Nhân vật, `W` Hành trang, `E` Kỹ năng, `R` Ngựa, `A` PK, `D` Thợ rèn, `Z` Auto, `P` Tổ đội, `T` Chuyển map, `V` Kỳ Trân Các.
+  + Hành trang: giữ 5 tab đánh số `1, 2, 3, 4, 5` cao `20px`; thêm nút `Xếp` (`C2S.bagSort`), hỗ trợ kéo thả hoán đổi 1 món (`moveOrSwapInGrid`), sửa lỗi đứt drag khi rê qua tab và hoãn render khi đang kéo.
+  + Tạo NPC **Rương chứa đồ** (`npc-ruong` trong thành, `stash.ts/.css`): 3 tab `1, 2, 3`, kéo thả qua lại 2 chiều với Hành trang, hỗ trợ gửi/rút **Ngân lượng & Kim nguyên bảo** (`C2S.stashCurrency`, `S2C.stash`), lưu theo tài khoản (`UserRecord.stash`, `stashMoney`, `stashKnb`) để chia sẻ giữa mọi nhân vật trong 1 account.
+  + Tooltip trang bị (`itemTip.ts`, `tooltip.css`): chia 5 `.tip-section` rõ ràng với padding `12px 16px` và khoảng cách `9px`.
+  + Rơi đồ (`formulas/drops.ts rollMagicLines`): đảm bảo dòng lẻ (`1, 3, 5`) luôn là thuộc tính Hiện, dòng chẵn (`2, 4, 6`) luôn là thuộc tính Ẩn.
+- Kiểm tra: `npm run typecheck`, `npm run build`, `git diff --check` đạt; test trực tiếp `rollMagicLines` (2000 vật phẩm / 3333 dòng) và `moveOrSwapInGrid`/`sortGridPage` đạt. Đã commit theo yêu cầu USER (`8a7517e` + commit gửi/rút tiền & tài liệu), không push.
+
 ## 2026-11-14 · Thêm cột Step cho bảng Mốc Tốc Độ Đánh & cập nhật mốc FPS tấn công mới
 
 - Theo yêu cầu USER:
@@ -1054,3 +1064,24 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - TradePostMsg/TradeCurrency chỉmoney/knb, form bỏ Contact và bắt buộc giá. Server từ chối contact/đơn vị sai và mua tin contact cũ. Giữ TradeOffer contact chỉ để đọc lịch sử, preview báo ngừng hỗ trợ/cần đăng lại, không tự đổi tiền/xóa tin cũ.
 - Typecheck/build/diff-check đạt; bots10/market13/auto4. WS thật2bot+1người chơi trên2568 xác nhận inviter không nhận lời mời đến, accepter nhận, leader mời thêm người, mua lượng/KNB/lưuDB/chặn contact. Chromium1440×1000/390×844 kiểm exclusive/off, hide theo grind, keyboard, save/reload/readonly và form2tiền/required/legacy khôngbuy; ảnh đã xem, khôngpageerror/tràn ngang. DB/config/script/ảnh riêng `/tmp/jx-bot-team-market/`, tool4578/client5174; đã dừng tiến trình thử, không game/DB thật. Chưa native/mobile thật.
 - Cập nhật AGENTS/Auto/Rao bán/bots-guide/bots/tool README và tracking. Commit toàn bộ phần bổ sung theo USER sau checkpointfd69fc0; mã commit cuối xemgitlog. Không push; không restart app/server thật vì có thể đang dùng.
+
+## Chọn nhanh số lượng nhân vật bot — 2026-11-14
+
+- USER yêu cầu thêm nút chọn10/20/30 và input số lượng để tránh tick từng người.
+- BotPanel/CSS thêm form dưới tab, chọn Nđầu tiên theo thứ tự kết quả lọc trong tab đang mở. Thay lựa chọn trong kết quả lọc để bấm20→10 còn10; giữ lựa chọn ngoài phạm vi. Hỗ trợ Enter, chặn rỗng/0/âm/phân số/số vượt độ chính xác; thiếu người chọn số thực có và báo rõ, rỗng khóa nút. Đồng bộ header/đếm/chạy/command hiện có.
+- Typecheck/build/diff-check đạt; Chromium/API giả lập1440×1000/390×844 kiểm presets/custom/Enter/firstN/replace/hidden-preserve/filter/empty/invalid/refresh; ảnh đã xem, khôngpageerror/tràn ngang. Chỉ UI, không bot/DB thật; chưa native/mobile thật. Tool thử4578 đã dừng, config riêng `/tmp/jx-bot-quick-config`, script/ảnh `/tmp/jx-bot-quick/`.
+- HEAD5d02f15/cây sạch đầu lượt; cập nhật README/AGENTS/tasks. Chưa commit/push. App tool cần restart để nạp bundle mới, không tự restart app thật có thể đang quản lý bot.
+
+## Bộ lọc thiết lập nhân vật của bot — 2026-11-14
+
+- USER yêu cầu select Thiết lập nhân vật cạnh Nam và nữ. Thêm lựa chọn từ roster đang có template/thiết lập riêng và Tự cài đặt/Chưa thiết lập/Tất cả; không yêu cầu nhớ ID.
+- Dùng cùng filtered() cho bảng/header/chọn nhanh; kết hợp tab/phái/giới/search. Giữ key lọc khi refresh kể cả không còn người thuộc mẫu, không âm thầm nới sang Tất cả. Đổi bộ lọc xóa thông báo chọn nhanh cũ để tránh nhầm số kết quả.
+- Typecheck/build/diff-check và Chromium/API giả lập1440/390 đạt: vị trí dropdown/template/custom/unset/intersections/quick/header/refresh/lost-template/không tràn/pageerror; ảnh đã xem. Tool thử4578 đã dừng, config riêng `/tmp/jx-bot-filter-config`, script/ảnh `/tmp/jx-bot-setup-filter/`; không tác động bot/DB thật, chưa native/mobile thật.
+- HEAD5d02f15, giữ mọi thay đổi kho/hành trang/gợi ý/cấu hình bot của phiên khác. Chỉ BotPanel + README/tracking trong lượt này; chưa commit/push.
+
+## Lưu kịch bản bot không yêu cầu nhân vật — 2026-11-14
+
+- USER yêu cầu bỏ validate phải chọn nhân vật trước khi lưu Kịch bản chạy. Bỏ đúng guard trong saveScenario, giữ validate tên/hoạt động và validate danh sách khi chạy.
+- Lưu bots.usernames=[]/count0 để dùng làm mẫu; không tự chạy. Thông báo sau lưu hướng dẫn chọn nhân vật và kịch bản khi chạy; không cung cấp copyCLI cho mẫu chưa có nhân vật.
+- Typecheck/build/diff-check và Chromium với API giả lập đạt: lưu/nạp0người, file rỗng đúng, không request start, chọn người rồi chọn mẫu thì nút Chạy mở. Tool4578/config riêng `/tmp/jx-bot-empty-scenario`, script `/tmp/jx-bot-empty-check/check.cjs`, đã dừng tool thử, không bot/DB thật.
+- HEAD8a7517e (commit kho/hành trang từ phiên khác), giữ mọi thay đổi kho/gợi ý/UI bot/cấu hình đang có. Cập nhật README/AGENTS/tracking; không commit/push.

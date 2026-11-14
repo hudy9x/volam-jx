@@ -44,6 +44,8 @@ export interface WorldActions {
   bagToStash: (from: number, to?: number, page?: number) => void;
   /** Transfer a piece from account stash to bag. */
   stashToBag: (from: number, to?: number, page?: number) => void;
+  /** Deposit or withdraw money / KNB in the account stash. */
+  stashCurrency: (op: 'deposit' | 'withdraw', currency: 'money' | 'knb', amount: number) => void;
   teleport: (mapId: number) => void;
   /** Dev: level of a learned skill. */
   setSkillLevel: (skill: number, level: number) => void;

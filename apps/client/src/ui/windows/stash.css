@@ -48,6 +48,54 @@
   max-height: none;
 }
 
+.stash-knb {
+  margin-top: 4px;
+  text-align: center;
+  color: var(--gold, #ffe27a);
+  font-size: 12px;
+}
+
+.stash-bank {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-width: calc(var(--cols, 6) * var(--cell, 28px));
+}
+
+.stash-bank-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.stash-bank-tabs .btn {
+  flex: 1;
+  min-width: 0;
+}
+
+.stash-bank-tabs .btn.on {
+  outline: 1px solid var(--hl, #ffd94e);
+  color: var(--hl, #ffd94e);
+}
+
+.stash-bank-row {
+  gap: 4px;
+}
+
+.stash-bank-row input {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+  padding: 2px 6px;
+  height: 22px;
+  font-size: 12px;
+}
+
+.stash-bank-row .btn {
+  min-width: 36px;
+  padding: 0 6px;
+}
+
 .stash-note {
   margin-top: 6px;
   max-width: calc(var(--cols, 6) * var(--cell, 28px));

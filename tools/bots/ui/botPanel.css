@@ -89,3 +89,9 @@
 #bots-page input[type=radio] { width:17px; height:17px; accent-color:#9ccaa8; cursor:pointer; }
 #bots-page .bp-team-mode legend { color:#b8c1ba; font-size:13px; margin-bottom:6px; }
 #bots-page .bp-team-mode .bp-c { min-height:44px; cursor:pointer; }
+
+#bots-page .bp-quick-select { align-items:end; gap:8px; }
+#bots-page .bp-quick-select>span { align-self:center; color:#b8c1ba; font-size:13px; }
+#bots-page .bp-quick-select>.bp-f { flex:0 1 160px; }
+#bots-page .bp-quick-select button,#bots-page .bp-quick-select input { min-height:44px; }
+#bots-page #bl-quick-status:empty { display:none; }

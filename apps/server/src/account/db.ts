@@ -14,6 +14,8 @@ export interface UserRecord {
   bot?: true;
   /** Account-shared stash (3 pages = STASH_SIZE, shared across all characters of this account). */
   stash?: Bag;
+  stashMoney?: number;
+  stashKnb?: number;
 }
 
 /** Bot character: the template it was made / reset with, applied when it next enters the game (world/botSetup.ts). */

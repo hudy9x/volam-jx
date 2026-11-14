@@ -11,11 +11,16 @@ Mở **http://localhost:4568/**. Đây là app riêng, không có Vite/HMR và k
 ## Chạy trực tiếp trên trang
 
 1. Chọn tab **Tất cả**, **Online**, **Offline** hoặc **Chưa thiết lập** (tổng số ở cuối tên tab), rồi tích chọn các tên ở **Chọn nhân vật**. Checkbox đầu bảng chọn/bỏ chọn toàn bộ kết quả lọc trong tab hiện tại; lựa chọn ở tab khác được giữ.
+   Có thể dùng **Chọn 10 / Chọn 20 / Chọn 30** hoặc nhập **Số lượng nhân vật** rồi bấm **Chọn** (Enter cũng được). Chọn các tên đầu tiên theo thứ tự bảng trong tab/bộ lọc hiện tại, thay lựa chọn trong kết quả lọc và giữ lựa chọn ngoài kết quả lọc. Nếu ít người hơn số yêu cầu, chọn tất cả số đang có và báo số thực tế. Số lượng phải là số nguyên dương.
 2. Chọn **kịch bản** ở hàng thao tác ngay dưới bộ lọc.
 3. Bấm **Chạy kịch bản**. Bot vào lần lượt; bảng chuyển từ Đang chuẩn bị/Chờ vào game sang Online theo kết nối thực, cột Kịch bản hiện tên đang chạy.
 4. Tích chọn bot cần dừng và bấm **Dừng bot đã chọn**; những bot khác tiếp tục chạy.
 
+Bộ lọc **Thiết lập nhân vật** nằm cạnh **Nam và nữ**: chọn tên template đang được gán, thiết lập riêng có tên, **Tự cài đặt**, **Chưa thiết lập** hoặc **Tất cả thiết lập nhân vật**. Kết hợp với tab, phái, giới tính và tìm kiếm; checkbox đầu bảng và chọn nhanh chỉ tác động kết quả lọc. Refresh giữ bộ lọc đã chọn, kể cả khi không còn nhân vật khớp.
+
 Giới tính hiện bằng ký hiệu ♂ màu vàng (Nam) / ♀ màu xanh dương (Nữ) sau tên, kèm nhãn truy cập; trạng thái kết nối dùng 🟢 Online / 🔴 Offline. Các trạng thái đang chuẩn bị/chờ/vào lại/dừng vẫn được phân biệt, không coi là Online trước khi API xác nhận kết nối.
+
+**Lưu kịch bản** không yêu cầu chọn nhân vật: có thể lưu mẫu hoạt động trước với danh sách rỗng, rồi chọn nhân vật khi chạy. Không tự chạy sau khi lưu; nút sao chép lệnh CLI chỉ mở khi kịch bản đã có nhân vật.
 
 Hai thao tác chọn/chạy kịch bản chỉ mở khi có nhân vật được tích chọn. Một nhân vật không chạy hai lượt đồng thời. Bảng cập nhật trạng thái khoảng mỗi giây.
 

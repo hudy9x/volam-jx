@@ -338,6 +338,7 @@ export class WorldScene extends Phaser.Scene {
       stashMove: (from, to) => this.room.send(C2S.stashMove, { from, to }),
       bagToStash: (from, to, page) => this.room.send(C2S.bagToStash, { from, to, page }),
       stashToBag: (from, to, page) => this.room.send(C2S.stashToBag, { from, to, page }),
+      stashCurrency: (op, currency, amount) => this.room.send(C2S.stashCurrency, { op, currency, amount }),
       teleport: mapId => this.room.send(C2S.teleport, { mapId }),
       setSkillLevel: (skill, level) => this.room.send(C2S.skillLevel, { skill, level }),
       devMoney: amount => this.room.send(C2S.devMoney, { amount }),

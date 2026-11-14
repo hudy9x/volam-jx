@@ -178,6 +178,43 @@ export function transferBetweenGrids(
   return true;
 }
 
+/** Deposit or withdraw money / KNB between a character and the account-shared stash. */
+export function transferStashCurrency(
+  w: World, sim: Sim, user: { stashMoney?: number; stashKnb?: number },
+  op: 'deposit' | 'withdraw', currency: 'money' | 'knb', rawAmount: number,
+): boolean {
+  if (sim.dead) return false;
+  if (!w.rules.safe) { w.hooks.notify(sim, 'Chỉ sử dụng rương chứa đồ trong thành.'); return false; }
+  const amount = Math.floor(Number(rawAmount));
+  if (!(amount > 0) || !Number.isFinite(amount)) return false;
+
+  const isMoney = currency === 'money';
+  const label = isMoney ? 'lượng' : 'Kim nguyên bảo';
+  const fmt = (n: number) => (isMoney ? `${moneyText(n)} lượng` : `${n.toLocaleString('vi-VN')} Kim nguyên bảo`);
+  const charVal = Math.max(0, Math.floor((isMoney ? sim.money : sim.knb) ?? 0));
+  const stashVal = Math.max(0, Math.floor((isMoney ? user.stashMoney : user.stashKnb) ?? 0));
+
+  if (op === 'deposit') {
+    if (amount > charVal) { w.hooks.notify(sim, `Không đủ ${label} để gửi.`); return false; }
+    if (stashVal + amount > MAX_MONEY) { w.hooks.notify(sim, `${isMoney ? 'Ngân lượng' : 'Kim nguyên bảo'} trong rương đã đạt giới hạn.`); return false; }
+    if (isMoney) { sim.money = charVal - amount; user.stashMoney = stashVal + amount; }
+    else { sim.knb = charVal - amount; user.stashKnb = stashVal + amount; }
+    w.hooks.notify(sim, `Đã gửi ${fmt(amount)} vào rương chứa đồ.`);
+    return true;
+  }
+
+  if (op === 'withdraw') {
+    if (amount > stashVal) { w.hooks.notify(sim, `Trong rương không đủ ${label}.`); return false; }
+    if (charVal + amount > MAX_MONEY) { w.hooks.notify(sim, `${isMoney ? 'Ngân lượng' : 'Kim nguyên bảo'} mang theo đã đạt giới hạn.`); return false; }
+    if (isMoney) { user.stashMoney = stashVal - amount; sim.money = charVal + amount; }
+    else { user.stashKnb = stashVal - amount; sim.knb = charVal + amount; }
+    w.hooks.notify(sim, `Đã rút ${fmt(amount)} từ rương chứa đồ.`);
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * Sell the piece in bag slot `index` (a quarter of its table price). Anywhere: the hành trang has its own "Bán" button
  * (USER 2026-11-12), not only an NPC shop in town.

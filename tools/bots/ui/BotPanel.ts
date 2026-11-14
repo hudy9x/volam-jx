@@ -93,6 +93,7 @@ const PAGE = `
     <input id="bl-filter" placeholder="lọc: tên, phái, bản đồ…">
     ${sel('bl-faction', opt('', 'Tất cả môn phái') + FACTION_IDS.map(id => opt(id, FACTIONS[id].name)).join(''))}
     ${sel('bl-gender', opt('', 'Nam và nữ') + opt('male', 'Nam') + opt('female', 'Nữ'))}
+    <select id="bl-setup" aria-label="Lọc theo thiết lập nhân vật"><option value="">Tất cả thiết lập nhân vật</option></select>
     <button id="bl-del" class="bp-danger">Xóa</button>
     <button id="bl-refresh">Làm mới</button>
   </div>
@@ -103,6 +104,14 @@ const PAGE = `
     <button type="button" id="bl-tab-offline" role="tab" aria-controls="bl-panel" aria-selected="false" tabindex="-1" data-state="offline">Offline <span id="bl-count-offline">(0)</span></button>
     <button type="button" id="bl-tab-new" role="tab" aria-controls="bl-panel" aria-selected="false" tabindex="-1" data-state="new">Chưa thiết lập <span id="bl-count-new">(0)</span></button>
   </div>
+  <form id="bl-quick-select" class="bp-row bp-quick-select" aria-label="Chọn nhanh nhân vật">
+    <span>Chọn nhanh</span>
+    <button type="button" data-count="10">Chọn 10</button><button type="button" data-count="20">Chọn 20</button><button type="button" data-count="30">Chọn 30</button>
+    <label class="bp-f"><span>Số lượng nhân vật</span><input id="bl-count-input" type="number" min="1" step="1" value="10" required aria-describedby="bl-quick-hint"></label>
+    <button type="submit" id="bl-select-count">Chọn</button>
+  </form>
+  <p id="bl-quick-hint" class="bp-note">Chọn các nhân vật đầu tiên theo thứ tự bảng trong tab và bộ lọc hiện tại, thay lựa chọn trong kết quả lọc; lựa chọn ngoài kết quả lọc được giữ.</p>
+  <p id="bl-quick-status" class="bp-note" role="status"></p>
   <div id="bl-panel" role="tabpanel" aria-labelledby="bl-tab-online" tabindex="0" class="bp-table"><table><thead><tr><th><label class="bp-select-cell" title="Chọn hoặc bỏ chọn kết quả lọc hiện tại"><input id="bl-all" type="checkbox" aria-label="Chọn tất cả kết quả lọc hiện tại"></label></th><th>Nhân vật</th><th>Phái / Hệ</th><th>Cấp</th><th>Bản đồ</th><th>Trang bị</th><th>Ngựa</th><th>Trạng thái</th><th>Thiết lập</th><th>Kịch bản</th></tr></thead>
   <tbody id="bl-body"></tbody></table></div>
   <p id="bl-results" class="bp-note" role="status"></p>
@@ -193,6 +202,15 @@ class BotPanel {
       for (const b of this.filtered()) checked ? this.picked.add(b.username) : this.picked.delete(b.username);
       this.savedScenario = ''; this.showCommand(); this.renderList();
     });
+    this.root.querySelectorAll<HTMLButtonElement>('[data-count]').forEach(button => {
+      button.addEventListener('click', () => {
+        const count = Number(button.dataset.count);
+        this.set('bl-count-input', count); this.selectCount(count);
+      });
+    });
+    this.$('bl-quick-select').addEventListener('submit', e => {
+      e.preventDefault(); this.selectCount(this.$<HTMLInputElement>('bl-count-input').valueAsNumber);
+    });
     const tabs = [...this.root.querySelectorAll<HTMLButtonElement>('[role="tab"][data-state]')];
     const activateTab = (tab: HTMLButtonElement) => {
       this.rosterTab = tab.dataset.state as typeof this.rosterTab;
@@ -210,7 +228,7 @@ class BotPanel {
         e.preventDefault(); tabs[next].focus(); activateTab(tabs[next]);
       });
     });
-    for (const id of ['bl-faction', 'bl-gender']) this.$(id).addEventListener('change', () => this.renderList());
+    for (const id of ['bl-faction', 'bl-gender', 'bl-setup']) this.$(id).addEventListener('change', () => { this.$('bl-quick-status').textContent = ''; this.renderList(); });
     this.on('sc-copy', () => { void navigator.clipboard.writeText(`npm run bots -- ${this.savedScenario}`).then(() => this.status('Đã sao chép lệnh chạy.'), () => this.status('Không sao chép được; hãy chọn và sao chép lệnh bên cạnh.', true)); });
     this.root.addEventListener('input', e => { if ((e.target as HTMLElement).closest('#scenario-card')) { this.savedScenario = ''; this.showCommand(); } });
     this.root.addEventListener('change', e => { if ((e.target as HTMLElement).closest('#scenario-card')) { this.savedScenario = ''; this.showCommand(); } });
@@ -351,8 +369,8 @@ class BotPanel {
 
   private showCommand(): void {
     const name = this.savedScenario;
-    this.$('sc-cmd').textContent = name ? `npm run bots -- ${name}` : 'Lưu kịch bản để nhận lệnh chạy đúng cấu hình đã chọn.';
-    this.$<HTMLButtonElement>('sc-copy').disabled = !name;
+    this.$('sc-cmd').textContent = name ? this.picked.size ? `npm run bots -- ${name}` : 'Đã lưu kịch bản. Chọn nhân vật và kịch bản ở mục 1 để chạy.' : 'Lưu kịch bản để nhận lệnh chạy đúng cấu hình đã chọn.';
+    this.$<HTMLButtonElement>('sc-copy').disabled = !name || !this.picked.size;
   }
 
   private updatePicked(): void {
@@ -377,7 +395,7 @@ class BotPanel {
     list.id = 'roster-card'; template.id = 'template-card'; scenario.id = 'scenario-card';
     this.root.querySelector('.bp-cols')!.prepend(list);
     for (const input of this.root.querySelectorAll<HTMLInputElement>('input:not([type=checkbox])')) if (!input.closest('label')) input.setAttribute('aria-label', input.placeholder || input.id);
-    for (const select of this.root.querySelectorAll('select')) if (!select.closest('label')) select.setAttribute('aria-label', select.id);
+    for (const select of this.root.querySelectorAll('select')) if (!select.closest('label') && !select.hasAttribute('aria-label')) select.setAttribute('aria-label', select.id);
   }
 
   // ---------- files ----------
@@ -414,7 +432,6 @@ class BotPanel {
   }
   private async saveScenario(): Promise<void> {
     if (this.savingScenario || this.loadingScenario) return;
-    if (!this.picked.size) { this.status('Chọn ít nhất một nhân vật trước khi lưu.', true); return; }
     const data = this.readScenario();
     if (!data.activities.grind && !data.activities.chat && !data.activities.sell) { this.status('Bật ít nhất một hoạt động.', true); return; }
     const title = await this.setupDialogs.askName('scenario'); if (!title) return;
@@ -427,7 +444,7 @@ class BotPanel {
       await this.refreshFiles(); this.writeScenario(saved); this.set('sc-file', name); this.$<HTMLFieldSetElement>('sc-fields').disabled = true;
       this.savedScenario = name; this.showCommand(); this.remember('scenarios', name);
       this.$('sc-review').textContent = `Đã lưu “${title}” — chỉ đọc. Chọn Tự cài đặt để chỉnh.`;
-      this.status('Đã lưu kịch bản chạy liên tục. Sao chép lệnh để bắt đầu.');
+      this.status(this.picked.size ? 'Đã lưu kịch bản chạy liên tục. Sao chép lệnh để bắt đầu.' : 'Đã lưu kịch bản. Chọn nhân vật và kịch bản ở mục 1 để chạy.');
     } catch (e) { this.status(`Không lưu được kịch bản: ${(e as Error).message}`, true); }
     finally { this.savingScenario = false; }
   }
@@ -512,13 +529,42 @@ class BotPanel {
     catch(error){this.status((error as Error).message,true);}finally{this.runBusy=false;this.updateRunActions();}
   }
 
+  private selectCount(count: number): void {
+    if (!Number.isSafeInteger(count) || count < 1) {
+      this.$('bl-quick-status').textContent = 'Nhập số lượng nguyên dương hợp lệ.'; return;
+    }
+    const shown = this.filtered();
+    if (!shown.length) { this.$('bl-quick-status').textContent = 'Không có nhân vật trong kết quả lọc hiện tại.'; return; }
+    for (const b of shown) this.picked.delete(b.username);
+    for (const b of shown.slice(0, count)) this.picked.add(b.username);
+    this.savedScenario = ''; this.showCommand(); this.renderList();
+    const selected = Math.min(count, shown.length);
+    this.$('bl-quick-status').textContent = selected < count
+      ? `Chỉ có ${shown.length} nhân vật khớp bộ lọc; đã chọn ${selected} nhân vật.`
+      : `Đã chọn ${selected} nhân vật đầu tiên trong kết quả lọc.`;
+  }
+
   private botTab(b: BotInfo): 'online' | 'offline' | 'new' {
     return b.online ? 'online' : b.charId ? 'offline' : 'new';
   }
 
+  private setupKey(b: BotInfo): string {
+    return !b.charId ? 'unset' : b.template ? `template:${b.template}` : b.templateTitle ? `custom:${b.templateTitle}` : 'custom';
+  }
+
+  private refreshSetupFilter(): void {
+    const select = this.$<HTMLSelectElement>('bl-setup'), selected = select.value;
+    const options = new Map<string, string>([['custom', 'Tự cài đặt'], ['unset', 'Chưa thiết lập']]);
+    for (const b of this.bots) if (b.charId) options.set(this.setupKey(b), b.templateTitle || b.template || 'Tự cài đặt');
+    // A refresh must not silently widen an active filter if its last character disappears.
+    if (selected && !options.has(selected)) options.set(selected, select.selectedOptions[0]?.textContent ?? 'Thiết lập đã chọn');
+    const html = opt('', 'Tất cả thiết lập nhân vật') + [...options].sort((a, b) => a[1].localeCompare(b[1], 'vi')).map(([key, label]) => opt(key, label)).join('');
+    if (select.innerHTML !== html) { select.innerHTML = html; select.value = selected; }
+  }
+
   private filtered(): BotInfo[] {
     const q = this.val('bl-filter').toLowerCase();
-    return this.bots.filter(b => (!this.val('bl-faction') || b.faction === this.val('bl-faction')) && (!this.val('bl-gender') || b.gender === this.val('bl-gender')) && (this.rosterTab === 'all' || this.botTab(b) === this.rosterTab)).filter(b => [b.username, b.name, FACTIONS[b.faction]?.name ?? '', MAPS[b.mapId]?.name ?? '', String(b.mapId), b.template]
+    return this.bots.filter(b => (!this.val('bl-faction') || b.faction === this.val('bl-faction')) && (!this.val('bl-gender') || b.gender === this.val('bl-gender')) && (!this.val('bl-setup') || this.setupKey(b) === this.val('bl-setup')) && (this.rosterTab === 'all' || this.botTab(b) === this.rosterTab)).filter(b => [b.username, b.name, FACTIONS[b.faction]?.name ?? '', MAPS[b.mapId]?.name ?? '', String(b.mapId), b.template]
       .some(s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').includes(q.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd'))));
   }
 
@@ -528,12 +574,15 @@ class BotPanel {
 
   private renderList(): void {
     if (!this.$('bl-body')) return;
+    this.refreshSetupFilter();
     this.updatePicked();
     this.$('bl-count-all').textContent = `(${this.bots.length})`;
     for (const state of ['online', 'offline', 'new'] as const) {
       this.$(`bl-count-${state}`).textContent = `(${this.bots.filter(b => this.botTab(b) === state).length})`;
     }
     this.$('bl-results').textContent = `Hiển thị ${this.filtered().length} / ${this.rosterTab === 'all' ? this.bots.length : this.bots.filter(b => this.botTab(b) === this.rosterTab).length} nhân vật trong tab.`;
+    const empty = this.filtered().length === 0;
+    this.root.querySelectorAll<HTMLButtonElement>('#bl-quick-select button').forEach(button => { button.disabled = empty; });
     const rows = this.filtered().slice(0, 1000).map(b => `<tr class="${b.online ? 'on' : ''}">
       <td><label class="bp-select-cell"><input type="checkbox" aria-label="Chọn ${esc(b.name)}" data-user="${esc(b.username)}" ${this.picked.has(b.username) ? 'checked' : ''}></label></td>
       <td class="bp-name" title="${esc(b.username)}">${esc(b.name)} <span class="bp-gender ${b.gender === 'female' ? 'female' : 'male'}" role="img" aria-label="${b.gender === 'female' ? 'Nữ' : 'Nam'}" title="${b.gender === 'female' ? 'Nữ' : 'Nam'}">${b.gender === 'female' ? '♀' : '♂'}</span></td><td>${esc(FACTIONS[b.faction]?.name ?? '—')} / ${ELEMENT_NAMES[FACTIONS[b.faction]?.element] ?? '—'}</td><td>${b.level || '—'}</td>

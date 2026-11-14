@@ -97,6 +97,8 @@ export interface BagMoveMsg { from: number; to: number }
 export interface StashMoveMsg { from: number; to: number }
 /** Transfer a piece between bag and account stash (optional `to` cell or `page` tab). */
 export interface BagStashTransferMsg { from: number; to?: number; page?: number }
+/** Deposit or withdraw money / KNB in the account stash. */
+export interface StashCurrencyMsg { op: 'deposit' | 'withdraw'; currency: 'money' | 'knb'; amount: number }
 /** Sort / compact one page of bag or stash. */
 export interface BagSortMsg { page: number; target?: 'bag' | 'stash' }
 /** Throw away the item in bag slot `index`. */
@@ -144,6 +146,7 @@ export const C2S = {
   bagMove: 'bagMove',
   bagSort: 'bagSort',
   stashMove: 'stashMove',
+  stashCurrency: 'stashCurrency',
   bagToStash: 'bagToStash',
   stashToBag: 'stashToBag',
   teleport: 'teleport',
@@ -202,8 +205,8 @@ export interface TeamMsg {
 export interface TeamInviteMsg { from: string }
 /** Owner-only, after any change: hành trang + worn items of the own character (concrete items, items/items.ts) + tiền túi. */
 export interface InventoryMsg { pickedUp?: Item; bag: (Item | null)[]; equip: Partial<Record<string, Item>>; money: number; knb?: number }
-/** Account-shared stash (3 pages = STASH_SIZE). */
-export interface StashMsg { stash: (Item | null)[] }
+/** Account-shared stash (3 pages = STASH_SIZE) + shared money & KNB. */
+export interface StashMsg { stash: (Item | null)[]; money: number; knb: number }
 export interface NoticeMsg { text: string }
 /** Characters online on every map (kênh Thế giới header — USER 2026-11-13). */
 export interface OnlineMsg { n: number }

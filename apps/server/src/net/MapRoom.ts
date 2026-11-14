@@ -6,7 +6,7 @@ import { Room, ServerError, type Client } from 'colyseus';
 import {
   bestTrainingMap, trainingMaps, type TrainingMap, type TrainMsg, type TeamOrderMsg, type SuggestMsg, type TokenMsg,
   BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, expToNext, TICK_MS, TOWN_MAP_ID, getGrid,
-  type BagMoveMsg, type BagSortMsg, type BagStashTransferMsg, type StashMoveMsg, type StashMsg,
+  type BagMoveMsg, type BagSortMsg, type BagStashTransferMsg, type StashCurrencyMsg, type StashMoveMsg, type StashMsg,
   type BuyMsg, type CastMsg, type DevMoneyMsg, type DiscardMsg, type EquipMsg, type ForgeMsg, type InventoryMsg, type MountMsg, type AuraMsg, type ChatMsg, type ChatMoreMsg, type ChatReactMsg, type MoveMsg,
   type AddPotentialMsg, type DevLevelMsg, type PickupMsg, type JoinFactionMsg, type Potential, type RaiseSkillMsg, type StatsMsg, type LogMsg, type NoticeMsg, type OnlineMsg, type PkMsg, type SellMsg, type SkillLevelMsg, type SkillsMsg, type TeleportMsg, type TransferMsg,
   type UnequipMsg, type UseMsg,
@@ -16,7 +16,7 @@ import { db } from '../account/db.js';
 import { commandCast, commandMove, setMounted, setPk, setSkillLevel, setSlotAura } from '../world/commands.js';
 import type { Sim } from '../world/entity.js';
 import {
-  addMoney, buyItem, discardItem, equipItem, forgeItem, moveBagItem, moveStashItem, restoreStash, sellItem, sortGrid, transferBetweenGrids, unequipItem, useItem,
+  addMoney, buyItem, discardItem, equipItem, forgeItem, moveBagItem, moveStashItem, restoreStash, sellItem, sortGrid, transferBetweenGrids, transferStashCurrency, unequipItem, useItem,
 } from '../world/inventory.js';
 import { useToken } from '../world/token.js';
 import { teamOffline, teamOnline, teamOrder } from '../world/teams.js';
@@ -177,8 +177,11 @@ export class MapRoom extends Room<{ state: MapState }> {
       Array.isArray(msg?.lines) ? msg.lines.map(l => (Array.isArray(l) ? [String(l[0]), Number(l[1])] as [string, number] : null)) : [], msg?.token === true));
     inventoryOp<BagMoveMsg>(C2S.bagMove, (sim, msg) => moveBagItem(sim, Number(msg?.from), Number(msg?.to)));
     const sendStash = (client: Client, sim: Sim) => {
+      const user = sim.owner ? db.getUser(sim.owner) : undefined;
       const stash = accountStash(sim);
-      if (stash) client.send(S2C.stash, { stash } satisfies StashMsg);
+      if (user && stash) {
+        client.send(S2C.stash, { stash, money: user.stashMoney ?? 0, knb: user.stashKnb ?? 0 } satisfies StashMsg);
+      }
     };
     this.onMessage(C2S.bagSort, (client, msg: BagSortMsg) => {
       const sim = this.simOf(client);
@@ -198,6 +201,19 @@ export class MapRoom extends Room<{ state: MapState }> {
       if (!moveStashItem(stash, Number(msg?.from), Number(msg?.to))) return;
       db.touch();
       sendStash(client, sim);
+    });
+    this.onMessage(C2S.stashCurrency, (client, msg: StashCurrencyMsg) => {
+      const sim = this.simOf(client);
+      const user = sim?.owner ? db.getUser(sim.owner) : undefined;
+      if (!sim || !user) return;
+      const op = msg?.op === 'deposit' ? 'deposit' : msg?.op === 'withdraw' ? 'withdraw' : null;
+      const currency = msg?.currency === 'money' ? 'money' : msg?.currency === 'knb' ? 'knb' : null;
+      if (!op || !currency) return;
+      if (!transferStashCurrency(this.world, sim, user, op, currency, Number(msg?.amount))) return;
+      db.touch();
+      this.sendInventory(client, sim);
+      sendStash(client, sim);
+      this.saveCharacter(sim);
     });
     this.onMessage(C2S.bagToStash, (client, msg: BagStashTransferMsg) => {
       const sim = this.simOf(client);
@@ -317,8 +333,11 @@ export class MapRoom extends Room<{ state: MapState }> {
     marketOnline(sim, () => { this.sendInventory(client, sim); this.saveCharacter(sim); });
     client.send(S2C.autoConfig, char.auto ?? { enabled: false, settings: { ...DEFAULT_AUTO }, revision: 0 });
     this.sendInventory(client, sim);
+    const user = db.getUser(char.owner);
     const userStash = accountStash(sim);
-    if (userStash) client.send(S2C.stash, { stash: userStash } satisfies StashMsg);
+    if (user && userStash) {
+      client.send(S2C.stash, { stash: userStash, money: user.stashMoney ?? 0, knb: user.stashKnb ?? 0 } satisfies StashMsg);
+    }
     this.sendSkills(client, sim);
     this.sendStats(client, sim);
     if (!char.equip) this.saveCharacter(sim); // persist the starter outfit

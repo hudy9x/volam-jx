@@ -74,10 +74,9 @@ export class SuggestWindow {
       <button type="button" class="btn sm${this.kind === 'skills' ? ' on' : ''}" data-k="skills">Điểm kỹ năng (${p.progress.skillPoints})</button>
       <button type="button" class="btn sm${this.kind === 'potential' ? ' on' : ''}" data-k="potential">Điểm tiềm năng (${p.progress.potentialPoints})</button></div>`;
     if (plan) {
-      body.innerHTML = `${kinds}<p class="muted">Cộng dần vào kỹ năng thấp nhất của tuyến, trong giới hạn theo cấp và kỹ năng nền; giữ điểm đã cộng.
-        Chiêu luyện (90 / 150) không dùng điểm.</p>
+      body.innerHTML = `${kinds}<p class="muted">Ưu tiên cộng tối đa kỹ năng Trấn Phái trước, sau đó đến các kỹ năng cấp 10, rồi san đều điểm cho tuyến kỹ năng hiện tại; điểm dư được giữ lại.</p>
         <table class="sg-table"><thead><tr><th>Kỹ năng</th><th>Hiện tại → Đề xuất</th></tr></thead><tbody>${plan.rows.map(r =>
-          `<tr class="${r.to > r.before ? 'up' : 'same'}"><td>${getSkill(r.id)?.name ?? r.id}</td><td>${r.before} → <b>${r.to}</b>${r.to > r.before ? ` (+${r.to - r.before})` : r.reason ? ` <small class="muted">${r.reason}</small>` : ''}</td></tr>`).join('')}</tbody></table>
+        `<tr class="${r.to > r.before ? 'up' : 'same'}"><td>${getSkill(r.id)?.name ?? r.id}</td><td>${r.before} → <b>${r.to}</b>${r.to > r.before ? ` (+${r.to - r.before})` : r.reason ? ` <small class="muted">${r.reason}</small>` : ''}</td></tr>`).join('')}</tbody></table>
         <p>Cộng <b>${plan.spent}</b> điểm · còn <b>${plan.remaining}</b>.</p>
         <button type="button" class="btn" id="sg-apply" ${plan.spent ? '' : 'disabled'}>Đồng ý · ${plan.route?.name ?? ''}</button>`;
     } else if (pot) {
@@ -85,7 +84,7 @@ export class SuggestWindow {
       body.innerHTML = `${kinds}<p class="muted">Trước hết đủ Sức mạnh / Thân pháp cho đồ đang mặc và đồ trong hành trang mặc được, phần còn
         lại theo tỷ lệ của tuyến (${src}). Giữ điểm đã cộng.</p>
         <table class="sg-table"><thead><tr><th>Tiềm năng</th><th>Tỷ lệ</th><th>Cộng thêm</th></tr></thead><tbody>${POTENTIALS.map(k =>
-          `<tr class="${pot.add[k] ? 'up' : 'same'}"><td>${NAMES[k]}</td><td>${pot.weights[k]}%</td><td><b>+${pot.add[k]}</b>${pot.forItems[k] ? ` <small class="muted">(${pot.forItems[k]} cho trang bị)</small>` : ''}</td></tr>`).join('')}</tbody></table>
+        `<tr class="${pot.add[k] ? 'up' : 'same'}"><td>${NAMES[k]}</td><td>${pot.weights[k]}%</td><td><b>+${pot.add[k]}</b>${pot.forItems[k] ? ` <small class="muted">(${pot.forItems[k]} cho trang bị)</small>` : ''}</td></tr>`).join('')}</tbody></table>
         <p>Cộng <b>${pot.spent}</b> điểm · còn <b>${pot.remaining}</b>.</p>
         <button type="button" class="btn" id="sg-apply" ${pot.spent ? '' : 'disabled'}>Đồng ý · Tiềm năng ${pot.route?.name ?? ''}</button>`;
     }

@@ -11,39 +11,64 @@ import { POTENTIALS, type Potential } from '../formulas/character.js';
 
 export interface SkillRoute { id: string; name: string; skills: number[]; finisher?: number }
 
-/** jx-web-main skillRouteCatalog: shared skills + routes (point skills only). */
+/** Skill routes per faction: shared = Trấn Phái skill (maxLevel 30), routes = point skills of each weapon/combat line. */
 const CATALOG: Record<string, { shared: number[]; routes: SkillRoute[] }> = {
-  shaolin: { shared: [10, 15, 16, 20, 21, 273], routes: [
-    { id: 'staff', name: 'Côn pháp', skills: [4, 11] }, { id: 'blade', name: 'Đao pháp', skills: [6, 19] },
-    { id: 'fist', name: 'Quyền pháp', skills: [8, 14, 271] }] },
-  tianwang: { shared: [33, 40, 42, 36], routes: [
-    { id: 'spear', name: 'Thương pháp', skills: [23, 30, 35, 41] }, { id: 'blade', name: 'Đao pháp', skills: [24, 34, 37, 32] },
-    { id: 'hammer', name: 'Chùy pháp', skills: [26, 29, 31, 324] }] },
-  tangmen: { shared: [43, 48], routes: [
-    { id: 'dart', name: 'Phi tiêu', skills: [45, 47, 341] }, { id: 'knife', name: 'Phi đao', skills: [45, 50, 249] },
-    { id: 'crossbow', name: 'Tụ tiễn', skills: [45, 54, 58] },
-    { id: 'trap', name: 'Bẫy', skills: [347, 303, 343, 345, 349, 351], finisher: 351 }] },
-  wudu: { shared: [66, 69, 75], routes: [
-    { id: 'blade', name: 'Đao pháp', skills: [60, 65, 384, 74] }, { id: 'palm', name: 'Chưởng pháp', skills: [62, 63, 68, 71] },
-    { id: 'curse', name: 'Bùa chú', skills: [67, 70, 64, 73, 356, 72, 390], finisher: 390 }] },
-  emei: { shared: [252], routes: [
-    { id: 'sword', name: 'Kiếm pháp', skills: [77, 85, 385, 88, 93, 89, 86, 92, 282] },
-    { id: 'palm', name: 'Chưởng pháp', skills: [79, 80, 82, 91, 93, 89, 86, 92, 282] },
-    { id: 'support', name: 'Hỗ trợ', skills: [93, 89, 86, 92, 282, 332], finisher: 332 }] },
-  cuiyan: { shared: [269, 100, 109, 114], routes: [
-    { id: 'blade', name: 'Đơn đao', skills: [95, 99, 105, 108] }, { id: 'dual', name: 'Song đao', skills: [97, 102, 113, 111] }] },
-  gaibang: { shared: [129, 277, 130, 360], routes: [
-    { id: 'staff', name: 'Bổng pháp', skills: [115, 119, 124, 125] }, { id: 'palm', name: 'Chưởng pháp', skills: [116, 122, 274, 128] }] },
-  tianren: { shared: [150], routes: [
-    { id: 'spear', name: 'Mâu pháp', skills: [132, 135, 141, 142] },
-    { id: 'fire', name: 'Đao pháp · Nội công', skills: [131, 145, 138, 148] },
-    { id: 'curse', name: 'Bùa chú', skills: [136, 137, 140, 364, 143, 391], finisher: 391 }] },
-  wudang: { shared: [159, 160, 157, 166], routes: [
-    { id: 'qi', name: 'Khí công', skills: [152, 153, 164, 165] }, { id: 'sword', name: 'Kiếm pháp', skills: [151, 155, 158, 267] }] },
-  kunlun: { shared: [171, 173, 275, 630], routes: [
-    { id: 'blade', name: 'Đao pháp', skills: [167, 169, 178, 176] },
-    { id: 'sword', name: 'Kiếm pháp · Lôi pháp', skills: [168, 179, 172, 182] },
-    { id: 'curse', name: 'Bùa chú', skills: [392, 174, 393, 175, 181, 90, 394], finisher: 394 }] },
+  shaolin: {
+    shared: [273], routes: [
+      { id: 'staff', name: 'Côn pháp', skills: [4, 10, 11] }, { id: 'blade', name: 'Đao pháp', skills: [6, 10, 19] },
+      { id: 'fist', name: 'Quyền pháp', skills: [8, 14, 271] }]
+  },
+  tianwang: {
+    shared: [36], routes: [
+      { id: 'spear', name: 'Thương pháp', skills: [23, 30, 35, 41] }, { id: 'blade', name: 'Đao pháp', skills: [24, 34, 37, 32] },
+      { id: 'hammer', name: 'Chùy pháp', skills: [26, 29, 31, 324] }]
+  },
+  tangmen: {
+    shared: [48], routes: [
+      { id: 'dart', name: 'Phi tiêu', skills: [43, 45, 47, 341] }, { id: 'knife', name: 'Phi đao', skills: [43, 45, 50, 249] },
+      { id: 'crossbow', name: 'Tụ tiễn', skills: [43, 45, 54, 58] },
+      { id: 'trap', name: 'Bẫy', skills: [347, 303, 343, 345, 349, 351], finisher: 351 }]
+  },
+  wudu: {
+    shared: [75], routes: [
+      { id: 'blade', name: 'Đao pháp', skills: [60, 65, 384, 74] }, { id: 'palm', name: 'Chưởng pháp', skills: [62, 63, 68, 71] },
+      { id: 'curse', name: 'Bùa chú', skills: [67, 70, 64, 73, 356, 72, 390], finisher: 390 }]
+  },
+  emei: {
+    shared: [252], routes: [
+      { id: 'sword', name: 'Kiếm pháp', skills: [77, 85, 385, 88] },
+      { id: 'palm', name: 'Chưởng pháp', skills: [79, 80, 82, 91] },
+      { id: 'support', name: 'Hỗ trợ', skills: [93, 89, 86, 92, 282, 332], finisher: 332 }]
+  },
+  cuiyan: {
+    shared: [114], routes: [
+      { id: 'blade', name: 'Đơn đao', skills: [95, 99, 105, 108] }, { id: 'dual', name: 'Song đao', skills: [97, 102, 113, 111] }]
+  },
+  gaibang: {
+    shared: [130], routes: [
+      { id: 'staff', name: 'Bổng pháp', skills: [115, 119, 124, 125] }, { id: 'palm', name: 'Chưởng pháp', skills: [116, 122, 274, 128] }]
+  },
+  tianren: {
+    shared: [150], routes: [
+      { id: 'spear', name: 'Mâu pháp', skills: [132, 135, 141, 142] },
+      { id: 'fire', name: 'Đao pháp · Nội công', skills: [131, 145, 138, 148] },
+      { id: 'curse', name: 'Bùa chú', skills: [136, 137, 140, 364, 143, 391], finisher: 391 }]
+  },
+  wudang: {
+    shared: [166], routes: [
+      { id: 'qi', name: 'Khí công', skills: [152, 153, 164, 165] }, { id: 'sword', name: 'Kiếm pháp', skills: [151, 155, 158, 267] }]
+  },
+  kunlun: {
+    shared: [275], routes: [
+      { id: 'blade', name: 'Đao pháp', skills: [167, 169, 178, 176] },
+      { id: 'sword', name: 'Kiếm pháp · Lôi pháp', skills: [168, 179, 172, 182] },
+      { id: 'curse', name: 'Bùa chú', skills: [392, 174, 393, 175, 181, 90, 394], finisher: 394 }]
+  },
+  huashan: {
+    shared: [1358], routes: [
+      { id: 'sword', name: 'Kiếm Tông', skills: [1349, 1350, 1347, 1351, 1354, 1355, 1360] },
+      { id: 'qi', name: 'Khí Tông', skills: [1374, 1372, 1375, 1376, 1378, 1379, 1380] }]
+  },
 };
 
 type Weights = Record<Potential, number>;
@@ -87,8 +112,11 @@ export interface SkillPlanRow { id: number; before: number; to: number; reason: 
 export interface SkillPlan { route: SkillRoute | null; rows: SkillPlanRow[]; spent: number; remaining: number }
 
 /**
- * Skill points of a route: always one point into the lowest skill of the route that may take one (raiseError: learned,
- * point skill, level cap, prerequisites), like jx-web-main planSkillRoute. Keeps the points already given.
+ * Skill points of a route (USER 2026-11-14):
+ *  1. Always max the Trấn Phái skill first (within levelCap).
+ *  2. Next, max the level-10 skills of the current route.
+ *  3. Distribute remaining points evenly across the rest of the current route's skills.
+ *  4. Keep any leftover points unspent (never spill into skills outside the current route).
  */
 export function planSkills(faction: string, routeId: string | undefined, levels: Record<number, number>, charLevel: number, points: number): SkillPlan {
   const route = skillRoutes(faction).find(r => r.id === routeId) ?? guessRoute(faction, levels) ?? null;
@@ -96,15 +124,22 @@ export function planSkills(faction: string, routeId: string | undefined, levels:
   if (!route) return { route: null, rows: [], spent: 0, remaining: budget };
   const lv = { ...levels };
   let left = budget;
-  while (left > 0) {
-    let next: number | null = null;
-    for (const id of route.skills) {
-      if (raiseError(id, lv, charLevel, left)) continue;
-      if (next === null || (lv[id] ?? 0) < (lv[next] ?? 0)) next = id;
+  const shared = new Set(CATALOG[faction]?.shared ?? []);
+  const tierTranPhai = route.skills.filter(id => shared.has(id) || (getSkill(id)?.maxLevel ?? 20) >= 30);
+  const tierLv10 = route.skills.filter(id => !tierTranPhai.includes(id) && (getSkill(id)?.reqLevel ?? 0) === 10);
+  const tierRouteRest = route.skills.filter(id => !tierTranPhai.includes(id) && !tierLv10.includes(id));
+
+  for (const group of [tierTranPhai, tierLv10, tierRouteRest]) {
+    while (left > 0) {
+      let next: number | null = null;
+      for (const id of group) {
+        if (raiseError(id, lv, charLevel, left)) continue;
+        if (next === null || (lv[id] ?? 0) < (lv[next] ?? 0)) next = id;
+      }
+      if (next === null) break;
+      lv[next] = (lv[next] ?? 0) + 1;
+      left--;
     }
-    if (next === null) break;
-    lv[next] = (lv[next] ?? 0) + 1;
-    left--;
   }
   const rows = route.skills.filter(id => levels[id] !== undefined || lv[id] !== undefined).map(id => {
     const s = getSkill(id)!;
@@ -114,7 +149,8 @@ export function planSkills(faction: string, routeId: string | undefined, levels:
   }).concat(route.skills.filter(id => levels[id] === undefined && lv[id] === undefined).map(id => ({
     id, before: 0, to: 0, reason: `Cần cấp ${getSkill(id)?.reqLevel ?? 1}`,
   })));
-  rows.sort((a, b) => (getSkill(a.id)?.reqLevel ?? 0) - (getSkill(b.id)?.reqLevel ?? 0) || a.id - b.id);
+  const rank = (id: number) => tierTranPhai.includes(id) ? 0 : tierLv10.includes(id) ? 1 : 2;
+  rows.sort((a, b) => rank(a.id) - rank(b.id) || (getSkill(a.id)?.reqLevel ?? 0) - (getSkill(b.id)?.reqLevel ?? 0) || a.id - b.id);
   return { route, rows, spent: budget - left, remaining: left };
 }
 
@@ -179,6 +215,8 @@ export function planPotential(
     }
     add[next]++; free[next]++; left--;
   }
-  return { route, weights, source: override ? 'override' : external ? 'external' : 'internal', add, forItems,
-    spent: Math.max(0, Math.floor(points)) - left, remaining: left };
+  return {
+    route, weights, source: override ? 'override' : external ? 'external' : 'internal', add, forItems,
+    spent: Math.max(0, Math.floor(points)) - left, remaining: left
+  };
 }
