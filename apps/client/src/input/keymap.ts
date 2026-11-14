@@ -8,9 +8,9 @@ export const KEYS = {
   bag: { code: 'I', label: 'I' },
   /**
    * Trang bị và Thuộc tính. Was F3 like SHXT; no F-row keys (USER 2026-11-13: hard to press on some keyboards,
-   * e.g. laptops with Fn) — C like "Character".
+   * e.g. laptops with Fn). USER 2026-11-14: N replaces the conflicting C shortcut.
    */
-  char: { code: 'C', label: 'C' },
+  char: { code: 'N', label: 'N' },
   travel: { code: 'T', label: 'T' },
   bigmap: { code: 'TAB', label: 'Tab' },
   mount: { code: 'M', label: 'M' },

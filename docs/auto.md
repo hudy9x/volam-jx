@@ -24,7 +24,7 @@
 - Nhặt ngân lượng là tùy chọn riêng, không cần chỗ trong túi và không phụ thuộc bật nhặt trang bị. Trang bị chỉ nhặt khi còn vùng trống đủ kích thước.
 - Lọc đồ: tất cả, xanh trở lên hoặc chỉ tiền; kết hợp công tắc nhặt ngân lượng độc lập.
 - Tự bán đồ trắng không mặc được; tùy chọn **Tự bán đồ xanh trong túi** kiểm tra mỗi 30 giây và khi về thành. Bán xanh mặc định tắt cho cài đặt mới; preset `luyen-cong-30` bật kèm bảo vệ.
-- Bảo vệ đồ xanh có giá trị: món trên 5 dòng hoặc có dòng ẩn hiếm/cao theo cùng tiêu chí rao bán. Không bán hoàng kim, ngựa, thuốc, bí kíp, lệnh bài hoặc đồ đang mặc. Đồ xanh dự trữ trong túi vẫn có thể bị bán nếu bật bán xanh và không thuộc nhóm được bảo vệ.
+- Bảo vệ đồ xanh có giá trị: món trên 5 dòng hoặc có dòng ẩn hiếm/cao theo tiêu chí đáng chú ý của bot; bổ sung giữ món đạt bộ định giá xanh/hoàng kim trong [Rao bán](rao-ban.md). Không bán hoàng kim, ngựa, thuốc, bí kíp, lệnh bài hoặc đồ đang mặc. Đồ xanh dự trữ trong túi vẫn có thể bị bán nếu bật bán xanh và không thuộc nhóm được bảo vệ.
 - Túi toàn món được bảo vệ thì bỏ qua trang bị không vừa, vẫn nhặt tiền; cần dọn túi. Tự bán NPC khác với đăng tin Rao bán, không tự biến thành giao dịch người chơi.
 
 ## Bản đồ mã nguồn

@@ -157,7 +157,7 @@ export class BotClient {
     const message = this.announcer.next(now, this.bag);
     if (message) {
       const item = this.announcer.lastItem;
-      if (this.sc.activities.sell && item) this.send(C2S.tradePost, { uid: item.uid, currency: 'contact', price: 0, text: message });
+      if (this.sc.activities.sell && item) this.send(C2S.tradePost, { uid: item.uid, currency: 'money', price: 0, text: message, autoPrice: true });
       else this.send(C2S.chat, { text: message });
       BotClient.nextWorldChatAt = now + BOT_TRADE_RULES.fleetGapMs;
     }

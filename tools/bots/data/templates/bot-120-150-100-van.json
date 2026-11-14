@@ -1,0 +1,37 @@
+{
+  "title": "Bot 120 - 150 - 100 vạn",
+  "prefix": "botfixed",
+  "password": "botpass",
+  "faction": "all",
+  "gender": "mix",
+  "level": [
+    110,
+    150
+  ],
+  "potential": "suggest",
+  "skills": "suggest",
+  "tiers": true,
+  "gear": "gold",
+  "ring": false,
+  "horse": "random",
+  "money": 1000000,
+  "hpPotion": "potion-2-5",
+  "hpCount": 50,
+  "mpPotion": "potion-2-5",
+  "mpCount": 50,
+  "map": {
+    "mode": "both",
+    "maps": [
+      1,
+      37,
+      40,
+      224,
+      319,
+      320,
+      336,
+      340,
+      341
+    ],
+    "radius": 200
+  }
+}

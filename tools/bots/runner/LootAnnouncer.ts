@@ -1,4 +1,4 @@
-import { BOT_TRADE_RULES, botLootMessage, type Item } from '@vltk/shared';
+import { BOT_TRADE_RULES, botLootMessage, valueMarketItem, type Item } from '@vltk/shared';
 
 /** Only explicit ground pickups are enqueued; setup, shops and reconnect inventories never enter this queue. */
 export class LootAnnouncer {
@@ -11,7 +11,7 @@ export class LootAnnouncer {
     if ((!this.options.chat && !this.options.sell) || this.seen.has(item.uid)) return;
     this.seen.add(item.uid);
     if (this.seen.size > 2000) this.seen.delete(this.seen.values().next().value!);
-    if (!botLootMessage(item, this.options.sell)) return;
+    if (!botLootMessage(item, this.options.sell) || this.options.sell && !valueMarketItem(item)) return;
     if (this.pending.length >= BOT_TRADE_RULES.maxPending) this.pending.shift();
     this.pending.push(item);
   }

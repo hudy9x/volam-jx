@@ -23,10 +23,43 @@ Mua bán có lịch sử công khai trong giới hạn lịch sử chat chung; n
 ## Rao bán của bot
 
 - Chỉ xét món vừa **nhặt thành công từ đất**, qua `InventoryMsg.pickedUp` dùng một lần; không rao inventory ban đầu, đồ khởi tạo, mua NPC, chế tạo hoặc inventory gửi lại khi reconnect.
-- Món đáng rao: trên 5 dòng thuộc tính khác0, hoặc có dòng ẩn hiếm/cao. Ngưỡng đang dùng trong `BOT_TRADE_RULES`: trọng số hiếm ≤1200; giá trị dòng ẩn ≥90% mức tối đa tương ứng. Đây là lựa chọn của project, không phải công thức gốc được xác nhận.
+- Món đáng chú ý để Chat/bảo vệ khỏi bán NPC: đạt bộ định giá mới, hoặc trên 5 dòng thuộc tính khác0, hoặc có dòng ẩn hiếm/cao. Ngưỡng đang dùng trong `BOT_TRADE_RULES`: trọng số hiếm ≤1200; giá trị dòng ẩn ≥90% mức tối đa tương ứng. Đây là lựa chọn của project, không phải công thức gốc được xác nhận.
 - Hàng đợi giới hạn20, chống lặp UID (ghi nhớ tối đa2000), giãn ít nhất60 giây/bot và5 giây/toàn runner; trước khi gửi kiểm tra món còn trong túi.
-- Bật Rao bán thì gửi tin gắn vật phẩm lên **Mua bán**, dạng **Liên hệ trực tiếp**. Bot không tự đặt giá hoặc tự mua/giao dịch. Nếu bật cả Chat và Rao bán thì chỉ gửi một tin rao; chỉ bật Chat thì thông báo món vừa nhặt ở Thế giới.
+- Bật Rao bán thì món phải đạt bộ định giá xanh/hoàng kim bên dưới, gửi tin gắn vật phẩm lên **Mua bán** với giá lượng/KNB do server tính; người chơi có thể mua ngay. Bot không tự mua/giao dịch. Nếu bật cả Chat và Rao bán thì chỉ gửi một tin rao; chỉ bật Chat thì thông báo món vừa nhặt ở Thế giới.
 - Tự bán xanh cho NPC và bảo vệ món đáng rao thuộc [Auto](auto.md); đăng tin không khóa vật phẩm khỏi mọi thao tác khác.
+
+## Định giá bot theo cấu hình (2026-11-14)
+
+**Nghiên cứu bước tiếp theo:** [Phương án định giá theo thị trường](research/market-pricing-plan.md) lưu tư duy kinh tế, dữ liệu đã có/còn thiếu và lộ trình học giá. Đọc khi nhắc giá thị trường/cung cầu/học giá; phần này chưa triển khai, không bật được chỉ bằng đổi cờ cấu hình.
+
+Nguồn duy nhất: `packages/shared/src/formulas/data/market-pricing.json`, export qua `formulas/tuning.ts` → `MARKET_PRICING`; phép tính ở `formulas/market.ts` → `valueMarketItem`. Đây là giá khởi điểm **CHỌN**, chưa được xác nhận bằng thị trường. Không sửa bảng `*.gen.ts`. Sau khi sửa JSON, khởi động lại server và runner để cùng nạp cấu hình; công cụ bot bundle lại khi khởi động.
+
+| Khóa | Tác dụng |
+|---|---|
+| `green` / `gold` | Giá nền, tiền mỗi cấp món (cấp trang bị, không phải cấp nhân vật), sàn/trần, điểm tối thiểu để rao |
+| `attributes`, `kindAttributes` | Trọng số dòng thực dụng; trọng số theo loại món ghi đè trọng số chung. Dòng không biết/âm/không hợp lệ không nâng giá |
+| `quality` | Hệ số chất lượng, giá trị dự kiến của dòng ẩn (chưa giả định mọi người mua đều kích hoạt), thưởng phối hợp |
+| `profiles` | Tổ hợp Ngoại công/Nội công/Phòng thủ, số dòng tối thiểu và dòng bắt buộc; chỉ lấy nhóm phù hợp đầu tiên, không cộng trùng |
+| `kindMultipliers` | Hệ số theo loại món |
+| `itemOverrides` | Ghi đè từng ID món: `baseMoney`, `minMoney`, `maxMoney` |
+| `currency` | Bước làm tròn lượng và ngưỡng dùng KNB; chỉ đổi khi giá sau làm tròn vẫn trong sàn/trần |
+| `history` | Giữ tối đa5000giao dịch; `learningEnabled:false` — chưa hỗ trợ bật học giá |
+
+Đồ xanh: chuẩn hóa từng dòng theo mức tối đa đúng loại/cấp/hệ/tiền-hậu tố; cộng trọng số, giảm đóng góp dòng ẩn, chia `green.targetWeight`, giới hạn điểm0–1. Ngưỡng rao mặc định0,3. Đồ hoàng kim: so từng dòng với **khoảng roll riêng đúng món**, tính trung bình có trọng số; không dùng khoảng của đồ xanh. Có dòng hữu ích mới định giá được; không chỉ dựa số dòng hoặc màu vàng. Đây là quy tắc gần đúng theo công dụng, chưa mô phỏng tăng DPS/HP trên từng build/phái.
+
+```text
+Giá nền = baseMoney + perLevelMoney × cấp món (hoặc baseMoney ghi đè)
+Giá tính = Giá nền × hệ số loại × (0,5 + 1,5 × điểm) × thưởng phối hợp
+Giá rao = làm tròn, giới hạn sàn/trần; chọn lượng hoặc KNB
+```
+
+Mặc định xanh giá nền2000+500/cấp, sàn1000, trần50000lượng vì còn chế tạo miễn phí qua Lệnh bài. Hoàng kim giá nền200000+10000/cấp, sàn100000, trần20000000lượng. Các con số chỉ phục vụ thử nghiệm và phải hiệu chỉnh theo thu nhập, nguồn đồ và sức mua thật. KNB từ5000000lượng, quy chiếu `KNB_PRICE`100vạn/KNB (giá hệ thống một chiều, không phải tỉ giá thị trường tự do).
+
+Runner vẫn chỉ xét pickup mới, chống lặp/cooldown như trên; món xanh ít hơn6dòng vẫn có thể đạt điểm. Server xác thực bot qua tài khoản/nhân vật trong DB, tự đọc món trong túi, bỏ qua giá runner gửi khi `autoPrice:true`. Snapshot tin có `valuation`: phiên bản, điểm, nhóm, giá và lý do; cửa sổ vật phẩm hiển thị lý do cùng nút mua. Đăng rao không khóa món; không tự rao lại hoặc tự hạ giá sau thời gian chờ trong bản này.
+
+Sau mua thành công, server lưu các món định giá được vào `db.marketSales` riêng khỏi chat: thời điểm, UID/món/nhóm/điểm, tiền và giá thực trả, hai nhân vật. Không ghi mua thất bại; một UID chỉ ghi lần đầu trong cửa sổ lịch sử. `eligible:false` cho cùng tài khoản hoặc người mua là bot; chưa phát hiện được nhiều tài khoản cùng người hay thông đồng. Dữ liệu này **chưa tác động giá**; chưa học trung vị, cung cầu, thời gian online có thể bán hoặc tự tăng/giảm. Không coi giá rao của bot là giao dịch thị trường.
+
+Kiểm chứng mới: `test:market` có thêm `tests/market-pricing.test.mts`, kiểm giá/roll/giới hạn tiền/quyền bot/server tự định giá/mua/lưu và lỗi không ghi lịch sử. `test:bots`, `test:auto`, typecheck/build; WebSocket + Chromium trên2568/5174 với DB riêng `/tmp/jx-bot-pricing/db.json`: pickup queue→rao có giá→preview/lý do/nút mua→mua thành công→DB. Xem ảnh tool và preview ở1440/390px; chưa thử native/mobile thật, chưa đo cân bằng kinh tế.
 
 ## Bản đồ mã nguồn
 

@@ -2,6 +2,17 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Cập nhật bảng mốc tốc độ đánh & nâng cấp panel thử tốc độ (?skills)
+
+- Theo yêu cầu USER: tách bảng điều khiển `?skills` thành 2 tab (Chiêu thức & Tốc độ), chuyển tab qua lại không bị rối và danh sách chiêu rộng rãi.
+- Tách phần cài đặt mốc tốc độ thành 2 bảng riêng cho Mốc Đánh và Mốc Chạy.
+- Thiết kế giao diện cài đặt theo dạng bảng từng hàng: mỗi hàng gồm cột Percent và FPS, cho phép sửa trực tiếp.
+- Ở trên cùng có hàng Base (Percent và FPS) và ô Step (+FPS), kèm nút "Điền tự động theo Step" (lấy Base FPS làm chuẩn, mỗi hàng tiếp theo cộng dồn một lượng FPS bằng Step).
+- Thêm nút sao chép toàn bộ khối mã TS `export const SPEED = ... as const;` vào clipboard để dán trực tiếp vào code.
+- Xóa bỏ điều kiện kiểm tra mốc tốc độ phải tăng dần trong `packages/shared/src/formulas/speed.ts` (cho phép cài đặt FPS tùy ý không bị throw lỗi).
+- Cập nhật bảng tốc độ đánh trong `packages/shared/src/formulas/tuning.ts` theo kết quả tinh chỉnh của USER (mốc nền 10% = 14 FPS, step 3 FPS: từ 5%->11 FPS đến 260%->56 FPS).
+- Cập nhật `tests/speed-phases.test.ts`. `npm run test:speed` (5/5 pass), `npm run typecheck` (0 lỗi), `npm run build` đạt. Commit `36c9489` theo yêu cầu USER (`commit code hiện tại lên nhé`), không push.
+
 ## 2026-11-14 · Sửa lỗi giật tốc độ chạy (Aura) & bổ sung log đối chiếu tốc độ đánh/chạy
 
 - Theo yêu cầu USER: điều tra tốc độ đánh/di chuyển trong `tuning.ts`, so sánh frame cài đặt và FPS vẽ thực tế trên console devtools (chỉ log khi đánh và chạy, format plain-text dễ copy).
@@ -967,3 +978,19 @@ Bản snapshot chuẩn bị commit được kiểm riêng: typecheck toàn repo 
 ## 2026-11-14 — Tách tài liệu Auto và Rao bán, chỉ dẫn AI
 
 Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sung chọn chiêu/boss/loot và tiêu chí rao bot, bản đồ mã nguồn, commit triển khai và giới hạn kiểm chứng. Bản gộp thành trang chỉ dẫn tương thích. AGENTS mục0, CLAUDE/GEMINI và rule Antigravity always_on chỉ đúng nguồn theo Auto/Rao bán/KNB, không sao chép nghiệp vụ vào entrypoint. README và bots-guide cập nhật link. Kiểm link nội bộ, frontmatter, diff; không đổi mã hay chạy lại test gameplay. Commit riêng tài liệu theo yêu cầu USER; không push, giữ mọi thay đổi ngoài phạm vi và staged xóa frameTrace.
+
+## Bot rao bán có giá theo bộ tiêu chí — 2026-11-14
+
+- USER yêu cầu sửa Rao bán bot, đề xuất file đánh giá xanh/hoàng kim và tư duy kinh tế; duyệt hướng giá cấu hình minh bạch trước, thu thập giao dịch để học thị trường sau.
+- Thêm JSON `formulas/data/market-pricing.json`, export qua tuning; phép tính `formulas/market.ts`. Trọng số theo loại/dòng, roll đúng bảng, phối hợp, floor/cap/override/money/KNB; giá xanh thấp do chế tạo miễn phí còn tồn tại. Giá CHỌN ban đầu, chưa đo nền kinh tế.
+- Bot chỉ fresh-pickup đạt định giá, giữ chống trùng/cooldown. Server kiểm tài khoản bot, tự định giá món thật thay giá runner; preview snapshot kèm lý do + nút mua ngay. Auto giữ thêm món đạt định giá khỏi bán NPC. Không sửa asset/render/tốc độ.
+- `db.marketSales` lưu riêng giao dịch thành công định giá được, tối đa5000; ghi UID lần đầu, loại cùng tài khoản/buyerbot bằng eligible=false. Chưa học dữ liệu/tự giảm giá/rao lại hoặc chống thông đồng nhiều tài khoản; không lấy tin rao làm giao dịch.
+- Đạt typecheck/build/diff-check, bots6/market12/auto4. WebSocket + Chromium thật2568/5174: pickup queue→server giá→preview điểm/lý do/nút mua→mua→món/tiền/lịch sử DB. Tool4578 và preview1440/390 không tràn/pageerror, ảnh đã xem. DB/script/ảnh riêng `/tmp/jx-bot-pricing/`, không game/DB thật. Chưa native/mobile thật hay giá thị trường có cân bằng.
+- HEAD36c9489, giữ thay đổi speed/skill-lab/keymap/kiến trúc/untracked từ phiên khác; chưa commit/push. Cập nhật AGENTS/docs Rao bán/Auto/bots-guide/tool README và tracking. Khởi động lại server/runner/app tool để nạp bản mới.
+
+## Lưu nghiên cứu định giá thị trường cho các phiên AI sau — 2026-11-14
+
+- USER yêu cầu lưu tư duy kinh tế/phương án triển khai để session sau tìm được; không yêu cầu triển khai thêm.
+- Tạo `docs/research/market-pricing-plan.md`: trạng thái mã giá cấu hình, nơi lưu/giao dịch marketSales và giới hạn, dữ liệu còn thiếu để học, giá trị vs giá thị trường, tác động chế tạo miễn phí, gom món tương đương, độ tin cậy/trung vị, chống thao túng, tiền gốc và KNB một chiều, thời gian online có thể bán, lộ trình/tiêu chí kiểm chứng. Công thức/biên/số mẫu của bước học là đề xuất chưa chốt.
+- AGENTS/CLAUDE/GEMINI và rule always_on chỉ dẫn đọc theo từ khóa định giá/giá thị trường/kinh tế game/cung cầu/học giá/tự tăng giảm giá/marketSales; docs/rao-ban liên kết trực tiếp. Không khẳng định AI ngoài repo sẽ tự biết; session cần quyền đọc repo và tuân thủ entrypoint.
+- HEAD36c9489; không sửa mã/cấu hình giá/DB/asset, không commit/push; giữ thay đổi triển khai bot/speed/boss và việc khác. Kiểm liên kết nội bộ và diff-check cho phần tài liệu.

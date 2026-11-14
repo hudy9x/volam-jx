@@ -69,7 +69,7 @@ export function openMarketPreview(line: ChatLine): void {
   if (!line.offer) return;
   currentLine = line; currentItem = null;
   $('market-form').classList.add('hidden');
-  $('market-offer-info').textContent = `${line.from} · ${offerPrice(line)}. Người bán phải trực tuyến để mua.`;
+  $('market-offer-info').textContent = `${line.from} · ${offerPrice(line)}. Người bán phải trực tuyến để mua.${line.offer.valuation ? ' ' + line.offer.valuation.reasons.join(' · ') : ''}`;
   $('market-buy').textContent = `Mua với giá ${offerPrice(line)}`;
   $('market-buy').classList.toggle('hidden', line.offer.currency === 'contact' || !!line.offer.sold || line.from === ctx.self()?.name);
   preview(line.offer.item);

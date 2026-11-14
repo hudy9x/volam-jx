@@ -5,7 +5,7 @@ import type { GoldenBossConfig } from './types.js';
 export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
   "settings": {
     "spawnMode": "continuous",
-    "continuousRespawnSec": 10,
+    "continuousRespawnSec": 30,
     "fixedTimes": [
       "08:30",
       "12:00",
@@ -19,9 +19,9 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       45
     ],
     "dropRolls": 12,
-    "blueRatePct": 15,
-    "specialRatePct": 15.5,
-    "goldRatePct": 69.5
+    "blueRatePct": 73.6,
+    "specialRatePct": 19.9,
+    "goldRatePct": 3.4
   },
   "bosses": [
     {
@@ -31,7 +31,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "kim",
       "sprite": "boss003",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -65,7 +65,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "kim",
       "sprite": "boss047",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -99,7 +99,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "kim",
       "sprite": "enemy044",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -131,7 +131,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "kim",
       "sprite": "enemy122",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -158,7 +158,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "kim",
       "sprite": "boss018",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -192,7 +192,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "kim",
       "sprite": "boss024",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -226,7 +226,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "kim",
       "sprite": "boss009",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -258,7 +258,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "kim",
       "sprite": "boss046",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -289,7 +289,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "kim",
       "sprite": "enemy126",
-      "level": 65,
+      "level": 200,
       "enabled": true,
       "skills": [
         [
@@ -317,7 +317,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "moc",
       "sprite": "boss019",
-      "level": 95,
+      "level": 200,
       "enabled": true,
       "skills": [
         [
@@ -351,7 +351,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "moc",
       "sprite": "boss048",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -385,7 +385,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "moc",
       "sprite": "enemy173",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -419,7 +419,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "moc",
       "sprite": "enemy157",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -453,7 +453,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "moc",
       "sprite": "enemy146",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -477,7 +477,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "moc",
       "sprite": "enemy088",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -505,7 +505,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "moc",
       "sprite": "boss008",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -539,7 +539,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "moc",
       "sprite": "boss007",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -573,7 +573,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "moc",
       "sprite": "boss049",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -607,7 +607,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "thuy",
       "sprite": "boss004",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -641,7 +641,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "thuy",
       "sprite": "boss002",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -675,7 +675,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "thuy",
       "sprite": "boss050",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -709,7 +709,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "thuy",
       "sprite": "enemy056",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -733,7 +733,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "thuy",
       "sprite": "boss005",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -767,7 +767,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "thuy",
       "sprite": "boss023",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -801,7 +801,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "thuy",
       "sprite": "boss051",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -829,7 +829,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "hoa",
       "sprite": "boss012",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -862,7 +862,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "hoa",
       "sprite": "boss013",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -895,7 +895,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "hoa",
       "sprite": "boss052",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -926,7 +926,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "hoa",
       "sprite": "enemy105",
-      "level": 65,
+      "level": 148,
       "enabled": true,
       "skills": [
         [
@@ -950,7 +950,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "hoa",
       "sprite": "boss011",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -984,7 +984,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "hoa",
       "sprite": "boss014",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1018,7 +1018,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "hoa",
       "sprite": "boss015",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1052,7 +1052,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "hoa",
       "sprite": "boss053",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1080,7 +1080,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "hoa",
       "sprite": "enemy130",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1108,7 +1108,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "tho",
       "sprite": "boss001",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1142,7 +1142,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "tho",
       "sprite": "boss022",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1176,7 +1176,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "tho",
       "sprite": "boss054",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1204,7 +1204,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "tho",
       "sprite": "enemy003",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1228,7 +1228,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "tho",
       "sprite": "boss017",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1262,7 +1262,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "tho",
       "sprite": "boss055",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1296,7 +1296,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "tho",
       "sprite": "enemy136",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1330,7 +1330,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "major",
       "element": "tho",
       "sprite": "boss016",
-      "level": 95,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1358,7 +1358,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "special",
       "element": "kim",
       "sprite": "ani049",
-      "level": 20,
+      "level": 150,
       "enabled": true,
       "skills": [
         [
@@ -1386,7 +1386,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "minor",
       "element": "hoa",
       "sprite": "enemy138",
-      "level": 65,
+      "level": 150,
       "enabled": true,
       "skills": [
         [

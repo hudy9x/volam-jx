@@ -1,4 +1,4 @@
-import { KNB_PRICE, MAX_MONEY, TOKEN_ITEM_ID, addToBag, itemDef, type TradePostMsg, type ChatLine } from '@vltk/shared';
+import { KNB_PRICE, MAX_MONEY, MARKET_PRICING, valueMarketItem, TOKEN_ITEM_ID, addToBag, itemDef, type TradePostMsg, type ChatLine } from '@vltk/shared';
 import { db } from '../account/db.js';
 import { chatLineById, chatSay, chatRefresh } from './chat.js';
 import type { Sim } from './entity.js';
@@ -10,10 +10,18 @@ export function marketOffline(sim: Sim): void { if (online.get(sim.charId!)?.sim
 export function marketPost(sim: Sim, msg: TradePostMsg): string | null {
   const item = sim.bag?.find(it => it?.uid === msg?.uid);
   if (!item || !itemDef(item) || item.def === TOKEN_ITEM_ID || sim.dead) return 'Không thể rao món đồ này.';
+  let valuation: ReturnType<typeof valueMarketItem> = null;
+  if (msg.autoPrice) {
+    const char = db.getCharacter(sim.charId!);
+    if (!char?.bot || !db.getUser(char.owner)?.bot) return 'Chỉ bot được sử dụng định giá tự động.';
+    valuation = valueMarketItem(item);
+    if (!valuation) return 'Món đồ chưa đạt tiêu chí định giá tự động.';
+    msg = { ...msg, currency: valuation.currency, price: valuation.price };
+  }
   if (!['money','knb','contact'].includes(msg.currency)) return 'Đơn vị giá không hợp lệ.';
   if (msg.currency !== 'contact' && (!Number.isSafeInteger(msg.price) || msg.price <= 0 || msg.price > MAX_MONEY)) return 'Giá phải là số nguyên từ 1 đến 2 tỷ.';
   return chatSay(sim.charId!, sim.a.name, String(msg.text ?? '').trim() || 'Rao bán, mời liên hệ.', Date.now(), 'trade',
-    { seller: sim.charId!, item: structuredClone(item), currency: msg.currency, price: msg.currency === 'contact' ? 0 : msg.price });
+    { seller: sim.charId!, item: structuredClone(item), currency: msg.currency, price: msg.currency === 'contact' ? 0 : msg.price, ...(valuation ? { valuation } : {}) });
 }
 /** Synchronous validation + mutation: no await between checking inventory/payment and transferring the item. */
 export function purchaseOffer(buyer: Sim, seller: Sim, line: ChatLine): string | null {
@@ -35,7 +43,20 @@ export function marketBuy(buyer: Sim, id: number): string | null {
   const line = chatLineById(id), seller = line?.offer ? online.get(line.offer.seller) : undefined;
   if (!line || !seller) return 'Người bán phải đang trực tuyến, tin rao còn hiệu lực.';
   const err = purchaseOffer(buyer, seller.sim, line);
-  if (!err) { chatRefresh(line); seller.changed(); online.get(buyer.charId!)?.changed(); db.touch(); db.flush(); }
+  if (!err) {
+    const offer = line.offer!, value = valueMarketItem(offer.item);
+    const buyerChar = db.getCharacter(buyer.charId!), sellerChar = db.getCharacter(seller.sim.charId!);
+    const sales = db.marketSales();
+    if (value && offer.currency !== 'contact' && !sales.some(s => s.uid === offer.item.uid)) {
+      sales.push({ at: Date.now(), offerId: line.id, uid: offer.item.uid, def: offer.item.def,
+        group: value.group, score: value.score, currency: offer.currency, price: offer.price,
+        buyer: buyer.charId!, seller: seller.sim.charId!,
+        eligible: !!buyerChar && !!sellerChar && buyerChar.owner !== sellerChar.owner
+          && !db.getUser(buyerChar.owner)?.bot });
+      if (sales.length > MARKET_PRICING.history.maxSales) sales.splice(0, sales.length - MARKET_PRICING.history.maxSales);
+    }
+    chatRefresh(line); seller.changed(); online.get(buyer.charId!)?.changed(); db.touch(); db.flush();
+  }
   return err;
 }
 export function buyKnb(sim: Sim, count: unknown, safe: boolean): string | null {

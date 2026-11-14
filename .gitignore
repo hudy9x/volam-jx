@@ -13,3 +13,5 @@ apps/client/tools/.cache/asset-hashes.json
 .env
 .env.*
 !.env.example
+
+.gitnexus

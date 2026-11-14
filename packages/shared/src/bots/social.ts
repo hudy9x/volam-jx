@@ -2,15 +2,17 @@ import { itemDef, type Item } from '../items/items.js';
 import { MAGIC_KINDS, magicRange } from '../items/magic.js';
 import { MAGIC_ATTRIBS } from '../items/magicattrib.gen.js';
 import { attrText } from '../items/describe.js';
+import { valueMarketItem } from '../formulas/market.js';
 import { CHAT } from '../protocol.js';
 
 /** CHỌN thresholds for the user's "rare or large hidden option" rule, not original gameplay formulas. */
 export const BOT_TRADE_RULES = { rareWeight: 1200, largeRatio: 0.9, botGapMs: 60_000, fleetGapMs: 5000, maxPending: 20 } as const;
 export function botTradeReasons(item: Item): string[] {
   const def = itemDef(item);
-  if (!def || !MAGIC_KINDS.includes(def.kind)) return [];
+  if (!def || !def.gold && !MAGIC_KINDS.includes(def.kind)) return [];
   const lines = item.magic?.filter(l => l[1] !== 0) ?? [];
   const reasons: string[] = lines.length > 5 ? [`${lines.length} dòng`] : [];
+  if (valueMarketItem(item)) reasons.push(def.gold ? 'Hoàng kim' : 'Đạt tiêu chí định giá');
   for (const [index, [attr, value, hidden]] of (item.magic ?? []).entries()) {
     if (!hidden || !value) continue;
     const range = magicRange(attr, false);
@@ -26,5 +28,5 @@ export function botTradeReasons(item: Item): string[] {
 export function botLootMessage(item: Item, selling: boolean): string | null {
   const reasons = botTradeReasons(item);
   if (!reasons.length) return null;
-  return `${selling ? 'Rao bán' : 'Vừa nhặt'} [${itemDef(item)!.name}] — ${reasons.slice(0, 3).join('; ')}${selling ? '. Ai cần liên hệ.' : '.'}`.slice(0, CHAT.maxLength);
+  return `${selling ? 'Rao bán' : 'Vừa nhặt'} [${itemDef(item)!.name}] — ${reasons.slice(0, 3).join('; ')}${selling ? '. Xem vật phẩm để mua ngay.' : '.'}`.slice(0, CHAT.maxLength);
 }

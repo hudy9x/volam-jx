@@ -1,4 +1,4 @@
-import { SPEED, resolveSpeed, validateSpeedConfiguration, type SpeedConfiguration, type SpeedPhase, ELEMENT_NAMES, FACTIONS, FACTION_IDS, SKILL_CATEGORY_NAMES, learnTiers, skillCategory, type Element, type SkillDef } from '@vltk/shared';
+import { SPEED, resolveSpeed, validateSpeedConfiguration, trackBasePercent, type SpeedConfiguration, type SpeedPhase, ELEMENT_NAMES, FACTIONS, FACTION_IDS, SKILL_CATEGORY_NAMES, learnTiers, skillCategory, type Element, type SkillDef } from '@vltk/shared';
 import { skillIconUrl } from '../../art/icons';
 import { assetUrl } from '../../art/assets';
 
@@ -35,6 +35,7 @@ const ELEMENT_COLORS: Record<Element, string> = { kim: '#e8c879', moc: '#86d67d'
 const CSS = `
 #lab-panel { box-sizing: border-box; max-width: calc(100vw - 16px); position: fixed; left: 8px; top: 76px; bottom: 8px; width: 330px; z-index: 20; display: flex; flex-direction: column; gap: 8px;
   background: #0c0905f0; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 13px; color: #f1e6cf; user-select: none; }
+.lab-main-title { font-size: 13px; font-weight: bold; color: var(--gold); text-align: center; letter-spacing: .06em; padding-bottom: 2px; }
 #lab-panel .lab-head { color: var(--gold); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
 
 #lab-tabs { display: flex; gap: 4px; border-bottom: 1px solid #4a3a20; padding-bottom: 6px; }
@@ -85,18 +86,25 @@ const CSS = `
 .lab-subtab-btn.on { border-color: var(--gold); background: #22180c; color: var(--gold); }
 
 .lab-base-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: #18120a; border: 1px solid #3c2f1b; padding: 5px; border-radius: 4px; align-items: center; }
+.lab-base-bar.has-stride { grid-template-columns: repeat(4, 1fr); }
 .lab-base-bar label { display: flex; flex-direction: column; font-size: 10px; color: #bfb59b; gap: 2px; }
 .lab-base-bar input { width: 100%; box-sizing: border-box; }
-.lab-base-actions { grid-column: span 3; display: flex; justify-content: flex-end; margin-top: 2px; }
+.lab-base-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 2px; }
 .lab-base-actions button { font-size: 10px; padding: 2px 6px; cursor: pointer; }
 
 .lab-phase-table { display: flex; flex-direction: column; gap: 2px; max-height: 200px; overflow-y: auto; padding-right: 2px; }
 .lab-phase-header { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 4px; font-size: 10px; color: #8d7c60; font-weight: bold; padding: 2px 4px; text-transform: uppercase; }
+.lab-phase-header.run { grid-template-columns: 44px 36px 36px 30px 42px 50px 20px; gap: 3px; }
+
 .lab-phase-row { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 4px; align-items: center; padding: 1px 0; }
+.lab-phase-row.run { grid-template-columns: 44px 36px 36px 30px 42px 50px 20px; gap: 3px; }
 .lab-phase-row.is-base input { border-color: var(--gold); color: #fff3db; background: #2a2010; font-weight: bold; }
 .lab-phase-row input { width: 100%; box-sizing: border-box; text-align: center; }
 .lab-phase-row .btn-del { padding: 2px 0; text-align: center; cursor: pointer; border: 1px solid #4a2820; background: #20100c; color: #ff9988; border-radius: 3px; font-size: 11px; line-height: 1; }
 .lab-phase-row .btn-del:hover { background: #3a1610; border-color: #ff5544; }
+.btn-apply-row { padding: 3px 0; text-align: center; cursor: pointer; border: 1px solid #675137; background: #261e12; color: var(--gold); border-radius: 3px; font-size: 10px; font-weight: bold; line-height: 1; }
+.btn-apply-row:hover { border-color: var(--gold); background: #3a2c1a; box-shadow: 0 0 4px #e8c87944; }
+.lab-row-vel { font-size: 10px; color: #86c8ff; text-align: center; white-space: nowrap; font-family: monospace; }
 
 .lab-table-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
 .lab-table-footer button { padding: 2px 8px; font-size: 11px; cursor: pointer; }
@@ -121,14 +129,17 @@ function div(cls: string, text = ''): HTMLDivElement {
 interface TrackTableController {
   container: HTMLDivElement;
   getPhases(): SpeedPhase[];
-  setPhases(phases: readonly SpeedPhase[], basePercent: number): void;
+  getBasePercent(): number;
+  getStridePixels?(): number;
+  setPhases(phases: readonly SpeedPhase[], basePercent: number, defaultStride?: number): void;
 }
 
 function createPhaseTable(
-  _title: string,
+  kind: 'attack' | 'run',
   initialPhases: readonly SpeedPhase[],
   basePercent: number,
   defaultStep: number,
+  initialStride: number,
   onDirty: () => void,
 ): TrackTableController {
   const container = div('');
@@ -136,11 +147,14 @@ function createPhaseTable(
 
   let currentPhases: SpeedPhase[] = initialPhases.map(p => ({ ...p }));
   let currentBasePct = basePercent;
+  let currentDefaultStride = initialStride;
 
   // 1. Fixed Base Bar on top
-  const baseBar = div('lab-base-bar');
+  const isRun = kind === 'run';
+  const baseBar = div(`lab-base-bar${isRun ? ' has-stride' : ''}`);
+
   const basePctLabel = document.createElement('label');
-  basePctLabel.textContent = 'Mốc Base (%)';
+  basePctLabel.textContent = 'Base (%)';
   const basePctInput = document.createElement('input');
   basePctInput.type = 'number';
   basePctInput.value = String(basePercent);
@@ -151,7 +165,7 @@ function createPhaseTable(
   const baseFpsInput = document.createElement('input');
   baseFpsInput.type = 'number';
   const initBasePhase = initialPhases.find(p => p.minPercent === basePercent) || initialPhases[0];
-  baseFpsInput.value = String(initBasePhase?.fps ?? 16);
+  baseFpsInput.value = String(initBasePhase?.fps ?? (isRun ? 6 : 14));
   baseFpsLabel.appendChild(baseFpsInput);
 
   const stepLabel = document.createElement('label');
@@ -161,18 +175,34 @@ function createPhaseTable(
   stepInput.value = String(defaultStep);
   stepLabel.appendChild(stepInput);
 
+  let strideInput: HTMLInputElement | null = null;
+  if (isRun) {
+    const strideLabel = document.createElement('label');
+    strideLabel.textContent = 'Sải nền (px)';
+    strideInput = document.createElement('input');
+    strideInput.type = 'number';
+    strideInput.value = String(initialStride);
+    strideLabel.appendChild(strideInput);
+    baseBar.append(basePctLabel, baseFpsLabel, stepLabel, strideLabel);
+  } else {
+    baseBar.append(basePctLabel, baseFpsLabel, stepLabel);
+  }
+
   const baseActions = div('lab-base-actions');
   const applyStepBtn = document.createElement('button');
   applyStepBtn.type = 'button';
-  applyStepBtn.textContent = 'Điền tự động theo Step';
-  applyStepBtn.title = 'Lấy Base FPS làm chuẩn, mỗi hàng tiếp theo cộng dồn một lượng bằng Step';
+  applyStepBtn.textContent = isRun ? 'Điền theo Step & Sải chân' : 'Điền tự động theo Step';
+  applyStepBtn.title = 'Lấy Base làm chuẩn, mỗi hàng tiếp theo cộng dồn một lượng bằng Step';
   baseActions.appendChild(applyStepBtn);
-
-  baseBar.append(basePctLabel, baseFpsLabel, stepLabel, baseActions);
+  baseBar.appendChild(baseActions);
 
   // 2. Table Header
-  const header = div('lab-phase-header');
-  header.append(div('', 'Mốc (%)'), div('', 'FPS'), div('', ''));
+  const header = div(`lab-phase-header${isRun ? ' run' : ''}`);
+  if (isRun) {
+    header.append(div('', 'Mốc (%)'), div('', 'FPS'), div('', 'Step'), div('', 'Áp'), div('', 'Sải (px)'), div('', 'V.Tốc'), div('', ''));
+  } else {
+    header.append(div('', 'Mốc (%)'), div('', 'FPS'), div('', ''));
+  }
 
   // 3. Rows container
   const tableRows = div('lab-phase-table');
@@ -184,7 +214,7 @@ function createPhaseTable(
 
     sorted.forEach((p, idx) => {
       const isBase = p.minPercent === currentBasePct;
-      const row = div(`lab-phase-row${isBase ? ' is-base' : ''}`);
+      const row = div(`lab-phase-row${isRun ? ' run' : ''}${isBase ? ' is-base' : ''}`);
 
       const pctInput = document.createElement('input');
       pctInput.type = 'number';
@@ -201,15 +231,7 @@ function createPhaseTable(
       const fpsInput = document.createElement('input');
       fpsInput.type = 'number';
       fpsInput.value = String(p.fps);
-      fpsInput.title = `FPS chuẩn cho mốc ${p.minPercent}%`;
-      fpsInput.addEventListener('change', () => {
-        const val = Number(fpsInput.value);
-        if (Number.isFinite(val) && val > 0) {
-          p.fps = val;
-          if (isBase) baseFpsInput.value = String(val);
-          onDirty();
-        }
-      });
+      fpsInput.title = `FPS cho mốc ${p.minPercent}%`;
 
       const delBtn = document.createElement('button');
       delBtn.type = 'button';
@@ -223,7 +245,75 @@ function createPhaseTable(
         onDirty();
       });
 
-      row.append(pctInput, fpsInput, delBtn);
+      if (isRun) {
+        const strideVal = p.stride ?? currentDefaultStride;
+        const strideRowInput = document.createElement('input');
+        strideRowInput.type = 'number';
+        strideRowInput.value = String(strideVal);
+        strideRowInput.title = `Độ dài sải chân 1 chu kỳ bước (px) tại mốc ${p.minPercent}%`;
+
+        const stepVal = p.step ?? (Number(stepInput.value) || 1);
+        const rowStepInput = document.createElement('input');
+        rowStepInput.type = 'number';
+        rowStepInput.value = String(stepVal);
+        rowStepInput.title = `Step (+FPS) cho mốc ${p.minPercent}%`;
+        rowStepInput.addEventListener('change', () => {
+          const val = Number(rowStepInput.value);
+          if (Number.isFinite(val)) p.step = val;
+        });
+
+        const applyRowBtn = document.createElement('button');
+        applyRowBtn.type = 'button';
+        applyRowBtn.className = 'btn-apply-row';
+        applyRowBtn.textContent = 'Áp';
+        applyRowBtn.title = `Áp dụng Step ${rowStepInput.value} từ mốc ${p.minPercent}% cho tới các mốc còn lại`;
+        applyRowBtn.addEventListener('click', () => {
+          const startFps = p.fps;
+          const sVal = Number(rowStepInput.value);
+          if (!Number.isFinite(startFps) || !Number.isFinite(sVal)) return;
+          p.step = sVal;
+          for (let i = idx + 1; i < currentPhases.length; i++) {
+            currentPhases[i].fps = startFps + (i - idx) * sVal;
+          }
+          renderRows();
+          onDirty();
+        });
+
+        const velLabel = div('lab-row-vel', `${Math.round((p.fps / 8) * strideVal)} px/s`);
+
+        fpsInput.addEventListener('change', () => {
+          const val = Number(fpsInput.value);
+          if (Number.isFinite(val) && val > 0) {
+            p.fps = val;
+            if (isBase) baseFpsInput.value = String(val);
+            const curStride = p.stride ?? currentDefaultStride;
+            velLabel.textContent = `${Math.round((p.fps / 8) * curStride)} px/s`;
+            onDirty();
+          }
+        });
+
+        strideRowInput.addEventListener('change', () => {
+          const val = Number(strideRowInput.value);
+          if (Number.isFinite(val) && val > 0) {
+            p.stride = val;
+            velLabel.textContent = `${Math.round((p.fps / 8) * val)} px/s`;
+            onDirty();
+          }
+        });
+
+        row.append(pctInput, fpsInput, rowStepInput, applyRowBtn, strideRowInput, velLabel, delBtn);
+      } else {
+        fpsInput.addEventListener('change', () => {
+          const val = Number(fpsInput.value);
+          if (Number.isFinite(val) && val > 0) {
+            p.fps = val;
+            if (isBase) baseFpsInput.value = String(val);
+            onDirty();
+          }
+        });
+        row.append(pctInput, fpsInput, delBtn);
+      }
+
       tableRows.appendChild(row);
     });
   }
@@ -248,6 +338,17 @@ function createPhaseTable(
     }
   });
 
+  if (strideInput) {
+    strideInput.addEventListener('change', () => {
+      const val = Number(strideInput!.value);
+      if (Number.isFinite(val) && val > 0) {
+        currentDefaultStride = val;
+        renderRows();
+        onDirty();
+      }
+    });
+  }
+
   // Apply step logic
   applyStepBtn.addEventListener('click', () => {
     const baseFps = Number(baseFpsInput.value);
@@ -270,6 +371,9 @@ function createPhaseTable(
       } else {
         p.fps = Math.max(1, baseFps - (baseIdx - i) * step);
       }
+      if (isRun && !p.stride) {
+        p.stride = currentDefaultStride;
+      }
     });
 
     renderRows();
@@ -283,10 +387,12 @@ function createPhaseTable(
   addBtn.textContent = '+ Thêm mốc mới';
   addBtn.addEventListener('click', () => {
     const last = currentPhases.at(-1);
-    const step = Number(stepInput.value) || 2;
+    const step = Number(stepInput.value) || (isRun ? 1 : 2);
     const nextPct = last ? last.minPercent + 20 : 100;
-    const nextFps = last ? last.fps + step : 20;
-    currentPhases.push({ minPercent: nextPct, fps: nextFps });
+    const nextFps = last ? last.fps + step : (isRun ? 10 : 20);
+    const newPhase: SpeedPhase = { minPercent: nextPct, fps: nextFps };
+    if (isRun) newPhase.stride = currentDefaultStride;
+    currentPhases.push(newPhase);
     renderRows();
     onDirty();
   });
@@ -300,12 +406,22 @@ function createPhaseTable(
     getPhases(): SpeedPhase[] {
       return currentPhases.map(p => ({ ...p }));
     },
-    setPhases(phases: readonly SpeedPhase[], basePct: number): void {
+    getBasePercent(): number {
+      return currentBasePct;
+    },
+    getStridePixels(): number {
+      return currentDefaultStride;
+    },
+    setPhases(phases: readonly SpeedPhase[], basePct: number, defaultStride?: number): void {
       currentPhases = phases.map(p => ({ ...p }));
       currentBasePct = basePct;
       basePctInput.value = String(basePct);
       const bPhase = phases.find(p => p.minPercent === basePct) || phases[0];
       if (bPhase) baseFpsInput.value = String(bPhase.fps);
+      if (defaultStride && strideInput) {
+        currentDefaultStride = defaultStride;
+        strideInput.value = String(defaultStride);
+      }
       renderRows();
     },
   };
@@ -313,7 +429,7 @@ function createPhaseTable(
 
 /** Formats current speed configuration to exact TypeScript export string requested by user */
 function formatSpeedCode(config: SpeedConfiguration): string {
-  const formatPhases = (phases: readonly SpeedPhase[]): string => {
+  const formatAttackPhases = (phases: readonly SpeedPhase[]): string => {
     const lines: string[] = [];
     for (let i = 0; i < phases.length; i += 2) {
       const p1 = phases[i];
@@ -327,21 +443,41 @@ function formatSpeedCode(config: SpeedConfiguration): string {
     return lines.join('\n');
   };
 
+  const formatRunPhases = (phases: readonly SpeedPhase[]): string => {
+    const lines: string[] = [];
+    for (let i = 0; i < phases.length; i += 2) {
+      const p1 = phases[i];
+      const p2 = phases[i + 1];
+      const s1 = p1.stride ? `, stride: ${p1.stride}` : '';
+      const s2 = p2 ? (p2.stride ? `, stride: ${p2.stride}` : '') : '';
+      if (p2) {
+        lines.push(`      { minPercent: ${p1.minPercent}, fps: ${p1.fps}${s1} }, { minPercent: ${p2.minPercent}, fps: ${p2.fps}${s2} },`);
+      } else {
+        lines.push(`      { minPercent: ${p1.minPercent}, fps: ${p1.fps}${s1} },`);
+      }
+    }
+    return lines.join('\n');
+  };
+
   return `export const SPEED = {
   basePercent: ${config.basePercent},
   minPercent: ${config.minPercent},
   maxPercent: ${config.maxPercent},
   run: {
+    basePercent: ${config.run.basePercent ?? 100},
     distanceScale: ${config.run.distanceScale},
+    stridePixels: ${config.run.stridePixels ?? 120},
+    horseStridePixels: ${config.run.horseStridePixels ?? 180},
     referenceFrames: ${config.run.referenceFrames},
     phases: [
-${formatPhases(config.run.phases)}
+${formatRunPhases(config.run.phases)}
     ],
   },
   attack: {
+    basePercent: ${config.attack.basePercent ?? 10},
     referenceFrames: ${config.attack.referenceFrames},
     phases: [
-${formatPhases(config.attack.phases)}
+${formatAttackPhases(config.attack.phases)}
     ],
   },
 } as const;
@@ -436,7 +572,7 @@ export class SkillLabPanel {
     this.tabSpeedContent.style.display = 'none';
     this.tabSpeedContent.append(this.buildSpeedControls());
 
-    this.root.append(tabs, this.tabSkillsContent, this.tabSpeedContent);
+    this.root.append(div('lab-main-title', 'VTLK - SKILL Test'), tabs, this.tabSkillsContent, this.tabSpeedContent);
     document.body.appendChild(this.root);
     // Clicks on the panel stay off the game canvas underneath.
     this.root.addEventListener('pointerdown', e => e.stopPropagation());
@@ -458,25 +594,34 @@ export class SkillLabPanel {
     }
 
     const config: SpeedConfiguration = structuredClone(this.lastConfig || SPEED);
-    config.attack = { ...config.attack, phases: attackPhases };
-    config.run = { ...config.run, phases: runPhases };
+    const runBase = this.runTableCtrl.getBasePercent();
+    const attackBase = this.attackTableCtrl.getBasePercent();
+    config.attack = { ...config.attack, basePercent: attackBase, phases: attackPhases };
+    config.run = {
+      ...config.run,
+      basePercent: runBase,
+      phases: runPhases,
+      stridePixels: this.runTableCtrl.getStridePixels ? this.runTableCtrl.getStridePixels() : (config.run.stridePixels ?? 120),
+    };
 
     // Auto update minPercent / maxPercent from phases
     const allMin = Math.min(...attackPhases.map(p => p.minPercent), ...runPhases.map(p => p.minPercent));
     const allMax = Math.max(...attackPhases.map(p => p.minPercent), ...runPhases.map(p => p.minPercent));
     if (Number.isFinite(allMin) && allMin > 0) config.minPercent = allMin;
-    if (Number.isFinite(allMax) && allMax >= (config.basePercent ?? 10)) config.maxPercent = allMax;
+    if (Number.isFinite(allMax) && allMax >= 10) config.maxPercent = allMax;
     return config;
   }
 
   private buildSpeedControls(): HTMLElement {
     const box = div(''); box.id = 'lab-speed';
-    box.append(div('lab-head', `Thử tốc độ · ${SPEED.basePercent}% = tốc nền`));
+    const attackBase = trackBasePercent('attack', SPEED);
+    const runBase = trackBasePercent('run', SPEED);
+    box.append(div('lab-head', `Thử tốc độ · Đánh nền ${attackBase}% · Chạy nền ${runBase}%`));
 
     // Attack speed row
     {
       const row = document.createElement('label'); row.textContent = 'Đánh tổng %';
-      this.attackInput.type = 'number'; this.attackInput.step = '1'; this.attackInput.value = String(SPEED.basePercent);
+      this.attackInput.type = 'number'; this.attackInput.step = '1'; this.attackInput.value = String(attackBase);
       this.attackInput.id = 'lab-attack-percent';
       this.attackInput.addEventListener('input', () => {
         if (this.attackInput.value !== '' && Number.isFinite(this.attackInput.valueAsNumber)) {
@@ -496,7 +641,7 @@ export class SkillLabPanel {
     // Run speed row
     {
       const row = document.createElement('label'); row.textContent = 'Chạy tổng %';
-      this.runInput.type = 'number'; this.runInput.step = '1'; this.runInput.value = String(SPEED.basePercent);
+      this.runInput.type = 'number'; this.runInput.step = '1'; this.runInput.value = String(runBase);
       this.runInput.id = 'lab-run-percent';
       this.runInput.addEventListener('input', () => {
         if (this.runInput.value !== '' && Number.isFinite(this.runInput.valueAsNumber)) {
@@ -514,7 +659,7 @@ export class SkillLabPanel {
     }
 
     const mode = document.createElement('label'); mode.textContent = 'Chế độ'; this.modeInput.id = 'lab-speed-mode';
-    for (const [value, text] of [['idle', 'Đứng'], ['attack', 'Tự đánh'], ['run', 'Tự chạy'], ['both', 'Chạy & đánh']]) {
+    for (const [value, text] of [['idle','Đứng'],['attack','Tự đánh'],['run','Tự chạy'],['both','Chạy & đánh']]) {
       this.modeInput.add(new Option(text, value));
     }
     this.modeInput.addEventListener('change', () => this.hooks.mode(this.modeInput.value));
@@ -522,7 +667,7 @@ export class SkillLabPanel {
 
     const mounted = document.createElement('label'); this.mountedInput.type = 'checkbox'; this.mountedInput.id = 'lab-mounted';
     this.mountedInput.addEventListener('change', () => this.hooks.mounted(this.mountedInput.checked));
-    mounted.append(this.mountedInput, 'Cưỡi ngựa (cùng tổng tốc đã nhập)');
+    mounted.append(this.mountedInput, 'Cưỡi ngựa (sải chân dài hơn)');
 
     this.speedInfo.id = 'lab-speed-info';
     this.sourceInfo.id = 'lab-speed-source';
@@ -530,7 +675,7 @@ export class SkillLabPanel {
     // Tuning section with 2 sub-tabs (Mốc Đánh & Mốc Chạy)
     const tuningBox = div('');
     tuningBox.id = 'lab-speed-tuning';
-    tuningBox.append(div('lab-head', 'Cài đặt mốc speed · theo hàng'));
+    tuningBox.append(div('lab-head', 'Cài đặt mốc speed · theo hàng & sải chân'));
 
     const subtabs = div('lab-subtabs');
     const attackSubtabBtn = div('lab-subtab-btn on', 'Mốc Tốc Độ Đánh');
@@ -540,8 +685,8 @@ export class SkillLabPanel {
     const error = div('lab-error'); error.setAttribute('role', 'alert');
     const onDirty = () => { error.textContent = ''; };
 
-    this.attackTableCtrl = createPhaseTable('Đánh', SPEED.attack.phases, SPEED.basePercent, 2, onDirty);
-    this.runTableCtrl = createPhaseTable('Chạy', SPEED.run.phases, SPEED.basePercent, 1, onDirty);
+    this.attackTableCtrl = createPhaseTable('attack', SPEED.attack.phases, attackBase, 3, 0, onDirty);
+    this.runTableCtrl = createPhaseTable('run', SPEED.run.phases, runBase, 2, SPEED.run.stridePixels ?? 120, onDirty);
 
     this.runTableCtrl.container.style.display = 'none';
 
@@ -592,8 +737,10 @@ export class SkillLabPanel {
 
     reset.addEventListener('click', () => {
       const config = structuredClone(SPEED);
-      this.attackTableCtrl.setPhases(config.attack.phases, config.basePercent);
-      this.runTableCtrl.setPhases(config.run.phases, config.basePercent);
+      const aBase = trackBasePercent('attack', config);
+      const rBase = trackBasePercent('run', config);
+      this.attackTableCtrl.setPhases(config.attack.phases, aBase);
+      this.runTableCtrl.setPhases(config.run.phases, rBase, config.run.stridePixels ?? 120);
       this.hooks.configuration(config);
       error.textContent = '';
     });
@@ -643,10 +790,10 @@ export class SkillLabPanel {
       this.speedPresets[1]?.replaceChildren(...st.config.run.phases.map(p => new Option(`${p.minPercent}%`, String(p.minPercent))));
     }
 
-    const attack = resolveSpeed('attack', st.attackPercent, st.config), run = resolveSpeed('run', st.runPercent, st.config);
+    const attack = resolveSpeed('attack', st.attackPercent, st.config), run = resolveSpeed('run', st.runPercent, st.config, st.mounted);
     if (this.speedPresets[0]) this.speedPresets[0].value = String(attack.phasePercent);
     if (this.speedPresets[1]) this.speedPresets[1].value = String(run.phasePercent);
-    this.speedInfo.textContent = `Giới hạn ${st.config.minPercent}–${st.config.maxPercent}%\nĐánh: mốc ${attack.phasePercent}% · ${attack.fps} FPS chuẩn · ${Math.round(attack.cycleMs)} ms/đòn\nChạy: mốc ${run.phasePercent}% · ${run.fps} FPS chuẩn · ${Math.round(run.cycleMs)} ms/vòng\nTốc đánh mới áp dụng từ đòn kế tiếp; giữ hồi chiêu riêng.`;
+    this.speedInfo.textContent = `Giới hạn ${st.config.minPercent}–${st.config.maxPercent}%\nĐánh: mốc ${attack.phasePercent}% · ${attack.fps} FPS · ${Math.round(attack.cycleMs)} ms/đòn\nChạy: mốc ${run.phasePercent}% · ${run.fps} FPS · Sải ${run.stridePixels}px · V.Tốc ${Math.round(run.velocity ?? 0)} px/s · ${Math.round(run.cycleMs)} ms/vòng\nTốc đánh mới áp dụng từ đòn kế tiếp; giữ hồi chiêu riêng.`;
 
     this.factionEls.forEach((el, i) => el.classList.toggle('on', i === st.faction));
     if (this.listFaction !== st.faction || this.skillEls.length !== st.skills.length) this.buildList(st);

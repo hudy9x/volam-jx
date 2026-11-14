@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "source": "CHỌN 2026-11-14: giá khởi điểm thử nghiệm, chưa phải giá thị trường; đồ xanh có nguồn chế tạo miễn phí",
+  "green": {
+    "baseMoney": 2000,
+    "perLevelMoney": 500,
+    "minMoney": 1000,
+    "maxMoney": 50000,
+    "minScore": 0.3,
+    "targetWeight": 8
+  },
+  "gold": {
+    "baseMoney": 200000,
+    "perLevelMoney": 10000,
+    "minMoney": 100000,
+    "maxMoney": 20000000,
+    "minScore": 0
+  },
+  "quality": {
+    "baseMultiplier": 0.5,
+    "scoreMultiplier": 1.5,
+    "hiddenFactor": 0.7,
+    "synergyMultiplier": 1.15
+  },
+  "currency": {
+    "knbFromMoney": 5000000,
+    "moneyStep": 1000
+  },
+  "history": {
+    "maxSales": 5000,
+    "learningEnabled": false
+  },
+  "kindMultipliers": {
+    "melee": 1.2,
+    "range": 1.2,
+    "boot": 1.1
+  },
+  "itemOverrides": {},
+  "attributes": {
+    "lifemax_v": 2,
+    "manamax_v": 0.5,
+    "allres_p": 3,
+    "physicsres_p": 1.5,
+    "poisonres_p": 1,
+    "coldres_p": 1,
+    "fireres_p": 1,
+    "lightingres_p": 1,
+    "fastwalkrun_p": 2,
+    "attackspeed_v": 2,
+    "fasthitrecover_v": 1,
+    "steallifeenhance_p": 2,
+    "stealmanaenhance_p": 1.5,
+    "allskill_v": 3,
+    "attackratingenhance_v": 1,
+    "ignoredefense_p": 1,
+    "addphysicsdamage_p": 2,
+    "addphysicsdamage_v": 2,
+    "addpoisondamage_v": 1.5,
+    "addcolddamage_v": 1.5,
+    "addfiredamage_v": 1.5,
+    "addlightingdamage_v": 1.5,
+    "addphysicsmagic_v": 2,
+    "addcoldmagic_v": 2,
+    "addfiremagic_v": 2,
+    "addlightingmagic_v": 2,
+    "addpoisonmagic_v": 2,
+    "lucky_v": 1
+  },
+  "kindAttributes": {
+    "boot": {
+      "fastwalkrun_p": 4
+    },
+    "melee": {
+      "attackspeed_v": 3
+    },
+    "range": {
+      "attackspeed_v": 3
+    }
+  },
+  "profiles": [
+    {
+      "name": "Ngoại công",
+      "attrs": [
+        "addphysicsdamage_p",
+        "addphysicsdamage_v",
+        "attackspeed_v",
+        "steallifeenhance_p"
+      ],
+      "minLines": 3,
+      "requires": []
+    },
+    {
+      "name": "Nội công",
+      "attrs": [
+        "addphysicsmagic_v",
+        "addcoldmagic_v",
+        "addfiremagic_v",
+        "addlightingmagic_v",
+        "addpoisonmagic_v",
+        "stealmanaenhance_p"
+      ],
+      "minLines": 2,
+      "requires": [
+        "stealmanaenhance_p"
+      ]
+    },
+    {
+      "name": "Phòng thủ",
+      "attrs": [
+        "lifemax_v",
+        "allres_p",
+        "physicsres_p",
+        "fasthitrecover_v"
+      ],
+      "minLines": 3,
+      "requires": []
+    }
+  ]
+}

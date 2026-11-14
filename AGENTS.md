@@ -5,6 +5,8 @@ không làm sai.
 
 ## 0. Bắt đầu và kết thúc phiên (bắt buộc)
 
+- **Tra cứu định giá thị trường — bắt buộc:** khi người dùng nhắc **định giá đồ, giá thị trường, kinh tế game, cung cầu, học giá, tự điều chỉnh giá, tự tăng/giảm giá bot hoặc lịch sử giao dịch/marketSales**, đọc [docs/rao-ban.md](docs/rao-ban.md) và toàn bộ [docs/research/market-pricing-plan.md](docs/research/market-pricing-plan.md) trước khi giải thích, đề xuất hay sửa mã. Phân biệt giá cấu hình đã có với học giá thị trường chưa triển khai; yêu cầu lưu nghiên cứu không phải lệnh triển khai. Không yêu cầu người dùng cung cấp lại đường dẫn.
+
 - **Tra cứu Auto / Rao bán — bắt buộc:** khi người dùng đề cập **Auto, AUTO, tự động đánh** trong game/bot, đọc toàn bộ [docs/auto.md](docs/auto.md) trước khi giải thích hành vi, điều tra, đề xuất hoặc sửa mã. Khi đề cập **Rao bán, Mua bán, marketplace, KNB, Kim nguyên bảo**, đọc toàn bộ [docs/rao-ban.md](docs/rao-ban.md). Có cả hai chủ đề thì đọc cả hai. Không suy đoán đường dẫn hoặc dùng tài liệu gộp cũ làm nguồn chuẩn; chỉ dẫn kỹ thuật và giới hạn đã triển khai nằm trong hai tài liệu này. Áp dụng cho mọi AI session có quyền truy cập repo; không áp dụng từ “auto” nói về tác vụ tự động không liên quan game/bot.
 
 
@@ -114,7 +116,7 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
 
-- **Auto theo nhân vật + Mua bán/KNB (USER2026-11-14):** Z và nút AUTO chỉ mở cài đặt; chạy/dừng qua dialog hoặc play/pause cạnh bảng tên. `CharacterRecord.auto` lưu enabled/settings, cache `vltk.auto.character.<charId>`, server đối chiếu và reload tiếp tục nếu enabled; không dùng Auto toàn máy cho nhân vật khác. Tắt autoMap trong thành thì chờ, không tự tắt. Bot ghi Auto từ kịch bản vào char; rao món đủ tiêu chí lên kênh Mua bán dạng liên hệ. Mua bán có lịch sử công khai, item snapshot do server lấy, preview đầy đủ; giá lượng/KNB hoặc liên hệ, chưa đổi trang bị. Mua trực tiếp yêu cầu seller online và món chưa đổi; không escrow/offline. KNB là ví riêng, mặc định0, mua ở Kỳ Trân Các trong thành100vạn/đơn vị. Tiền hiển thị qua moneyText theo vạn từ10000. Chi tiết Auto ở [`docs/auto.md`](docs/auto.md); Rao bán/Mua bán/KNB ở [`docs/rao-ban.md`](docs/rao-ban.md).
+- **Auto theo nhân vật + Mua bán/KNB (USER2026-11-14):** Z và nút AUTO chỉ mở cài đặt; chạy/dừng qua dialog hoặc play/pause cạnh bảng tên. `CharacterRecord.auto` lưu enabled/settings, cache `vltk.auto.character.<charId>`, server đối chiếu và reload tiếp tục nếu enabled; không dùng Auto toàn máy cho nhân vật khác. Tắt autoMap trong thành thì chờ, không tự tắt. Bot ghi Auto từ kịch bản vào char; rao món đủ tiêu chí lên kênh Mua bán có giá lượng/KNB do server tính theo `formulas/data/market-pricing.json` (USER2026-11-14), người chơi mua ngay được. Giá khởi điểm cấu hình, chưa học cung cầu/tự giảm giá; giao dịch thành công lưu riêng `db.marketSales`. Mua bán có lịch sử công khai, item snapshot do server lấy, preview đầy đủ; giá lượng/KNB hoặc liên hệ, chưa đổi trang bị. Mua trực tiếp yêu cầu seller online và món chưa đổi; không escrow/offline. KNB là ví riêng, mặc định0, mua ở Kỳ Trân Các trong thành100vạn/đơn vị. Tiền hiển thị qua moneyText theo vạn từ10000. Chi tiết Auto ở [`docs/auto.md`](docs/auto.md); Rao bán/Mua bán/KNB ở [`docs/rao-ban.md`](docs/rao-ban.md).
 
 - **Design tool dùng chung (USER2026-11-14, GD8):** nguồn duy nhất là [`docs/tools-ui-ux-guidelines.md`](docs/tools-ui-ux-guidelines.md). Mọi AI phải đọc trước khi đề xuất/lập kế hoạch/tạo/sửa UI/UX tool theo điều kiện ở mục0; không tự dùng style riêng. Các entrypoint Claude/Gemini/Antigravity và tools/AGENTS chỉ dẫn lại nguồn này.
 
@@ -309,3 +311,48 @@ Nhạc nền do `gen:sounds` chép từ `jx-origin/music/`. `portraits` (11 PNG;
 
 WSL, repo nằm trên ổ Windows `/mnt/e` (I/O chậm, không có sự kiện file-watch). Shell mặc định là zsh: glob không khớp sẽ báo lỗi,
 nhớ đặt dấu nháy quanh `*.ts` khi truyền cho `grep --include`. Không có Wine nên không chạy được client gốc.
+
+<!-- gitnexus:start -->
+# GitNexus — Code Intelligence
+
+This project is indexed by GitNexus as **jx-system-online** (9341 symbols, 26507 relationships, 634 execution flows).
+
+> Index stale? Run `node .gitnexus/run.cjs analyze --index-only` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? Bootstrap with `npx`, `bunx`, or `pnpm dlx` — e.g. `bunx gitnexus@latest analyze` (npm 11 npx crash; #1939).
+
+## Always Do
+
+- **MUST run impact before editing.** Use `impact({target: "symbolName", direction: "upstream"})` or `node .gitnexus/run.cjs impact "symbolName" --direction upstream --repo .`; report callers, processes, and risk. Never substitute grep for graph analysis.
+- **MUST analyze graph changes before committing.** Use `detect_changes({scope: "all"})` (MCP) or `node .gitnexus/run.cjs detect-changes --scope all --repo .` (CLI fallback). `partial: true` or `truncated: true` is not a clean check — a zero means unseen, not unaffected; re-run it. For regression review: `detect_changes({scope: "compare", base_ref: "main"})` or `node .gitnexus/run.cjs detect-changes --scope compare --base-ref "main" --repo .`.
+- MUST warn on HIGH/CRITICAL `risk` pre-edit; never use `riskSharedAxes` to waive a HIGH/CRITICAL `risk` warning. Compare File/symbol: MCP File omits axes; Graph-RAG expands File.
+- **MUST treat `risk: UNKNOWN` as unresolved, not as low.** An empty caller set is not evidence the symbol is unused — it can also mean the callers are not resolvable by the index (plain-object property access, dynamic dispatch, cross-language calls). `impact` pairs `UNKNOWN` with a `riskNote` saying so. Confirm with a text search before treating the symbol as safe to change or delete; do not proceed on the strength of a zero.
+- **MUST use `query({search_query: "concept"})` for concepts/flows, `context({name: "symbolName"})` for a named symbol, or `impact` for blast radius, on read-only callers, dependencies, imports, or execution flow.** Graph first; text search only for empty/`UNKNOWN`/literals.
+- For security review, `explain({target: "fileOrSymbol"})` lists taint findings (source→sink flows; needs `analyze --pdg`).
+
+## Never Do
+
+- NEVER edit a function, class, or method before MCP/CLI impact analysis.
+- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis, and never read `UNKNOWN` as an all-clear — it means the walk could not answer, which is the one verdict that requires confirming by other means.
+- NEVER rename symbols with find-and-replace — use `rename` which understands the call graph.
+- NEVER commit before MCP/CLI graph change analysis.
+
+## Resources
+
+| Resource | Use for |
+| --- | --- |
+| `gitnexus://repo/jx-system-online/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/jx-system-online/clusters` | All functional areas |
+| `gitnexus://repo/jx-system-online/processes` | All execution flows |
+| `gitnexus://repo/jx-system-online/process/{name}` | Step-by-step execution trace |
+
+## CLI
+
+| Task | Read this skill file |
+| --- | --- |
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus-cli/SKILL.md` |
+
+<!-- gitnexus:end -->

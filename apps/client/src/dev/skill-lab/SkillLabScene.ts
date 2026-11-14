@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  SPEED, HORSE_IDS, PLAYER_SPEED, resolveSpeed, stepToward, type SpeedConfiguration,
+  SPEED, HORSE_IDS, PLAYER_SPEED, resolveSpeed, stepToward, trackBasePercent, type SpeedConfiguration,
   FACTIONS, FACTION_IDS, ITEM_LIST, SKILL_CATEGORY_NAMES, SkillEngine, getSkill, isCastable, learnTiers, lookOfOutfit,
   JUMP, SkillStyle, isExternal, TRIGGER_NAMES, castRange, direction8, isoDistance, maxLevelOf, skillCategory, skillRange, starterEquipment, stateDurationMs, stateLines,
   jumpMs, tierOf, triggersOf, weaponName,
@@ -40,8 +40,8 @@ export class SkillLabScene extends Phaser.Scene {
   private autoRun = false;
   private speedSample: GameSpeedSample | null = readSpeedSample(location.search);
   private useSampleSpeeds = true;
-  private attackPercent: number = SPEED.basePercent;
-  private runPercent: number = SPEED.basePercent;
+  private attackPercent: number = trackBasePercent('attack', SPEED);
+  private runPercent: number = trackBasePercent('run', SPEED);
   private speedConfig: SpeedConfiguration = structuredClone(SPEED);
   private runDirection = 1;
   private castCount = 0;
@@ -53,6 +53,7 @@ export class SkillLabScene extends Phaser.Scene {
   constructor() { super('skills'); }
 
   create(): void {
+    document.title = 'VTLK - SKILL Test';
     this.cameras.main.setBackgroundColor('#2f3a2a');
     this.cameras.main.roundPixels = true;
     const W = this.scale.width, H = this.scale.height, compact = W / DPR < 650;
@@ -315,12 +316,14 @@ export class SkillLabScene extends Phaser.Scene {
     if (time >= this.poseUntil) {
       this.caster.state.anim = 'idle';
       if (this.autoRun) {
-        const run = resolveSpeed('run', this.runPercent, this.speedConfig);
+        const mounted = !!this.caster.state.mounted;
+        const run = resolveSpeed('run', this.runPercent, this.speedConfig, mounted);
         const start = this.home.x - 20, end = this.home.x + 220;
         const target = { x: this.runDirection > 0 ? end : start, y: this.home.y + 140 };
         const state = this.caster.state;
+        const speed = run.velocity ?? (PLAYER_SPEED * this.speedConfig.run.distanceScale * run.multiplier);
         const [x, y, arrived] = stepToward(state.x, state.y, target.x, target.y,
-          PLAYER_SPEED * this.speedConfig.run.distanceScale * run.multiplier * delta / 1000);
+          speed * delta / 1000);
         state.dir = this.caster.c.a.dir = direction8(x - state.x, y - state.y);
         this.caster.c.a.x = state.x = x; this.caster.c.a.y = state.y = y;
         state.anim = 'run';

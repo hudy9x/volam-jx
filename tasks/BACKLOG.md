@@ -253,3 +253,7 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 - [x] USER2026-11-14 Mua bán + KNB: chat công khai, rao món từ hành trang, preview snapshot, mua bằng lượng/KNB, liên hệ; KNB100vạn tại Kỳ Trân Các, tiền hiển thị vạn; unit/WS/browser đạt, checkpoint theo USER (mã xem git log -1). Đổi trang bị/offline/escrow không trong phạm vi.
 
 - [x] USER2026-11-14 Tách nguồn chuẩn Auto (`docs/auto.md`) và Rao bán (`docs/rao-ban.md`), quy tắc tra cứu theo từ khóa cho Codex/Claude/Gemini/Antigravity, cập nhật link và trang tương thích; commit tài liệu theo USER.
+
+- [x] USER2026-11-14 Bot rao có giá: bộ tiêu chí JSON xanh/hoàng kim, server định giá, lượng/KNB mua ngay, lý do preview, bảo vệ đồ đạt điểm và lịch sử giao dịch riêng; bots6/market12/auto4/typecheck/build/WS/Chromium1440/390 đạt. Bản đầu giá cấu hình; học cung cầu, tự hạ giá/rao lại và cân bằng kinh tế chưa triển khai, không coi là giá thị trường đã xác minh.
+
+- [x] USER2026-11-14 Lưu nghiên cứu giá thị trường: `docs/research/market-pricing-plan.md`, liên kết nguồn Rao bán và quy tắc tra cứu AGENTS/CLAUDE/GEMINI/always_on theo từ khóa; phân biệt đã triển khai với đề xuất, không triển khai học giá.

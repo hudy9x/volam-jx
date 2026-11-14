@@ -68,7 +68,7 @@ Ba hoạt động có thể bật cùng lúc:
 |---|---|
 | Luyện công | Auto đánh quái, dùng thuốc, nhặt đồ, hồi sinh/mua thuốc/đổi bãi theo tùy chọn; mặc định bật |
 | Chat | Chỉ báo món đáng chú ý vừa nhặt trên kênh Thế giới; không chat ngẫu nhiên |
-| Rao bán đồ | Chỉ rao món đáng chú ý vừa nhặt, trên kênh Mua bán kèm link xem ảnh/thuộc tính (liên hệ trực tiếp). Bật cả Chat và Rao bán thì chỉ gửi một tin rao |
+| Rao bán đồ | Chỉ rao xanh/hoàng kim vừa nhặt đạt bộ tiêu chí `formulas/data/market-pricing.json`, trên kênh Mua bán kèm link ảnh/thuộc tính, giá lượng/KNB và nút mua ngay. Giá khởi điểm cấu hình, chưa học thị trường. Bật cả Chat và Rao bán thì chỉ gửi một tin rao |
 
 Luyện công có **Tự đồng ý lời mời gia nhập tổ đội** (mặc định bật). Bot chỉ nhận lời mời thật qua giao thức tổ đội; server vẫn kiểm đội trưởng, giới hạn thành viên và hạn lời mời. Tắt tùy chọn hoặc tắt Luyện công thì không tự nhận.
 

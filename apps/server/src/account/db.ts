@@ -64,6 +64,7 @@ export interface CharacterRecord {
 }
 
 interface DbShape {
+  marketSales?: import('@vltk/shared').MarketSale[];
   users: Record<string, UserRecord>;
   characters: Record<string, CharacterRecord>;
   /** Kênh chat lines (with their reactions), newest last; accounts keep the ids they saw (UserRecord.chat). */
@@ -141,6 +142,7 @@ export const db = {
     const u = db.getUser(username);
     return u ? (u.chat ??= []) : undefined;
   },
+  marketSales: (): import('@vltk/shared').MarketSale[] => data.marketSales ??= [],
   touch: scheduleSave,
   flush,
 };

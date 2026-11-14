@@ -112,7 +112,7 @@ const PAGE = `
     <h3>Hoạt động</h3>
     <div class="bp-activities">${chk('sc-grind', 'Luyện công')}${chk('sc-chat', 'Chat')}${chk('sc-sell', 'Rao bán đồ')}</div>
     <div id="sc-team-options">${chk('sc-team', 'Tự đồng ý lời mời gia nhập tổ đội khi luyện công')}</div>
-    <p class="bp-note">Có thể bật cùng nhau. Chat chỉ báo món vừa nhặt có từ 6 dòng thuộc tính hoặc dòng ẩn hiếm/lớn. Bật Rao bán thì dùng một tin rao trên kênh Thế giới thay cho tin báo nhặt.</p>
+    <p class="bp-note">Có thể bật cùng nhau. Chat chỉ báo món vừa nhặt đáng chú ý theo thuộc tính hoặc bộ tiêu chí định giá. Bật Rao bán thì tự đánh giá đồ xanh/hoàng kim vừa nhặt và đăng giá trên kênh Mua bán để người chơi mua ngay. Giá khởi điểm theo bộ tiêu chí chung, chưa tự điều chỉnh theo thị trường. Món không đạt tiêu chí sẽ không rao.</p>
     <details id="sc-auto-options"><summary>Thiết lập luyện công</summary><div class="bp-grid" id="sc-auto"></div></details>
     <details><summary>Cài đặt kịch bản nâng cao</summary><div class="bp-grid">
       ${f('Tốc độ vào game', sel('sc-join', opt('3', '3 bot/giây (mặc định)') + opt('4', '4 bot/giây') + opt('5', '5 bot/giây')), 'Bot vào lần lượt, giãn đều trong mỗi giây để giảm tải. Tổng số lấy từ những tên đã chọn ở mục 1.')}

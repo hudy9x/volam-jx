@@ -110,41 +110,49 @@ export const EFFECTS = {
   monsterHurtFrames: 10,
 } as const;
 
-/** USER 2026-11-14: speed phases with baseline = 10% (10% = 1 point, frame count matches 50% of the previous volamidle table).
- * Percent is TOTAL speed (10 = baseline, 89 = +79%, 114 = +104%). Tune all platforms here.
+/** USER 2026-11-14: speed phases with run baseline = 100% (100% = 10 points) and attack baseline = 10%.
+ * Percent is TOTAL speed (run: 100 = baseline, 120 = +20%; attack: 10 = baseline). Tune all platforms here.
  * Reference frames define a cycle, never the frame count of an individual sprite. */
 export const SPEED = {
   basePercent: 10,
   minPercent: 5,
   maxPercent: 260,
   run: {
+    basePercent: 100,
     distanceScale: 1.15,
+    stridePixels: 120,
+    horseStridePixels: 180,
     referenceFrames: 8,
     phases: [
-      { minPercent: 5, fps: 3 }, { minPercent: 10, fps: 6 },
-      { minPercent: 20, fps: 7 }, { minPercent: 30, fps: 7 },
-      { minPercent: 50, fps: 7 }, { minPercent: 70, fps: 8 },
-      { minPercent: 110, fps: 8 }, { minPercent: 130, fps: 9 },
-      { minPercent: 150, fps: 10 }, { minPercent: 170, fps: 10 },
-      { minPercent: 190, fps: 10 }, { minPercent: 210, fps: 10 },
-      { minPercent: 230, fps: 12 }, { minPercent: 250, fps: 12 },
-      { minPercent: 260, fps: 13 },
+      { minPercent: 50, fps: 5, stride: 120 },
+      { minPercent: 70, fps: 6, stride: 120 },
+      { minPercent: 100, fps: 8, stride: 120 },
+      { minPercent: 120, fps: 10, stride: 120 },
+      { minPercent: 140, fps: 12, stride: 120 },
+      { minPercent: 160, fps: 14, stride: 120 },
+      { minPercent: 180, fps: 16, stride: 120 },
+      { minPercent: 200, fps: 18, stride: 120 },
+      { minPercent: 220, fps: 20, stride: 120 },
+      { minPercent: 240, fps: 22, stride: 120 },
+      { minPercent: 260, fps: 24, stride: 120 },
     ],
   },
   attack: {
+    basePercent: 10,
     referenceFrames: 20,
     phases: [
-      { minPercent: 5, fps: 11 }, { minPercent: 10, fps: 14 },
-      { minPercent: 20, fps: 17 }, { minPercent: 30, fps: 20 },
-      { minPercent: 50, fps: 23 }, { minPercent: 70, fps: 26 },
-      { minPercent: 85, fps: 29 }, { minPercent: 110, fps: 32 },
-      { minPercent: 130, fps: 35 }, { minPercent: 150, fps: 38 },
-      { minPercent: 160, fps: 41 }, { minPercent: 180, fps: 44 },
-      { minPercent: 200, fps: 47 }, { minPercent: 220, fps: 50 },
-      { minPercent: 240, fps: 53 }, { minPercent: 260, fps: 56 },
+      { minPercent: 5, fps: 13 }, { minPercent: 10, fps: 14 },
+      { minPercent: 20, fps: 15 }, { minPercent: 30, fps: 16 },
+      { minPercent: 50, fps: 17 }, { minPercent: 70, fps: 18 },
+      { minPercent: 85, fps: 19 }, { minPercent: 110, fps: 20 },
+      { minPercent: 130, fps: 21 }, { minPercent: 150, fps: 22 },
+      { minPercent: 160, fps: 23 }, { minPercent: 180, fps: 24 },
+      { minPercent: 200, fps: 25 }, { minPercent: 220, fps: 26 },
+      { minPercent: 240, fps: 27 }, { minPercent: 260, fps: 28 },
     ],
   },
 } as const;
+
 
 
 /** Drops on the ground (VT7–VT9) and boss tier multipliers (GP11). Docs: docs/formulas/drops.md, research docs/research/luck-drops.md. */
@@ -203,3 +211,6 @@ export const PRACTICE = {
 export const HIDDEN_LINES = {
   fullSetRevealsAll: { gold: true, thientu: true } as Record<'gold' | 'thientu', boolean>,
 };
+
+/** CHỌN: cấu hình giá rao bot; xem docs/rao-ban.md. */
+export { default as MARKET_PRICING } from './data/market-pricing.json';

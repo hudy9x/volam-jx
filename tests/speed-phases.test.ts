@@ -11,14 +11,13 @@ import { speedLabUrl, readSpeedSample } from '../apps/client/src/dev/skill-lab/s
 test('both tracks match the approved phases and cap after composition', () => {
   const expected = {
     run: [
-      [5, 3], [10, 6], [20, 7], [30, 7], [50, 7], [70, 8],
-      [110, 8], [130, 9], [150, 10], [170, 10], [190, 10], [210, 10],
-      [230, 12], [250, 12], [260, 13],
+      [50, 5], [70, 6], [100, 8], [120, 10], [140, 12], [160, 14],
+      [180, 16], [200, 18], [220, 20], [240, 22], [260, 24],
     ],
     attack: [
-      [5, 11], [10, 14], [20, 17], [30, 20], [50, 23], [70, 26],
-      [85, 29], [110, 32], [130, 35], [150, 38], [160, 41], [180, 44],
-      [200, 47], [220, 50], [240, 53], [260, 56],
+      [5, 13], [10, 14], [20, 15], [30, 16], [50, 17], [70, 18],
+      [85, 19], [110, 20], [130, 21], [150, 22], [160, 23], [180, 24],
+      [200, 25], [220, 26], [240, 27], [260, 28],
     ],
   };
   for (const kind of ['run','attack'] as const) {
@@ -26,12 +25,14 @@ test('both tracks match the approved phases and cap after composition', () => {
       assert.equal(resolveSpeed(kind,percent).fps,fps);
       if(i) assert.equal(resolveSpeed(kind,percent-.01).fps,expected[kind][i-1][1]);
     });
-    assert.equal(resolveSpeed(kind,-100).phasePercent,5);
+    const minPhase = expected[kind][0][0];
+    const basePhase = kind === 'run' ? 100 : 10;
+    assert.equal(resolveSpeed(kind,-100).phasePercent,minPhase);
     assert.equal(resolveSpeed(kind,999).phasePercent,260);
-    assert.equal(resolveSpeed(kind,NaN).phasePercent,10);
+    assert.equal(resolveSpeed(kind,NaN).phasePercent,basePhase);
     assert.equal(resolveSpeed(kind,Infinity).phasePercent,260);
   }
-  assert.equal(moveFactor({fastwalkrun_p:[100,0,0]},false), 8 / 6); // (10 + 100) = 110% -> 8 FPS / 6 FPS = 8/6
+  assert.equal(moveFactor({fastwalkrun_p:[20,0,0]},false), 10 / 8); // (100 + 20) = 120% -> 10 FPS / 8 FPS = 10/8
   assert.equal(attackTiming({attackspeed_v:[40,0,0],attackspeed_yan_v:[39,0,0]},true,false).phasePercent,85); // 10 + 79 = 89% -> mốc 85%
   assert.equal(attackTiming({castspeed_v:[20,0,0],castspeed_yan_v:[0,0,0]},false,false).phasePercent,30); // 10 + 20 = 30% -> mốc 30%
 });
@@ -40,10 +41,10 @@ test('config can be tuned without silently accepting broken phases', () => {
   const config=structuredClone(SPEED) as unknown as Parameters<typeof validateSpeedConfiguration>[0];
   config.run.phases = config.run.phases.map(p=>({...p}));
   const last = config.run.phases.at(-1) as { fps: number };
-  last.fps = 15;
+  last.fps = 50;
   validateSpeedConfiguration(config);
-  assert.equal(resolveSpeed('run',260,config).fps,15);
-  assert.equal(resolveSpeed('run',260).fps,13);
+  assert.equal(resolveSpeed('run',260,config).fps,50);
+  assert.equal(resolveSpeed('run',260).fps,24);
   last.fps = -1;
   assert.throws(()=>validateSpeedConfiguration(config));
 
@@ -84,17 +85,17 @@ test('attack snapshots its phase, releases one primary cast, and death cancels i
 
 test('game bonuses and run points must be converted to lab totals before comparing', () => {
   const totals = totalSpeedPercents({attackspeed_v:[79,0,0],castspeed_v:[60,0,0],fastwalkrun_p:[104,0,0]},false);
-  assert.deepEqual(totals,{attack:89,cast:70,run:114});
+  assert.deepEqual(totals,{attack:89,cast:70,run:204});
   const sample={name:'So sánh',faction:'shaolin',gender:'male',mounted:false,horse:'',skill:14,level:10,
-    ...totals,attackBonus:79,castBonus:60,runPoints:11};
+    ...totals,attackBonus:79,castBonus:60,runPoints:20};
   const url=speedLabUrl('http://localhost:5174/?server=unused#ignored',sample);
   assert.deepEqual(readSpeedSample(new URL(url).search),sample);
-  assert.equal(resolveSpeed('attack',totals.attack).cycleMs,20 * 1000 / 29);
-  assert.equal(resolveSpeed('attack',totals.cast).cycleMs,20 * 1000 / 26);
+  assert.equal(resolveSpeed('attack',totals.attack).cycleMs,20 * 1000 / 19);
+  assert.equal(resolveSpeed('attack',totals.cast).cycleMs,20 * 1000 / 18);
   assert.equal(resolveSpeed('run',totals.run).multiplier,moveFactor({fastwalkrun_p:[104,0,0]},false));
   assert.notEqual(resolveSpeed('attack',sample.attackBonus).cycleMs,attackTiming({attackspeed_v:[79,0,0]},true,false).cycleMs);
   assert.notEqual(resolveSpeed('run',sample.runPoints).multiplier,resolveSpeed('run',totals.run).multiplier);
-  assert.deepEqual(totalSpeedPercents({attackspeed_v:[90,0,0],fastwalkrun_p:[90,0,0]},true),{attack:50,cast:5,run:50});
+  assert.deepEqual(totalSpeedPercents({attackspeed_v:[90,0,0],fastwalkrun_p:[90,0,0]},true),{attack:50,cast:5,run:95});
   assert.equal(readSpeedSample('?speedSample=broken'),null);
   assert.equal(readSpeedSample('?speedSample=%7B%7D'),null);
 });

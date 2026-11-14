@@ -10,3 +10,4 @@ export * from './damage.js';
 export * from './effects.js';
 export * from './speed.js';
 export * from './drops.js';
+export * from './market.js';

@@ -58,3 +58,11 @@ Luật/dữ liệu chung vẫn ở `packages/shared/src/bots`; API tác động 
 - `npm run test:bots`: kiểm tra roster, hoạt động xã hội, preset và config store.
 
 Công cụ phục vụ trên loopback cùng máy. Khi sửa mã công cụ, dừng rồi chạy lại `bots:ui` để nạp bản mới. Không cần dừng khi chỉ sửa/lưu các template.
+
+## Rao bán tự định giá
+
+Bật **Rao bán đồ** trong kịch bản: chỉ đồ xanh/hoàng kim vừa nhặt đạt tiêu chí mới được đăng kênh **Mua bán**, có giá và nút mua ngay cho người khác. Giá được server tính; bot không tự mua. Giữ giới hạn60giây/bot và5giây/runner, không rao đồ có sẵn khi vào game.
+
+Chỉnh tiêu chí, trọng số, tổ hợp, giá nền/sàn/trần và giá riêng từng món tại `packages/shared/src/formulas/data/market-pricing.json`, sau đó khởi động lại server/runner (và app tool nếu cần cập nhật mô tả). Hiện dùng giá khởi điểm cấu hình, chưa tự tăng/giảm theo cung cầu hoặc tuổi tin. Lịch sử giao dịch thành công được lưu riêng để nghiên cứu giá sau này. Cách tính, ý nghĩa các khóa và giới hạn: [Rao bán](../../docs/rao-ban.md#định-giá-bot-theo-cấu-hình-2026-11-14).
+
+Luật giá dùng chung Web/Desktop/Mobile; runner/tool vẫn là app Node trên máy cục bộ. Đã thử Chromium desktop/viewport390px, chưa kiểm ứng dụng native hay điện thoại thật.
