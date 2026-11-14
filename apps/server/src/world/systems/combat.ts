@@ -29,7 +29,7 @@ import { syncVitals } from './sync.js';
 // Using skills and taking their results. The shared SkillEngine decides what a skill does and how much it hurts
 // (packages/shared/src/skills/); it calls back here (World's EnginePort) to change the Sims.
 
-const CORPSE_SECONDS = 2.5;
+const CORPSE_SECONDS = 2;
 
 /** Start a skill now (players and monsters alike): the engine fires it, the caster holds the pose. */
 export function castNow(w: World, sim: Sim, skillId: number, target: Sim | undefined, aim: Point): void {
@@ -107,7 +107,8 @@ export function kill(w: World, target: Sim, killer: Sim | undefined): void {
   w.engine.onDeath(target, killer);
   clearStates(target);
   if (target.a.mounted) { target.a.mounted = false; updateSpeed(target); if (target.progress) refreshStats(target); }
-  playOnce(w, target, 'die', 999);
+  // Dead Sims keep their pose in resolveAnim; the client times die from its sprite frames.
+  playOnce(w, target, 'die', 0);
   syncVitals(target);
   // Send the final values after both clearing states and removing mounted bonuses.
   if (target.kind === 'player' && target.progress) w.hooks.progress(target);

@@ -31,6 +31,7 @@ export class ActorView {
   private jx: JxSprite | null = null;
   private sourceKey = '';
   private shown = false;
+  private diedAt: number | null = null;
   x: number;
   y: number;
   private headHeight = DEFAULT_HEIGHT;
@@ -94,7 +95,13 @@ export class ActorView {
     this.anchor.setPosition(this.x, this.y);
     this.syncSource();
     this.lift = 0;
-    this.shown = !!this.jx && this.renderSprite();
+    const dead = s.kind !== 'npc' && s.hp <= 0;
+    if (dead) this.diedAt ??= this.scene.time.now;
+    else this.diedAt = null;
+    if (this.diedAt !== null && this.scene.time.now - this.diedAt >= 2000) {
+      this.jx?.hide();
+      this.shown = false;
+    } else this.shown = !!this.jx && this.renderSprite();
     this.drawPlate();
   }
 
@@ -112,7 +119,7 @@ export class ActorView {
     }
     if (key === this.sourceKey) return;
     this.sourceKey = key;
-    if (!source) { this.jx?.destroy(false); this.jx = null; return; }
+    if (!source) { this.jx?.destroy(); this.jx = null; return; }
     if (this.jx) this.jx.setSource(source);
     else this.jx = new JxSprite(this.scene, source);
   }
@@ -139,7 +146,7 @@ export class ActorView {
     // A jump lasts its flight time (Actor.jumpMs).
     if (isOneShot && s.animSeq !== this.seq) {
       const frames = jx.framesOf(key) || 10;
-      const ms = key === 'jump' ? Math.max(1, s.jumpMs || 800) : s.actionMs || (key === 'attack1' || key === 'attack2' || key === 'magic' ? resolveSpeed('attack', SPEED.basePercent).cycleMs : (frames * 1000) / ONE_SHOT_FPS[key]!);
+      const ms = key === 'die' ? (frames * 1000) / ONE_SHOT_FPS.die! : key === 'jump' ? Math.max(1, s.jumpMs || 800) : s.actionMs || (key === 'attack1' || key === 'attack2' || key === 'magic' ? resolveSpeed('attack', SPEED.basePercent).cycleMs : (frames * 1000) / ONE_SHOT_FPS[key]!);
       this.oneShot = { key, start: now, ms, hold: key === 'die' };
       if (this.isSelf && (key === 'attack1' || key === 'attack2' || key === 'magic')) {
         const p = progress.get();
@@ -251,6 +258,7 @@ export class ActorView {
 
   private drawPlate(): void {
     const s = this.state;
+    this.label.setVisible(s.kind === 'npc' || s.hp > 0);
     const plate = zoomPlate();
     if (this.shown && this.jx!.height > 0) this.headHeight = this.jx!.height + 8;
     const top = Math.round(this.y - this.lift - this.headHeight);
@@ -300,11 +308,11 @@ export class ActorView {
     this.peaceful = on;
   }
 
-  destroy(fade: boolean): void {
+  destroy(): void {
     this.label.destroy();
     this.bar.destroy();
     this.decor.destroy();
     this.anchor.destroy();
-    this.jx?.destroy(fade && this.shown);
+    this.jx?.destroy();
   }
 }

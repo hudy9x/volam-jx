@@ -129,12 +129,11 @@ export class JxSprite {
     this.shadow?.setVisible(false);
   }
 
-  destroy(fade: boolean): void {
+  destroy(): void {
     const images = this.shadow ? [this.shadow, ...this.images] : this.images;
     this.images = [];
     this.shadow = null;
-    if (!fade) { for (const img of images) img.destroy(); return; }
-    this.scene.tweens.add({ targets: images, alpha: 0, duration: 600, onComplete: () => images.forEach(img => img.destroy()) });
+    for (const img of images) img.destroy();
   }
 }
 

@@ -274,6 +274,7 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 
 - [x] USER2026-11-14 Cài đặt Auto: 4 tab Chiến đấu/Bãi luyện/Nhặt đồ/Thuốc, rộng560px và co theo màn hình, bàn phím/cảm ứng, nội dung cuộn riêng; typecheck/build và Chromium harness1440/390/ngang đạt. Chưa native thật; commit riêng theo USER, không push.
 
+Ghi chú GP8 — 2026-11-14 · Điều tra die (chưa sửa): HEAD8a8b6ff. Server gọi playOnce(die,999giây), actionMs999000 được client dùng làm thời lượng hoạt ảnh; phép tính8/10/16/20frames đều còn frame0 sau2,5s. Quái/boss xóa sau2,5s rồi fade600ms; tên không ẩn khi chết; player chưa có hạnẩnxác2s, giữ tới hồi sinh/rời map. USER yêu cầu chỉ điều tra trước; chưa sửa code/asset/DB/commit/push. Yêu cầu đích: die đúng tốc độ, ẩn tên, xác mất sau2s hoặc vềthành sớm hơn. Xác minh nguồn và phép tính, chưa kiểm hình thật/asset từng loại; không có GitNexus tool khả dụng. Giữ các thay đổi đồng thời.
 
 
 ### Ghi chú điều tra buff/Auto — 2026-11-14 (GP9 / HU2, đã triển khai)
@@ -281,4 +282,8 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 - [x] Đối chiếu buff từng phái và Auto/bot: giới hạn keys1–9/tối đa2buff bot, Nga My712 gộp5hào quang, Côn Lôn173/178 có chỉ số và FX nhưng thiếu đường hiển thị passive. Chi tiết CURRENT/HISTORY.
 - [x] USER đã duyệt và hoàn tất: Auto từ mọi kỹ năng đã học, loại Ngự Tuyết Ẩn, duy trì aura/NgaMy712, ready/retry/revive, FX riêng173/178; checkbox tạo bot mặc địnhbật + migrationbotcũ + giữexplicitoff mới. Test:auto22/bots10/market13/typecheck/build/WS11phái/Chromium1440/390 đạt; chưa sửa công thức nội lực Hoa Sơn/native. Commit phần buff theo USER; hash xem git log, không push; chi tiết CURRENT/HISTORY và docs/auto.md.
 
-- [x] USER duyệt và hoàn tất Auto/bot vùng gần600px: gần trước/xếp bậc trong vùng, đang đi được đổi, server xác nhận đã ra đòn thì giữ tới chết; bỏ HPkhônggiảm6s→đổi địch, chốngkẹt loại chờchiêu/NL/choáng/thi triển, giữ địch đã đánh. Auto34/bots10/market13/typecheck/build và WSbotboss/Chromiumblue1440/390/giữ12,5sHPđứngyên+bossgần+loot đạt. Chưa native/cân bằng thật. Commit riêng theo USER2026-11-15 (hash xem git log), nền e86caf5, khôngpush; chi tiết docs/auto và CURRENT/HISTORY.
+- [x] USER duyệt và hoàn tất Auto/bot vùng gần600px: gần trước/xếp bậc trong vùng, đang đi được đổi, server xác nhận đã ra đòn thì giữ tới chết; bỏ HPkhônggiảm6s→đổi địch, chốngkẹt loại chờchiêu/NL/choáng/thi triển, giữ địch đã đánh. Auto34/bots10/market13/typecheck/build và WSbotboss/Chromiumblue1440/390/giữ12,5sHPđứngyên+bossgần+loot đạt. Chưa native/cân bằng thật. Commit riêng 206b4be theo USER2026-11-15, nền e86caf5, khôngpush; chi tiết docs/auto và CURRENT/HISTORY.
+
+✅ GP8 phần hiển thị chết (2026-11-14): die18FPS, ẩn tên ngay, xác ẩn sau2s/về thành, bỏ fade. Typecheck/build/harness4loại đạt; chưa kiểm browser/native/WS hồi sinh. GP8 phần phạt tử vong vẫn chưa triển khai.
+
+- [x] GP8 hiển thị die/xác: commit riêng theo USER2026-11-15, nền206b4be; typecheck/harness4loại/diff-check đạt, không push.

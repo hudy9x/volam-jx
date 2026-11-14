@@ -119,7 +119,7 @@ export class WorldScene extends Phaser.Scene {
     this.cleanups.push($.onRemove('actors', (_actor: ActorState, id: string) => {
       const view = this.views.get(id);
       if (!view) return;
-      view.destroy(view.state.hp <= 0);
+      view.destroy();
       this.views.delete(id);
     }));
 
@@ -463,9 +463,9 @@ export class WorldScene extends Phaser.Scene {
     for (const fn of this.cleanups) { try { fn(); } catch { /* listener already gone */ } }
     this.cleanups = [];
     this.effects?.destroy();
-    for (const view of this.views.values()) view.destroy(false);
+    for (const view of this.views.values()) view.destroy();
     this.views.clear();
-    for (const n of this.npcs) n.view.destroy(false);
+    for (const n of this.npcs) n.view.destroy();
     for (const g of this.ground.values()) g.destroy();
     this.ground.clear();
     this.npcs = [];

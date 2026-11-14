@@ -1,8 +1,15 @@
 # Điểm dừng hiện tại
 
+## 2026-11-15 · Commit sửa die và xác chết theo USER
+
+- USER yêu cầu commit riêng phần chết: die18FPS cho player/quái/boss, ẩn tên ngay, xác ẩn sau2s hoặc hồi sinh/về thành, bỏ fade. Commit `fix: play death animations and remove corpses without fading` (mã xem git log), nền206b4be; không push.
+- Kiểm lại typecheck, harness ActorView/PaperDoll4loại và diff-check đạt; build đã đạt ở lượt triển khai. Chưa kiểm hình browser/native/WS hồi sinh. Giữ scenario untracked ngoài commit.
+
+
 ## 2026-11-15 · Commit Auto vùng gần600px theo USER
 
-- Commit riêng Auto người chơi/bot vùng600px, xác nhận giao chiến từ server, giữ địch tới chết và sửa bỏ nhầm do6giây; tiêu đề `fix(auto): prioritize nearby enemies and retain confirmed combat`, mã xem git log. Không push.
+- Commit riêng Auto người chơi/bot vùng600px, xác nhận giao chiến từ server, giữ địch tới chết và sửa bỏ nhầm do6giây; commit `206b4be fix(auto): prioritize nearby enemies and retain confirmed combat`. Không push.
+- Bản chuẩn bị commit đã được kiểm riêng: Auto34/typecheck/build đạt (bản riêng không chứa asset sinh nên build báo URL asset để runtime tải).
 - Kiểm đã đạt: Auto34/bots10/market13/typecheck/build, WSbotboss/Chromiumblue và giữ12,5sHPkhônggiảm+bossgần+loot; xem mục triển khai. Giữ riêng hoạt ảnh chết GP8 và scenario untracked ngoài commit; combat chỉ lấy dòng xóa attackTarget khi chết.
 
 
@@ -16,6 +23,12 @@
 - WS bot chế độboss và Chromium client chế độblue: thường90px trước bossxa2200px; hạ thường→đi xa→gặpquái trênđường→giữgiao chiến12,5s khôngmấtHP dù bossgầnhơn/tiềnrơi; chỉsauhạmớichọnboss. Clientblue có thêmvànggần vẫn bỏ. Damage bị chặn riêng trong harness để kiểm khôngHPgiảm; không phải cân bằng boss thật.1440/390 khôngpageerror/trànngang, đã xemảnh. Đã chạy lại luồng thật sau thêm xử lý acktrễ.
 - DB/script/ảnh riêng `/tmp/jx-auto-near/`, server2568/client5174, dừng saukiểm; không sửa DB/game thật. Cần reload/restart server/client/runner để nhận schema/mã mới; chưa wrapperDesktop/Mobile/điệnthoạithật, logic dùngchung. Khôngcommit/push phầnmới. Giữ thayđổi GP8 đồngthời (WorldScene/ActorView/PaperDoll/combat) và scenario untracked; combat chỉ thêm xóa attackTarget khi chết, không nhận phần die thành công việc Auto. GitNexus không có tool khả dụng, xác minh nguồn/kiểmthửtrực tiếp.
 
+
+## 2026-11-14 · Sửa hoạt ảnh chết và vòng đời xác theo USER
+
+- Player/quái/Boss Xanh/Hoàng Kim dùng die18FPS theo sốframe, bỏ actionMs999s; server giữ die nhờ dead, actionMs0. Ẩn tên ngay HP0; client ẩn thân+bóng sau2000ms kể từ nhận chết, reset khi hồi sinh. Quái/boss server xóa sau2s. Player giữ thực thể chết để nút Về thành còn dùng được; hồi sinh/chuyển map bỏ xác cũ ngay, không fade.
+- Bỏ nhánh tween fade600ms khỏi JxSprite, đồng bộ destroy callers. Typecheck/build/diff-check đạt; build còn cảnh báo chunk lớn. Harness chạy ActorView/PaperDoll thật với đối tượng vẽ giả lập:4loại, frame5tại300ms/framecuốitại700ms, hiện1999/ẩn2000, ẩntên, hồi sinh, chết lần2, destroy không tween đạt. Script /tmp/jx-check-death.cjs. Chưa kiểm hình trong browser/native hoặc luồng WS Về thành; ba nền tảng dùng chung code.
+- HEAD e86caf5 (mới hơn điều tra trước8a8b6ff); giữ toàn bộ thay đổi Auto/server/test đồng thời. Không DB/assets/commit/push.
 
 
 ## 2026-11-14 · Commit buff và thảo luận ưu tiên quái gần (chưa sửa chọn mục tiêu)
