@@ -10,10 +10,12 @@ Mở **http://localhost:4568/**. Đây là app riêng, không có Vite/HMR và k
 
 ## Chạy trực tiếp trên trang
 
-1. Tích chọn các tên ở **Chọn nhân vật**.
+1. Chọn tab **Tất cả**, **Online**, **Offline** hoặc **Chưa thiết lập** (tổng số ở cuối tên tab), rồi tích chọn các tên ở **Chọn nhân vật**. Checkbox đầu bảng chọn/bỏ chọn toàn bộ kết quả lọc trong tab hiện tại; lựa chọn ở tab khác được giữ.
 2. Chọn **kịch bản** ở hàng thao tác ngay dưới bộ lọc.
 3. Bấm **Chạy kịch bản**. Bot vào lần lượt; bảng chuyển từ Đang chuẩn bị/Chờ vào game sang Online theo kết nối thực, cột Kịch bản hiện tên đang chạy.
 4. Tích chọn bot cần dừng và bấm **Dừng bot đã chọn**; những bot khác tiếp tục chạy.
+
+Giới tính hiện bằng ký hiệu ♂ màu vàng (Nam) / ♀ màu xanh dương (Nữ) sau tên, kèm nhãn truy cập; trạng thái kết nối dùng 🟢 Online / 🔴 Offline. Các trạng thái đang chuẩn bị/chờ/vào lại/dừng vẫn được phân biệt, không coi là Online trước khi API xác nhận kết nối.
 
 Hai thao tác chọn/chạy kịch bản chỉ mở khi có nhân vật được tích chọn. Một nhân vật không chạy hai lượt đồng thời. Bảng cập nhật trạng thái khoảng mỗi giây.
 

@@ -1,5 +1,7 @@
 # Điểm dừng hiện tại
 
+> **2026-11-14 · Checkpoint toàn bộ theo USER:** commit toàn bộ code/doc hiện tại (bảng bot4tab, ký hiệu giới tính và checkbox header); nền2374d6b. Typecheck/build/Chromium đã đạt ở lượt trước. Bước đã được USER yêu cầu tiếp theo: radio mời tổ đội/tự nhận/tắt và Mua bán chỉ lượng/KNB, không liên hệ. Không push.
+
 > **2026-11-14 · Thêm cột Step cho bảng Mốc Tốc Độ Đánh & cập nhật mốc FPS tấn công theo USER:** USER yêu cầu bổ sung cột Step (+FPS) và nút Áp vào tab Mốc Tốc Độ Đánh trên panel `?skills` (tương tự như bảng chạy) để cài đặt hàng loạt nhanh hơn. Đã triển khai vào `SkillLabPanel.ts`. Đồng thời người dùng tinh chỉnh bảng FPS tấn công mới trong `packages/shared/src/formulas/tuning.ts` (mốc 70%: 28 FPS, mốc 85%->260% áp step 3 FPS từ 32 FPS -> 59 FPS); đồng bộ `tests/speed-phases.test.ts`. `npm run test:speed` (5/5 pass), `npm run typecheck` (0 lỗi), `npm run build` hoàn tất. Commit theo yêu cầu USER, không push.
 
 > **2026-11-14 · Bổ sung tab Tất cả và ký hiệu giới tính theo USER (hoàn tất, chưa commit):** ♂ màu vàng#ffd700 cho Nam / ♀ xanh dương#5cb8ff cho Nữ, giữ nhãn truy cập; thêm Tất cả trước Online, có tổng số và chọn/bỏ đúng phạm vi lọc. Giữ tab Online mặc định như bản trước. Typecheck/build và Chromium1440/390/API giả lập đạt; kiểm200hàng/Tất cả/chọn-bỏ200/lọc, màu thực/ký hiệu, tab/bàn phím/refresh, ảnh đã xem. Tool thử4578 đã dừng; không sửa bot/DB thật, không restart app thật. HEAD03be358; giữ thay đổi speed/skill-lab của phiên khác. Không commit/push.

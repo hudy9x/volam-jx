@@ -93,14 +93,20 @@ const PAGE = `
     <input id="bl-filter" placeholder="lọc: tên, phái, bản đồ…">
     ${sel('bl-faction', opt('', 'Tất cả môn phái') + FACTION_IDS.map(id => opt(id, FACTIONS[id].name)).join(''))}
     ${sel('bl-gender', opt('', 'Nam và nữ') + opt('male', 'Nam') + opt('female', 'Nữ'))}
-    ${sel('bl-state', opt('', 'Mọi trạng thái') + opt('new', 'Chưa thiết lập') + opt('online', 'Online') + opt('offline', 'Offline'))}
-    <button id="bl-all">Chọn kết quả lọc</button><button id="bl-none">Bỏ chọn</button><button id="bl-del" class="bp-danger">Xóa</button>
+    <button id="bl-del" class="bp-danger">Xóa</button>
     <button id="bl-refresh">Làm mới</button>
   </div>
   <div class="bp-row bp-run-actions">${f('Chọn kịch bản', sel('bl-scenario', opt('', 'Chọn kịch bản đã lưu')))}<button id="bl-run" class="bp-main" disabled>Chạy kịch bản</button><button id="bl-stop" disabled>Dừng bot đã chọn</button></div>
-  <div class="bp-table"><table><thead><tr><th></th><th>Nhân vật</th><th>Giới</th><th>Phái / Hệ</th><th>Cấp</th><th>Bản đồ</th><th>Trang bị</th><th>Ngựa</th><th>Trạng thái</th><th>Thiết lập</th><th>Kịch bản</th></tr></thead>
+  <div class="bp-tabs" role="tablist" aria-label="Trạng thái nhân vật">
+    <button type="button" id="bl-tab-all" role="tab" aria-controls="bl-panel" aria-selected="false" tabindex="-1" data-state="all">Tất cả <span id="bl-count-all">(0)</span></button>
+    <button type="button" id="bl-tab-online" role="tab" aria-controls="bl-panel" aria-selected="true" data-state="online">Online <span id="bl-count-online">(0)</span></button>
+    <button type="button" id="bl-tab-offline" role="tab" aria-controls="bl-panel" aria-selected="false" tabindex="-1" data-state="offline">Offline <span id="bl-count-offline">(0)</span></button>
+    <button type="button" id="bl-tab-new" role="tab" aria-controls="bl-panel" aria-selected="false" tabindex="-1" data-state="new">Chưa thiết lập <span id="bl-count-new">(0)</span></button>
+  </div>
+  <div id="bl-panel" role="tabpanel" aria-labelledby="bl-tab-online" tabindex="0" class="bp-table"><table><thead><tr><th><label class="bp-select-cell" title="Chọn hoặc bỏ chọn kết quả lọc hiện tại"><input id="bl-all" type="checkbox" aria-label="Chọn tất cả kết quả lọc hiện tại"></label></th><th>Nhân vật</th><th>Phái / Hệ</th><th>Cấp</th><th>Bản đồ</th><th>Trang bị</th><th>Ngựa</th><th>Trạng thái</th><th>Thiết lập</th><th>Kịch bản</th></tr></thead>
   <tbody id="bl-body"></tbody></table></div>
-  <p class="bp-note">Bot đang online không đặt lại / xóa được (tắt runner trước).</p>
+  <p id="bl-results" class="bp-note" role="status"></p>
+  <p class="bp-note">Checkbox đầu bảng chỉ chọn/bỏ chọn kết quả lọc trong tab hiện tại; lựa chọn ở tab khác được giữ. Bot đang online không đặt lại / xóa được (tắt runner trước).</p>
 </section>
 
 <section class="bp-card" id="scenario-card">
@@ -134,6 +140,7 @@ class BotPanel {
   private runnerErrorAt = 0;
   private runBusy = false;
   private picked = new Set<string>();
+  private rosterTab: 'all' | 'online' | 'offline' | 'new' = 'online';
   private loadedSelection?: string[];
   private rosterLoaded = false;
   private savedScenario = '';
@@ -176,14 +183,29 @@ class BotPanel {
     this.on('bl-stop', () => void this.stopSelected());
     this.$('bl-scenario').addEventListener('change', () => this.updateRunActions());
     this.on('bt-update', () => void this.updateSetup());
-    this.on('bl-all', () => {
-      const shown = this.filtered();
-      const all = shown.every(b => this.picked.has(b.username));
-      for (const b of shown) all ? this.picked.delete(b.username) : this.picked.add(b.username);
+    this.$('bl-all').addEventListener('change', () => {
+      const checked = this.on_('bl-all');
+      for (const b of this.filtered()) checked ? this.picked.add(b.username) : this.picked.delete(b.username);
       this.savedScenario = ''; this.showCommand(); this.renderList();
     });
-    this.on('bl-none', () => { this.picked.clear(); this.savedScenario = ''; this.showCommand(); this.renderList(); });
-    for (const id of ['bl-faction', 'bl-gender', 'bl-state']) this.$(id).addEventListener('change', () => this.renderList());
+    const tabs = [...this.root.querySelectorAll<HTMLButtonElement>('[role="tab"][data-state]')];
+    const activateTab = (tab: HTMLButtonElement) => {
+      this.rosterTab = tab.dataset.state as typeof this.rosterTab;
+      for (const button of tabs) {
+        button.setAttribute('aria-selected', String(button === tab)); button.tabIndex = button === tab ? 0 : -1;
+      }
+      this.$('bl-panel').setAttribute('aria-labelledby', tab.id);
+      this.renderList(); this.$('bl-panel').scrollTo(0, 0);
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => activateTab(tab));
+      tab.addEventListener('keydown', e => {
+        const next = e.key === 'ArrowRight' ? (i + 1) % tabs.length : e.key === 'ArrowLeft' ? (i + tabs.length - 1) % tabs.length : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : -1;
+        if (next < 0) return;
+        e.preventDefault(); tabs[next].focus(); activateTab(tabs[next]);
+      });
+    });
+    for (const id of ['bl-faction', 'bl-gender']) this.$(id).addEventListener('change', () => this.renderList());
     this.on('sc-copy', () => { void navigator.clipboard.writeText(`npm run bots -- ${this.savedScenario}`).then(() => this.status('Đã sao chép lệnh chạy.'), () => this.status('Không sao chép được; hãy chọn và sao chép lệnh bên cạnh.', true)); });
     this.root.addEventListener('input', e => { if ((e.target as HTMLElement).closest('#scenario-card')) { this.savedScenario = ''; this.showCommand(); } });
     this.root.addEventListener('change', e => { if ((e.target as HTMLElement).closest('#scenario-card')) { this.savedScenario = ''; this.showCommand(); } });
@@ -329,6 +351,11 @@ class BotPanel {
   }
 
   private updatePicked(): void {
+    const shown = this.filtered(), selected = shown.filter(b => this.picked.has(b.username)).length;
+    const all = this.$<HTMLInputElement>('bl-all');
+    all.checked = shown.length > 0 && selected === shown.length;
+    all.indeterminate = selected > 0 && selected < shown.length;
+    all.disabled = shown.length === 0;
     this.updateRunActions();
     this.set('bt-logins', [...this.picked].join(', '));
     this.$('bl-picked').textContent = `${this.picked.size} / 200 đã chọn`;
@@ -480,9 +507,13 @@ class BotPanel {
     catch(error){this.status((error as Error).message,true);}finally{this.runBusy=false;this.updateRunActions();}
   }
 
+  private botTab(b: BotInfo): 'online' | 'offline' | 'new' {
+    return b.online ? 'online' : b.charId ? 'offline' : 'new';
+  }
+
   private filtered(): BotInfo[] {
     const q = this.val('bl-filter').toLowerCase();
-    return this.bots.filter(b => (!this.val('bl-faction') || b.faction === this.val('bl-faction')) && (!this.val('bl-gender') || b.gender === this.val('bl-gender')) && (!this.val('bl-state') || (this.val('bl-state') === 'new' ? !b.charId : this.val('bl-state') === 'online' ? b.online : !!b.charId && !b.online))).filter(b => [b.username, b.name, FACTIONS[b.faction]?.name ?? '', MAPS[b.mapId]?.name ?? '', String(b.mapId), b.template]
+    return this.bots.filter(b => (!this.val('bl-faction') || b.faction === this.val('bl-faction')) && (!this.val('bl-gender') || b.gender === this.val('bl-gender')) && (this.rosterTab === 'all' || this.botTab(b) === this.rosterTab)).filter(b => [b.username, b.name, FACTIONS[b.faction]?.name ?? '', MAPS[b.mapId]?.name ?? '', String(b.mapId), b.template]
       .some(s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').includes(q.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd'))));
   }
 
@@ -493,10 +524,15 @@ class BotPanel {
   private renderList(): void {
     if (!this.$('bl-body')) return;
     this.updatePicked();
+    this.$('bl-count-all').textContent = `(${this.bots.length})`;
+    for (const state of ['online', 'offline', 'new'] as const) {
+      this.$(`bl-count-${state}`).textContent = `(${this.bots.filter(b => this.botTab(b) === state).length})`;
+    }
+    this.$('bl-results').textContent = `Hiển thị ${this.filtered().length} / ${this.rosterTab === 'all' ? this.bots.length : this.bots.filter(b => this.botTab(b) === this.rosterTab).length} nhân vật trong tab.`;
     const rows = this.filtered().slice(0, 1000).map(b => `<tr class="${b.online ? 'on' : ''}">
-      <td><input type="checkbox" aria-label="Chọn ${esc(b.name)}" data-user="${esc(b.username)}" ${this.picked.has(b.username) ? 'checked' : ''}></td>
-      <td class="bp-name" title="${esc(b.username)}">${esc(b.name)}</td><td>${b.gender === 'female' ? 'Nữ' : 'Nam'}</td><td>${esc(FACTIONS[b.faction]?.name ?? '—')} / ${ELEMENT_NAMES[FACTIONS[b.faction]?.element] ?? '—'}</td><td>${b.level || '—'}</td>
-      <td>${esc(MAPS[b.mapId]?.name ?? (b.mapId ? String(b.mapId) : '—'))}</td><td>${b.gear === 'green' ? 'Đồ xanh' : b.gear === 'gold' ? 'Hoàng kim' : '—'}</td><td>${esc(b.horse === 'random' ? 'Theo cấp' : HORSES[b.horse ?? '']?.name ?? '—')}</td><td>${this.running.get(b.username)?.phase === 'online' || b.online ? 'Online' : this.running.has(b.username) ? ({preparing:'Đang chuẩn bị',queued:'Chờ vào game',reconnecting:'Đang vào lại',stopping:'Đang dừng'}[this.running.get(b.username)!.phase] ?? 'Đang vào game') : !b.charId ? 'Chưa thiết lập' : b.pending ? 'Chờ áp mẫu' : 'Offline'}</td><td>${esc(b.templateTitle || b.template || (b.charId ? 'Tự cài đặt' : '—'))}</td><td>${esc(this.running.get(b.username)?.title ?? '—')}</td></tr>`);
-    this.$('bl-body').innerHTML = rows.join('') || '<tr><td colspan="11" class="bp-empty">Không có nhân vật khớp bộ lọc.</td></tr>';
+      <td><label class="bp-select-cell"><input type="checkbox" aria-label="Chọn ${esc(b.name)}" data-user="${esc(b.username)}" ${this.picked.has(b.username) ? 'checked' : ''}></label></td>
+      <td class="bp-name" title="${esc(b.username)}">${esc(b.name)} <span class="bp-gender ${b.gender === 'female' ? 'female' : 'male'}" role="img" aria-label="${b.gender === 'female' ? 'Nữ' : 'Nam'}" title="${b.gender === 'female' ? 'Nữ' : 'Nam'}">${b.gender === 'female' ? '♀' : '♂'}</span></td><td>${esc(FACTIONS[b.faction]?.name ?? '—')} / ${ELEMENT_NAMES[FACTIONS[b.faction]?.element] ?? '—'}</td><td>${b.level || '—'}</td>
+      <td>${esc(MAPS[b.mapId]?.name ?? (b.mapId ? String(b.mapId) : '—'))}</td><td>${b.gear === 'green' ? 'Đồ xanh' : b.gear === 'gold' ? 'Hoàng kim' : '—'}</td><td>${esc(b.horse === 'random' ? 'Theo cấp' : HORSES[b.horse ?? '']?.name ?? '—')}</td><td>${b.online ? '🟢 Online' : this.running.has(b.username) ? ({preparing:'Đang chuẩn bị',queued:'Chờ vào game',reconnecting:'Đang vào lại',stopping:'Đang dừng'}[this.running.get(b.username)!.phase] ?? 'Đang vào game') : !b.charId ? 'Chưa thiết lập' : b.pending ? '🔴 Offline · Chờ áp mẫu' : '🔴 Offline'}</td><td>${esc(b.templateTitle || b.template || (b.charId ? 'Tự cài đặt' : '—'))}</td><td>${esc(this.running.get(b.username)?.title ?? '—')}</td></tr>`);
+    this.$('bl-body').innerHTML = rows.join('') || '<tr><td colspan="10" class="bp-empty">Không có nhân vật khớp bộ lọc.</td></tr>';
   }
 }

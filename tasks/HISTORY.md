@@ -1041,3 +1041,7 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - Sửa BotPanel/CSS: ký hiệu dạng text để CSS đổi màu ổn định; nhãn Nam/Nữ cho truy cập. Tất cả có tổng số, tương thích lọc/checkbox header/indeterminate/giữ lựa chọn, bộ tab dùng bàn phím; giữ Online mặc định.
 - Typecheck/build đạt; Chromium/API giả lập1440/390 kiểm200hàng/Tất cả/chọn-bỏ200/lọc, màu computed/ký hiệu, regression tab/refresh/bàn phím/không tràn; ảnh đã xem. Tool thử4578 đã dừng, script/ảnh `/tmp/jx-bot-tabs/`, không đụng bot hoặc DB thật. Chưa native/mobile thật.
 - HEAD03be358, giữ thay đổi speed/skill-lab từ phiên khác; cập nhật README/AGENTS/tasks, chưa commit/push.
+
+## Checkpoint toàn bộ trước bổ sung tổ đội và tiền rao — 2026-11-14
+
+- USER yêu cầu commit toàn bộ code/doc hiện tại rồi bổ sung radio tổ đội và bỏ Liên hệ. Đã kiểm phạm vi5file dirty nền2374d6b, chỉ bảng bot/docs của các lượt trước; thêm tracking. Commit theo USER, không push.

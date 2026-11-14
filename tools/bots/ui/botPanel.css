@@ -74,3 +74,14 @@
 #bots-page .bp-run-note { color:#b9d8bf; padding:10px 12px; border-left:2px solid #7d9f85; background:#202a22; font-size:13px; }
 #bots-page .bp-run-actions { border-top:1px solid #303832; padding-top:14px; align-items:end; }
 #bots-page .bp-run-actions>.bp-f { flex:1 1 240px; max-width:420px; }
+
+#bots-page .bp-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 12px; }
+#bots-page .bp-tabs button { min-height:44px; }
+#bots-page .bp-tabs button[aria-selected=true] { background:#263a2c; border-color:#9ccaa8; color:#b9d8bf; }
+#bots-page .bp-tabs span { font-variant-numeric:tabular-nums; margin-left:4px; }
+#bots-page .bp-select-cell { display:flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; cursor:pointer; }
+#bots-page th:first-child,#bots-page td:first-child { padding:0 4px; width:52px; }
+
+#bots-page .bp-gender { display:inline-block; margin-left:3px; font-size:17px; font-weight:700; line-height:1; vertical-align:middle; }
+#bots-page .bp-gender.male { color:#ffd700; }
+#bots-page .bp-gender.female { color:#5cb8ff; }
