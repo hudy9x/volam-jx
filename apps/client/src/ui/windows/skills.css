@@ -237,3 +237,26 @@
   font-size: 11px;
   max-width: 220px;
 }
+
+/* Touch/click access to the same description, with scrolling for long skills. */
+#skill-description {
+  top: 24px;
+  width: 380px;
+  max-width: calc(100vw - 16px);
+}
+
+.sk-description-body {
+  max-height: calc(100dvh - 140px);
+  overflow-y: auto;
+  touch-action: pan-y;
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #d8d8d8;
+}
+
+.sk-description-body .tip-section + .tip-section { margin-top: 9px; }
+.sk-description-body .tip-name,
+.sk-description-body .tip-bad { color: var(--gold); font-weight: 700; }
+.sk-description-body .tip-attr { color: var(--blue); }
+.sk-description-body .tip-next { color: #fff; }

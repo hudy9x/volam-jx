@@ -1,6 +1,28 @@
 # Nhật ký các vòng làm việc
 
+2026-11-14 · Điều tra die (chưa sửa): HEAD8a8b6ff. Server gọi playOnce(die,999giây), actionMs999000 được client dùng làm thời lượng hoạt ảnh; phép tính8/10/16/20frames đều còn frame0 sau2,5s. Quái/boss xóa sau2,5s rồi fade600ms; tên không ẩn khi chết; player chưa có hạnẩnxác2s, giữ tới hồi sinh/rời map. USER yêu cầu chỉ điều tra trước; chưa sửa code/asset/DB/commit/push. Yêu cầu đích: die đúng tốc độ, ẩn tên, xác mất sau2s hoặc vềthành sớm hơn. Xác minh nguồn và phép tính, chưa kiểm hình thật/asset từng loại; không có GitNexus tool khả dụng. Giữ các thay đổi đồng thời.
+
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
+
+## 2026-11-14 · Commit KN15 theo USER
+
+- Commit phần Hoa Sơn/Gợi ý/mô tả/cửa sổ đọc bằng chạm, 5 test và tài liệu điều tra nội lực. Mã commit xem `git log -1`; không push.
+- Typecheck/build, 5 test, 448 so sánh10phái và Chromium/WS thật đã đạt ở lượt triển khai; kiểm diff và GitNexus detect-changes trước commit. Không sửa lỗi hồi nội lực âm trong commit này. Giữ scenario và ghi chú GP8 đồng thời ngoài commit.
+
+## 2026-11-14 · Điều tra nội lực Hoa Sơn Kiếm Tông (chưa sửa)
+
+- USER hỏi thiếu dòng nội lực tiêu hao và xuất chiêu tụt sạchNL. Đọc dữ liệu đang nạp + bảngPAKSHXT: các chiêu1347/1351/1355/1358/1360/1363/1364/1368/1369 cóCostValue0, không cóskill_cost_v;skillCost=0 vàlevelBlock chỉ inTiêu hao khi khác0, nên không hiện dòng.
+- Kiếm Tông Tổng Quyết1349 ngaycấp1 cómanareplenish_v=-10000,manareplenish_p=-200 (Lua rời cũng khớp). passiveBag đưa-10000 vào túi,players.regen nhân2điểm/giây và cộng thẳng sốâm vàoNL hiện tại: tick0,05s trừxấp xỉ1000NL. Tái hiện bằng hàmregen thật:600→0 với1349cấp1, không1349 thì600→600.1364/1369 cũng mang-10000 khi trạng thái có hiệu lực. Không phải skillCost hút toàn bộNL.
+- Chưa xem cấu hình nhân vật cụ thể củaUSER; đã chứng minh được đường gây lỗi, không tự khẳng định engine gốc hiểu giá trịâm là sentinel/chặn hồi vì chưa có nguồn chứng minh. Cần quyết định cách xử lý hồiâm hoặc đối chiếu engine trước sửa; câu hỏi điều tra chưa là phê duyệt đổi gameplay. Chưa sửa code/DB/commit/push, giữKN15. GitNexus context/query đối chiếu nguồn hiện tại; chỉmục trướcKN15 nên nguồn/test thật là bằng chứng chính.
+
+## 2026-11-14 · Hoa Sơn KN15: phân tuyến, Gợi ý và mô tả
+
+- USER duyệt kiểm tra lại và triển khai, lưu ý Gợi ý mới. Đã đọc lại mã cập nhật; giữ thuật toán Trấn phái→cấp10→san tuyến→giữ dư, không khôi phục san chung cũ.
+- Metadata chỉnh tay đủ28chiêu, tách tuyến/loại công/vai trò/tập Gợi ý. Khí Tông không cộng1349; nhận diện mặc định trên mọi ID đặc trưng, bỏ chiêu chung. Bổ sung1363/1368 điểm ở Kiếm Tông và1365 dùng chung khi đã học; bí kíp/giới hạn giữ nguyên. Tiềm năng dùng tỷ lệ chung hiện hành theo loại công rõ, vẫn tính trang bị.
+- Mô tả phân biệt bảy cặp icon, sửa1381 bảo vệ/hồi phục và1365 cứu nguy theo Lua, cảnh báo runtime thiếu; giữ1375/1378/1379 trong Gợi ý mới và nêu rõ giới hạn. Popup Mô tả mở dialog cuộn bằng chạm, giữ3màu, cột cấp và asset1:1. Không sửa gen/engine/KN14/thục luyện.
+- GitNexus index đã cập nhật; ảnh hưởng cao ở hàm dùng chung đã kiểm cả preview/server/bot caller, thay đổi bó hẹp Hoa Sơn. 5test đạt;448so sánh kỹ năng+tiềm năng10phái không đổi. Typecheck/build/diff-check đạt. Chromium1440 và chạm390×844/568, WSserver2568/client5174/DB riêng xác minh kỹ năng+tiềm năng server=preview và đọc mô tả dài. Ảnh đã xem; chưa native/botrunner thật. Script/ảnh/snapshot `/tmp/jx-huashan-kn15/`.
+- Phát hiện1364.autoreplyskill có cờ trênID, triggersOf chưa giải cờ nên bỏ nhánh đáp trả; mô tả cảnh báo, engine để riêng ngoài KN15.
+- HEAD đầu lượt7bd7da5, phiên khác commit Auto thành8a8b6ff trong lượt; giữ commit và scenario đồng thời. Không DB thật/commit/push. Tài liệu `docs/huashan-skill-routes.md` §7 và BACKLOG KN15.
 
 ## 2026-11-14 · Phím tắt mới, Hành trang 1–5 & Swap/Sort, NPC Rương chứa đồ tài khoản (đồ + Lượng/KNB), Tooltip 5 section & Dòng rơi Hiện/Ẩn
 

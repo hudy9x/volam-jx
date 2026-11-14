@@ -1,6 +1,6 @@
 # Hoa Sơn: phân tuyến kỹ năng và sửa Gợi ý cộng điểm
 
-Ngày: 2026-11-14. Công việc: **KN15**, dành cho session riêng. Trạng thái: đã điều tra, chưa triển khai.
+Ngày: 2026-11-14. Công việc: **KN15**, dành cho session riêng. Trạng thái: **đã triển khai KN15, commit theo USER (xem git log -1)**; phần §2 ghi hiện trạng lúc bàn giao, kết quả hiện tại ở §7.
 
 ## 1. Phạm vi người dùng chốt
 
@@ -10,7 +10,7 @@ Ngày: 2026-11-14. Công việc: **KN15**, dành cho session riêng. Trạng th�
 
 Không mở rộng việc này sang triển khai cơ chế khí trường/kích nổ, cân bằng sát thương, sửa thục luyện, thiết kế lại bảng học hoặc thay bộ icon. Các vấn đề cộng hỗ trợ cho kỹ năng 80/120/150 thuộc session KN14. Phát hiện ngoài phạm vi được ghi lại để xử lý riêng.
 
-## 2. Hiện trạng đã xác minh
+## 2. Hiện trạng đã xác minh lúc bàn giao (trước cập nhật Gợi ý)
 
 ### 2.1. Hoa Sơn chưa có tuyến trong chức năng Gợi ý
 
@@ -117,3 +117,32 @@ Nguồn đối chiếu: `/Users/hudy/ws/volam-shxt/Client_VLTK_SHXT`, đọc `CL
 - Mô tả thể hiện đúng tuyến và phân biệt vai trò của các cặp cùng icon; không thay icon hoặc xóa entry học chỉ dựa trên hình.
 - Điểm cũ, giới hạn cấp và bí kíp được giữ đúng; các phái khác không bị thay đổi ngoài chủ ý.
 - Chạy typecheck và kiểm tra trình duyệt trên cổng riêng 2568/5174, DB thử riêng; kiểm tra thao tác xem mô tả bằng chuột và chạm. Ghi rõ nếu chưa thử wrapper Desktop/Mobile thật.
+
+## 7. Kết quả triển khai — 2026-11-14
+
+USER duyệt kiểm tra lại và triển khai, yêu cầu giữ cập nhật Gợi ý ưu tiên Trấn phái. Khi bắt đầu, mã đã có hai tuyến Hoa Sơn và thứ tự **Trấn phái → cấp 10 → san đều các chiêu còn lại trong tuyến → giữ dư**. Phần §2 không còn là mô tả mã hiện tại. Thuật toán ưu tiên mới được giữ nguyên.
+
+### 7.1. Dữ liệu tuyến và Gợi ý
+
+- `packages/shared/src/skills/factions/huashan/routes.ts` là cấu hình chỉnh tay dùng chung: đủ 28 entry học, tách tuyến/vài trò khỏi danh sách nên cộng điểm. Không suy từ icon hoặc vũ khí.
+- Kiếm Tông/Khí Tông dùng nhóm ID ở §3.1. `1358` trấn phái, `1365` cứu nguy và `1370` thất truyền được xếp Dùng chung theo mô tả Hoa Sơn chung, thuộc tính không có hạn chế tông; đây là lựa chọn phân tuyến của project, không khẳng định có bảng học gốc riêng cho hai tông.
+- Giữ các chiêu được Gợi ý trước lượt này. Bổ sung hai chiêu tấn công trực tiếp `1363`/`1368` vào Kiếm Tông và `1365` dùng chung; chỉ cộng khi đã học, theo `raiseError`, không mở bí kíp thay người chơi. Không đưa entry thành phần/kích nổ/giảm hồi chiêu hoặc `1370` chưa có runtime vào phương án.
+- `1358` vẫn là chiêu Trấn phái được ưu tiên; `1365` được san ở nhóm còn lại, không nâng nó lên ưu tiên Trấn phái. Không tự tẩy điểm đã cộng trái tuyến. Nhận diện tuyến tính điểm trên toàn bộ ID đặc trưng (kể cả thành phần/thục luyện), bỏ các chiêu chung; hòa/chưa có điểm dùng tuyến đầu, hai tab thể hiện rõ và cho đổi.
+- Loại công được khai báo trực tiếp: Kiếm Tông ngoại công, Khí Tông nội công. **CHỌN:** tái dùng tỷ lệ chung hiện hành (ngoại 65/5/30/0; nội 0/5/90/5), không thêm tỷ lệ tự nhận là dữ liệu gốc. Vẫn ưu tiên đủ Sức mạnh/Thân pháp cho trang bị và giữ điểm cũ.
+- Client xem trước, server áp dụng và thiết lập bot tiếp tục dùng các hàm chung. Không sửa cơ chế chiến đấu/kinh nghiệm/thục luyện; không đổi kết quả của 10 phái còn lại.
+
+### 7.2. Mô tả và thao tác xem
+
+- `describeSkill()` bổ sung tuyến/vai trò, quan hệ bảy cặp cùng icon, ghi rõ các cơ chế chưa hỗ trợ. Câu chỉnh nằm trong file metadata chỉnh tay; không sửa `*.gen.ts`, không chạy generator hay đổi asset.
+- `1381` được mô tả là thành phần bảo vệ/hồi phục do `1380` gọi, theo mapping `new_wuji`; `1365` là bị động cứu nguy hồi sinh lực qua `1366`, theo Lua `zixia_jianqi`/`zixia_xiaoguo`, thay câu cũ nói giảm hồi phục địch.
+- Phát hiện ngoài phạm vi: `1364.autoreplyskill` đóng gói cờ phía trên ID (`66899 = 65536 + 1363`); `triggersOf()` hiện không giải cờ nên bỏ nhánh đáp trả. Đã ghi rõ trong mô tả, chưa sửa engine trong KN15. Nhánh start gọi1420 vẫn giữ nguyên.
+- `1375`/`1378`/`1379` vẫn nằm trong tuyến Gợi ý vừa cập nhật để giữ phạm vi; mô tả cảnh báo rõ chuyển sát thương thành nội lực/phản vào nội lực/chuyển nội lực tăng uy lực chưa có runtime. Hoàn thiện tác dụng hoặc đổi chính sách ưu tiên các chiêu này là việc riêng.
+- Rê chuột giữ tooltip hiện có. Popup chọn chiêu thêm nút **Mô tả**, mở cùng nội dung trong cửa sổ `dialog.ts` có vùng cuộn, dùng được bằng chạm; giữ bảng màu vàng/xanh/trắng, bố cục cột cấp và hình 1:1. Web/Desktop dùng chuột; Mobile dùng chạm. Chưa thử wrapper native thật.
+
+### 7.3. Kiểm chứng
+
+- `node --import tsx --test tests/huashan-routes.test.ts`: 5 test đạt, bao gồm tình huống cấp60/1372=20/50điểm, thứ tự ưu tiên, giữ dư, tiềm năng+nhu cầu đồ, đủ28entry và mô tả, vòng áp dụng server trên mọi tuyến/cấp10–200 của11phái.
+- So sánh mã trước sửa với mã mới: **448 trường hợp kỹ năng và tiềm năng của 10 phái khác không đổi**.
+- Typecheck/build/diff-check đạt; build chỉ có cảnh báo chunk lớn có sẵn.
+- Server thật2568 + client5174, DB riêng `/tmp/jx-huashan-kn15/db.json`: Chromium kiểm Khí Tông mặc định, nội dung tooltip, xem trước và bấm Đồng ý kỹ năng/tiềm năng. Snapshot server khớp phương án shared, không cộng1349. Không dùng DB/server người dùng.
+- Chromium1440×1000 và thiết bị giả lập chạm390×844/390×568: mở mô tả không hover, đọc mô tả dài bằng vùng cuộn; ảnh đã xem. Chưa chạy bot runner thực tế hoặc native Desktop/Mobile. Script/snapshot/ảnh nằm trong `/tmp/jx-huashan-kn15/`.

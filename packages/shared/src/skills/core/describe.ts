@@ -6,6 +6,8 @@ import { attr } from './formula.js';
 import { skillCost, skillRange } from './info.js';
 import { getSkill } from './registry.js';
 import type { SkillDef } from './types.js';
+import { huashanSkillInfo } from '../factions/huashan/routes.js';
+import { skillCategory, SKILL_CATEGORY_NAMES } from './category.js';
 import { HORSE_LIMIT_TEXT, MAGIC_DESC, SKILL_ATTRIB_TEXT, WEAPON_LIMIT_TEXT } from './magicdesc.gen.js';
 
 /** A run of text with an optional colour (CSS colour). */
@@ -183,7 +185,11 @@ export function describeSkill(s: SkillDef, level: number, maxLevel: number): Ski
   if ((s.series ?? -1) >= 0) title.push({ text: ` (${SERIES[s.series!]?.toLowerCase()})`, color: '#ffe14d' });
   head.push(title);
   if (s.reqLevel) head.push(line(`Đẳng cấp yêu cầu: ${s.reqLevel}`, '#d8d0b8'));
-  if (s.desc) head.push(...richText(s.desc, '#ffffff'));
+  const school = s.pack === 'huashan' ? huashanSkillInfo(s.id) : undefined;
+  if (school) head.push(line(`Tuyến: ${school.route} · ${school.role ?? SKILL_CATEGORY_NAMES[skillCategory(s)]}`));
+  const desc = school?.desc ?? s.desc;
+  if (desc) head.push(...richText(desc, '#ffffff'));
+  if (school?.note) head.push(line(school.note));
   if (s.attrib && SKILL_ATTRIB_TEXT[String(s.attrib)]) head.push(...richText(SKILL_ATTRIB_TEXT[String(s.attrib)]));
   head.push(line(`Đẳng cấp hiện thời: ${level}`));
   const limits: TipLine[] = [];

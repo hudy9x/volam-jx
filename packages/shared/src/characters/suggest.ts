@@ -1,7 +1,8 @@
 // Gợi ý cộng điểm (USER 2026-11-13: "tham khảo jx-web-main"). Tuyến võ công per faction and potential ratios are taken from
 // jx-web-main (src/client/gameplay/skill-routes-01.js, config/potential-allocation.json; original skill ids). The client
 // previews a plan, the server carries out the same plan (world/progress.ts applySuggestion). Hoa Sơn is not in jx-web-main:
-// one route with every point skill (CHỌN).
+// explicit Kiếm Tông / Khí Tông routes (CHỌN), documented in docs/huashan-skill-routes.md.
+import { HUASHAN_ROUTES, HUASHAN_COMMON_SKILLS } from '../skills/factions/huashan/routes.js';
 import { isExternal } from '../formulas/damage.js';
 import { equipError, type ItemViewer } from '../items/equip.js';
 import { itemDef, type Bag, type Equipment, type ItemDef } from '../items/items.js';
@@ -9,7 +10,7 @@ import { getSkill, learnableSkills } from '../skills/core/registry.js';
 import { raiseError, skillGrowth } from '../skills/core/learning.js';
 import { POTENTIALS, type Potential } from '../formulas/character.js';
 
-export interface SkillRoute { id: string; name: string; skills: number[]; finisher?: number }
+export interface SkillRoute { id: string; name: string; skills: number[]; finisher?: number; damageKind?: 'external' | 'internal' }
 
 /** Skill routes per faction: shared = Trấn Phái skill (maxLevel 30), routes = point skills of each weapon/combat line. */
 const CATALOG: Record<string, { shared: number[]; routes: SkillRoute[] }> = {
@@ -65,9 +66,10 @@ const CATALOG: Record<string, { shared: number[]; routes: SkillRoute[] }> = {
       { id: 'curse', name: 'Bùa chú', skills: [392, 174, 393, 175, 181, 90, 394], finisher: 394 }]
   },
   huashan: {
-    shared: [1358], routes: [
-      { id: 'sword', name: 'Kiếm Tông', skills: [1349, 1350, 1347, 1351, 1354, 1355, 1360] },
-      { id: 'qi', name: 'Khí Tông', skills: [1374, 1372, 1375, 1376, 1378, 1379, 1380] }]
+    shared: [1358], routes: HUASHAN_ROUTES.map(r => ({
+      id: r.id, name: r.name, damageKind: r.damageKind,
+      skills: [...r.suggested, 1365], // Common rescue passive; books/raiseError still gate learning.
+    })),
   },
 };
 
@@ -103,8 +105,11 @@ export function skillRoutes(faction: string): SkillRoute[] {
 /** The route most of the points already went into (route skills only, not the shared ones). */
 export function guessRoute(faction: string, levels: Record<number, number>): SkillRoute | undefined {
   const routes = skillRoutes(faction);
-  const shared = new Set(CATALOG[faction]?.shared ?? []);
-  const score = (r: SkillRoute) => r.skills.reduce((n, id) => n + (shared.has(id) ? 0 : levels[id] ?? 0), 0);
+  const shared = new Set([...(CATALOG[faction]?.shared ?? []), ...(faction === 'huashan' ? HUASHAN_COMMON_SKILLS : [])]);
+  const score = (r: SkillRoute) => {
+    const ids = faction === 'huashan' ? HUASHAN_ROUTES.find(s => s.id === r.id)?.skills ?? r.skills : r.skills;
+    return ids.reduce((n, id) => n + (shared.has(id) ? 0 : levels[id] ?? 0), 0);
+  };
   return routes.slice().sort((a, b) => score(b) - score(a))[0];
 }
 
@@ -192,7 +197,7 @@ export function planPotential(
   current: { str: number; dex: number }, needs: { str: number; dex: number }, points: number,
 ): PotentialPlan {
   const route = skillRoutes(faction).find(r => r.id === routeId) ?? guessRoute(faction, skills) ?? null;
-  const external = !!route?.skills.some(id => { const s = getSkill(id); return !!s && isExternal(s, 1); });
+  const external = route?.damageKind ? route.damageKind === 'external' : !!route?.skills.some(id => { const s = getSkill(id); return !!s && isExternal(s, 1); });
   const override = route ? POTENTIAL_OVERRIDE[faction]?.[route.id] : undefined;
   const weights = override ?? POTENTIAL_DEFAULT[external ? 'external' : 'internal'];
   const add: Weights = { str: 0, dex: 0, vit: 0, eng: 0 };

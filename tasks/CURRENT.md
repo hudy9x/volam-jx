@@ -1,5 +1,13 @@
 # Điểm dừng hiện tại
 
+> **2026-11-14 · Commit Hoa Sơn theo USER:** commit KN15 + tài liệu điều tra nội lực, mã commit xem `git log -1`; không push. Lỗi hồi nội lực âm chỉ được điều tra, chưa sửa trong commit này. Giữ scenario `tools/bots/data/san-ban-do-hkmp.json` và ghi chú GP8 đang dở của phiên khác ngoài commit. Các kiểm chứng KN15 ở dưới đã đạt; diff-check và phân tích thay đổi trước commit đã chạy.
+
+2026-11-14 · Điều tra die (chưa sửa): HEAD8a8b6ff. Server gọi playOnce(die,999giây), actionMs999000 được client dùng làm thời lượng hoạt ảnh; phép tính8/10/16/20frames đều còn frame0 sau2,5s. Quái/boss xóa sau2,5s rồi fade600ms; tên không ẩn khi chết; player chưa có hạnẩnxác2s, giữ tới hồi sinh/rời map. USER yêu cầu chỉ điều tra trước; chưa sửa code/asset/DB/commit/push. Yêu cầu đích: die đúng tốc độ, ẩn tên, xác mất sau2s hoặc vềthành sớm hơn. Xác minh nguồn và phép tính, chưa kiểm hình thật/asset từng loại; không có GitNexus tool khả dụng. Giữ các thay đổi đồng thời.
+
+> **2026-11-14 · Nội lực Hoa Sơn Kiếm Tông (chỉ điều tra USER):** skillCost các chiêuKiếm=0/bảngPAKCostValue0 nên tooltip không inTiêu hao.1349bị động cómanareplenish_v=-10000 từcấp1;regen cộnghồiâm→tick50ms trừkhoảng1000NL. Hàmregen thật táihiện600→0 với1349cấp1, không1349 thì600→600.1364/1369 cũng cóthuộctínhâm. Chưa xemnhânvậtUSER/chưa xácminhsemanticsenginegốc; chưa sửa gameplay/code/DB.HEAD8a8b6ff, giữKN15chưacommit. Chi tiếtHISTORYđầu.
+
+> **2026-11-14 · Hoa Sơn KN15 đã triển khai theo USER (chưa commit):** kiểm tra lại cập nhật Gợi ý đã có2tuyến/ưu tiên Trấn phái→cấp10→tuyến→giữ dư, giữ nguyên thuật toán. Thêm metadata28entry dùng chung, loại công rõ, nhận diện tuyến từ mọi ID đặc trưng; thêm1363/1368 Kiếm Tông và1365 dùng chung khi đã học. Mô tả tuyến/vai trò/bảy cặp icon, sửa1381/1365 theo Lua, cảnh báo runtime thiếu. Popup có Mô tả mở dialog cuộn cho chạm; giữ màu/asset1:1. 5test +448so sánh10phái +typecheck/build/diff-check +Chromium/WS thật2568/5174 đạt, kỹ năng/tiềm năng server khớp preview; DB riêng `/tmp/jx-huashan-kn15/`. Chưa native/botrunner thật. Không mở rộng KN14/khí trường/cân bằng/thục luyện; không commit/push. HEAD đầu lượt7bd7da5; trong lượt phiên khác commit Auto thành8a8b6ff, giữ nguyên; scenario đồng thời giữ ngoài thay đổi. Chi tiết `docs/huashan-skill-routes.md` §7.
+
 ## Chia tab cài đặt Auto — 2026-11-14
 
 - USER yêu cầu gom cài đặt Auto thành tab và tăng độ rộng. `auto.ts/.css`: 4 tab Chiến đấu/Bãi luyện/Nhặt đồ/Thuốc, rộng340→560px và co theo viewport; nút Chạy/Dừng và tab ở ngoài vùng nội dung cuộn, hướng dẫn đặt theo nhóm. ARIA tab/panel, roving tabindex, trái/phải/Home/End. Giữ binding/lưu cài đặt và gameplay hiện tại.

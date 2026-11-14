@@ -9,7 +9,7 @@ import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
 import { tooltip } from '../kit/tooltip';
 import type { HudContext } from '../hud/context';
-import { CATEGORY_CLASS, showSkillTip } from '../tips/skillTip';
+import { CATEGORY_CLASS, fillSkillTip, showSkillTip } from '../tips/skillTip';
 import './skills.css';
 
 const ID = 'skill-panel';
@@ -21,6 +21,9 @@ const HTML = `
   <div id="skill-pop" class="hidden"></div>
   <div class="muted hint">Bấm chiêu: cộng điểm / đặt tay trái, phải. Rê chuột: mô tả. Kéo chiêu xuống ô 1–9, T hoặc P. Cấp màu xanh dương = có
     cộng thêm từ trang bị.</div>
+</section>
+<section id="skill-description" class="dlg hidden" data-title="Mô tả kỹ năng">
+  <div class="sk-description-body"></div>
 </section>`;
 
 /** Columns of the skill window: learning level (tiers of the same level share a column). */
@@ -42,6 +45,7 @@ export class SkillsWindow {
   constructor(parent: HTMLElement, private ctx: HudContext) {
     mount(parent, HTML);
     dialogs.register(ID);
+    dialogs.register('skill-description');
     $('skill-suggest').addEventListener('click', () => this.ctx.suggest?.('skills'));
     skillbar.watch(what => { if (what === 'all') this.render(); });
     // A click outside the popup and the cells closes it.
@@ -198,8 +202,18 @@ export class SkillsWindow {
       <div class="sk-level"><span></span><button type="button" class="btn2 sk-plus" title="Cộng 1 điểm kỹ năng">+</button></div>
       <div class="sk-grow muted"></div>
       <div class="row"><button type="button" class="btn2" data-to="left">Tay trái</button><button type="button" class="btn2" data-to="right">Tay phải</button></div>
+      <button type="button" class="btn2" data-description>Mô tả</button>
       ${import.meta.env.DEV ? '<div class="row dev"><button type="button" class="btn2" data-d="-1" title="Dev: đổi cấp">−</button><button type="button" class="btn2" data-d="1" title="Dev: đổi cấp">+</button></div>' : ''}`;
     (box.querySelector('.sk-pop-name') as HTMLElement).textContent = s.name;
+    box.querySelector('[data-description]')?.addEventListener('click', () => {
+      tooltip.hide();
+      const content = document.querySelector<HTMLElement>('#skill-description .sk-description-body')!;
+      content.replaceChildren();
+      fillSkillTip(content, s);
+      content.scrollTop = 0;
+      dialogs.setTitle('skill-description', s.name);
+      dialogs.open('skill-description');
+    });
     const lvEl = box.querySelector('.sk-level span') as HTMLElement;
     lvEl.innerHTML = bonus > 0
       ? `Cấp <b class="boosted">${total}</b>/${maxLevelOf(s)} <small class="muted">(${level} + ${bonus} trang bị)</small>`
