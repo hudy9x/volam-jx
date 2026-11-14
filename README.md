@@ -76,7 +76,7 @@ apps/server/src/      Colyseus 0.18
   world/              World.ts (thứ tự tick) + players, commands, inventory, targeting, systems/ (di chuyển, trúng đòn,
                       trạng thái, sinh quái, cổng…), ai/ (quái, boss)
   account/            đăng ký/đăng nhập (scrypt + token HMAC), lưu nhân vật (JSON)
-  dev/                API công cụ dev + API bot (botAdmin.ts) + runner bot (bots.ts, bots/)
+  dev/                API công cụ dev + API bot (botAdmin.ts); runner nằm riêng tools/bots/
 apps/client/src/      Phaser 4 + Vite
   app/                luồng màn hình (đăng nhập → chọn nhân vật → tải → vào game), chuyển map
   game/               Phaser: WorldScene, actors/ (sprite gốc, paper-doll), fx/ (hiệu ứng chiêu, số sát thương), map/, audio/;
@@ -133,7 +133,7 @@ shared (*.gen.ts + phần chỉnh tay) ──► server (world/ + SkillEngine)  
 | Lệnh | Việc |
 |---|---|
 | `npm run dev` | server `:2567` + client `:5173` |
-| `npm run bots -- <kịch bản>` | bot giả lập người chơi theo `bots/<kịch bản>.json` (tạo bot + soạn kịch bản ở `/?bots`); `npm run bots -- 4 60` = thử nhanh |
+| `npm run bots -- <kịch bản>` | bot giả lập người chơi theo `tools/bots/data/<kịch bản>.json` (quản lý tại `npm run bots:ui`, localhost:4568); `npm run bots -- 4 60` = thử nhanh |
 | `npm run gen:assets -w @vltk/client` | nhân vật, quái, NPC, icon, danh mục đồ |
 | `npm run gen:skills -w @vltk/client` | gói kỹ năng 11 phái + thất truyền + kỹ năng chung + hiệu ứng/icon + `core/magicdesc.gen.ts` |
 | `npm run gen:maps -w @vltk/client -- 37 140` | bản đồ (bỏ id để làm hết) |
@@ -273,7 +273,7 @@ Kết quả đo trên máy dev (WSL, 1 process): 80 bot (cưỡi ngựa qua cổ
 đánh trong một room, tick p50 ≈ 1–2 ms, p99 ≈ 5–23 ms (ngân sách 50 ms). Sự kiện fx khoảng 23 KB/s mỗi client (ước lượng JSON),
 chưa tính patch state. Bot spam chiêu liên tục nên đây là mức tải nặng hơn chơi thật.
 
-Bot giả lập người chơi: trang `/?bots` (tạo bot theo mẫu, soạn kịch bản) + `npm run bots -- <kịch bản>`; số đo server đầy đủ là phần 2 (chưa làm). Xem `docs/bots.md`.
+Bot giả lập người chơi: `npm run bots:ui` → [localhost:4568](http://localhost:4568/), chọn tên + kịch bản rồi Chạy ngay tại bảng; hoặc `npm run bots -- luyen-cong-30`. Có3template cấp và mẫu30bot, xem [tools/bots/README.md](tools/bots/README.md).
 
 ## Ghi chú môi trường (WSL + ổ /mnt)
 

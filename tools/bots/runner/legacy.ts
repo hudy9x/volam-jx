@@ -1,5 +1,5 @@
 /**
- * Old quick mode of the runner (src/dev/bots.ts), kept for smoke tests:
+ * Old quick mode of the runner (tools/bots/run.ts), kept for smoke tests:
  *
  *   npm run bots -- <count> <seconds> [endpoint=http://localhost:2567]
  *

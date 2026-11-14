@@ -62,7 +62,7 @@ world/
                   · effects (chỉ số chiến đấu quái, choáng / chậm / độc / co giật, tốc chạy / tốc ra chiêu) · drops (vật rơi, nhặt)
                   · status (bùa) · spawner (sinh / hồi sinh quái) · portals · anim · sync (Sim → Actor, chỉ ghi khi đổi)
   ai/             monster.ts (thấy → đuổi → đánh → về) · boss.ts (khác biệt của boss; kịch bản riêng: ai/bosses/<tên>.ts khi cần)
-dev/              devtools.ts (API lưu khu quái) · botAdmin.ts (API bot `/api/dev/bots`) · bots.ts + bots/ (runner `npm run bots`: BotClient, behaviors, legacy)
+dev/              devtools.ts (API lưu khu quái) · botAdmin.ts (API bot `/api/dev/bots`); UI/runner độc lập ở tools/bots/
 ```
 
 ## 4. `apps/client/src`
@@ -166,3 +166,6 @@ Server: `net/` → `world/` → shared; `world/` không import `net/` ngoài ki�
 - Chưa tạo thư mục rỗng: `ui/layouts/`, `input/touch.ts`, `server/world/ai/bosses/` — tạo khi có nội dung.
 - Cờ bật / tắt Auto vẫn ở `Hud` (qua `WorldUi.auto / setAuto / onAuto`), chưa chuyển thành `state/`.
 - `tools/` chưa tách workspace riêng (tùy chọn, mục 7 của đề xuất).
+
+
+Công cụ bot độc lập: `tools/bots/{server.ts,ConfigStore.ts,RunManager.ts,ui/,run.ts,runner/,data/}`. UI chạy cổng4568 qua `npm run bots:ui`, không HMR theo game. Cấu hình đọc/lưu ở app riêng, API tạo/cập nhật/đăng nhập nhân vật vẫn qua `dev/botAdmin.ts`; luật trong shared/bots. [Hướng dẫn](../tools/bots/README.md).

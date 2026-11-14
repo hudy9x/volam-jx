@@ -99,6 +99,7 @@ export function pickup(w: World, sim: Sim, id: string): boolean {
   }
   if (d.item) {
     if (!addToBag(sim.bag!, d.item)) { w.hooks.notify(sim, 'Hành trang không đủ chỗ.'); return false; }
+    sim.pickedUp = d.item;
     w.hooks.log(sim, 'item', `Nhặt được ${itemDef(d.item)?.name ?? 'vật phẩm'}.`);
   } else {
     addMoney(sim, d.money);

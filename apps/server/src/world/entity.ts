@@ -25,6 +25,8 @@ export interface PendingCast {
 export interface SpawnSlot { monsterId: number; level: number; x: number; y: number; respawnMs: number; respawnAt: number; simId: string | null; boss: 0 | 1 | 2; fixed: boolean }
 
 export interface Sim {
+  /** One-shot ground-pickup metadata, consumed by sendInventory; never persisted. */
+  pickedUp?: Item;
   id: string;
   kind: 'player' | 'monster';
   a: Actor;

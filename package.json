@@ -8,14 +8,17 @@
   ],
   "scripts": {
     "dev": "concurrently -n server,client -c yellow,cyan \"npm run dev -w @vltk/server\" \"npm run dev -w @vltk/client\"",
-    "bots": "npm run bots -w @vltk/server --",
+    "bots": "node --import tsx tools/bots/run.ts",
     "test:speed": "node --import tsx --test tests/speed-phases.test.ts",
-    "typecheck": "tsc -p packages/shared && tsc -p apps/server && tsc -p apps/client && tsc -p apps/client/src/platform/sw",
-    "build": "npm run build -w @vltk/client"
+    "typecheck": "tsc -p packages/shared && tsc -p apps/server && tsc -p apps/client && tsc -p apps/client/src/platform/sw && tsc -p tools/bots",
+    "build": "npm run build -w @vltk/client",
+    "bots:ui": "node --import tsx tools/bots/server.ts",
+    "test:bots": "node --import tsx --test tests/bot-roster.test.ts tests/bot-social.test.ts tests/bots-tool.test.ts"
   },
   "devDependencies": {
     "concurrently": "^10.0.7",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "esbuild": "0.28.2"
   }
 }

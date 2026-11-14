@@ -8,8 +8,50 @@
 
 ## 0. Dùng nhanh
 
-Hướng dẫn từng bước cho người dùng (có ảnh chụp trang `/?bots`): **[`bots-guide.md`](bots-guide.md)**. File này là thiết kế
+Hướng dẫn từng bước cho người dùng (có ảnh chụp trang độc lập `http://localhost:4568/`): **[`bots-guide.md`](bots-guide.md)**. File này là thiết kế
 và bản đồ mã.
+
+### Bổ sung vũ khí/thuốc và giải thích form · 2026-11-14
+
+- Chỉ còn picker map ở Nâng cao, bỏ phần lặp dưới Ngựa/Bản đồ xuất hiện.
+- `bots/equipment.ts botGreenLines`: USER bắt buộc life/mana steal tại prefix0/2, lấy max toàn bảng magicRange (hiện10% mỗi loại), không phụ thuộc cấp vũ khí; ngoại lệ chỉ cho đồ xanh của bot. Bốn dòng còn lại theo forgeChoices, không trùng; item tạo bằng forgedMagic. Không đổi chế tạo người chơi hoặc công thức hút.
+- `BOT_DUAL_POTION=potion-2-5`, default50+50 bình cùng loại =100; hồi5000SL+5000NL. Dropdown nhóm dual trước/single sau; giá trị cụ thể của template cũ vẫn được giữ. Không đổi lựa chọn tự mua thuốc của AutoPlay.
+- Ghi chú/máy chủ/tốc vào/thời lượng/seed có mô tả ngay dưới input. Seed chỉ tái dùng nguồn ngẫu nhiên mô phỏng, không đảm bảo chiến đấu replay.
+
+### Cập nhật form thiết lập · 2026-11-14
+
+- UI dùng Tự cài đặt hoặc template tự tải và khóa `fieldset` để review. Bỏ nút tạo/nạp và input giới chỉ; hai thao tác Cập nhật thiết lập và Lưu Thiết lập tách biệt, lưu luôn hỏi tên bằng dialog của `ui/kit/dialog.ts`.
+- `POST /api/dev/bots/configure`: upsert những ID thuộc roster, bỏ qua online, preflight xung đột trước khi ghi. Kiểm ba dải40–69/70–90/110–150, green/gold, loại bản đồ training/town và danh sách đã sinh; ép ring=false/horse=random. Không thay mật khẩu tài khoản đã có.
+- `GET /api/dev/bots/maps`: ID các bản đồ đã có nav. Hộp chọn dùng minimap qua assetUrl; mặc định chọn toàn bộ nhóm, chỉ lưu lựa chọn khi OK. Đặt bot đúng danh sách đã chọn, không âm thầm chuyển sang bãi theo cấp.
+- `BotTemplate.title` giữ tên hiển thị; API files trả titles cho select, filename vẫn slug chuẩn cũ. BotInfo bổ sung gear/horse/templateTitle cho bảng sau cập nhật.
+- `botSetup` green: chọn hàng thợ rèn cùng loại trang phục/vũ khí phái, đủ cấp/giới/phái/hệ; tạo tối đa6dòng hợp lệ không trùng bằng forgeChoices/forgedMagic, hệ theo seriesPlan; dùng gợi ý và equipItem như nhân vật thật. Gold giữ pipeline bộ môn phái, không ép mặc món thiếu điều kiện.
+- `botHorsePool`: chỉ ngựa đủ cấp; từ110 dùng nhóm tốc gần mạnh nhất (chênh tối đa10speedPct, CHỌN). Tiers mặc định bật; useToken skills/levelCap kiểm điều kiện học như trước.
+
+### Cập nhật danh tính và giao diện · 2026-11-14
+
+- `shared/src/bots/roster.ts`: 200 identity tĩnh; `id` chính là username. Không suy ra tên/giới/phái từ thứ tự chọn hay mẫu.
+- POST tạo nhận `usernames` thuộc roster, kiểm tra xung đột toàn bộ trước khi tạo; lặp lại không tạo trùng.
+- Reset dùng identity theo username, giữ charId. Cấp/đồ/điểm vẫn dùng pipeline setup cũ.
+- `BotScenario.bots.usernames?: string[]`: khi có, runner/API login chọn đúng danh sách và thứ tự, bỏ qua prefix/count; rỗng hoặc có tên chưa tạo thì lỗi. Khi thiếu vẫn tương thích kịch bản cũ.
+- Trang hiển thị roster + tài khoản bot cũ, bộ lọc và chọn hàng loạt, mẫu sức mạnh, hoạt động và Nâng cao; lệnh có nút sao chép, vô hiệu hóa khi có chỉnh sửa chưa lưu.
+- Giữ HTML/CSS scoped, không thêm dependency. Responsive cho web/desktop/mobile; runner Node.js chạy riêng, giới hạn API cùng máy không đổi.
+
+### Kịch bản liên tục và hoạt động đồng thời · 2026-11-14
+
+- UI scenario giống template nhân vật: select Tự cài đặt/template readonly, lưu hỏi tên qua SetupDialogs, command copy. Bỏ mode/tỉ lệ PK/dạo/đứng yên/travel/crowd, seed, duration và input tên riêng; chỉ3checkboxgrind/chat/sell, autoAcceptTeam trong luyện công. Advanced chỉjoin3–5(mặc định3),server,note,reconnect. Cùng thứ tự các ID, lượt vào cách nhau333/250/200ms.
+- `BotScenario.activities`: grind/chat/sell/autoAcceptTeam; mặc định cùng bật. title cho template kịch bản, files API trả scenarioTitles. normalize ép duration0 vàjoin3..5, kể cả legacy; runner không có timer kết thúc, không chia hành vi theo trọng số nữa.
+- behaviors chỉ Grind hoặc vòng chờ xã hội; chat/rao chạy đồng thời tại BotClient.updateSocial. BotClient nhận S2C.teamInvite và gửi C2S.team accept khi grind+autoAcceptTeam, server vẫn xác minh lời mời.
+- drops.pickup đánh dấu Sim.pickedUp; sendInventory thêm InventoryMsg.pickedUp một lần và xóa. Metadata không lưu DB, không xuất hiện trong setup/reconnect/buy/forge. BotClient chỉ enqueue sự kiện này, không suy luận từ diff hành trang.
+- `bots/social.ts`: trang bị có>5dòng có giá trị hoặc dòng ẩn hiếm (trọng số hợp lệ≤1200, CHỌN) hoặc lớn(≥90%max, CHỌN). Gold dùng max của dòng cố định. Message world≤CHAT.maxLength, chọn1tinrao khi cảchat+sell. LootAnnouncer giới hạn20pending/2000seen, bỏ món không còn trong túi, gap60s/bot, toànrunnergap5s. Chưa làm tự giao dịch/định giá.
+- Kịch bản cũ không còn chạy PK/dạo/crowd; trường cũ được giữ để đọc file nhưng hoạt động mới dùng activities. Chế độ numeric legacy thử nhanh vẫn riêng, không thuộc form scenario mới.
+
+### App riêng tools/bots + chạy từ bảng · 2026-11-14
+
+Toàn bộ UI/runner/cấu hình chuyển sang `tools/bots` (`README.md` trong thư mục). `npm run bots:ui` phục vụ loopback4568, esbuild đóng gói một lần, không Vite/HMR hoặc watcher. App tự đọc/lưu config và ảnh preview, không phụ thuộc game frontend; API player/world vẫn ở game server. `?bots` cũ chuyển tới4568.
+
+`ConfigStore` quản lý `data/templates` và `data/*.json`. `RunManager` fork runner qua IPC, kiểm IDs fixed/online/trùng, nhận trạng thái mỗi500ms; UI poll1s. Chạy chỉ đúng ID checkbox, không sửa file scenario; ngừng từng bot bằng IPC, các bot khác giữ chạy. Đóng tab/reload không dừng runner; dừng app sẽ dọn children.
+
+Thêm `map.mode=both` (union thành/bãi). Default cảhai, bản đồ là vị trí spawn ban đầu, không hạn chế Auto về thành mua thuốc. Có3preset bands và scenario30 IDs, 3 nhóm10 trong `initialSetup`; runner chỉ gọi configure cho tài khoản thiếu (chia chunk3 để tránh tạo dồn), giữ progress tài khoản đã có. Không tự chạy hoặc sửa DB thật khi tạo các file preset.
 
 ## 1. Bot là gì
 
@@ -22,7 +64,7 @@ Bot chạy ở **tiến trình riêng** (`npm run bots`), không chung tiến tr
 ## 2. Phần 1: Bot (đã làm)
 
 ```
-Trang /?bots (dev)  ──API dev──▶  server (MapRoom + db)          bots/templates/<mẫu>.json · bots/<kịch bản>.json
+Trang /?bots (dev)  ──API dev──▶  server (MapRoom + db)          tools/bots/data/templates/<mẫu>.json · bots/<kịch bản>.json
   mẫu, tạo / đặt lại / xóa,        · tạo tài khoản + nhân vật cấp 1, mẫu "chờ áp"   ▲ trang lưu qua API
   danh sách, soạn kịch bản         · bot vào game lần đầu → áp mẫu (world/botSetup.ts)
                                     · cấp token cho runner
@@ -35,8 +77,8 @@ npm run bots -- <kịch bản>  ──login API──▶ token ──WebSocket�
 | Bộ não Luyện quái (dùng chung với phím Z) | `packages/shared/src/auto/` (`AutoPlay.ts`, `settings.ts` = `AutoSettings`, `approachDistance`) |
 | API dev | `apps/server/src/dev/botAdmin.ts` (`/api/dev/bots…`) |
 | Áp mẫu khi bot vào game lần đầu | `apps/server/src/world/botSetup.ts` (gọi từ `MapRoom.onJoin`) |
-| Runner | `apps/server/src/dev/bots.ts` (lệnh) + `dev/bots/` (`BotClient.ts`, `behaviors.ts`, `rng.ts`, `legacy.ts` = chế độ cũ) |
-| Trang | `apps/client/src/dev/bot-panel/` (`App.ts` nạp động khi có `?bots`; không cần Phaser, không cần đăng nhập) |
+| Runner | `tools/bots/run.ts` (lệnh) + `dev/bots/` (`BotClient.ts`, `behaviors.ts`, `rng.ts`, `legacy.ts` = chế độ cũ) |
+| Trang | `tools/bots/ui/` (`App.ts` nạp động khi có `?bots`; không cần Phaser, không cần đăng nhập) |
 
 ### 2.1 Mẫu tài khoản (`BotTemplate`)
 
@@ -56,7 +98,7 @@ cấp để trong túi (hoàng kim môn phái cần cấp 80–99, vũ khí thư
 **Đặt lại theo mẫu** (mục 2 trên trang): bot về cấp 1, giữ tên, mẫu chờ áp lại. **Xóa**: xóa hẳn tài khoản + nhân vật. Bot đang
 online thì bỏ qua (tắt runner trước).
 
-### 2.2 Kịch bản chạy (`BotScenario`, `bots/<tên>.json`)
+### 2.2 Kịch bản chạy (`BotScenario`, `tools/bots/data/<tên>.json`)
 
 | Nhóm | Cài đặt |
 |---|---|

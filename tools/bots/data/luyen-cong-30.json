@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "title": "30 bot luyện công, chat và rao bán",
+  "activities": {
+    "grind": true,
+    "chat": true,
+    "sell": true,
+    "autoAcceptTeam": true
+  },
+  "note": "10 nhân vật mỗi dải 40–69 / 70–90 / 110–150. Tự khởi tạo tài khoản còn thiếu; giữ tiến trình nhân vật đã có.",
+  "server": "http://localhost:2567",
+  "bots": {
+    "prefix": "botfixed",
+    "count": 30,
+    "usernames": [
+      "botfixed_001",
+      "botfixed_002",
+      "botfixed_003",
+      "botfixed_004",
+      "botfixed_005",
+      "botfixed_006",
+      "botfixed_007",
+      "botfixed_008",
+      "botfixed_009",
+      "botfixed_010",
+      "botfixed_011",
+      "botfixed_012",
+      "botfixed_013",
+      "botfixed_014",
+      "botfixed_015",
+      "botfixed_016",
+      "botfixed_017",
+      "botfixed_018",
+      "botfixed_019",
+      "botfixed_020",
+      "botfixed_021",
+      "botfixed_022",
+      "botfixed_023",
+      "botfixed_024",
+      "botfixed_025",
+      "botfixed_026",
+      "botfixed_027",
+      "botfixed_028",
+      "botfixed_029",
+      "botfixed_030"
+    ]
+  },
+  "joinPerSecond": 3,
+  "duration": 0,
+  "seed": 1,
+  "behaviors": {
+    "grind": 100
+  },
+  "pk": {
+    "mode": 2,
+    "target": "nearest"
+  },
+  "wander": {
+    "radius": 300
+  },
+  "travel": {
+    "every": 60,
+    "maps": [
+      37,
+      140
+    ]
+  },
+  "crowd": {
+    "mapId": 37,
+    "x": 0,
+    "y": 0,
+    "radius": 80,
+    "cast": false
+  },
+  "auto": {
+    "autoRadius": 500,
+    "autoSkipBoss": true,
+    "autoBuff": true,
+    "autoReturn": true,
+    "autoSeek": true,
+    "autoPickup": true,
+    "autoPriority": "near",
+    "autoRotate": true,
+    "autoCurse": true,
+    "autoMap": true,
+    "autoRevive": true,
+    "autoBuyPotion": true,
+    "autoJunk": true,
+    "autoLoot": "all",
+    "autoHp": 50,
+    "autoMp": 20,
+    "autoReachPct": 60,
+    "autoMeleeClose": true
+  },
+  "human": {
+    "tickMs": 150,
+    "reactionMs": [
+      80,
+      250
+    ],
+    "maxOrdersPerSec": 8
+  },
+  "reconnect": true,
+  "initialSetup": [
+    {
+      "template": "cap-40-69",
+      "usernames": [
+        "botfixed_001",
+        "botfixed_002",
+        "botfixed_003",
+        "botfixed_004",
+        "botfixed_005",
+        "botfixed_006",
+        "botfixed_007",
+        "botfixed_008",
+        "botfixed_009",
+        "botfixed_010"
+      ]
+    },
+    {
+      "template": "cap-70-90",
+      "usernames": [
+        "botfixed_011",
+        "botfixed_012",
+        "botfixed_013",
+        "botfixed_014",
+        "botfixed_015",
+        "botfixed_016",
+        "botfixed_017",
+        "botfixed_018",
+        "botfixed_019",
+        "botfixed_020"
+      ]
+    },
+    {
+      "template": "cap-110-150",
+      "usernames": [
+        "botfixed_021",
+        "botfixed_022",
+        "botfixed_023",
+        "botfixed_024",
+        "botfixed_025",
+        "botfixed_026",
+        "botfixed_027",
+        "botfixed_028",
+        "botfixed_029",
+        "botfixed_030"
+      ]
+    }
+  ]
+}

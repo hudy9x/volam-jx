@@ -12,7 +12,7 @@ export const MAPS_DIR = path.resolve(process.env.MAPS_DIR ?? path.join(SRC, '../
 /** Monster spawns per map (apps/client/tools/gen-spawns.ts, the dev tool of the big map). */
 export const SPAWNS_DIR = path.resolve(process.env.SPAWNS_DIR ?? path.join(SRC, '../../../packages/shared/spawns'));
 /** Bot templates (templates/<name>.json) and run scenarios (<name>.json): the repo's bots/ (docs/bots.md). */
-export const BOTS_DIR = path.resolve(process.env.BOTS_DIR ?? path.join(SRC, '../../../bots'));
+export const BOTS_DIR = path.resolve(process.env.BOTS_DIR ?? path.join(SRC, '../../../tools/bots/data'));
 /** Print tick timings. */
 export const PERF = !!process.env.PERF;
 

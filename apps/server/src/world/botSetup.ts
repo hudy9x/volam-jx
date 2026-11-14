@@ -1,5 +1,5 @@
 import {
-  CANKHON_RING_ID, HORSE_IDS, ITEMS, LEVEL, MAX_MONEY, QUALITY, addToBag, expToNext, factionSuites, itemDef, starterEquipment,
+  botGreenLines, botHorsePool, FACTIONS, MAGIC_SLOTS, SERIES_KEYS, SHOP_ITEMS, KIND_SLOTS, forgedMagic, seriesPlan, equipError, CANKHON_RING_ID, ITEMS, LEVEL, MAX_MONEY, QUALITY, addToBag, expToNext, factionSuites, itemDef, starterEquipment,
   type BotTemplate, type EquipSlot, type ItemDef,
 } from '@vltk/shared';
 import { setMounted } from './commands.js';
@@ -31,6 +31,25 @@ export function applyBotSetup(w: World, sim: Sim, t: BotTemplate, level: number,
 
   // Pieces go into the bag first: the potential suggestion counts what they need (strength / dexterity), then they are worn.
   const wear = new Set<string>();
+  const greenWear: { uid: string; slot: EquipSlot }[] = [];
+  if (sim.a.faction && t.gear === 'green') {
+    const outfit = starterEquipment(sim.a.faction, sim.a.gender);
+    const element = SERIES_KEYS.indexOf(FACTIONS[sim.a.faction].element);
+    const plan = seriesPlan(element, element);
+    for (const slot of MAGIC_SLOTS) {
+      const base = ITEMS[outfit[slot] ?? ''];
+      const candidates = SHOP_ITEMS.smith.filter(d => KIND_SLOTS[d.kind]?.includes(slot)
+        && (!base || d.kind === base.kind && d.type === base.type)
+        && !equipError(d, { faction: sim.a.faction, gender: sim.a.gender, level: p.level }));
+      const def = candidates.sort((a, b) => reqLevel(b) - reqLevel(a) || b.level - a.level)[0];
+      if (!def) continue;
+      const item = makeItem(def.id); if (!item) continue;
+      item.series = plan.series[slot] ?? element;
+      const lines = botGreenLines(def, item.series);
+      item.magic = forgedMagic(lines); item.q = QUALITY.magic;
+      if (addToBag(sim.bag!, item)) greenWear.push({ uid: item.uid, slot });
+    }
+  }
   if (sim.a.faction && t.gear === 'gold') {
     // A set it can wear whole at its level (hoàng kim môn phái need level 80–99), else the set needing the lowest level: the
     // pieces it cannot wear yet stay in the bag (equipItem refuses them), the starter piece stays worn there.
@@ -42,7 +61,7 @@ export function applyBotSetup(w: World, sim: Sim, t: BotTemplate, level: number,
   }
   if (t.ring && useToken(w, sim, 'ring')) wear.add(CANKHON_RING_ID);
   // Ngẫu nhiên: among the horses its level allows.
-  const horses = HORSE_IDS.filter(id => reqLevel(ITEMS[id]) <= p.level);
+  const horses = botHorsePool(p.level);
   const horseId = t.horse === 'random' ? horses[Math.floor(Math.random() * horses.length)] : t.horse;
   const horse = horseId ? makeItem(horseId) : null;
   if (horse && addToBag(sim.bag!, horse)) wear.add(horse.def);
@@ -50,6 +69,10 @@ export function applyBotSetup(w: World, sim: Sim, t: BotTemplate, level: number,
   if (t.potential === 'suggest') { if (sim.a.faction) applySuggestion(w, sim, 'potential'); }
   else addPotential(w, sim, t.potential, p.potentialPoints);
 
+  for (const { uid, slot } of greenWear) {
+    const index = sim.bag!.findIndex(it => it?.uid === uid);
+    if (index >= 0) equipItem(w, sim, index, slot);
+  }
   for (const def of wear) {
     const index = sim.bag!.findIndex(it => it?.def === def && (def !== CANKHON_RING_ID && itemDef(it)?.kind !== 'horse' ? (it.q ?? 0) >= QUALITY.gold : true));
     if (index >= 0) equipItem(w, sim, index);

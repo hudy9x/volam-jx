@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "CHOKIDAR_USEPOLLING=1 tsx watch src/index.ts", "bots": "tsx src/dev/bots.ts", "start": "tsx src/index.ts" },
+  "scripts": { "dev": "CHOKIDAR_USEPOLLING=1 tsx watch src/index.ts", "bots": "node --import tsx ../../tools/bots/run.ts", "start": "tsx src/index.ts" },
   "dependencies": {
     "@vltk/shared": "*",
     "colyseus": "0.18.12",

@@ -183,7 +183,7 @@ export interface TeamMsg {
 }
 export interface TeamInviteMsg { from: string }
 /** Owner-only, after any change: hành trang + worn items of the own character (concrete items, items/items.ts) + tiền túi. */
-export interface InventoryMsg { bag: (Item | null)[]; equip: Partial<Record<string, Item>>; money: number }
+export interface InventoryMsg { pickedUp?: Item; bag: (Item | null)[]; equip: Partial<Record<string, Item>>; money: number }
 export interface NoticeMsg { text: string }
 /** Characters online on every map (kênh Thế giới header — USER 2026-11-13). */
 export interface OnlineMsg { n: number }

@@ -20,6 +20,8 @@ export interface ActorState {
   runMs?: number;
   /** Server-snapshotted duration of the current one-shot. */
   actionMs?: number;
+  /** Server control flags: 1 stun, 2 slow, 4 poison. */
+  ctl?: number;
   /** Khinh công: flight time of the jump in progress (anim 'jump'), 0 otherwise. */
   jumpMs: number;
   hp: number;

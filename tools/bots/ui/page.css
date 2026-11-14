@@ -1,0 +1,3 @@
+:root { color-scheme:dark; --body:#181c19; --bg:#101211; --gold:#b9d8bf; --border:#404b43; }
+body { margin:0; font-family:system-ui,sans-serif; background:#101211; }
+.hidden { display:none!important; }

@@ -252,7 +252,8 @@ export class MapRoom extends Room<{ state: MapState }> {
   }
 
   private sendInventory(client: Client, sim: Sim): void {
-    client.send(S2C.inventory, { bag: sim.bag ?? [], equip: sim.equip ?? {}, money: sim.money ?? 0 } satisfies InventoryMsg);
+    client.send(S2C.inventory, { ...(sim.pickedUp ? { pickedUp: sim.pickedUp } : {}), bag: sim.bag ?? [], equip: sim.equip ?? {}, money: sim.money ?? 0 } satisfies InventoryMsg);
+    sim.pickedUp = undefined;
     this.sendSkills(client, sim); // worn pieces change skill levels (allskill_v)
   }
 

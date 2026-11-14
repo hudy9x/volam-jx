@@ -147,7 +147,11 @@ export async function startApp(root: HTMLElement): Promise<void> {
     Object.assign(window, { __vltk: { room: () => room, game: getGame } });
     const params = new URLSearchParams(location.search);
     // `?bots`: bot dev page (no game, no login; docs/bots.md).
-    if (params.has('bots')) { void import('../dev/bot-panel/BotPanel').then(m => m.startBotPanel()); return; }
+    if (params.has('bots')) {
+      const tool = new URL(location.href); tool.port = '4568'; tool.pathname = '/'; tool.search = '';
+      if (params.get('server')) tool.searchParams.set('server', params.get('server')!);
+      location.replace(tool.href); return;
+    }
     const route = params.has('gallery') ? 'gallery' : params.has('skills') ? 'skills' : null;
     if (route) {
       loading.set('Đang tải…');

@@ -1,13 +1,14 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillCost,
+  BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillCost,
   tuningOf, weaponOk, weaponTypeOf,
   type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type InventoryMsg, type Item,
   type SkillDef, type SkillsMsg, type StatsMsg, type TransferMsg,
 } from '@vltk/shared';
+import { LootAnnouncer } from './LootAnnouncer.js';
 import { between } from './rng.js';
 
-/** Counters the runner prints (src/dev/bots.ts). Player-simulation only: server measurements are a separate tool. */
+/** Counters the runner prints (tools/bots/run.ts). Player-simulation only: server measurements are a separate tool. */
 export interface RunStats {
   orders: number;
   dropped: number;
@@ -55,6 +56,8 @@ export class BotClient {
   readonly host: AutoHost;
 
   private client: Client;
+  private announcer: LootAnnouncer;
+  private static nextWorldChatAt = 0;
   private cooldowns = new Map<number, number>();
   private sentAt: number[] = [];
   private queueAt = 0;
@@ -62,6 +65,7 @@ export class BotClient {
   private actorCache: { at: number; list: AutoActor[] } = { at: -1, list: [] };
 
   constructor(readonly login: BotLogin, private sc: BotScenario, readonly rand: () => number, private run: RunStats) {
+    this.announcer = new LootAnnouncer(sc.activities);
     this.mapId = login.mapId;
     this.client = new Client(sc.server);
     this.host = this.makeHost();
@@ -75,6 +79,7 @@ export class BotClient {
     if (this.stopped) return;
     try {
       const room = await this.client.joinOrCreate(MAP_ROOM, { mapId: this.mapId, token: this.login.token, charId: this.login.charId });
+      if (this.stopped) { await room.leave(true); return; }
       this.wire(room);
     } catch (e) {
       this.fail(e);
@@ -97,6 +102,7 @@ export class BotClient {
     room.onMessage(S2C.inventory, (msg: InventoryMsg) => {
       this.bag = msg.bag; this.equip = msg.equip; this.money = msg.money;
       this.layoutBar();
+      if (msg.pickedUp) this.announcer.pickedUp(msg.pickedUp);
     });
     room.onMessage(S2C.skills, (msg: SkillsMsg) => { this.levels = msg.levels; this.bonus = msg.bonus ?? {}; this.layoutBar(); });
     room.onMessage(S2C.stats, (msg: StatsMsg) => { this.stats = msg; });
@@ -104,7 +110,10 @@ export class BotClient {
       for (const e of events) if (e.t === 'die' && e.id === room.sessionId) this.run.deaths++;
     });
     room.onMessage(S2C.transfer, (msg: TransferMsg) => void this.transfer(msg.mapId));
-    for (const type of [S2C.notice, S2C.team, S2C.teamInvite, S2C.chat, S2C.chatReacts, S2C.chatOlder, S2C.log, S2C.online]) {
+    room.onMessage(S2C.teamInvite, (msg: { from: string }) => {
+      if (this.sc.activities.grind && this.sc.activities.autoAcceptTeam && !this.me()?.team && typeof msg?.from === 'string') this.send(C2S.team, { op: 'accept', name: msg.from });
+    });
+    for (const type of [S2C.notice, S2C.team, S2C.chat, S2C.chatReacts, S2C.chatOlder, S2C.log, S2C.online]) {
       room.onMessage(type, () => undefined);
     }
     room.onLeave(() => {
@@ -131,6 +140,14 @@ export class BotClient {
   private scheduleRejoin(): void {
     if (this.stopped || !this.sc.reconnect) return;
     setTimeout(() => { this.run.rejoins++; void this.connect(); }, between(this.rand, ...REJOIN_MS));
+  }
+
+  updateSocial(now: number): void {
+    if (!this.online || this.stopped || now < BotClient.nextWorldChatAt) return;
+    while (this.sentAt.length && now - this.sentAt[0] > 1000) this.sentAt.shift();
+    if (this.sentAt.length >= this.sc.human.maxOrdersPerSec) return;
+    const message = this.announcer.next(now, this.bag);
+    if (message) { this.send(C2S.chat, { text: message }); BotClient.nextWorldChatAt = now + BOT_TRADE_RULES.fleetGapMs; }
   }
 
   private fail(e: unknown): void {

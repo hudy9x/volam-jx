@@ -1,13 +1,17 @@
+export * from './roster.js';
+export * from './equipment.js';
+export * from './social.js';
 // Bot giả lập người chơi (docs/bots.md). Hai loại cài đặt, dùng chung cho trang /?bots (client dev), API dev của server
-// (apps/server/src/dev/botAdmin.ts) và runner `npm run bots` (apps/server/src/dev/bots/):
+// (apps/server/src/dev/botAdmin.ts) và runner `npm run bots` (tools/bots/runner/):
 //  - BotTemplate: mẫu tài khoản, áp một lần khi tạo / đặt lại bot (cấp, phái, điểm, chiêu, đồ, tiền, thuốc, bản đồ);
 //  - BotScenario: kịch bản chạy (bots/<tên>.json), mỗi lần `npm run bots -- <tên>` đọc.
 // Đo hiệu năng là phần riêng (BACKLOG BT, nhóm đo đếm), không nằm ở đây. TS thuần.
 import { DEFAULT_AUTO, type AutoSettings } from '../auto/settings.js';
+import type { Gender } from '../characters/factions.js';
 import { FACTIONS } from '../characters/factions.js';
 import { HORSES } from '../items/horses.js';
 import { ITEMS } from '../items/items.js';
-import { MAPS, TOWN_MAP_ID } from '../maps/index.js';
+import { MAPS } from '../maps/index.js';
 
 /** Bot account names start with this; the dev API touches only accounts it created (UserRecord.bot), never others. */
 export const BOT_ACCOUNT_PREFIX = 'bot';
@@ -19,9 +23,20 @@ export const BOT_PREFIX_RE = /^bot[a-z0-9]{0,8}$/;
 export const BOT_CREATE_MAX = 500;
 
 export type BotPotential = 'suggest' | 'str' | 'dex' | 'vit' | 'eng';
-export type BotMapMode = 'town' | 'training' | 'list';
+export const BOT_LEVEL_BANDS: readonly [number, number][] = [[40, 69], [70, 90], [110, 150]];
+export const botMapIds = (mode: 'town' | 'training' | 'both'): number[] => Object.values(MAPS).filter(m => mode === 'town' ? m.safe : mode === 'both' ? m.safe || ['Field', 'Cave'].includes(m.type) || m.id === 140 : ['Field', 'Cave'].includes(m.type) || m.id === 140).map(m => m.id);
+
+/** CHỌN: high-level bots use only horses within 10 speed points of the strongest eligible mount. */
+export function botHorsePool(level: number): string[] {
+  const eligible = Object.values(HORSES).filter(h => Number(h.req?.find(([k]) => k === 'requirelevel')?.[1] ?? 0) <= level);
+  const best = Math.max(0, ...eligible.map(h => h.speedPct));
+  return eligible.filter(h => level < 110 || h.speedPct >= best - 10).map(h => h.id);
+}
+
+export type BotMapMode = 'town' | 'training' | 'both' | 'list';
 
 export interface BotTemplate {
+  title?: string;
   /** Tiền tố tài khoản (BOT_PREFIX_RE) và mật khẩu chung (đăng nhập bot bằng trình duyệt để xem). */
   prefix: string;
   password: string;
@@ -36,8 +51,8 @@ export interface BotTemplate {
   skills: 'suggest' | 'none';
   /** Học hết chiêu 90 / 120 / 150 ở cấp tối đa nhân vật cho phép (như lệnh bài). */
   tiers: boolean;
-  /** Đồ: đồ khởi đầu của phái / đủ bộ hoàng kim môn phái (một bộ ngẫu nhiên của phái). */
-  gear: 'starter' | 'gold';
+  /** Green forge loadout / faction gold suite; starter retained for legacy templates. */
+  gear: 'starter' | 'green' | 'gold';
   /** Càn Khôn Giới Chỉ (bật mọi dòng ẩn). */
   ring: boolean;
   /** Ngựa: '' không / 'random' / id hàng ngựa; có ngựa thì cưỡi. */
@@ -50,17 +65,20 @@ export interface BotTemplate {
   mpPotion: string;
   mpCount: number;
   /**
-   * Chỗ xuất hiện: thành (Biện Kinh) / bãi luyện công theo cấp / rải đều danh sách bản đồ; ngẫu nhiên trong bán kính
+   * Chỗ xuất hiện: các thành hoặc bãi luyện công đã chọn / legacy list; ngẫu nhiên trong bán kính
    * `radius` quanh điểm vào bản đồ.
    */
   map: { mode: BotMapMode; maps: number[]; radius: number };
 }
 
+/** Ngũ Hoa Ngọc Lộ Hoàn: original potion-2-5, pumps both HP and MP. */
+export const BOT_DUAL_POTION = 'potion-2-5';
+
 export const DEFAULT_BOT_TEMPLATE: BotTemplate = {
-  prefix: 'bot', password: 'botpass', faction: 'all', gender: 'mix', level: [60, 90], potential: 'suggest', skills: 'suggest',
-  tiers: false, gear: 'starter', ring: false, horse: '', money: 1_000_000,
-  hpPotion: '', hpCount: 0, mpPotion: '', mpCount: 0,
-  map: { mode: 'training', maps: [TOWN_MAP_ID], radius: 200 },
+  prefix: 'bot', password: 'botpass', faction: 'all', gender: 'mix', level: [40, 69], potential: 'suggest', skills: 'suggest',
+  tiers: true, gear: 'green', ring: false, horse: 'random', money: 1_000_000,
+  hpPotion: BOT_DUAL_POTION, hpCount: 50, mpPotion: BOT_DUAL_POTION, mpCount: 50,
+  map: { mode: 'both', maps: botMapIds('both'), radius: 200 },
 };
 
 export type BotBehavior = 'grind' | 'pk' | 'wander' | 'idle' | 'travel' | 'crowd';
@@ -74,13 +92,18 @@ export const BOT_BEHAVIORS: Record<BotBehavior, { name: string; note: string }> 
   crowd: { name: 'Dồn một chỗ', note: 'Cùng đứng một điểm (va chạm + gửi trạng thái nặng nhất)' },
 };
 
+export const DEFAULT_BOT_ACTIVITIES = { grind: true, chat: true, sell: true, autoAcceptTeam: true };
 export interface BotScenario {
+  title?: string;
+  /** Optional presets used only to initialise missing selected accounts, never reset existing progress. */
+  initialSetup?: { template: string; usernames: string[] }[];
+  activities: typeof DEFAULT_BOT_ACTIVITIES;
   version: 1;
   note: string;
   /** Server bot vào (mặc định server dev của người dùng). */
   server: string;
   /** Bot nào: tài khoản bot có tiền tố này; `count` 0 = tất cả. */
-  bots: { prefix: string; count: number };
+  bots: { prefix: string; count: number; usernames?: string[] };
   /** Tốc độ vào game (bot / giây). */
   joinPerSecond: number;
   /** Giây; 0 = chạy tới khi Ctrl+C. */
@@ -102,8 +125,8 @@ export interface BotScenario {
 }
 
 export const DEFAULT_BOT_SCENARIO: BotScenario = {
-  version: 1, note: '', server: 'http://localhost:2567', bots: { prefix: 'bot', count: 0 }, joinPerSecond: 5, duration: 0, seed: 1,
-  behaviors: { grind: 70, pk: 10, wander: 20 },
+  version: 1, title: '', activities: { ...DEFAULT_BOT_ACTIVITIES }, note: '', server: 'http://localhost:2567', bots: { prefix: 'bot', count: 0 }, joinPerSecond: 3, duration: 0, seed: 1,
+  behaviors: { grind: 100 },
   pk: { mode: 2, target: 'nearest' },
   wander: { radius: 300 },
   travel: { every: 60, maps: [37, 140] },
@@ -135,6 +158,7 @@ export function normalizeBotTemplate(raw: unknown): BotTemplate {
   const m = record(r.map);
   const potion = (v: unknown) => (typeof v === 'string' && ITEMS[v]?.kind === 'potion' ? v : '');
   return {
+    title: typeof r.title === 'string' ? r.title.trim().slice(0, 80) : '',
     prefix: typeof r.prefix === 'string' && BOT_PREFIX_RE.test(r.prefix) ? r.prefix : d.prefix,
     password: typeof r.password === 'string' && r.password.length >= 4 && r.password.length <= 40 ? r.password : d.password,
     faction: r.faction === 'all' || r.faction === '' || (typeof r.faction === 'string' && FACTIONS[r.faction]) ? r.faction as string : d.faction,
@@ -143,14 +167,14 @@ export function normalizeBotTemplate(raw: unknown): BotTemplate {
     potential: pick(r.potential, ['suggest', 'str', 'dex', 'vit', 'eng'] as const, d.potential),
     skills: pick(r.skills, ['suggest', 'none'] as const, d.skills),
     tiers: bool(r.tiers, d.tiers),
-    gear: pick(r.gear, ['starter', 'gold'] as const, d.gear),
+    gear: pick(r.gear, ['starter', 'green', 'gold'] as const, d.gear),
     ring: bool(r.ring, d.ring),
     horse: r.horse === 'random' || (typeof r.horse === 'string' && HORSES[r.horse]) ? r.horse as string : '',
     money: num(r.money, d.money, 0, 2_000_000_000),
-    hpPotion: potion(r.hpPotion), hpCount: num(r.hpCount, 0, 0, 200),
-    mpPotion: potion(r.mpPotion), mpCount: num(r.mpCount, 0, 0, 200),
+    hpPotion: r.hpPotion === undefined ? d.hpPotion : potion(r.hpPotion), hpCount: num(r.hpCount, d.hpCount, 0, 200),
+    mpPotion: r.mpPotion === undefined ? d.mpPotion : potion(r.mpPotion), mpCount: num(r.mpCount, d.mpCount, 0, 200),
     map: {
-      mode: pick(m.mode, ['town', 'training', 'list'] as const, d.map.mode),
+      mode: pick(m.mode, ['town', 'training', 'both', 'list'] as const, d.map.mode),
       maps: mapList(m.maps, d.map.maps),
       radius: num(m.radius, d.map.radius, 0, 2000),
     },
@@ -160,6 +184,7 @@ export function normalizeBotTemplate(raw: unknown): BotTemplate {
 /** A scenario from a file / request body: unknown fields dropped, missing / wrong ones = default. */
 export function normalizeBotScenario(raw: unknown): BotScenario {
   const r = record(raw), d = DEFAULT_BOT_SCENARIO;
+  const activities = record(r.activities);
   const b = record(r.bots), pk = record(r.pk), wa = record(r.wander), tr = record(r.travel), cr = record(r.crowd);
   const h = record(r.human), a = record(r.auto), beh = record(r.behaviors);
   const behaviors: Partial<Record<BotBehavior, number>> = {};
@@ -181,14 +206,18 @@ export function normalizeBotScenario(raw: unknown): BotScenario {
   const crowdMap = num(cr.mapId, d.crowd.mapId, 1, 100_000);
   return {
     version: 1,
+    title: typeof r.title === 'string' ? r.title.trim().slice(0, 80) : '',
+    ...(Array.isArray(r.initialSetup) ? { initialSetup: r.initialSetup.flatMap(value => { const group = record(value); return typeof group.template === 'string' && BOT_FILE_RE.test(group.template) && Array.isArray(group.usernames) ? [{ template: group.template, usernames: group.usernames.filter((id): id is string => typeof id === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(id)).slice(0, 200) }] : []; }).slice(0, 20) } : {}),
+    activities: { grind: bool(activities.grind, true), chat: bool(activities.chat, true), sell: bool(activities.sell, true), autoAcceptTeam: bool(activities.autoAcceptTeam, true) },
     note: typeof r.note === 'string' ? r.note.slice(0, 500) : '',
     server: typeof r.server === 'string' && /^https?:\/\/[^\s]+$/.test(r.server) ? r.server.replace(/\/+$/, '') : d.server,
     bots: {
       prefix: typeof b.prefix === 'string' && BOT_PREFIX_RE.test(b.prefix) ? b.prefix : d.bots.prefix,
       count: num(b.count, d.bots.count, 0, 100_000),
+      ...(Array.isArray(b.usernames) ? { usernames: [...new Set(b.usernames.filter((v): v is string => typeof v === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(v)))].slice(0, 500) } : {}),
     },
-    joinPerSecond: num(r.joinPerSecond, d.joinPerSecond, 1, 1000),
-    duration: num(r.duration, d.duration, 0, 7 * 24 * 3600),
+    joinPerSecond: num(r.joinPerSecond, d.joinPerSecond, 3, 5),
+    duration: 0,
     seed: num(r.seed, d.seed, 0, 2 ** 31 - 1),
     behaviors: Object.keys(behaviors).length ? behaviors : { ...d.behaviors },
     pk: { mode: num(pk.mode, d.pk.mode, 1, 2) as 1 | 2, target: pick(pk.target, ['nearest', 'enemy', 'random'] as const, d.pk.target) },
@@ -227,6 +256,10 @@ export function splitBehaviors(weights: Partial<Record<BotBehavior, number>>, to
 export interface BotInfo {
   username: string;
   charId: string;
+  gender?: Gender;
+  gear?: BotTemplate['gear'];
+  templateTitle?: string;
+  horse?: string;
   name: string;
   faction: string;
   level: number;

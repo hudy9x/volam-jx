@@ -32,6 +32,8 @@ export class JxSprite {
   height = 0;
   /** Frames per direction of the pose drawn last (callers time one-shots with it). */
   frames = 1;
+  frame = 0;
+  action = '';
 
   constructor(private scene: Phaser.Scene, source: Source) {
     this.setSource(source);
@@ -90,6 +92,7 @@ export class JxSprite {
     const bodyFrames = pose.body.meta[4];
     this.frames = bodyFrames;
     const f = Math.max(0, Math.min(bodyFrames - 1, frame(bodyFrames)));
+    this.frame = f; this.action = key;
     let layers = pose.layers;
     if (layers.length > 1 && this.source.kind === 'look') {
       const order = drawOrder(this.source.look.sx, pose, dir, f);

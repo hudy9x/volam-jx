@@ -1,0 +1,60 @@
+# Công cụ bot độc lập
+
+Chạy game bằng `npm run dev`, rồi mở công cụ ở một cửa sổ lệnh khác:
+
+```bash
+npm run bots:ui
+```
+
+Mở **http://localhost:4568/**. Đây là app riêng, không có Vite/HMR và không tải Phaser. Reload/sửa game không reload trang công cụ. Đóng hoặc tải lại tab công cụ không dừng bot; dừng app `bots:ui` sẽ dừng các bot app này quản lý.
+
+## Chạy trực tiếp trên trang
+
+1. Tích chọn các tên ở **Chọn nhân vật**.
+2. Chọn **kịch bản** ở hàng thao tác ngay dưới bộ lọc.
+3. Bấm **Chạy kịch bản**. Bot vào lần lượt; bảng chuyển từ Đang chuẩn bị/Chờ vào game sang Online theo kết nối thực, cột Kịch bản hiện tên đang chạy.
+4. Tích chọn bot cần dừng và bấm **Dừng bot đã chọn**; những bot khác tiếp tục chạy.
+
+Hai thao tác chọn/chạy kịch bản chỉ mở khi có nhân vật được tích chọn. Một nhân vật không chạy hai lượt đồng thời. Bảng cập nhật trạng thái khoảng mỗi giây.
+
+## Mẫu có sẵn
+
+- `data/templates/cap-40-69.json`
+- `data/templates/cap-70-90.json`
+- `data/templates/cap-110-150.json`
+- `data/luyen-cong-30.json`: 30 tên đầu roster, 10 tên mỗi dải cấp; luyện công + chat + rao bán, tự nhận lời mời tổ đội, vào 3 bot/giây, chạy liên tục.
+
+Ở mục Kịch bản chạy, chọn mẫu **30 bot luyện công, chat và rao bán** để chọn sẵn đúng 30 tên. Sau đó chọn mẫu đó tại hàng thao tác của bảng và bấm Chạy kịch bản.
+
+Lần chạy đầu, mẫu 30 bot tự khởi tạo tài khoản còn thiếu theo ba template. Nhân vật đã tồn tại giữ nguyên tiến trình; muốn đổi cấp/đồ của họ thì dùng **Cập nhật thiết lập**. Các tên ngoài nhóm preset cần được thiết lập trước khi chạy.
+
+Cũng có thể chạy bằng lệnh:
+
+```bash
+npm run bots -- luyen-cong-30
+```
+
+Dừng lệnh bằng Ctrl+C. Lượt chạy từ terminal chạy riêng; bảng vẫn thấy trạng thái online từ game, nhưng nút Dừng chỉ điều khiển những lượt được mở bằng app.
+
+## Bản đồ và mua thuốc
+
+Bản đồ xuất hiện có ba lựa chọn: **Bãi luyện công**, **Thành thị**, **Bãi luyện công + Thành thị**. Mặc định chọn cả hai và toàn bộ bản đồ đã sinh; chọn lại danh sách trong Nâng cao. Đây là chỗ xuất hiện ban đầu, không chặn Auto về thành mua thuốc rồi quay lại bãi.
+
+## Vị trí mã và cấu hình
+
+```text
+server.ts / ConfigStore.ts / RunManager.ts  HTTP riêng, cấu hình, tiến trình bot
+ui/                                      giao diện và bộ chọn bản đồ
+run.ts / runner/                         chạy bot bằng lệnh hoặc từ trang
+ data/templates/                         template nhân vật
+ data/*.json                             kịch bản
+```
+
+Luật/dữ liệu chung vẫn ở `packages/shared/src/bots`; API tác động thế giới game ở `apps/server/src/dev/botAdmin.ts`. App dùng lại bộ dialog của game, nhưng đóng gói một lần khi khởi động nên sửa game không làm trang tự reload.
+
+- `BOTS_UI_PORT`: đổi cổng công cụ (mặc định4568).
+- `GAME_SERVER_URL`: máy chủ game (mặc định `http://localhost:2567`); cũng có thể dùng `?server=http://host:port`.
+- `BOTS_DIR`: đổi thư mục cấu hình cho cả app và runner; mặc định `tools/bots/data`.
+- `npm run test:bots`: kiểm tra roster, hoạt động xã hội, preset và config store.
+
+Công cụ phục vụ trên loopback cùng máy. Khi sửa mã công cụ, dừng rồi chạy lại `bots:ui` để nạp bản mới. Không cần dừng khi chỉ sửa/lưu các template.

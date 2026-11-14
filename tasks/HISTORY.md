@@ -2,11 +2,39 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Tài liệu cấu hình speed.ts / tuning.ts
+
+- USER yêu cầu lưu thông tin và link. Bổ sung speed.md§12: vị trí các khóa, nền100% còn ghi trực tiếp, ví dụ bonus79, phân biệt giảm nền với chỉnhFPS/referenceFrames, vận tốc chạy với nhịp chân, giới hạn/editor và kiểm chứng. AGENTS trỏ mục mới.
+- Đối chiếu mã hiện tại; chỉ sửa tài liệu, diff-check đạt. Không đổi công thức/commit/push; giữ thay đổi khác.
+
+## 2026-11-14 · Phân tích log USER tốc79
+
+- Đọc320mẫu/10s từ fileDownloads người dùng gửi. Ngoại79/nội75/chạy104 là thuộc tính cộng thêm, tổng179/175/204. Frame magic12ảnh/actionMs500; run11ảnh/moveScale2.
+- Đo median giữa đòn500ms;89bước frame chạy trong2,6998s→2,996855vòng/s. Render~31,885mẫu/s. Khớp cấu hình cho dữ liệu game này; chưa có loglab cùng điều kiện, không khẳng định mọi chênh lệch đã được giải thích. Chưa sửa code/commit.
+
+## 2026-11-14 · Thêm log frame theo yêu cầu USER
+
+- USER nhấn mạnh số79 không giống lab, yêu cầu log trong game. Ghi nhận chưa xác minh trường hợp này; không quy chắc chắn về đơn vị.
+- Nút dev Ghi frame10giây xuấtJSON frame thực PaperDoll, thời gian, vị trí, animSeq, duration/rate, ctl/ngựa, attributes và mốc. Không token. Typecheck đạt; chưa kiểm tải thật, không commit/push.
+
+## 2026-11-14 · Đổi phím Trang bị và Thuộc tính C → N
+
+- USER báo C bị trùng, yêu cầu N. Đổi KEYS.char.code/label ở input/keymap.ts; nhãn HUD và shortcutHelp tự cập nhật. Xác minh N chưa được dùng trong bảng phím.
+- Cập nhật AGENTS, architecture, hướng dẫn speed.md và GP6: N→Thử tốc độ. Không đổi thao tác cảm ứng/nút chức năng. Kiểm tra typecheck và diff-check; không commit/push, giữ thay đổi khác. HEADf9ccdd8/main.
+
+## 2026-11-14 · GP6 — đối chiếu game thật và trang thử cùng bộ chỉ số
+
+- USER phản ánh lệch cả đánh/chạy. Điều tra trực tiếp vì repo chưa có GitNexus index (đã kiểm danh sách); HEADf9ccdd8/main khớp điểm dừng.
+- Xác minh phép so sánh khác đơn vị: C đánh125/90 là cộng thêm, tương ứng tổng225/190%; C chạy20điểm không phải20%. Chưa có số cụ thể từ tài khoản người dùng nên không kết luận mọi chênh lệch chỉ vì đơn vị.
+- Thêm hàm chung totalSpeedPercents, tooltip C tổng/mốc/ms và nút dev C→Thử tốc độ. Snapshot URL không có token, gồm ngoại/nội/chạy sau bùa/chậm, phái/chiêu/cấp/giới/ngựa; lab tự chọn tốc phù hợp chiêu và giữ chiêu chung khi chỉnh tay. Ô nhập ghi tổng%; nhóm Chiêu từ nhân vật hỗ trợ chiêu ngoài bảng phái. Không đổi SPEED/tốc nền/tick.
+- Typecheck/4test/build đạt; test quy đổi/slow/cap và URL hợp lệ/lỗi. Chromium game đầy đủ từDBriêng và WebSocket2568/Vite5174, bấm nút thật mở lab: mẫu+125/+90/chạy20điểm chuyển225/190/200%, skill14; ActorView game/lab cùng3vòng/s và400ms/đòn, không pageerror. Script/ảnh /tmp/jx-speed-parity. Chưa thử native wrapper.
+- Cập nhật docs/formulas/speed.md§11, AGENTS và tasks. Không commit/push phần mới; giữ mọi thay đổi Bot/Tống Kim/KN14 khác; không sửa DB/server chính.
+
 ## 2026-11-14 · Commit GP6 và lưu chỉ dẫn cấu hình cho AI
 
 - USER yêu cầu commit phần tốc độ và lưu vị trí cài đặt để AI ở phiên sau tự tìm đúng file.
 - Chỉ dẫn cố định tại AGENTS.md §6 và docs/formulas/speed.md §10.1: `packages/shared/src/formulas/tuning.ts` → `SPEED`, bảng ánh xạ khóa chỉnh sàn/trần/mốc/FPS/frame tham chiếu/quãng đường. Phân biệt chỉnh game lâu dài với cấu hình tạm ở `?skills`; không sinh thêm bảng tốc riêng ở client/server.
-- Commit `feat: add configurable speed phases and skill lab controls` (hash xem git log); không push. Chỉ stage phần GP6, giữ nguyên và không đưa Bot/KN14/Tống Kim đang có vào commit.
+- Commit `f9ccdd8` (`feat: add configurable speed phases and skill lab controls`) trên nhánh thực tế `main`, khác hướng dẫn nhánh trong AGENTS; không tự đổi nhánh, không push. Chỉ stage phần GP6, giữ nguyên và không đưa Bot/KN14/Tống Kim đang có vào commit.
 - Kiểm chứng typecheck,3test tốc độ,build đã đạt; các kiểm tra Chromium/WebSocket/màn nhỏ ghi ở speed.md§10.4. Không kiểm wrapper native thật.
 
 ## 2026-11-14 · GP6 — áp dụng bảng mốc volamidle, chuẩn hóa hoạt ảnh và trang thử tốc
@@ -24,6 +52,27 @@ Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm
 - Đọc config/runtime/render bridge volamidle HEAD7f8aa64, gọi resolveSpeed xác nhận chọn mốc/trần: chạy chuẩn8frame, đánh20frame; tổng25–300%, các FPS đã lưu speed.md§9. Phân biệt tổng100%=+0%, FPS tham chiếu và FPS ảnh theo số frame sheet.
 - So sánh bản hiện tại: chạy18FPSảnh×rate chưa trần/chưa chuẩn hóa; ngựa10frame tổng200%36FPS vs volamidle30FPSảnh. Đánh hiện30FPSảnh và server530/600ms, phần sửa đánh vẫn chờ. SHXT xác minh18/18/14/12frame cấu hình; chưa có bảng mốc tương đương được kiểm chứng. Chỉ mục volamidle chậm1commit và có lỗi ký tự nên kết luận dùng nguồn trực tiếp.
 - Bổ sung docs/formulas/speed.md§9 và tasks. Commit nền460930c; không sửa gameplay/commit/push, giữ các thay đổi khác.
+
+## 2026-11-14 · Tách tài liệu Hoa Sơn và giới hạn phạm vi KN14
+
+- USER yêu cầu tài liệu riêng chỉ về phân biệt tuyến Hoa Sơn, sửa Gợi ý cộng điểm và mô tả ở bảng Kỹ năng; sẽ tự tạo session riêng. Session hiện tại chỉ điều tra/xử lý hỗ trợ chiêu80/120/150.
+- Tạo `docs/huashan-skill-routes.md`: hiện trạng xác minh, ví dụ tái hiện, danh sách phân nhóm cần đối chiếu, đề xuất metadata tuyến, Gợi ý kỹ năng/tiềm năng, mô tả các chiêu cùng icon, file liên quan và nghiệm thu ba nền tảng. Phân biệt dữ liệu đã xác minh với phương án CHỌN; chưa chốt tỷ lệ tiềm năng mới hay danh sách chiêu dùng chung.
+- Giới hạn KN15 vào tuyến/Gợi ý/mô tả; không gộp triển khai khí trường, cân bằng, thục luyện hoặc đổi bảng học. Giữ lịch sử nghiên cứu trước làm nguồn, không coi đề xuất mở rộng cũ là phạm vi được duyệt.
+- Cập nhật KN14 thành hỗ trợ80/120/150 (dữ liệu/mapping, thực chiến, tooltip), loại khỏi phạm vi hiện tại việc buff đường cong150, đổi độc, tên lỗi mã và candetonate. Cần điều tra riêng chiêu120, không giả định mọi chiêu120 đều là sát thương nhận addskilldamage.
+- Commit nền `460930c`; chỉ sửa tài liệu/tasks, không code gameplay, không tạo session hộ, không commit/push. Kiểm tra liên kết nội bộ/tên file và git diff --check.
+
+## 2026-11-14 · Điều tra Hoa Sơn: icon lặp, tuyến võ công và Gợi ý cộng điểm (KN15)
+
+- USER hỏi xác nhận KN14 chưa triển khai, yêu cầu kiểm tra thêm icon lặp và gợi ý Hoa Sơn sai tuyến. KN14 vẫn chưa triển khai. Commit hiện tại `460930c`, khớp CURRENT mới nhất; giữ nguyên các thay đổi GP6/Tống Kim đang có. Lượt này chỉ cập nhật tasks, không sửa code/generator/asset, không commit/push.
+- Kiểm tra bằng script tsx tạm, registry/shared functions thật + bảng PAK thắng ưu tiên + Lua Hoa Sơn rời; không chạy gameplay/trình duyệt. GitNexus nguồn `Client_VLTK_SHXT` index2026-11-02/commit unknown/không có flows, query chỉ trả file; repo project chưa có index nên kết luận dựa source và chạy hàm hiện tại.
+- **Icon:** learnableSkills(huashan) có28 ID,21 icon,7 nhóm trùng:1347/1348,1351/1352,1376/1377,1355/1357,1381/1384,1363/1364,1368/1369. Từng nhóm đều có cùng SkillIcon trong bảng PAK, không phải bằng chứng lỗi hash/generator. Không thay icon tùy ý hoặc xóa chiêu chỉ vì trùng hình.
+- **Bảng học dựng tay:** HUASHAN_LEARN trong tools/data/huashan.ts liệt kê cả chiêu trực tiếp và thành phần/kích hoạt. Quan hệ đã xác minh:1351 start→1352;1376 start→1377;1364 start→1420 (cùng Lua duoming_lianhuan với1363);1369 start→1421 (cùng Lua jiujian_heyi với1368). 1348/1357 chứa reduceskillcd, không phải bản sao sát thương dù dùng cùng icon với1347/1355. Chưa có bảng học gốc đủ rõ để chốt bỏ ID nào; ReqLevel + hình giống không chứng minh nên học riêng hay ẩn.
+- **Nguyên nhân Gợi ý:** characters/suggest.ts CATALOG không có huashan; skillRoutes fallback duy nhất all/Tất cả kỹ năng gồm24 chiêu points, trộn Kiếm Tông/Khí Tông. guessRoute không thể nhận hai tuyến. planSkills chia đều dần theo cấp thấp nhất; server applySuggestion dùng đúng cùng plan, nên sai tác động lên điểm thật sau khi bấm Đồng ý, không chỉ preview. Bot setup dùng suggest cũng ảnh hưởng.
+- **Tái hiện hàm:** nhân vật60,20 chiêu được mở bình thường (bỏ tầng bí kíp90/120/150), Thanh Phong Tống Sảng1372=20, còn lại0,50 điểm dư: plan vẫn chia sang19 kỹ năng gồm1347+4,1349+3,1350+3,1351+3... thay vì nhận diện Khí Tông. planPotential vẫn trả Sức mạnh65%,Thân pháp5%,Sinh khí30%,Nội công0%; code chỉ cần ANY skill trong route là ngoại công để chọn tỷ lệ này, kể cả người đã dồn điểm vào1372.
+- **Trộn tuyến còn nguy hiểm hơn lãng phí điểm:** Kiếm Tông Tổng Quyết1349 có manareplenish_v=-10000 ngay cấp1; passiveBag nhận và players.regen cộng nó×2/giây vào nội lực. Do đó đưa1349 vào gợi ý Khí Tông có thể làm mất nội lực dù người dùng theo tuyến cần nội lực. Đây là đối chiếu luồng mã/giá trị thật, chưa tái hiện nhân vật trong game.
+- **Cơ chế Hoa Sơn chưa đủ:** reduceskillcd1/2 đã sinh ở1348/1357 nhưng không có consumer ngoài generated data; manatoskill_enhance1379, manamax_yan_p1374, damage2addmana_p1375, rangedamagereturnmana_p1378, candetonate cũng chưa có consumer tương ứng trong runtime đã rà. Chỉ thêm tuyến chưa làm các chiêu này hoạt động đúng. Mô tả dịch tay1381 nói kích nổ nhưng mapping thực tế new_wuji là chỉ số bảo vệ/hồi phục; cần rà tên/mô tả với bản dữ liệu thật, không tin mô tả hiện tại để phân tuyến.
+- **Tiến trình lệch:**1363 cấp90 và1368 cấp150 mang IsExpSkill nhưng Lua tương ứng không có skill_skillexp_v; skillGrowth fallback thành points, còn1364/1369 thành practice. Gợi ý all vì thế nhận cả1368; phải rà entry học/cấp thục luyện trước khi chốt tuyến (liên quan KN4/KN14).
+- Hướng đề xuất (chưa USER duyệt triển khai): mô hình rõ Kiếm Tông/Khí Tông + loại ngoại/nội công riêng, danh sách shared sau khi xác minh; tách entry học với chiêu nội bộ, liên kết cấp cha/con rõ; giữ icon nguồn và bố trí hàng tuyến ổn định dưới cột cấp; Gợi ý có ưu tiên chiêu chính/hỗ trợ phù hợp và tỷ lệ tiềm năng riêng sau khi công thức hoạt động đủ. Không suy tuyến từ vũ khí vì cả hai dùng kiếm, không gộp icon theo URL. Shared plan áp dụng Web/Desktop/Mobile; bảng kỹ năng cần xem mô tả bằng chạm trên mobile.
 
 ## 2026-11-14 · GP6 — sửa nhịp hoạt ảnh chạy / cưỡi theo tốc di chuyển
 
@@ -738,3 +787,106 @@ Người dùng yêu cầu commit trạng thái hiện tại. Commit `fix(server)
 - Phát hiện: BACKLOG ghi 18 Hoàn nhưng danh mục đủ 26 = 20 Hoàn + 3 hiệu lệnh + 3 bẫy; nhiều dẫn chiếu dòng magicscript sai (Chiến Cổ thực tế dòng158, Kháng Đơn Chi Giác216; các dẫn chiếu bẫy cần phân biệt bao sự kiện với món dùng trực tiếp); đường dẫn formulas/stats.ts không tồn tại (hiện có character.ts/combat.ts).
 - Cần bổ sung trước triển khai: vòng đời/trận độc lập theo phân tầng; lịch mở, giới hạn và cân bằng phe; quyền vào/ra mọi đường chuyển map + Auto/respawn/token; tách score/rank/tk_merit, cấp/trừ điểm một lần và lưu bền; cấu hình spawn/AI/NPC theo tầng và tọa độ nav; thứ tự công thức và buff khi chết/rời/reconnect; stack Item + giao dịch nguyên tử; tiêu chí nghiệm thu Web/Desktop/Mobile. Luật drop120s/chỉ killer khác quyết định chung60s/killer+tổ đội phải ghi rõ ngoại lệ/chờ duyệt.
 - Chưa sửa tài liệu thiết kế/code, không commit/push; chỉ ghi điểm dừng theo quy ước tasks. Các đề xuất review chưa là quyết định USER.
+
+## Tống Kim chuyển chuẩn VLTK-SHXT — 2026-11-14
+
+- USER: lấy cơ chế SHXT làm chuẩn, ngoại lệ lịch mở tùy lúc; tối đa1trận/tầng trên toàn server; chỉ cao cấp trước, sơ/trung cùng cơ chế/bộ lọc cấp để sau; bắt buộc điểm báo danh và sảnh chờ. Chưa yêu cầu code gameplay.
+- Đã viết lại `docs/tong-kim-battlefield.md`, lập sổ nguồn PAK `docs/research/tong-kim-shxt-sources.md`, giữ thiết kế volamidle cũ ở `docs/research/tong-kim-volamidle-legacy.md` (không áp dụng). Cập nhật AGENTS và SK1 sang nghiên cứu một phần.
+- Xác minh PAK: cấp40–59/60–89/từ90; map báo danh323/324/325; Giới Kiều384/385/386 theo tầng, Bình nguyên326/327/328. Map44 chưa đủ liên kết để coi là cao cấp SHXT. Tuyến bắt buộc báo danh→sảnh chờ→Hậu doanh→Đại doanh→chiến đấu; vị trí NPC và chi tiết sảnh chờ còn thiếu. Đề xuất325+328 chưa phải USER chốt địa hình.
+- Có18Hoàn178–195, thêm Ngoại Độc; Binh Sĩ Hiệu Phù triệu hồi2lính; lệnh bẫy393–397 dùng skill gốc và50lượt; skill661 máu/kháng theo cấp trạng thái. Bỏ mặc địnhvolamidle20phút/hồi sinh tăng dần/26món/nhân buff0–20%; thiếu nguồn cho điều phối, điểm/thưởng và thời lượng.
+- Đã tra tên và hash PAK nhưng chưa thấy battlehead/battleinfo và các tên điều phối thử; không kết luận đã đủ luật server. Nguồn chính thức web khác năm/nhánh chỉ ghi tham chiếu. Không dùng dữ liệu Miễn Phí/CTC tự thay SHXT.
+- Tool gen-maps hiện khử trùng .wor theoIDđầu, cần hỗ trợ maplogic325/328 dùng chungảnh323/326 khi triển khai; chưa chạygen/sửaasset.
+- Commit hiện tại460930c (khác ghi chúreviewtrướcbb9ae2e). Giữ nguyên thay đổi nghiên cứu tốc độ/KN14 đang có từ công việc khác. Chỉ thay tài liệu/tracking, không code/gameplay/clientgốc, không commit/push. Kiểm tra liên kết nội bộ và diff --check trước kết thúc.
+
+## Đề xuất gameplay Tống Kim đủ vòng chơi — 2026-11-14
+
+- USER cho phép tự thiết kế phần thiếu nguồn, rồi người dùng duyệt trước triển khai. Mục tiêu: PK, danh hiệu, dùng vật phẩm, Nguyên soái nhiều kỹ năng mạnh. Không tự viết code trong lượt này.
+- Đã tạo `docs/tong-kim-gameplay-proposal.md`, cập nhật tài liệu chính/AGENTS/SK1 để phân biệt DATA và CHỌN; thiếu script SHXT không còn là chặn thiết kế. Đề xuất chưa phải phê duyệt thực hiện.
+- Phương án: Bảo vệ Nguyên Soái; map325 có báo danh/sảnh chờ, map328 chiến đấu; từ90; 32người/phe, chênh tối đa2 khi nhận người mới; phí3000lượng. Báo danh10phút + chuẩn bị1phút + đánh60phút + kết thúc2phút, soái xuất hiện phút30; giờ mở tùy đặt.
+- Quân trạng/assist/điểm phe/tích lũy tách riêng; quân hàm0/1000/3000/6000/10000, +20–60%HP và0–20điểm kháng theo ánh xạCHỌN skill661. Hồi sinh10giây, bảo vệ5giây; giữ điểm và buffQuânNhu còn hạn. Thắng ưu tiên soái còn sống rồi điểmphe/PK/hòa, không kết thúc ngay khi soái chết.
+- 27món chiến đấu=18Hoàn+3hiệu lệnh+HiệuPhù+5lệnh bẫy; thêm ChiêuThư thành28định nghĩa. Có giá/nguồn nhận, điểm khởi đầu1000mộtlần/nhânvật, giới hạn stack/charges/summon/trap, luật tương tác/tiêu hao và thưởng cuối trận rõ. Các nhóm đồ phụ/Cờ/đổiEXP/tuần để sau.
+- Hai soáiHP6triệu,6nhómchiêu,3phase, tầm giữdoanh/cảnhbáo/AI và tiêu chí cân bằng đội6–10người150hạ3–5phút. Đây là chỉ số ban đầu phải đo khi làm, không khẳng định đã chạy cân bằng. Registry hiện có357/359/361/362/375 và5skillbẫy, thiếu491/492/510/661/433; phải bổ sung qua generator/pack, không sửagen.ts.
+- Commit nền460930c lúc kiểm tra. Có thay đổi GP6/hoạtảnh di chuyển đồng thời từ công việc khác; giữ nguyên. Chỉ sửa docs/tracking cho task này, chưa code/gameplay/gen/commit/push. Kiểm tra liên kết, số lượng/mốc và diff --check cho tài liệu liên quan.
+
+## Đánh giá sẵn sàng triển khai Tống Kim — 2026-11-14
+
+- Người dùng hỏi đã đủ điều kiện triển khai chưa; đây là đánh giá sẵn sàng, chưa phải lệnh viết code.
+- Kết luận: đủ thiết kế/phạm vi để bắt đầu bản cao cấp theo `docs/tong-kim-gameplay-proposal.md`; thiếu script SHXT đã được xử lý bằng phương án CHỌN theo ủy quyền thiết kế. Không cần tiếp tục chờ nguồn cũ.
+- Các việc gen/map logic/skill chiến trường còn thiếu/stack và charges/AI soái là hạng mục triển khai đã biết, không phải điều kiện bắt người dùng bổ sung. HP/damage/nhịp soái, cân bằng và tải32v32 phải đo khi thực hiện; chưa khẳng định đã đạt. Web là nơi kiểm chứng đầu, Desktop/Mobile dùng chung luật và cần kiểm chứng điều khiển/chạy native riêng.
+- Commit nền460930c, giữ nguyên thay đổi GP6/Hoa Sơn/công việc khác. Vẫn chờ USER duyệt thực hiện, không code/gen/commit/push trong lượt này.
+
+
+## 2026-11-14 · Khảo sát đơn giản hóa bot và danh sách 200 nhân vật
+
+- USER muốn cấu hình bớt rối; 200 tên cố định kèm giới/phái, chọn từ danh sách. Chỉ điều tra, chưa sửa mã hoặc DB.
+- Đọc BotPanel, shared/bots, botAdmin và runner: tên hiện sinh theo prefix/số; reset giữ tên nhưng tính lại phái/giới theo mẫu và thứ tự chọn; scenario/login chỉ prefix/count.
+- Đề xuất danh tính cố định theo ID, hệ suy ra từ phái; chọn tên cụ thể và lưu ID trong kịch bản; tách mẫu cấp/đồ khỏi danh tính, thu gọn tùy chọn nâng cao. Chờ duyệt hướng và danh sách tên.
+- Commit nền460930c khớp CURRENT. Không commit/push; giữ thay đổi có sẵn.
+
+
+## 2026-11-14 · BT10 triển khai roster200 và giao diện bot
+
+- USER duyệt: tự chọn 200 tên, cố định giới/phái, chọn tên cấu hình; input thống nhất, command hiển thị trên trang.
+- Thêm `packages/shared/src/bots/roster.ts`: 200 tên kiếm hiệp độc nhất, ID botfixed_001–200, phân đều11phái, giới hợp lệ; hệ theo phái. Không tạo tài khoản thật tự động.
+- BotPanel: danh sách tên chủ đạo, tìm không dấu/lọc phái-giới-trạng thái/chọn kết quả lọc/bỏ chọn; hai phần mẫu và scenario, nâng cao thu gọn, chỉ hiện tùy chọn hoạt động đang dùng; CSS scoped thống nhất40px, responsive, không thêm dependency.
+- Scenario lưu ID cụ thể; API login giữ đúng danh sách/thứ tự (không lấy thêm theo prefix/count). Rỗng/chưa tạo trả lỗi; legacy khi thiếu usernames vẫn chạy. Command có copy, thay đổi selection/config phải lưu lại.
+- API tạo preflight xung đột, không sinh hậu tố hoặc tạo trùng, không sửa tài khoản có sẵn; reset roster khóa identity theo ID, giữ charId. Giữ bot cũ và schema legacy; chỉ thao tác UserRecord.bot.
+- Kiểm: `npx tsx tests/bot-roster.test.ts`, `npm run typecheck`, `npm run build`, `git diff --check` đạt; build còn warning chunk lớn có sẵn. API200 tạo/reset đảo thứ tự giữ tên/giới/phái/charId; exact selection override count; Chromium1440px/390px tạo18 Nga My, filter/save/dirty command/reset, không page error hoặc tràn trang. Runner2bot4giây, setup120 thực sự áp dụng.
+- Server thử2568/DB và scenario riêng `/tmp/jx-bot-roster/`; tái dùng Vite5174 đang có (không dừng). Ảnh desktop.png/mobile.png cùng thư mục. Hướng dẫn/docs đã cập nhật. Chưa thử wrapper native. Không sửa DB thật, không commit/push; giữ thay đổi công việc song song.
+
+
+## 2026-11-14 · BT10 form thiết lập nhân vật theo đề nghị USER
+
+- USER yêu cầu select template chia nhóm, readonly review, cấp theo3dải, xanh/gold, ngựa random mạnh theo cấp, chọn danh sách bãi/thành có preview, tự học tiers đủ cấp, bỏ giới chỉ/tạo/nạp, Cập nhật và Lưu Thiết lập tách biệt, ID đăng nhập.
+- BotPanel/SetupDialogs: template tự tải có title, custom mở form; chuyển custom giữ thông số đang review. Save dialog bắt buộc tên, filename slug, hỏi ghi đè nếu trùng; không thay nhân vật. Cập nhật gọi API mới cho toàn bộ ID chọn; bảng hiển thị cấp/trang bị/ngựa/bản đồ/templateTitle. Hai nút cùng hàng.
+- API configure preflight fixed identities, chỉ3band/green-gold/training-town/map đã sinh; upsert offline, giữ charId/password tài khoản cũ, online skip. Lựa chọn map rỗng bị lỗi, không tự fallback. Các API legacy vẫn giữ để tương thích.
+- Map modal qua kit/dialog: danh sách cuộn/tìm/chọn-all/clear, minimap assetUrl, OK/Hủy/Esc; mode change mặc định all map đã sinh đúng nhóm. Map chọn thực sự là map xuất hiện, không tự bestTrainingMap khi đã có danh sách.
+- Shared thêm BOT_LEVEL_BANDS/botHorsePool/botMapIds/title và metadata BotInfo. Ngựa cao110+ speedPct không thấp hơn max eligible quá10 (CHỌN). BotSetup xanh dùng đồ smith đủ cấp/giới/phái/hệ, loại vũ khí/trang phục từ starterEquipment, forgeChoices/forgedMagic không trùng + seriesPlan; bag→gợi ý→equipItem. Gold và useToken skills giữ kiểm điều kiện gốc; ring=false cho flow mới.
+- Kiểm chứng: typecheck, build, diff-check, tests/bot-roster.test.ts đạt. Chromium1440×1050/390×844: default3band/tiercheck, bulk upsert2bot, IDlogin, townall2map/previewảnhthật/chọn37, save-only không đổiAPIrows, template readonly/custom, gold update/commandcopy/Esc; không pageerror hoặc tràn ngang trang.
+- WebSocket thật DB riêng: 3phái Thiếu Lâm/Nga My/Võ Đang, 3band, mỗi bot mặc10ô xanh; đủ cấp cưỡi; toàn bộ tier skills khớp levelCap (không học vượt). Thử gold110–150: mặc5món bộ môn phái, không có Càn Khôn Giới Chỉ; ngựa mạnh hợp lệ, skills đúngcap. Online configure bỏ qua đúngID.
+- Hướng dẫn docs/bots-guide.md và docs/bots.md cập nhật. DB/scenario/screenshots `/tmp/jx-bot-config-v2*`; script test tạm `/tmp/jx-bot-config-v2-test.cjs`, engine.ts/gold.ts. Không động DB thật/asset, không commit/push. HEADf9ccdd8 main khớp CURRENT; giữ thay đổi GP6/KN14/Tống Kim.
+
+
+## 2026-11-14 · BT10 vũ khí xanh hút kép tối đa, thuốc kép, giải thích scenario
+
+- USER yêu cầu bỏ bản đồ lặp dưới Ngựa/Bản đồ xuất hiện, vũ khí xanh bắt buộc hútSL+NL max option, ưu tiên Ngũ Hoa Ngọc Lộ Hoàn, giải thích ghi chú/server/vào game/thời lượng/seed.
+- Bỏ map summary/picker chính, chỉ giữ dialog chọn map tại Nâng cao. Thêm checkbox bắt buộc readonly vũ khí; helper botGreenLines đặt hai prefix0/2 theo magicRange max toàn bảng (10% mỗi loại), luôn hoạt động. Các dòng còn lại theo forgeChoices và không trùng. Ngoại lệ USER chỉ cho bot, không đổi chế tạo thường/công thức.
+- Default Ngũ Hoa Ngọc Lộ Hoàn potion-2-5 (5000SL+5000NL), mỗi nguồn50 tổng100bình. Nhóm dual được ưu tiên trên select, có mô tả cộng chung, không thay template cũ có giá trị explicit. AutoPlay tự mua không sửa trong vòng này.
+- Scenario có hints cho5input; tốc vào khác tổngbot, duration tính từ khởi động lệnh, seed không đảm bảo replay chiến đấu. Hướng dẫn đã cập nhật.
+- Typecheck/build/diff đạt; tests/bot-roster.test.ts kiểm mọi melee/range hàng smith qua5hệ: đủ2maxprefixkhôngẩn/khôngtrùng/≤6dòng; defaultdual5000mỗi chỉ số. Chromium1440/390 chỉ1picker, checkboxlocked, default50mỗi/dual, update và hints, không pageerror. WS3bot ở49/70/142 mặc10ô xanh, weapon10%+10%alwaysactive, đủ100dualpotions, ngựa và tier skillcaps hợp lệ.
+- DB/scenario riêng `/tmp/jx-bot-options`, ảnhdesktop.png/mobile.png và script browser/engine trong/tmp. Giữ server chính, không DB thật, không commit/push; HEADf9ccdd8main khớp CURRENT.
+
+
+## 2026-11-14 · Kịch bản liên tục,3–5bot/giây, hoạt động grind/chat/sell
+
+- USER duyệt đơn giản hóa scenario theo template nhân vật, chạy liên tục không thời lượng; chỉLuyện công/Chat/Rao bán, tự nhận tổ đội, chỉchat/rao khi nhặt đồ>5dòng hoặcẩnhiếm/lớn. Bổ sung nối tiếp USER: vào lần lượt3–5bot/giây.
+- UI template tự tải readonly/custom, Save dialog hỏi tên, codecopy; seed/duration/modeweights/PK/dạo/crowd bỏ khỏi UI. Ba activity đồng thời; chat là tin loot, sell thay bằng1tinrao, không idlechat. Advanced3/4/5join/s(default3),server,note,reconnect.
+- Shared activities/title; normalizer épduration0/join3..5; runner bỏtimer/shuffle/legacybehaviors, dùngGrind hoặc vòngchờ + socialupdate; Ctrl+C/SIGTERM dừng mọibot, xử lý cảconnectđangchờ.
+- S2C.inventory thêm pickedUpoptional từ thành công groundpickup; Simmetadata gửi1lần/xóa, khônglưu. BotClienttổđội qua lời mời và C2Saccept có cờ grind+autoAcceptTeam.
+- Classifier dựa magiclines>5 hoặchiddenrow hợp lệ rareweight≤1200 (CHỌN) hay absvalue≥90%max (CHỌN); gold theo maxdòngfixed. Queue20pending/2000seen, chỉđồcòntúi, 60s/bot+5s/runner, message≤120; noinitial/buy/forge/rejoin spam. Chưa tự giao dịch/địnhgiá.
+- Tests: bot-social+roster đạt; Chromium1440/390 noerrors, chỉ3activity/nooldfields, teamtoggle, requiredname,readonly/custom,save/copy,join3default/3options. APIincoming999→5,duration1→0. WS3bot thật: autoacceptON vàOFF, inventoryinitialkhôngrao, unwear→throw→pickup→chínhxác1tinWorld, khônglặp. Runner thật3bot mốc809/1135/1462ms (≈333ms cách),file rawduration1 vẫn chạy>3s; Ctrl+C tấtcảoffline.
+- Build vàdiff-check đạt. Typecheck banđầu của bot qua; lầncuối gặp lỗi SkillLabScene number→literal10 + character unusedmoveFactor do côngviệc GP6song song, không sửa file đó. Đã chạy lại cuối vòng: typecheck toàn repo đạt, không còn lỗi. DB/scenario/tmp/jx-bot-social; ảnhdesktop/mobile, testscript/browser/network/runnerở/tmp. Không DBthật,khôngcommit/push,HEADf9ccdd8/main.
+
+- Kết thúc vòng scenario: đã dừng server/Vite thử2568/5174 do phiên này mở, không đụng server chính. Kiểm tra cuối typecheck/diff-check đạt; build trước đó đạt. USER nhắc continue trong lúc hoàn tất, không thay đổi phạm vi đã duyệt.
+
+
+## 2026-11-14 · tools/bots độc lập, spawnboth, preset30 và chạy trên bảng
+
+- USER: cho spawncảthành+bãi; chuyểnapp tools/bots tránhreloadgame; tạo3templateband40–69/70–90/110–150 vàscenario30bot3/sliêntục. Steering tiếp: bảngchọnnhânvậtcó chọn/chạy kịchbản chỉkhichecktên,hiệnOnlinevàtênscript.
+- Di chuyển toàn UI/runner/data từ clientdev/serverdev/rootbots sang tools/bots; APIgamevàsharedrulesởđúnglayer. App Node/esbuildbundle1lần: khôngVite/HMR/watcher, staticassetsreadguard, ConfigStoreCRUD/mapsriêng; game?botsredirect4568. Rootbots scriptchạytools/run.ts, bots:ui mở4568; legacyworkspacealiasgiữ, typecheckthêmtools vàesbuilddirectpinđúngbảncó.
+- `both` groupunionthành/bãi, defaultboth; lựa chọnspawnkhôngchặnAutovềthànhmua thuốc. 3presettemplate cap-* đều xanh/tiercheck/ringfalse/ngựarandom/dualpotions/both; luyen-cong-30 chọnID001–030,initialSetup3nhóm10tựkhởi tạoaccountthiếu,batch3,khôngresetaccountđãcó.
+- RunManagerforknoShell/IPC: POSTstart/stop, GETstatus; servervalidatefixedIDs/scenariofile/online/runningduplicates vàOrigin/size. Startoverridechínhxáccheckbox,khôngsửaJSONpreset. Status500ms/parent UIpoll1s→Online+tênscenario; stopriêngnhânvật,cảtrongprepare; chốngasyncstoprace,nênngườikháckhôngbịdừng. Appclosecleanupchildren; reload/đóngtabkhôngstop.
+- Kiểm: typecheck, test:bots6checks,build,diffđạt. Unitbothunion/preset30exact10each/ConfigStoretitle/path/RunManagerguards + roster/socialcũ. Chromium1500/390: mixedmappreview,readonly3templates,checkboxgate,start2IDkhácband,actualOnline+scenario,stopsubsetđểngườicònlạionline,noHMR,khôngpageerror/tràn. ThửreloadUItrongkhibotrunvẫnOnline,stopduringpreparechỉ1ID,invalid/cross-originreject.
+- Thực tếđủ30botsOnline,mỗiband10,trênserver2568DB/tmp/jx-bots-tool; dừngtoànbộvàverifycleanup. KhôngDBthật,khôngcommit/push; HEAD897f9ec/mainkhớpCURRENT. Ảnhdesktop/mobile+scriptstestsở/tmp/jx-bots-tool. Bảo toànthayđổiboss/speed/assetssongsong. App4568giữmởđểUSERdùng; chỉdừngtest2568/4570.
+
+- Cuối vòng: xác minh app4568 không có bot thật đang chạy trước khi khởi động lại bản công cụ mới; giữ app4568 mở với targetgame2567. Đã dừng hai server thử2568/4570, không dừng game chính. Thử bổ sung stoptrongprepare/reloadUI/crossOrigin đều đạt. Không tự chạy30bot trên DB thật.
+
+
+## 2026-11-14 · Commit checkpoint bot theo yêu cầu USER
+
+- Người dùng yêu cầu tạm commit để lưu điểm dừng. Commit riêng bot/UI/runner/preset/roster/protocol pickup, không gom mã Boss, asset, tốc độ, Tống Kim và nghiên cứu đang làm ở các phiên khác. Không push.
+- Kiểm bản index độc lập với các thay đổi chưa stage trước khi commit; ghi kết quả và mã commit ở CURRENT.
+
+- Kiểm index độc lập phát hiện HEAD nền thiếu speedSample/frameTrace và phần khai báo PaperDoll/ActorState đi kèm. Stage đúng4phụthuộc này để checkpoint build được; không lấy keymap, asset hay thay đổi Boss.
+
+- Bản index độc lập `/tmp/jx-bot-commit-mlsjaoa9`: typecheck, bot6checks, speed4checks, clientbuild đều đạt (assetảnh không nằm trong snapshot, giữ runtime URLs theo thiết kế). Checkpoint title `feat(bots): ship standalone bot tools and continuous scenarios`; mã thực tế xem git log. Không push; phần còn lại không stage.

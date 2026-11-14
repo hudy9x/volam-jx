@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { Application, NextFunction, Request, Response } from 'express';
 import {
-  BOT_CREATE_MAX, BOT_FILE_RE, FACTIONS, FACTION_IDS, LEVEL, MAPS, PROGRESS_VERSION, SERIES, TOWN_MAP_ID, bestTrainingMap,
+  BOT_LEVEL_BANDS, botMapIds, BOT_IDENTITIES, BOT_CREATE_MAX, BOT_FILE_RE, FACTIONS, FACTION_IDS, MAPS, PROGRESS_VERSION, SERIES, TOWN_MAP_ID, bestTrainingMap,
   factionAllowsGender, newProgress, normalizeBotScenario, normalizeBotTemplate, snapToMap,
   type BotInfo, type BotLogin, type BotTemplate, type Element, type Gender,
 } from '@vltk/shared';
@@ -26,12 +26,67 @@ export function registerBotRoutes(app: Application): void {
     res.status(403).json({ error: 'API bot chỉ nhận yêu cầu từ máy chạy server (đặt BOT_API_REMOTE=1 để mở cho mạng LAN).' });
   };
 
+  app.get('/api/dev/bots/maps', local, (_req, res) => { res.json(Object.keys(MAPS).map(Number).filter(id => fs.existsSync(path.join(MAPS_DIR, String(id), 'nav.json')))); });
+
   app.get('/api/dev/bots', local, (_req, res) => {
     res.json(botUsers().map(info).filter((b): b is BotInfo => !!b));
   });
 
+  // One action for the fixed roster: initialise unused identities or reconfigure existing offline characters.
+  app.post('/api/dev/bots/configure', local, (req, res) => {
+    const ids = Array.isArray(req.body?.usernames) ? [...new Set(req.body.usernames)] as string[] : [];
+    if (!ids.length || ids.some(id => !BOT_IDENTITIES.has(id))) { res.status(400).json({ error: 'Chọn nhân vật trong danh sách 200 tên.' }); return; }
+    const t = normalizeBotTemplate(req.body?.template);
+    if (!BOT_LEVEL_BANDS.some(([lo, hi]) => t.level[0] === lo && t.level[1] === hi)) { res.status(400).json({ error: 'Chọn dải cấp 40–69, 70–90 hoặc 110–150.' }); return; }
+    if (!['green', 'gold'].includes(t.gear) || !['training', 'town', 'both'].includes(t.map.mode)) { res.status(400).json({ error: 'Kiểm tra trang bị và loại bản đồ.' }); return; }
+    const allowed = botMapIds(t.map.mode as 'training' | 'town' | 'both').filter(id => fs.existsSync(path.join(MAPS_DIR, String(id), 'nav.json')));
+    const requestedMaps: unknown[] = Array.isArray(req.body?.template?.map?.maps) ? req.body.template.map.maps : [];
+    t.map.maps = [...new Set(requestedMaps.filter((id): id is number => typeof id === 'number' && allowed.includes(id)))];
+    if (!t.map.maps.length) { res.status(400).json({ error: 'Chọn ít nhất một bản đồ đã được sinh thuộc loại xuất hiện.' }); return; }
+    t.ring = false; t.horse = 'random';
+    for (const id of ids) {
+      const identity = BOT_IDENTITIES.get(id)!; const user = db.getUser(id);
+      if (user && (!user.bot || db.getCharacter(user.characters[0] ?? '')?.name !== identity.name) || !user && db.nameTaken(identity.name)) {
+        res.status(409).json({ error: `Tên hoặc tài khoản ${identity.name} đã được sử dụng.` }); return;
+      }
+    }
+    const updated: string[] = [], skipped: string[] = [];
+    for (const id of ids) {
+      const user = db.getUser(id); const old = user && db.getCharacter(user.characters[0] ?? '');
+      if (old && isOnline(old.id)) { skipped.push(id); continue; }
+      if (!user) db.addUser({ username: id, ...newPassword(t.password), characters: [], bot: true });
+      const fresh = botCharacter(id, BOT_IDENTITIES.get(id)!.name, t, templateName(req.body?.templateName), Number(id.split('_')[1]));
+      if (old) db.replaceCharacter({ ...fresh, id: old.id }); else db.addCharacter(fresh);
+      updated.push(id);
+    }
+    res.json({ updated, skipped });
+  });
+
   app.post('/api/dev/bots', local, (req, res) => {
     const t = normalizeBotTemplate(req.body?.template);
+    if (Array.isArray(req.body?.usernames)) {
+      const ids = [...new Set(req.body.usernames)] as string[];
+      if (!ids.length || ids.some(id => !BOT_IDENTITIES.has(id))) { res.status(400).json({ error: 'Chọn nhân vật trong danh sách cố định.' }); return; }
+      // Preflight every identity before writing any account; no suffixes or silent substitutions.
+      for (const id of ids) {
+        const identity = BOT_IDENTITIES.get(id)!;
+        const user = db.getUser(id);
+        if (user && (!user.bot || db.getCharacter(user.characters[0] ?? '')?.name !== identity.name)) {
+          res.status(409).json({ error: `Tài khoản ${id} đã được sử dụng.` }); return;
+        }
+        if (!user && db.nameTaken(identity.name)) { res.status(409).json({ error: `Tên ${identity.name} đã được sử dụng.` }); return; }
+      }
+      const created: string[] = [];
+      for (const id of ids) {
+        if (db.getUser(id)) continue;
+        const identity = BOT_IDENTITIES.get(id)!;
+        db.addUser({ username: id, ...newPassword(t.password), characters: [], bot: true });
+        db.addCharacter(botCharacter(id, identity.name, t, templateName(req.body?.templateName), Number(id.split('_')[1])));
+        created.push(id);
+      }
+      res.json({ created }); return;
+    }
+    if (t.prefix === 'botfixed') { res.status(400).json({ error: 'Tiền tố botfixed dành riêng cho danh sách nhân vật cố định. Hãy chọn tên để tạo.' }); return; }
     const count = Math.max(1, Math.min(BOT_CREATE_MAX, Math.floor(Number(req.body?.count) || 1)));
     const name = templateName(req.body?.templateName);
     let n = nextIndex(t.prefix);
@@ -77,20 +132,28 @@ export function registerBotRoutes(app: Application): void {
   app.post('/api/dev/bots/login', local, (req, res) => {
     const prefix = typeof req.body?.prefix === 'string' ? req.body.prefix : '';
     const count = Math.max(0, Math.floor(Number(req.body?.count) || 0));
+    const explicit = Array.isArray(req.body?.usernames) ? [...new Set(req.body.usernames)] as string[] : undefined;
+    if (explicit && (!explicit.length || explicit.some(id => typeof id !== 'string' || !db.getUser(id)?.bot || !db.getUser(id)?.characters.length))) {
+      res.status(400).json({ error: 'Danh sách đã chọn rỗng hoặc có bot chưa được tạo. Tạo các nhân vật đã chọn trước khi chạy.' }); return;
+    }
     const out: BotLogin[] = [];
-    for (const user of botUsers().filter(u => u.username.startsWith(`${prefix}_`))) {
+    for (const user of explicit ? explicit.map(id => db.getUser(id)!) : botUsers().filter(u => u.username.startsWith(`${prefix}_`))) {
       const char = db.getCharacter(user.characters[0] ?? '');
       if (char) out.push({ username: user.username, token: issueToken(user.username), charId: char.id, mapId: char.mapId });
     }
-    out.sort((a, b) => Number(isOnline(a.charId)) - Number(isOnline(b.charId)) || indexOf(a.username) - indexOf(b.username));
-    res.json(count ? out.slice(0, count) : out);
+    if (!explicit) out.sort((a, b) => Number(isOnline(a.charId)) - Number(isOnline(b.charId)) || indexOf(a.username) - indexOf(b.username));
+    res.json(!explicit && count ? out.slice(0, count) : out);
   });
 
   // ---- templates (bots/templates/<name>.json) and scenarios (bots/<name>.json) ----
   const dirOf = (kind: string) => (kind === 'templates' ? path.join(BOTS_DIR, 'templates') : kind === 'scenarios' ? BOTS_DIR : null);
   const list = (dir: string) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.json')).map(f => f.slice(0, -5)).sort() : []);
   app.get('/api/dev/bots/files', local, (_req, res) => {
-    res.json({ templates: list(dirOf('templates')!), scenarios: list(dirOf('scenarios')!), dir: BOTS_DIR });
+    const templates = list(dirOf('templates')!);
+    const titles = Object.fromEntries(templates.map(name => { try { const raw = JSON.parse(fs.readFileSync(path.join(dirOf('templates')!, `${name}.json`), 'utf8')); return [name, raw.title || name]; } catch { return [name, name]; } }));
+    const scenarios = list(dirOf('scenarios')!);
+    const scenarioTitles = Object.fromEntries(scenarios.map(name => { try { return [name, JSON.parse(fs.readFileSync(path.join(BOTS_DIR, `${name}.json`), 'utf8')).title || name]; } catch { return [name, name]; } }));
+    res.json({ templates, titles, scenarios, scenarioTitles, dir: BOTS_DIR });
   });
   app.get('/api/dev/bots/files/:kind/:name', local, (req, res) => {
     const dir = dirOf(String(req.params.kind)), name = String(req.params.name);
@@ -121,9 +184,9 @@ function info(user: { username: string; characters: string[] }): BotInfo | null 
   const c = db.getCharacter(user.characters[0] ?? '');
   if (!c) return null;
   return {
-    username: user.username, charId: c.id, name: c.name, faction: c.faction || c.bot?.faction || '',
+    username: user.username, charId: c.id, gender: c.gender, name: c.name, faction: c.faction || c.bot?.faction || '',
     level: c.bot?.pending ? c.bot.level : c.level, mapId: c.mapId, online: isOnline(c.id), template: c.bot?.template ?? '',
-    pending: !!c.bot?.pending,
+    pending: !!c.bot?.pending, gear: c.bot?.setup.gear, horse: c.bot?.pending ? c.bot.setup.horse : c.horse || c.bot?.setup.horse, templateTitle: c.bot?.setup.title || c.bot?.template,
   };
 }
 
@@ -150,7 +213,10 @@ function botCharacter(owner: string, name: string, t: BotTemplate, template: str
   const faction = t.faction === 'all' ? FACTION_IDS[n % FACTION_IDS.length] : t.faction;
   let gender: Gender = t.gender === 'mix' ? (n % 2 ? 'female' : 'male') : t.gender;
   if (faction && !factionAllowsGender(faction, gender)) gender = gender === 'male' ? 'female' : 'male';
-  const series: Element = faction ? FACTIONS[faction].element as Element : SERIES[n % SERIES.length];
+  const identity = BOT_IDENTITIES.get(owner);
+  if (identity) { gender = identity.gender; }
+  const fixedFaction = identity?.faction ?? faction;
+  const series: Element = fixedFaction ? FACTIONS[fixedFaction].element as Element : SERIES[n % SERIES.length];
   const mapId = placeMap(t, level, n);
   const entry = MAPS[mapId].raw.entry;
   const a = Math.random() * Math.PI * 2, r = Math.random() * t.map.radius;
@@ -158,14 +224,18 @@ function botCharacter(owner: string, name: string, t: BotTemplate, template: str
   return {
     id: randomUUID(), owner, name, faction: '', series, gender, level: 1, mapId, x, y,
     progress: newProgress(), progressVersion: PROGRESS_VERSION,
-    bot: { template, setup: t, level, faction: level >= LEVEL.factionJoin || t.faction ? faction : '', pending: true },
+    bot: { template, setup: t, level, faction: fixedFaction, pending: true },
   };
 }
 
 /** Map the bot appears on: town, the bãi luyện công of its level, or the n-th of the list; maps not generated here → town. */
 function placeMap(t: BotTemplate, level: number, n: number): number {
   const has = (id: number) => fs.existsSync(path.join(MAPS_DIR, String(id), 'nav.json'));
-  if (t.map.mode === 'training') return bestTrainingMap(trainingList(), level)?.mapId ?? TOWN_MAP_ID;
+  if (t.map.mode === 'training' || t.map.mode === 'town' || t.map.mode === 'both') {
+    const selected = t.map.maps.filter(id => has(id) && (t.map.mode === 'both' ? MAPS[id] : t.map.mode === 'town' ? MAPS[id]?.safe : MAPS[id] && !MAPS[id].safe));
+    if (selected.length) return selected[n % selected.length];
+    return t.map.mode === 'training' ? bestTrainingMap(trainingList(), level)?.mapId ?? TOWN_MAP_ID : TOWN_MAP_ID;
+  }
   if (t.map.mode === 'list') {
     const id = t.map.maps[n % t.map.maps.length];
     return id && has(id) ? id : TOWN_MAP_ID;

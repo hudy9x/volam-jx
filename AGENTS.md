@@ -44,7 +44,7 @@ thử cho trình duyệt desktop (chuột + bàn phím).
 | `npm run dev` | server `:2567` + client `:5173` |
 | `npm run typecheck` | `tsc` cho shared + server + client — chạy sau khi sửa code |
 | `npm run build` | build client |
-| `npm run bots -- <kịch bản>` | bot giả lập người chơi theo `bots/<kịch bản>.json` (soạn + tạo bot ở `/?bots`; **cách dùng `docs/bots-guide.md`**, thiết kế `docs/bots.md`); `npm run bots -- 4 60` = chế độ cũ thử nhanh; `PERF=1 npm run dev` in thời gian tick |
+| `npm run bots -- <kịch bản>` | bot giả lập theo `tools/bots/data/<kịch bản>.json` (UI riêng `npm run bots:ui`, localhost4568; **cách dùng `docs/bots-guide.md`**, thiết kế `docs/bots.md`); `npm run bots -- 4 60` = chế độ cũ thử nhanh; `PERF=1 npm run dev` in thời gian tick |
 | `npm run gen:assets -w @vltk/client` | nhân vật/quái/NPC/icon + `items.gen.ts`, `horses.gen.ts`, `monsters.gen.ts` (shared), `art/jx/data.gen.ts` |
 | `npm run gen:skills -w @vltk/client` | kỹ năng 11 phái (+ thất truyền, 3 kỹ năng chung) + hiệu ứng/icon (`*.gen.ts`, cả `core/magicdesc.gen.ts`) |
 | `npm run gen:maps -w @vltk/client -- 37 140` | bản đồ (bỏ id = tất cả ~300, ~16 GB, vài giờ) |
@@ -70,7 +70,7 @@ Chia theo chủ đề; `*.gen.ts` nằm cạnh file chỉnh tay cùng chủ đ�
 packages/shared/src/   luật + dữ liệu dùng chung (TS thuần, không Phaser/Colyseus/DOM)  ← chỉnh số liệu ở đây
   characters/ monsters/ npcs/ items/ status/ combat/ skills/ maps/(nav/) · protocol.ts geometry.ts
 packages/shared/spawns/ quái theo bản đồ (JSON; gen:spawns hoặc công cụ dev trên bản đồ lớn ghi)
-apps/server/src/       net/ (MapRoom, schema Actor) · account/ (auth, db) · dev/ (devtools, botAdmin = API bot, bots.ts + bots/ = runner)
+apps/server/src/       net/ (MapRoom, schema Actor) · account/ (auth, db) · dev/ (devtools, botAdmin = API bot, API chạy trong game; runner ở tools/bots)
                        world/ (World.ts = thứ tự tick · entity players commands inventory targeting · systems/ · ai/ quái + boss)
 apps/client/src/       app/ (luồng màn hình) · net/ · state/ · input/ (keymap) · platform/ · art/ (hình gốc dùng chung)
                        game/ (Phaser; ports.ts = hợp đồng với giao diện) · ui/ (kit/ tips/ screens/ hud/ windows/) · dev/
@@ -108,6 +108,8 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 8. Dữ liệu tài khoản ở `apps/server/data/db.json` (bị `.gitignore`); xóa file để reset.
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
+
+- **Công cụ bot độc lập (USER2026-11-14):** UI/runner/cấu hình ở `tools/bots`, mở `npm run bots:ui` → localhost4568, không Vite/HMR theo game. Game chỉ giữ API tác động thế giới, shared giữ luật. Bảng chọn nhân vật có chọn/chạy kịch bản theo checkbox, Online theo kết nối thật và cột tên kịch bản; dừng riêng ID qua IPC. Có3template40–69/70–90/110–150 và `luyen-cong-30` (10tên/dải,3bot/s,liên tục); initialSetup chỉ khởi tạo tài khoản thiếu, không reset tiến trình cũ. Spawn cho phép `both` thành+bãi; không chặn Auto về thành mua thuốc.
 
 - **Kịch bản bot (USER2026-11-14):** luôn chạy liên tục tớiCtrl+C, không duration; bot vào lần lượt3–5/giây(default3). UI chỉLuyện công/Chat/Rao bán đồng thời, template readonly hoặcTự cài đặt. Luyện công có auto nhận lời mời tổ đội. Chat/rao chỉ khi nhặt đất thành công: món>5dòng hoặcẩnhiếm/lớn; không tựrao inventorybanđầu/buy/forge/rejoin. Dùng `InventoryMsg.pickedUp` mộtlần, `bots/social.ts`/LootAnnouncer, chốnglặp vàcooldown. Không làm PK/dạo/crowd trong scenario mới, không tự giao dịch.
 
@@ -176,7 +178,7 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 - **Bot giả lập người chơi** (USER 2026-11-13, cách dùng `docs/bots-guide.md`, thiết kế `docs/bots.md`): tách khỏi phần đo hiệu năng. Tài khoản bot có cờ `UserRecord.bot`; API dev
   `/api/dev/bots` (`dev/botAdmin.ts`, cần `DEV_TOOLS`, chỉ nhận từ cùng máy trừ khi `BOT_API_REMOTE=1`) chỉ đụng tới tài khoản đó. Mẫu
   (`BotTemplate`) áp khi bot vào game lần đầu (`world/botSetup.ts`, dùng lại hàm lệnh bài / gợi ý cộng điểm, đừng viết lại); kịch bản
-  (`BotScenario`) ở `bots/<tên>.json`, mẫu ở `bots/templates/` (có vào git). Bot chạy được trên server dev + `db.json` thật (USER).
+  (`BotScenario`) ở `tools/bots/data/<tên>.json`, mẫu ở `tools/bots/data/templates/` (có vào git). Bot chạy được trên server dev + `db.json` thật (USER).
 - **Con trỏ chuột gốc**: `art/cursors.ts` đặt `--cur-*` (URL tuyệt đối); `ui/kit/theme.css` dùng `--cur-normal` cho cả trang, canvas
   đổi theo đối tượng dưới chuột (`WorldScene.setCursor`).
 - **Mọi cửa sổ dùng `ui/kit/dialog.ts`** (khung gốc, kéo thả, Esc đóng cửa sổ trên cùng, Esc khi trống = Hệ thống). Cửa sổ mới:
