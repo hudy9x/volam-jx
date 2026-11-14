@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản Trị Boss Hoàng Kim · Võ Lâm Truyền Kỳ 1</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="tool-page">
+  <!-- Thanh đầu trang cố định (Sticky Header) với nút Lưu Cài Đặt -->
+  <header class="topbar" id="page-top">
+    <div class="topbar-brand">
+
+      <div>
+        <h1>Quản lý Boss Hoàng Kim</h1>
+        <p class="subtitle">Chọn Boss, chỉnh cấu hình, lưu thiết lập rồi áp dụng vào game. Game dev có thể tự nạp lại khi lưu.</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="stat-pills" id="header-stats"></div>
+      <span id="save-status" class="save-status" role="status" aria-live="polite">Đang tải cấu hình…</span>
+      <button type="button" id="btn-reset" class="btn btn-ghost" disabled>Khôi phục bản đã lưu</button>
+      <button type="button" id="btn-save" class="btn btn-primary" disabled>Lưu thiết lập</button>
+      <button type="button" id="btn-apply" class="btn" disabled>Áp dụng vào game</button>
+    </div>
+  </header>
+
+  <nav class="tool-nav" aria-label="Đi tới nội dung"><a href="#boss-list-title">Danh sách Boss</a><a href="#global-settings-title">Lịch và vật phẩm rơi</a></nav>
+  <main class="container">
+    <!-- SECTION 2: DANH SÁCH BOSS HOÀNG KIM THEO HỆ PHÁI -->
+    <section class="panel boss-list-panel" aria-labelledby="boss-list-title">
+      <div class="panel-header spread">
+        <div>
+          <h2 id="boss-list-title">Danh sách Boss</h2>
+          <p class="muted">Bật hoặc tắt xuất hiện, chỉnh cấp, chọn vật phẩm rơi và vị trí cho từng Boss. Chỉnh sửa tạo bản nháp; Lưu ghi cấu hình, Áp dụng gửi bản đã lưu tới game.</p>
+        </div>
+        <div class="filter-bar">
+          <label>Tìm Boss
+          <input type="search" id="inp-search" placeholder="Tìm tên Boss, ID, bản đồ..." aria-label="Tìm tên Boss, ID hoặc bản đồ" />
+          </label><label>Loại Boss<select id="sel-tier" aria-label="Lọc theo cấp bậc Boss">
+            <option value="all">Tất cả loại Boss</option>
+            <option value="major">Đại Hoàng Kim</option>
+            <option value="newboss">Boss 10 Phái (Mới)</option>
+            <option value="minor">Tiểu Hoàng Kim</option>
+            <option value="special">Boss Đặc Biệt</option>
+          </select></label>
+        </div>
+      </div>
+
+      <!-- Tabs lọc theo 10 môn phái -->
+      <div class="faction-tabs" id="faction-tabs" role="group" aria-label="Lọc theo hệ phái"></div>
+
+      <!-- Bảng danh sách Boss theo từng phái -->
+      <p id="filter-count" class="muted" role="status"></p><div id="faction-sections"></div>
+    </section>
+    <!-- SECTION 1: CÀI ĐẶT CHUNG (GLOBAL SETTINGS) -->
+    <section class="panel global-panel" aria-labelledby="global-settings-title">
+      <div class="panel-header">
+        <h2 id="global-settings-title">Lịch xuất hiện và vật phẩm rơi</h2>
+        <span class="muted">Áp dụng chung cho toàn bộ Boss Hoàng Kim đang bật trong game</span>
+      </div>
+
+      <div class="global-grid">
+        <!-- Cột trái: Thời gian xuất hiện -->
+        <div class="setting-card">
+          <h3>Lịch xuất hiện</h3>
+          <div class="spawn-modes" role="radiogroup" aria-label="Chế độ thời gian xuất hiện">
+            <div class="mode-option" id="mode-card-continuous">
+              <input type="radio" id="mode-continuous" name="spawnMode" value="continuous" />
+              <div class="mode-body">
+                <label class="mode-title" for="mode-continuous">
+                  <strong>Hồi sinh liên tục</strong>
+                  <span class="badge badge-warn">Dùng thử nghiệm</span>
+                </label>
+                <p class="mode-desc">Boss xuất hiện ngay khi mở bản đồ; sau khi bị hạ gục sẽ tự động hồi sinh lại.</p>
+                <div class="mode-controls" id="controls-continuous">
+                  <label class="inline-field">
+                    <span>Thời gian tạo lại sau khi chết:</span>
+                    <input type="number" id="inp-continuous-sec" min="1" max="86400" step="1" value="10" />
+                    <span>giây (mặc định 10s)</span>
+                  </label>
+                  <div class="test-warning" role="note">
+                    <strong>Lưu ý:</strong> Chế độ hiển thị liên tục và hồi sinh sau 10s <strong>chỉ nên dùng khi test</strong>. Khi vận hành chính thức, hãy chuyển sang <em>Thời gian cố định</em> hoặc <em>Theo mốc phút mỗi giờ</em>.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mode-option" id="mode-card-fixed">
+              <input type="radio" id="mode-fixed" name="spawnMode" value="fixedTimes" />
+              <div class="mode-body">
+                <label class="mode-title" for="mode-fixed">
+                  <strong>Theo giờ trong ngày</strong>
+
+                </label>
+                <p class="mode-desc">Boss đồng loạt xuất hiện vào các khung giờ cố định (ví dụ: <code>08:30</code>, <code>12:00</code>, <code>19:30</code>, <code>22:15</code>).</p>
+                <div class="mode-controls" id="controls-fixed">
+                  <div class="chip-list" id="fixed-times-list"></div>
+                  <div class="add-row">
+                    <label class="search-field">Giờ xuất hiện<input type="time" id="inp-add-time" value="20:00" aria-label="Chọn giờ cố định" /></label>
+                    <button type="button" id="btn-add-time" class="btn btn-sm">+ Thêm giờ</button>
+                    <div class="preset-group">
+                      <span class="muted">Mẫu nhanh:</span>
+                      <button type="button" class="btn-chip" data-preset-time="08:30">+ 08:30</button>
+                      <button type="button" class="btn-chip" data-preset-time="12:30">+ 12:30</button>
+                      <button type="button" class="btn-chip" data-preset-time="19:30">+ 19:30</button>
+                      <button type="button" class="btn-chip" data-preset-time="22:15">+ 22:15</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mode-option" id="mode-card-hourly">
+              <input type="radio" id="mode-hourly" name="spawnMode" value="hourlyMinutes" />
+              <div class="mode-body">
+                <label class="mode-title" for="mode-hourly">
+                  <strong>Theo mốc phút mỗi giờ</strong>
+                  <span class="badge badge-blue">Chu kỳ mỗi giờ</span>
+                </label>
+                <p class="mode-desc">Chọn một hoặc nhiều mốc phút cố định (5p, 10p, 30p, 45p... — ví dụ: <code>7h05</code>, <code>7h10</code>, <code>7h30</code>, <code>7h45</code>, <code>8h05</code>...).</p>
+                <div class="mode-controls" id="controls-hourly">
+                  <div class="minute-presets" id="hourly-quick-toggles">
+                    <button type="button" class="minute-toggle" data-min="5">Phút :05 (5p)</button>
+                    <button type="button" class="minute-toggle" data-min="10">Phút :10 (10p)</button>
+                    <button type="button" class="minute-toggle" data-min="15">Phút :15 (15p)</button>
+                    <button type="button" class="minute-toggle" data-min="20">Phút :20 (20p)</button>
+                    <button type="button" class="minute-toggle" data-min="30">Phút :30 (30p)</button>
+                    <button type="button" class="minute-toggle" data-min="45">Phút :45 (45p)</button>
+                    <button type="button" class="minute-toggle" data-min="0">Đầu giờ :00</button>
+                  </div>
+                  <div class="chip-list" id="hourly-minutes-list"></div>
+                  <div class="add-row">
+                    <label class="search-field">Phút trong giờ<input type="number" id="inp-add-minute" min="0" max="59" step="1" placeholder="Phút (0–59)" aria-label="Nhập số phút trong giờ" /></label>
+                    <button type="button" id="btn-add-minute" class="btn btn-sm">+ Thêm mốc phút</button>
+                  </div>
+                  <p class="preview-schedule" id="hourly-preview"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột phải: Tỉ lệ rơi đồ & Số lượng tung ra -->
+        <div class="setting-card">
+          <h3>Vật phẩm rơi</h3>
+          <p class="card-sub">Cấu hình số lần tung vật phẩm khi Boss chết và tỉ lệ % rơi ra của 3 nhóm: <strong>Trang bị Xanh</strong>, <strong>Vật phẩm Đặc biệt</strong> và <strong>Trang bị Hoàng Kim</strong>.</p>
+
+          <div class="drop-form">
+            <div class="drop-field">
+              <label for="inp-drop-rolls">
+                <strong>Số lần quay bảng rơi mỗi Boss</strong>
+                <span class="muted">Mỗi lần quay có thể nhận một món hoặc không nhận món nào.</span>
+              </label>
+              <div class="number-with-unit">
+                <input type="number" id="inp-drop-rolls" min="1" max="100" step="1" value="12" />
+                <span>lần tung / Boss</span>
+              </div>
+            </div>
+
+            <div class="rate-sliders">
+              <div class="rate-row rate-blue">
+                <div class="rate-head">
+                  <label for="inp-rate-blue">
+                    <span class="dot dot-blue"></span>
+                    <strong>Tỉ lệ rơi Trang bị Xanh (%)</strong>
+                  </label>
+                  <div class="number-with-unit">
+                    <input type="number" id="inp-rate-blue" min="0" max="100" step="0.1" value="70" />
+                    <span>% / lần tung</span>
+                  </div>
+                </div>
+                <input type="range" id="rng-rate-blue" min="0" max="100" step="0.1" value="70" aria-label="Thanh trượt tỉ lệ rơi trang bị xanh" />
+                <small class="muted">Vũ khí, áo, nón, nhẫn, dây chuyền, hộ uyển... cấp cao có dòng thuộc tính xanh (tăng may mắn +3).</small>
+              </div>
+
+              <div class="rate-row rate-special">
+                <div class="rate-head">
+                  <label for="inp-rate-special">
+                    <span class="dot dot-special"></span>
+                    <strong>Tỉ lệ rơi Vật phẩm Đặc biệt (%)</strong>
+                  </label>
+                  <div class="number-with-unit">
+                    <input type="number" id="inp-rate-special" min="0" max="100" step="0.1" value="22" />
+                    <span>% / lần tung</span>
+                  </div>
+                </div>
+                <input type="range" id="rng-rate-special" min="0" max="100" step="0.1" value="22" aria-label="Thanh trượt tỉ lệ rơi vật phẩm đặc biệt" />
+                <small class="muted">Bí kíp 90 / 120 / 150, Đại Thành Bí Kíp 90 / 120 / 150, Ngũ Hoa Ngọc Lộ Hoàn, Cửu Chuyển Hoàn Hồn Đan...</small>
+              </div>
+
+              <div class="rate-row rate-gold">
+                <div class="rate-head">
+                  <label for="inp-rate-gold">
+                    <span class="dot dot-gold"></span>
+                    <strong>Tỉ lệ rơi Trang bị Hoàng Kim (%)</strong>
+                  </label>
+                  <div class="number-with-unit">
+                    <input type="number" id="inp-rate-gold" min="0" max="100" step="0.1" value="8" />
+                    <span>% / lần tung</span>
+                  </div>
+                </div>
+                <input type="range" id="rng-rate-gold" min="0" max="100" step="0.1" value="8" aria-label="Thanh trượt tỉ lệ rơi trang bị hoàng kim" />
+                <small class="muted">Quay ngẫu nhiên trong danh sách <strong>Trang bị Hoàng Kim</strong> đã gắn riêng cho từng Boss ở bảng bên dưới.</small>
+              </div>
+            </div>
+
+            <!-- Thanh tỉ lệ trực quan -->
+            <div class="rate-bar-wrap">
+              <div class="rate-bar" id="rate-bar">
+                <div class="bar-seg seg-blue" id="bar-blue" style="width: 70%"></div>
+                <div class="bar-seg seg-special" id="bar-special" style="width: 22%"></div>
+                <div class="bar-seg seg-gold" id="bar-gold" style="width: 8%"></div>
+              </div>
+              <div class="rate-summary" id="rate-summary"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <a href="#page-top" class="back-to-save">Về thanh lưu và áp dụng</a>
+  </main>
+
+  <!-- DIALOG 1: CHỌN TRANG BỊ HOÀNG KIM THEO NHÓM MÔN PHÁI -->
+  <dialog id="dlg-gold" closedby="any" aria-labelledby="dlg-gold-title">
+    <div class="dlg-inner">
+      <header class="dlg-head">
+        <div>
+          <h2 id="dlg-gold-title">Chọn Trang Bị Hoàng Kim Rơi Ra</h2>
+          <p id="dlg-gold-sub" class="muted"></p>
+        </div>
+        <button type="button" class="btn-close" id="btn-close-gold" aria-label="Đóng hộp thoại">✕</button>
+      </header>
+
+      <div class="dlg-toolbar">
+        <div class="faction-Selector" id="gold-faction-tabs"></div>
+        <div class="dlg-search-row">
+          <label class="search-field">Tìm trang bị<input type="search" id="inp-gold-search" placeholder="Tìm tên trang bị Hoàng Kim hoặc mã gold-..." aria-label="Tìm trang bị Hoàng Kim" /></label>
+          <button type="button" id="btn-gold-select-faction" class="btn btn-sm">Chọn trang bị chưa gắn trong kết quả lọc</button>
+          <button type="button" id="btn-gold-clear-boss" class="btn btn-sm btn-ghost">Bỏ toàn bộ lựa chọn</button>
+        </div>
+      </div>
+
+      <div class="dlg-body gold-suites-body" id="gold-suites-container"></div>
+
+      <footer class="dlg-foot">
+        <span id="dlg-gold-count" class="muted"></span>
+        <div class="dlg-foot-btns">
+          <button type="button" id="btn-cancel-gold" class="btn btn-ghost">Hủy</button>
+          <button type="button" id="btn-apply-gold" class="btn btn-primary">Xác nhận lựa chọn</button>
+        </div>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- DIALOG 2: CHỌN BẢN ĐỒ & TỌA ĐỘ TRÊN MINIMAP -->
+  <dialog id="dlg-map" closedby="any" aria-labelledby="dlg-map-title">
+    <div class="dlg-inner dlg-map-inner">
+      <header class="dlg-head">
+        <div>
+          <h2 id="dlg-map-title">Chọn Bản Đồ &amp; Vị Trí Xuất Hiện Trên Bản Đồ Mini</h2>
+          <p id="dlg-map-sub" class="muted">Click trực tiếp lên Bản đồ Mini để đặt vị trí xuất hiện chính xác (tự động bắt vào ô đi được)</p>
+        </div>
+        <button type="button" class="btn-close" id="btn-close-map" aria-label="Đóng hộp thoại">✕</button>
+      </header>
+
+      <div class="map-picker-layout">
+        <!-- Cột trái: Danh sách bản đồ -->
+        <aside class="map-list-pane">
+          <label class="search-field">Tìm bản đồ<input type="search" id="inp-map-search" placeholder="Tìm tên hoặc ID bản đồ..." aria-label="Tìm bản đồ" /></label>
+          <div class="map-items" id="map-picker-list"></div>
+        </aside>
+
+        <!-- Cột phải: Canvas Bản đồ Mini -->
+        <div class="minimap-pane">
+          <div class="minimap-toolbar">
+            <span id="minimap-info" class="minimap-title"></span>
+            <div class="coord-inputs">
+              <label>X (px): <input type="number" id="inp-pick-x" min="0" step="1" /></label>
+              <label>Y (px): <input type="number" id="inp-pick-y" min="0" step="1" /></label>
+              <span id="minimap-tile-coord" class="badge badge-gold"></span>
+            </div>
+          </div>
+          <div class="minimap-canvas-wrap" id="minimap-canvas-wrap">
+            <canvas id="minimap-canvas"></canvas>
+          </div>
+          <div class="minimap-legend">
+            <span><i class="legend-dot dot-current"></i> Vị trí Boss đang chọn (Click lên ảnh để đổi)</span>
+            <span><i class="legend-dot dot-other"></i> Boss Hoàng Kim khác trên cùng bản đồ</span>
+            <span><i class="legend-dot dot-entry"></i> Điểm vào bản đồ / Cổng</span>
+            <span id="minimap-hover-pos" class="muted"></span>
+          </div>
+        </div>
+      </div>
+
+      <footer class="dlg-foot">
+        <span id="dlg-map-summary" class="muted"></span>
+        <div class="dlg-foot-btns">
+          <button type="button" id="btn-cancel-map" class="btn btn-ghost">Hủy</button>
+          <button type="button" id="btn-apply-map" class="btn btn-primary">Xác nhận vị trí</button>
+        </div>
+      </footer>
+    </div>
+  </dialog>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

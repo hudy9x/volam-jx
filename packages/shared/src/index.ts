@@ -18,3 +18,4 @@ export * from './formulas/index.js';
 export * from './drops/index.js';
 export * from './auto/index.js';
 export * from './bots/index.js';
+export * from './bosses/index.js';

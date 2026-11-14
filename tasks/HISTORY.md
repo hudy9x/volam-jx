@@ -2,6 +2,21 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Commit tool Boss theo yêu cầu USER
+
+- Commit `feat(boss-tool): improve golden boss administration UX` (hash xem git log -1): tools/boss cùng ảnh preview, npm script, shared/bosses và export cần thiết để tool chạy sau checkout; tracking liên quan. Tool ban đầu chưa được track nên đưa kèm nền cấu hình hiện có, không chỉ file UI chỉnh trong vòng review.
+- Kiểm bản index độc lập ở `/tmp/jx-boss-commit-check`: typecheck toàn repo, tsc riêng tool và bootstrap44Boss/dialog bundle đạt; diff staged sạch.
+- Không đưa các thay đổi tích hợp gameplay monsters/spawner/drops/combat/devtools, asset generator, keymap, tài liệu kiến trúc hoặc nghiên cứu Tống Kim vào commit. API áp dụng vào game cần route reload từ phần tích hợp chưa commit; UI báo lỗi nếu server không có route. Không push.
+
+## 2026-11-14 · Review và cải thiện UI/UX tool Boss Hoàng Kim
+
+- USER yêu cầu review rồi sửa giao diện tool theo guideline. Đọc guideline toàn bộ, tools/AGENTS, code tool và dialog chung; tool trước đó chưa có README. HEAD38645fb đúng checkpoint guideline; giữ mọi thay đổi Boss/gameplay và công việc khác, không commit/push.
+- Đổi bố cục danh sách trước cấu hình, thêm điều hướng nhanh; bỏ gradient/emoji trang trí, dùng token và control/focus chuẩn; bảng cuộn riêng, số kết quả/empty state, trạng thái bật-tắt có chữ, danh sách đồ rơi mở rộng để dòng gọn. Form chỉ hiện chế độ lịch đang chọn; label và vùng bấm cho viewport cảm ứng.
+- Thay native dialog bằng adapter bundle component ui/kit/dialog.ts, không nạp game/Phaser. Có kéo, Esc, trap/restore focus, nền inert; Hủy bỏ chỉnh sửa tạm; phản hồi snap cũ hoặc xác nhận đang chờ bị hủy không sửa Boss. Chọn trang bị hàng loạt đúng các mục đang hiển thị, khóa món đã gắn vẫn đọc được.
+- Không tự clamp giá trị sai; chặn cấp/thời gian/tổng tỉ lệ không hợp lệ ở UI/API. Snap thiếu nav trả lỗi thay vì báo vị trí hợp lệ. Asset game dùng manifest. API Lưu chỉ ghi config, API Áp dụng riêng có trạng thái phản hồi/khóa trùng409; lỗi giữ bản nháp. UI và README giải thích game dev watcher có thể tự reload file ngay sau Lưu, không hứa cô lập cấu hình với watcher. Server tool chỉ nghe loopback, không mở LAN.
+- Chromium thật1440×1000 và390×844: 44 Boss, tìm/lọc/rỗng, draft/reset, cancel/Esc/focus/Tab, bulk theo bộ lọc, chế độ lịch, input sai, footer dialog không cắt và không tràn ngang trang. Kiểm lỗi bootstrap/save/apply, hủy snap đang chờ, duplicate apply409. PUT hợp lệ giả lập ở browser và upstream reload giả ở2599; API invalid/duplicate thật, không ghi config thật/gọi game thật; hash config.ts/json giữ nguyên. Ảnh/script tại /tmp/jx-boss-ui/; đã xem ảnh render.
+- npm run typecheck, tsc riêng tools/boss/server.ts, node --check app/dialogs, npm run build đạt; build có cảnh báo chunk lớn có sẵn. Web desktop + mobile viewport đã kiểm; không khẳng định native/điện thoại thật, tool loopback không truy cập từ điện thoại khác máy. README mới ghi cách chạy, lưu/áp dụng và giới hạn. Không thay công thức/asset/gameplay.
+
 ## 2026-11-14 · Tài liệu cấu hình speed.ts / tuning.ts
 
 - USER yêu cầu lưu thông tin và link. Bổ sung speed.md§12: vị trí các khóa, nền100% còn ghi trực tiếp, ví dụ bonus79, phân biệt giảm nền với chỉnhFPS/referenceFrames, vận tốc chạy với nhịp chân, giới hạn/editor và kiểm chứng. AGENTS trỏ mục mới.
