@@ -1,7 +1,19 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { Application } from 'express';
-import { MAPS, MONSTERS, formatSpawnFile, setSpawns, spawnFileError, spawnsOf, type SpawnFile } from '@vltk/shared';
+import {
+  MAPS,
+  MONSTERS,
+  formatSpawnFile,
+  setGoldenBossConfig,
+  setSpawns,
+  spawnFileError,
+  spawnsOf,
+  syncGoldenBossMonsters,
+  validateGoldenBossConfig,
+  type GoldenBossConfig,
+  type SpawnFile,
+} from '@vltk/shared';
 import { requireAuth, type AuthedRequest } from '../account/auth.js';
 import { LIVE_WORLDS } from '../net/MapRoom.js';
 import { devTools } from '../env.js';
@@ -48,5 +60,15 @@ export function registerDevRoutes(app: Application, spawnsDir: string): void {
     if (world) reloadSpawns(world);
     console.log(`[dev] ${req.username} saved spawns of map ${id}: ${file.zones.length} zones`);
     res.json(file);
+  });
+  app.post('/api/dev/bosses/reload', (req, res) => {
+    const cfg = req.body as GoldenBossConfig;
+    const err = validateGoldenBossConfig(cfg);
+    if (err) { res.status(400).json({ error: err }); return; }
+    setGoldenBossConfig(cfg);
+    syncGoldenBossMonsters(cfg);
+    for (const world of LIVE_WORLDS.values()) reloadSpawns(world);
+    console.log(`[dev] reloaded Golden Boss config (${cfg.bosses.filter(b => b.enabled).length} enabled bosses)`);
+    res.json({ ok: true });
   });
 }

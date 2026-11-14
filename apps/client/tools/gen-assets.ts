@@ -46,6 +46,7 @@ import { resolveAny } from './jx/hashindex.ts';
 import { VERIFIED_MAX, readMagicAttribNames } from './jx/magicattr.ts';
 import { decodeSpr, unionBox, type Spr } from './jx/spr.ts';
 import { GEN_GOLD } from '../../../packages/shared/src/items/gold.gen.ts';
+import { GOLDEN_BOSS_CONFIG } from '../../../packages/shared/src/bosses/config.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT = path.resolve(HERE, '..');
@@ -524,8 +525,12 @@ if (fs.existsSync(SPAWN_DIR)) {
   }
 }
 
-/** NPC res name -> what the game uses it for: town NPCs, the hand-made monsters, everything in a spawn file. */
-const NPC_RES = [...new Set(['ani049', 'ani052', 'ani056', 'ani061', 'passerby004_1', 'passerby040_1', 'passerby037_1', 'passerby007', 'passerby023', 'enemy178', ...spawnRes])];
+/** NPC res name -> what the game uses it for: town NPCs, the hand-made monsters, Golden Bosses, everything in a spawn file. */
+const NPC_RES = [...new Set([
+  'ani049', 'ani052', 'ani056', 'ani061', 'passerby004_1', 'passerby040_1', 'passerby037_1', 'passerby007', 'passerby023', 'enemy178',
+  ...GOLDEN_BOSS_CONFIG.bosses.map(b => b.sprite),
+  ...spawnRes,
+])];
 const NPC_KEYS = { FightStand: 'stand', NormalStand1: 'idle', FightRun: 'run', Wound: 'wound', Die: 'die', Attack1: 'attack1', Magic: 'magic' } as const;
 const npcTable = readTable('\\settings\\npcres\\普通npc资源.txt');
 const npcs: Record<string, Partial<Record<(typeof NPC_KEYS)[keyof typeof NPC_KEYS], string>>> = {};

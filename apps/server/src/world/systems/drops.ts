@@ -1,5 +1,18 @@
 import {
-  DROPS, addToBag, createGold, createItem, dropTableFor, isoDistance, itemDef, nearestWalkable, rollItem, rollMagicLines, rollMoney, type Item,
+  DROPS,
+  addToBag,
+  createGold,
+  createItem,
+  dropTableFor,
+  getGoldenBossConfig,
+  isoDistance,
+  itemDef,
+  nearestWalkable,
+  rollGoldenBossItem,
+  rollItem,
+  rollMagicLines,
+  rollMoney,
+  type Item,
 } from '@vltk/shared';
 import { Ground } from '../../net/schema.js';
 import type { Sim } from '../entity.js';
@@ -35,14 +48,17 @@ export function dropLoot(w: World, monster: Sim, killer: Sim | undefined): void 
   const t = (tier >= 2 ? dropTableFor(level, monster.def?.dropTable) : undefined) ?? levelTable;
   if (!t) return;
   const luck = killer.stats?.luck ?? 5;
-  const rolls = tier >= 2 ? DROPS.bossRolls : tier === 1 ? DROPS.blueBossRolls : DROPS.rolls;
+  const bossSettings = getGoldenBossConfig().settings;
+  const rolls = tier >= 2 ? Math.max(1, bossSettings.dropRolls || DROPS.bossRolls) : tier === 1 ? DROPS.blueBossRolls : DROPS.rolls;
   const out: { item: Item | null; money: number }[] = [];
   for (let i = 0; i < rolls; i++) {
-    let def = rollItem(t, level, Math.random);
-    if (!def && t !== levelTable && levelTable) def = rollItem(levelTable, level, Math.random);
+    let def = tier >= 2 && monster.def
+      ? rollGoldenBossItem(monster.def.id, level, Math.random)
+      : rollItem(t, level, Math.random);
+    if (!def && tier < 2 && t !== levelTable && levelTable) def = rollItem(levelTable, level, Math.random);
     if (!def) continue;
     const item = def.gold ? createGold(def, newItemUid(), luck) : createItem(def, newItemUid());
-    if ((t.magic || levelTable?.magic) && !def.gold) {
+    if ((t.magic || levelTable?.magic || tier >= 2) && !def.gold && !def.stack && def.kind !== 'potion') {
       const series = Math.floor(Math.random() * 5);
       const lines = rollMagicLines(def, series, luck + (tier >= 2 ? 3 : tier === 1 ? 1 : 0), Math.random);
       if (lines.length) { item.q = 1; item.magic = lines; item.series = series; }

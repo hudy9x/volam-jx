@@ -1,58 +1,96 @@
-import { DROPS, MONSTERS, bossTierOf, canStandAt, getSkill, isoDistance, maxLevelOf, monsterAt, mulberry32, nearestWalkable, spawnsOf, type Point } from '@vltk/shared';
+import {
+  DROPS,
+  MONSTERS,
+  bossTierOf,
+  canStandAt,
+  getGoldenBossConfig,
+  getSkill,
+  goldenBossesForMap,
+  isoDistance,
+  maxLevelOf,
+  monsterAt,
+  mulberry32,
+  nearestWalkable,
+  nextGoldenBossSpawnDelayMs,
+  spawnsOf,
+  type Point,
+} from '@vltk/shared';
 import { Actor } from '../../net/schema.js';
 import { BASIC_ATTACK, makeSim } from '../entity.js';
 import { refreshMonsterCombat } from './effects.js';
 import type { World } from '../World.js';
 
-// Monster slots from packages/shared/spawns/<map>.json (zones around a point, random camps, fixed spots):
-// spawn each slot's monster, respawn it some time after it dies. Numbers by level: shared monsters/scaling.ts.
+// Monster slots from packages/shared/spawns/<map>.json (zones around a point, random camps, fixed spots)
+// + Golden Boss slots from packages/shared/src/bosses/config.ts (tools/boss).
 
 export function createSpawnSlots(w: World): void {
   const file = spawnsOf(w.meta.id);
-  if (!file) return;
-  const rng = mulberry32((w.meta.id * 7919) ^ Date.now());
-  const avoid: Point[] = [w.meta.raw.entry, ...w.meta.portals, ...w.meta.portals.map(p => ({ x: p.toX, y: p.toY }))];
   const g = w.grid;
   const known = (id: number) => !!MONSTERS[id];
-  for (const f of file.fixed ?? []) {
-    if (!known(f.monster)) continue;
-    const [x, y] = nearestWalkable(g, f.x, f.y);
-    w.slots.push({ monsterId: f.monster, level: f.level, x, y, respawnMs: 3000, respawnAt: 0, simId: null, boss: 0, fixed: true });
-  }
-  const camps: Point[] = [];
-  const randomCamp = (): Point | null => {
-    for (let tries = 0; tries < 20000; tries++) {
-      const cell = Math.floor(rng() * g.gw * g.gh);
-      if (!g.ok[cell]) continue;
-      const x = (cell % g.gw + 0.5) * g.cw, y = (Math.floor(cell / g.gw) + 0.5) * g.ch;
-      if (!canStandAt(g, x, y)) continue;
-      if (camps.some(c => isoDistance(c.x, c.y, x, y) < 380)) continue;
-      if (avoid.some(c => isoDistance(c.x, c.y, x, y) < 450)) continue;
-      camps.push({ x, y });
-      return { x, y };
+  if (file) {
+    const rng = mulberry32((w.meta.id * 7919) ^ Date.now());
+    const avoid: Point[] = [w.meta.raw.entry, ...w.meta.portals, ...w.meta.portals.map(p => ({ x: p.toX, y: p.toY }))];
+    for (const f of file.fixed ?? []) {
+      if (!known(f.monster)) continue;
+      const [x, y] = nearestWalkable(g, f.x, f.y);
+      w.slots.push({ monsterId: f.monster, level: f.level, x, y, respawnMs: 3000, respawnAt: 0, simId: null, boss: 0, fixed: true });
     }
-    return null;
-  };
-  for (const z of file.zones) {
-    const monsters = z.monsters.filter(([id]) => known(id));
-    if (!monsters.length) continue;
-    const centres = z.x !== undefined && z.y !== undefined ? [{ x: z.x, y: z.y }]
-      : Array.from({ length: Math.max(1, z.camps ?? 1) }, randomCamp).filter((c): c is Point => !!c);
-    const r = z.r ?? 120;
-    for (const c of centres) {
-      for (let i = 0; i < z.count; i++) {
-        const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * r;
-        const [x, y] = nearestWalkable(g, c.x + Math.cos(a) * d, c.y + Math.sin(a) * d * 0.5);
-        const [monsterId, level] = monsters[Math.floor(rng() * monsters.length)];
-        const zoneTier = bossTierOf(z.boss);
-        const defTier = bossTierOf(MONSTERS[monsterId].boss);
-        const boss: 0 | 1 | 2 = zoneTier || defTier;
-        w.slots.push({
-          monsterId, level, x, y, respawnMs: z.respawn * 1000, respawnAt: boss >= 2 ? w.now + 5000 : 0, simId: null,
-          boss, fixed: false,
-        });
+    const camps: Point[] = [];
+    const randomCamp = (): Point | null => {
+      for (let tries = 0; tries < 20000; tries++) {
+        const cell = Math.floor(rng() * g.gw * g.gh);
+        if (!g.ok[cell]) continue;
+        const x = (cell % g.gw + 0.5) * g.cw, y = (Math.floor(cell / g.gw) + 0.5) * g.ch;
+        if (!canStandAt(g, x, y)) continue;
+        if (camps.some(c => isoDistance(c.x, c.y, x, y) < 380)) continue;
+        if (avoid.some(c => isoDistance(c.x, c.y, x, y) < 450)) continue;
+        camps.push({ x, y });
+        return { x, y };
+      }
+      return null;
+    };
+    for (const z of file.zones) {
+      // Golden Bosses (boss === 2) are now managed centrally via packages/shared/src/bosses/config.ts
+      const zoneTier = bossTierOf(z.boss);
+      if (zoneTier >= 2) continue;
+      const monsters = z.monsters.filter(([id]) => known(id));
+      if (!monsters.length) continue;
+      const centres = z.x !== undefined && z.y !== undefined ? [{ x: z.x, y: z.y }]
+        : Array.from({ length: Math.max(1, z.camps ?? 1) }, randomCamp).filter((c): c is Point => !!c);
+      const r = z.r ?? 120;
+      for (const c of centres) {
+        for (let i = 0; i < z.count; i++) {
+          const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * r;
+          const [x, y] = nearestWalkable(g, c.x + Math.cos(a) * d, c.y + Math.sin(a) * d * 0.5);
+          const [monsterId, level] = monsters[Math.floor(rng() * monsters.length)];
+          const defTier = bossTierOf(MONSTERS[monsterId].boss);
+          const boss: 0 | 1 | 2 = zoneTier || (defTier === 1 ? 1 : 0);
+          w.slots.push({
+            monsterId, level, x, y, respawnMs: z.respawn * 1000, respawnAt: 0, simId: null,
+            boss, fixed: false,
+          });
+        }
       }
     }
+  }
+
+  // Add Golden Boss slots configured for this map in packages/shared/src/bosses/config.ts
+  const bossCfg = getGoldenBossConfig();
+  for (const gb of goldenBossesForMap(w.meta.id)) {
+    if (!known(gb.id)) continue;
+    const [x, y] = nearestWalkable(g, gb.x, gb.y);
+    const delayMs = nextGoldenBossSpawnDelayMs(w.now, bossCfg.settings, true);
+    w.slots.push({
+      monsterId: gb.id,
+      level: gb.level,
+      x,
+      y,
+      respawnMs: Math.max(1, bossCfg.settings.continuousRespawnSec || 10) * 1000,
+      respawnAt: w.now + delayMs,
+      simId: null,
+      boss: 2,
+      fixed: true,
+    });
   }
 }
 

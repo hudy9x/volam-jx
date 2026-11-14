@@ -2,6 +2,22 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Commit toàn bộ tích hợp tạo Boss theo USER
+
+- USER chấp nhận kết quả kiểm chứng5Boss và yêu cầu commit toàn bộ mã liên quan. Commit `feat(boss): integrate configurable golden boss spawning and drops` (hash xem git log -1) bổ sung lên aec1052: monsters theo config44Boss, spawner tránh trùng nguồn spawn cũ, lịch/hồi sinh trong combat, drop theo cấu hình, dev route reload và generator ảnh.
+- Metadata sinh/cache chỉ thêm141sheet,22NPCres và39mappingbóng, không xóa/sửa entry cũ; các mục thêm thuộc resBoss trong config. Giữ file ảnh public/assets ngoài git theo quy ước; máy khác sinh bằng gen:assets. README cập nhật route đã tích hợp.
+- Kiểm snapshot đúng phần commit tại /tmp/jx-boss-integration-check, node_modules trỏ shared của snapshot: npm run typecheck, tsc riêng tool và npm run build đạt. Build báo URLasset resolve runtime do bản snapshot không có ảnh sinh và chunk lớn có sẵn. Chạy lại WS5Boss trên2571/DBriêng: đúng1con mỗi mục sau2104/2133/2133/2184/2183ms, API tắt/bật đúng; không tác động2567.
+- Kèm tracking test5Boss/5map bằng WebSocket/Chromium thật đã đạt ở vòng trước. Không khẳng định đã kiểm đánh chết/hồi sinh/drop thực chiến hoặc native. Giữ mọi thay đổi ActorView/frameTrace (có deletion đãstage), phímN, kiến trúc theo phím và Tống Kim ngoài commit. Không push.
+
+## 2026-11-14 · Test xuất hiện 5 Boss Hoàng Kim qua mạng và client thật
+
+- USER yêu cầu kiểm Boss đã xuất hiện chưa, chọn3–5con. Kiểm trực tiếp code spawner/World/MapRoom/cấu hình; không có GitNexus MCP kết nối, không dùng/chứng nhận index graph. HEADaec1052 khớp CURRENT; tích hợp gameplay Boss vẫn là thay đổi chưa commit.
+- Khởi động game server2568 và Vite5174, DB thử riêng cùng5tài khoản quan sát mới trong `/tmp/jx-boss-spawn-test/db.json`; AUTH_SECRET riêng; giữ server2567/client5173 và tool4567. Không chỉnh config hoặc dùng tài khoản thật; không ghi file spawn.
+- 5ngũ hành/cấp95: Huyền Giác Đại Sư740 (Chân núi Trường Bạch320), Đường Bất Nhiễm741 (Mạc Cao Quật340), Thanh Tuyệt Sư Thái743 (Thanh Thành sơn21), Mạnh Thương Lương583 (Sa mạc địa biểu224), Đạo Thanh Chân Nhân562 (Tỏa Vân động6).
+- WebSocket thật: mỗi room chưa có mục tiêu ở trạng thái đầu, sau2091/2138/2137/2189/2189ms có đúng1con, boss2/cấp95/HP390300/sprite/tọa độ đúng cấu hình và snap nav. API reload trên server thử: tắt740 và đợi2,5s chỉ740không có,4conkhácđủ; bật lại đủ5mộtlần/mục. Khôi phục config trong bộ nhớ thử, không ghi cấu hình repo.
+- Chromium1440×1000 chạy client game thật; dùng localStorage token5tài khoản thử, vào bản đồ từ điểm vào rồi dịch camera client tới Boss để quan sát (không đổi vị trí Boss/người chơi). Cả5 có sprite shown/texture thật với kích thước73×87/107×104/120×86/88×99/95×101px, đứng trong camera, tên#ffd700, không pageerror hay assetHTTP4xx/5xx. Đã xem5ảnh `/tmp/jx-boss-spawn-test/boss-<id>.png`; network-results.json/browser-results.json và script cùng thư mục.
+- Chỉ kiểm spawn/hiển thị/reload bật-tắt; chưa kiểm đánh chết/hồi sinh tự nhiên/drop/cân bằng. Chưa test native/mobile, không sửa code hoặc asset; không cần chạy lại build/typecheck khi chỉ thêm tracking. Không commit/push. Kết quả dựa trên working tree gồm phần tích hợp gameplay chưa commit, không suy thành commit tool tự đủ gameplay.
+
 ## 2026-11-14 · Commit tool Boss theo yêu cầu USER
 
 - Commit `feat(boss-tool): improve golden boss administration UX` (hash xem git log -1): tools/boss cùng ảnh preview, npm script, shared/bosses và export cần thiết để tool chạy sau checkout; tracking liên quan. Tool ban đầu chưa được track nên đưa kèm nền cấu hình hiện có, không chỉ file UI chỉnh trong vòng review.

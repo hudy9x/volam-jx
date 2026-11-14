@@ -1,4 +1,19 @@
-import { levelOf, attrOf, damageReturn, lifeSteal, clearSegment, getSkill, isExternal, isWalkable, isoDistance, nearestWalkable, type HitResult, type Point } from '@vltk/shared';
+import {
+  levelOf,
+  attrOf,
+  damageReturn,
+  lifeSteal,
+  clearSegment,
+  getGoldenBossConfig,
+  getSkill,
+  isExternal,
+  isWalkable,
+  isoDistance,
+  nearestWalkable,
+  nextGoldenBossSpawnDelayMs,
+  type HitResult,
+  type Point,
+} from '@vltk/shared';
 import { onMonsterKilled } from '../ai/boss.js';
 import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
@@ -100,7 +115,12 @@ export function kill(w: World, target: Sim, killer: Sim | undefined): void {
     target.removeAt = w.now + CORPSE_SECONDS * 1000;
     const slot = target.slot!;
     slot.simId = null;
-    slot.respawnAt = w.now + slot.respawnMs;
+    if (slot.boss >= 2) {
+      const delayMs = nextGoldenBossSpawnDelayMs(w.now, getGoldenBossConfig().settings, false);
+      slot.respawnAt = w.now + delayMs;
+    } else {
+      slot.respawnAt = w.now + slot.respawnMs;
+    }
     shareKillExp(w, target, killer);
     dropLoot(w, target, killer);
     onMonsterKilled(w, target, killer);

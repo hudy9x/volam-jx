@@ -17,7 +17,7 @@ Game dev có thể tự reload do watcher khi file mã nguồn thay đổi; thao
 ## Cấu hình chạy
 
 - `BOSS_PORT=4567`: cổng tool, chỉ nghe `127.0.0.1`, không mở LAN.
-- `GAME_SERVER_URL=http://localhost:2567`: server dev nhận cập nhật (cần bật dev tools và có route `/api/dev/bosses/reload`). Phần tích hợp gameplay/route reload đang nằm trong thay đổi riêng chưa commit; checkout chỉ commit tool vẫn dùng được xem/chỉnh/lưu, nhưng Áp dụng sẽ báo lỗi nếu game chưa có route này.
+- `GAME_SERVER_URL=http://localhost:2567`: server dev nhận cập nhật (cần bật dev tools và có route `/api/dev/bosses/reload`). Route này đồng bộ định nghĩa Boss và dựng lại các điểm xuất hiện ở những bản đồ đang hoạt động.
 - Asset đọc từ thư mục game hiện có, có phiên bản từ manifest; không sao chép asset hay công thức. Ảnh Boss nhỏ hiện có trong `public/bosses/` được giữ nguyên.
 - Dialog bundle lại `apps/client/src/ui/kit/dialog.ts` bằng esbuild khi khởi động tool; sửa adapter dialog cần khởi động lại tool, không ảnh hưởng HMR game.
 
