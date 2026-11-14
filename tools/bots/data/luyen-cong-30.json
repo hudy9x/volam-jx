@@ -74,12 +74,12 @@
   },
   "auto": {
     "autoRadius": 500,
-    "autoSkipBoss": true,
+    "autoSkipBoss": false,
     "autoBuff": true,
     "autoReturn": true,
     "autoSeek": true,
     "autoPickup": true,
-    "autoPriority": "near",
+    "autoPriority": "boss",
     "autoRotate": true,
     "autoCurse": true,
     "autoMap": true,
@@ -90,7 +90,10 @@
     "autoHp": 50,
     "autoMp": 20,
     "autoReachPct": 60,
-    "autoMeleeClose": true
+    "autoMeleeClose": true,
+    "autoMoney": true,
+    "autoSellBlue": true,
+    "autoKeepValuable": true
   },
   "human": {
     "tickMs": 150,

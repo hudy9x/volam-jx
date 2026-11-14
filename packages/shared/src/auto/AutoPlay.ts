@@ -1,3 +1,5 @@
+import { findPlace } from '../items/bag.js';
+import { botTradeReasons } from '../bots/social.js';
 import { isoDistance } from '../geometry.js';
 import type { Point } from '../maps/nav/types.js';
 import { KIND_SLOTS, QUALITY, SHOP_ITEMS, itemDef, potionMs, potionTotal, type Item, type ItemDef, type PotionStat } from '../items/index.js';
@@ -240,13 +242,13 @@ export class AutoPlay {
     this.drink(now, self, 'hp', opts.autoHp, opts);
     this.drink(now, self, 'mp', opts.autoMp, opts, this.costOf(main));
     if (now < this.pausedUntil) return;
-    if (opts.autoJunk && now - this.lastJunk > JUNK_GAP_MS) { this.lastJunk = now; this.sellJunk(); }
+    if ((opts.autoJunk || opts.autoSellBlue) && now - this.lastJunk > JUNK_GAP_MS) { this.lastJunk = now; this.sellJunk(opts); }
 
     if (opts.autoBuff && this.buff(now, self)) return;
 
     const radius = opts.autoSeek ? Infinity : opts.autoRadius;
     let target = this.pickTarget(now, self, radius, opts);
-    if (opts.autoPickup) {
+    if (opts.autoPickup || opts.autoMoney) {
       const near = target ? LOOT_NEAR : opts.autoSeek ? 600 : opts.autoRadius;
       if (this.pick(now, self, near, !!target, opts)) { this.target = null; return; }
     }
@@ -279,7 +281,7 @@ export class AutoPlay {
     switch (this.townStep++) {
       case 0: if (opts.autoBuyPotion) this.buyPotions('hp'); return;
       case 1: if (opts.autoBuyPotion) this.buyPotions('mp'); return;
-      case 2: if (opts.autoJunk) this.sellJunk(); return;
+      case 2: if (opts.autoJunk || opts.autoSellBlue) this.sellJunk(opts); return;
       default:
         if (now >= this.nextTravel) { this.nextTravel = now + TRAVEL_GAP_MS; this.host.train(false); }
     }
@@ -346,7 +348,14 @@ export class AutoPlay {
   private mainSkill(): number {
     const s = this.host.skillAt('left') ?? BASIC_ATTACK;
     // A hào quang on the left hand is on by itself (C2S.aura), it is not the attack.
-    return this.host.usable(s) && !getSkill(s)?.aura ? s : BASIC_ATTACK;
+    const primary = getSkill(s);
+    if (primary && this.host.usable(s) && skillCategory(primary) === 'attack' && !primary.aura) return s;
+    for (let key = 0; key < 9; key++) {
+      const id = this.host.skillAt(key);
+      const skill = id !== null ? getSkill(id) : undefined;
+      if (skill && isCastable(skill) && skillCategory(skill) === 'attack' && this.host.usable(skill.id)) return skill.id;
+    }
+    return BASIC_ATTACK;
   }
 
   private costOf(id: number): number {
@@ -361,20 +370,20 @@ export class AutoPlay {
       const s = id !== null ? getSkill(id) : undefined;
       if (s && isCastable(s) && skillCategory(s) === 'attack' && this.host.usable(s.id)) out.add(s.id);
     }
-    return [...out];
+    return [...out].filter(id => id !== BASIC_ATTACK || out.size === 1);
   }
 
-  /** Lock the target with the main skill, or (rotation, not on bosses) the next ready attack skill of the bar. */
+  /** Lock the target with the main skill, or (rotation, including bosses) the next ready attack skill of the bar. */
   private attack(now: number, target: AutoActor, opts: Settings): void {
     let skill = this.mainSkill();
-    if (opts.autoRotate && !target.state.boss) {
+    if (opts.autoRotate) {
       const list = this.attackSkills().filter(id => this.host.ready(id));
       if (list.length > 1 && (target.id !== this.target || now - this.lockedAt > ROTATE_MS)) {
         this.rotateIdx = (this.rotateIdx + 1) % list.length;
         skill = list[this.rotateIdx];
       } else if (list.length) skill = list.includes(this.skillUsed) ? this.skillUsed : list[0];
     }
-    if (!this.host.ready(skill)) skill = this.host.ready(this.mainSkill()) ? this.mainSkill() : BASIC_ATTACK;
+    if (!this.host.ready(skill)) skill = this.attackSkills().find(id => id !== BASIC_ATTACK && this.host.ready(id)) ?? BASIC_ATTACK;
     if (target.id !== this.target || skill !== this.skillUsed || now - this.lockedAt > RELOCK_MS) {
       this.host.cast(skill, target, target.x, target.y, true, this.reachOf(skill, opts));
       this.target = target.id;
@@ -494,20 +503,21 @@ export class AutoPlay {
    */
   private pickTarget(now: number, self: AutoActor, radius: number, opts: Settings): AutoActor | undefined {
     const anchor = this.anchor!;
-    let best: AutoActor | undefined, bestD = Infinity, bestBoss = false;
+    let best: AutoActor | undefined, bestD = Infinity, bestBoss = 0;
     for (const v of this.host.actors()) {
       if (!this.candidate(v, opts, now)) continue;
       if (radius !== Infinity && isoDistance(anchor.x, anchor.y, v.x, v.y) > radius) continue;
       const d = isoDistance(self.x, self.y, v.x, v.y);
-      const boss = opts.autoPriority === 'boss' && !!v.state.boss;
-      if ((boss && !bestBoss) || (boss === bestBoss && d < bestD)) { best = v; bestD = d; bestBoss = boss; }
+      const boss = opts.autoPriority === 'boss' ? Number(v.state.boss) : 0;
+      if ((boss > bestBoss) || (boss === bestBoss && d < bestD)) { best = v; bestD = d; bestBoss = boss; }
     }
     let cur = this.target ? this.find(this.target) : undefined;
     if (cur && !this.candidate(cur, opts, now)) cur = undefined;
     if (cur && radius !== Infinity && isoDistance(anchor.x, anchor.y, cur.x, cur.y) > radius * 1.5) cur = undefined;
     if (cur) {
       const dCur = isoDistance(self.x, self.y, cur.x, cur.y);
-      if (!best || best.id === cur.id || (bestBoss && !cur.state.boss) || bestD >= dCur * SWITCH_FACTOR - SWITCH_MARGIN) return cur;
+      const curRank = opts.autoPriority === 'boss' ? Number(cur.state.boss) : 0;
+      if (!best || best.id === cur.id || bestBoss < curRank || (bestBoss === curRank && bestD >= dCur * SWITCH_FACTOR - SWITCH_MARGIN)) return cur;
     }
     return best;
   }
@@ -515,7 +525,8 @@ export class AutoPlay {
   // ======================= loot =======================
 
   private wanted(d: AutoDrop, opts: Settings): boolean {
-    if (d.def === 'money') return true;
+    if (d.def === 'money') return opts.autoMoney;
+    if (!opts.autoPickup || findPlace([...this.host.bag()], itemDef({ def: d.def, uid: d.id })) < 0) return false;
     if (opts.autoLoot === 'money') return false;
     if (opts.autoLoot === 'magic') return d.q >= QUALITY.magic;
     return true;
@@ -555,12 +566,14 @@ export class AutoPlay {
     return true;
   }
 
-  /** Tự bán đồ thừa: white pieces of equipment the character cannot wear (never blue / gold, potions, books, the token). */
-  private sellJunk(): void {
+  /** Tự bán đồ thừa: white pieces of equipment the character cannot wear (optionally ordinary blue gear; never gold, potions, books, the token). */
+  private sellJunk(opts: Settings): void {
     this.host.bag().forEach((it, i) => {
       const def = itemDef(it);
-      if (!it || !def || (it.q ?? 0) > QUALITY.normal || !KIND_SLOTS[def.kind].length || def.kind === 'horse') return;
-      if (!this.host.wearable(def)) this.host.sell(i);
+      if (!it || !def || !KIND_SLOTS[def.kind].length || def.kind === 'horse') return;
+      if ((it.q ?? QUALITY.normal) === QUALITY.magic) {
+        if (opts.autoSellBlue && (!opts.autoKeepValuable || !botTradeReasons(it).length)) this.host.sell(i);
+      } else if (opts.autoJunk && (it.q ?? QUALITY.normal) === QUALITY.normal && !this.host.wearable(def)) this.host.sell(i);
     });
   }
 }

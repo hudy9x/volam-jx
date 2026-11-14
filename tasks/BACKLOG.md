@@ -246,3 +246,5 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 - [x] Xa phu: gộp City/Capital thành Thành thị và sửa grid thẻ khi0/1/2 kết quả; kiểm tra desktop/390px và danh sách43 cuộn được (2026-11-13).
 
 - [x] Xa phu hiển thị cấp quái, sắp bãi tăng dần và đánh dấu vượt cấp nhân vật; dùng chung bảng cấp với tool sinh quái (2026-11-13).
+
+- [x] USER2026-11-14 Auto/bot: fallback/xoay chiêu boss, ưu tiên boss2/1/0, ngân lượng độc lập, bán xanh có bảo vệ, tránh loot không vừa; test:auto/typecheck/build đạt, chưa QA gameplay WS và giao diện mới; chưa commit.

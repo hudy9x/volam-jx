@@ -23,6 +23,7 @@ const API = `${SERVER_URL}/api/dev/bots`;
 const LAST_KEY = 'vltk.botPanel.last';
 
 const AUTO_LABELS: Record<keyof AutoSettings, string> = {
+  autoMoney: 'Tự nhặt ngân lượng', autoSellBlue: 'Tự bán đồ xanh trong túi', autoKeepValuable: 'Giữ đồ xanh có giá trị để rao bán',
   autoRadius: 'Bán kính quanh chỗ bắt đầu', autoSkipBoss: 'Bỏ qua boss', autoBuff: 'Tự dùng bùa lợi', autoReturn: 'Quay về chỗ cũ khi hết quái',
   autoSeek: 'Tìm quái ở xa', autoPickup: 'Tự nhặt đồ', autoPriority: 'Mục tiêu ưu tiên', autoRotate: 'Xoay chiêu',
   autoCurse: 'Tự dùng bùa hại', autoMap: 'Tự đổi bãi luyện công theo cấp', autoRevive: 'Tự hồi sinh rồi quay lại',
@@ -31,7 +32,7 @@ const AUTO_LABELS: Record<keyof AutoSettings, string> = {
   autoMp: 'Uống thuốc khi Nội lực < %',
 };
 const SELECTS: Partial<Record<keyof AutoSettings, [string, string][]>> = {
-  autoPriority: [['near', 'Gần nhất'], ['boss', 'Boss trước']],
+  autoPriority: [['near', 'Gần nhất'], ['boss', 'Hoàng Kim → Boss Xanh → quái thường']],
   autoLoot: [['all', 'Tất cả'], ['magic', 'Đồ xanh trở lên + tiền'], ['money', 'Chỉ tiền']],
 };
 

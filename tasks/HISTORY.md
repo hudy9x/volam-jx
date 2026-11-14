@@ -936,3 +936,7 @@ Người dùng yêu cầu commit trạng thái hiện tại. Commit `fix(server)
 
 - Commit riêng docs/tools-ui-ux-guidelines.md và các entrypoint AGENTS/CLAUDE/GEMINI/tools/AGENTS/Antigravity always_on, kèm tasks GD8.
 - Kiểm local links, frontmatter và diff-check đạt. Chỉ tài liệu nên không chạy lại build/test. Giữ Boss/asset/keymap/nghiên cứu ngoài commit; không push. Title: `docs(tools): establish shared UI UX guidelines for AI agents`, mã checkpoint xem git log.
+
+## 2026-11-14 — Auto/bot kỹ năng, boss và loot
+
+Sửa chọn chiêu dự phòng và vòng xoay trên boss; bot xếp lại thanh khi cưỡi. Sửa ưu tiên boss thật theo bậc và chuyển mục tiêu. Thêm autoMoney/autoSellBlue/autoKeepValuable, kiểm tra kích thước túi; preset30 bật boss/bán xanh bảo vệ. test:auto3 + test:bots6/typecheck/build đạt; chưa test WS hoặc visual QA mới. Không reset DB, không commit/push; giữ index có trước.

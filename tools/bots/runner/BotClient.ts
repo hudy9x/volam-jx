@@ -53,6 +53,7 @@ export class BotClient {
   left = BASIC_ATTACK;
   keys: (number | null)[] = Array(9).fill(null);
   aura = 0;
+  private barMounted = false;
   readonly host: AutoHost;
 
   private client: Client;
@@ -236,8 +237,9 @@ export class BotClient {
    */
   private layoutBar(): void {
     const weapon = this.weapon();
+    this.barMounted = !!this.me()?.mounted;
     const learned = Object.keys(this.levels).map(Number).filter(id => this.levelOf(id) > 0)
-      .map(getSkill).filter((s): s is SkillDef => !!s && isCastable(s) && weaponOk(s, weapon))
+      .map(getSkill).filter((s): s is SkillDef => !!s && isCastable(s) && weaponOk(s, weapon) && !(s.noHorse && this.barMounted))
       .sort((a, b) => (b.reqLevel ?? 0) - (a.reqLevel ?? 0) || this.levelOf(b.id) - this.levelOf(a.id));
     const of = (cat: string, n: number) => learned.filter(s => !s.aura && skillCategory(s) === cat).slice(0, n).map(s => s.id);
     const attacks = of('attack', 5);
@@ -266,7 +268,10 @@ export class BotClient {
       self: () => this.actors().find(a => a.isSelf),
       actors: () => this.actors(),
       safe: () => this.safe(),
-      skillAt: slot => (slot === 'left' ? this.left : this.keys[slot] ?? null),
+      skillAt: slot => {
+        if (this.barMounted !== !!this.me()?.mounted) this.layoutBar();
+        return slot === 'left' ? this.left : this.keys[slot] ?? null;
+      },
       usable: id => this.usable(id),
       ready: id => this.ready(id),
       cost: id => { const s = getSkill(id); return s ? skillCost(s, Math.max(1, this.levelOf(id))) : 0; },

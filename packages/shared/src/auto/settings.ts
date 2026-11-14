@@ -22,6 +22,10 @@ export interface AutoSettings {
   autoRevive: boolean;
   autoBuyPotion: boolean;
   autoJunk: boolean;
+  /** Nhặt tiền độc lập với bộ lọc đồ; bán xanh thường, giữ món có giá trị nếu bật bảo vệ. */
+  autoMoney: boolean;
+  autoSellBlue: boolean;
+  autoKeepValuable: boolean;
   autoLoot: 'all' | 'magic' | 'money';
   /**
    * Tiếp cận quái: chiêu tầm xa đứng cách quái bao nhiêu % tầm chiêu (30–100); chiêu cận chiến áp sát quái
@@ -35,8 +39,9 @@ export interface AutoSettings {
 }
 
 export const DEFAULT_AUTO: AutoSettings = {
-  autoRadius: 500, autoSkipBoss: true, autoBuff: true, autoReturn: true, autoSeek: true, autoPickup: true,
-  autoPriority: 'near', autoRotate: true, autoCurse: true, autoMap: true, autoRevive: true, autoBuyPotion: true, autoJunk: true,
+  autoRadius: 500, autoSkipBoss: false, autoBuff: true, autoReturn: true, autoSeek: true, autoPickup: true,
+  autoPriority: 'boss', autoRotate: true, autoCurse: true, autoMap: true, autoRevive: true, autoBuyPotion: true, autoJunk: true,
+  autoMoney: true, autoSellBlue: false, autoKeepValuable: true,
   autoLoot: 'all', autoHp: 50, autoMp: 20, autoReachPct: 60, autoMeleeClose: true,
 };
 

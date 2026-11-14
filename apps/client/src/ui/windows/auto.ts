@@ -12,9 +12,9 @@ const HTML = `
 <section id="${ID}" class="dlg hidden" data-title="Tự động đánh">
   <label class="check"><input type="checkbox" id="auto-on" /> Đang bật (phím ${keyLabel('auto')})</label>
   <div class="auto-h">Đánh quái</div>
-  <label class="row">Ưu tiên mục tiêu <select data-set="autoPriority"><option value="near">Gần nhất</option><option value="boss">Boss trước</option></select></label>
+  <label class="row">Ưu tiên mục tiêu <select data-set="autoPriority"><option value="near">Gần nhất</option><option value="boss">Hoàng Kim → Boss Xanh → quái thường</option></select></label>
   <label class="check"><input type="checkbox" data-set="autoSkipBoss" /> Bỏ qua boss</label>
-  <label class="check"><input type="checkbox" data-set="autoRotate" /> Xoay chiêu: dùng lần lượt chiêu tấn công trên phím 1 – 9 (gặp boss chỉ dùng chiêu chuột trái)</label>
+  <label class="check"><input type="checkbox" data-set="autoRotate" /> Xoay chiêu: dùng lần lượt chiêu tấn công trên phím 1 – 9 (cả khi đánh boss)</label>
   <label class="check"><input type="checkbox" data-set="autoBuff" /> Tự dùng bùa lợi đặt trên phím 1 – 9</label>
   <label class="check"><input type="checkbox" data-set="autoCurse" /> Tự dùng bùa hại trên phím 1 – 9 (lên boss hoặc khi có từ 3 quái)</label>
   <div class="auto-h">Tiếp cận quái</div>
@@ -28,7 +28,10 @@ const HTML = `
   <label class="check"><input type="checkbox" data-set="autoMap" /> Tự đổi bãi luyện công theo cấp (lên cấp, từ trong thành)</label>
   <label class="check"><input type="checkbox" data-set="autoRevive" /> Trọng thương thì tự hồi sinh và quay lại bãi</label>
   <div class="auto-h">Nhặt đồ</div>
-  <label class="check"><input type="checkbox" data-set="autoPickup" /> Tự nhặt đồ / tiền rơi (của mình hoặc không chủ)</label>
+  <label class="check"><input type="checkbox" data-set="autoPickup" /> Tự nhặt đồ rơi (của mình hoặc không chủ)</label>
+  <label class="check"><input type="checkbox" data-set="autoMoney" /> Tự nhặt ngân lượng (kể cả khi túi đầy)</label>
+  <label class="check"><input type="checkbox" data-set="autoSellBlue" /> Tự bán đồ xanh trong túi (mỗi 30 giây)</label>
+  <label class="check"><input type="checkbox" data-set="autoKeepValuable" /> Giữ đồ xanh trên 5 dòng hoặc có dòng ẩn hiếm / cao để rao bán</label>
   <label class="row">Nhặt <select data-set="autoLoot"><option value="all">Tất cả</option><option value="magic">Đồ xanh trở lên + tiền</option><option value="money">Chỉ tiền</option></select></label>
   <label class="check"><input type="checkbox" data-set="autoJunk" /> Tự bán đồ trắng không mặc được (mỗi 30 giây)</label>
   <div class="auto-h">Thuốc</div>
