@@ -70,7 +70,11 @@ Ba hoạt động có thể bật cùng lúc:
 | Chat | Chỉ báo món đáng chú ý vừa nhặt trên kênh Thế giới; không chat ngẫu nhiên |
 | Rao bán đồ | Chỉ rao xanh/hoàng kim vừa nhặt đạt bộ tiêu chí `formulas/data/market-pricing.json`, trên kênh Mua bán kèm link ảnh/thuộc tính, giá lượng/KNB và nút mua ngay. Giá khởi điểm cấu hình, chưa học thị trường. Bật cả Chat và Rao bán thì chỉ gửi một tin rao |
 
-Luyện công có **Tự đồng ý lời mời gia nhập tổ đội** (mặc định bật). Bot chỉ nhận lời mời thật qua giao thức tổ đội; server vẫn kiểm đội trưởng, giới hạn thành viên và hạn lời mời. Tắt tùy chọn hoặc tắt Luyện công thì không tự nhận.
+Luyện công có radio **Chủ động mời người khác / Tự chấp nhận lời mời / Tắt tự động tổ đội**; chỉ chọn một chế độ, mặc định Tự chấp nhận. Chọn Mời thì Tự chấp nhận được bỏ chọn và ngược lại. Tắt Luyện công thì không tự mời hoặc nhận; lựa chọn vẫn được giữ khi bật lại.
+
+Chủ động mời: chọn người chơi còn sống, chưa có đội, gần nhất trong cùng bản đồ; không mời bản thân/quái/NPC. Bot chỉ mời khi chưa có đội hoặc là đội trưởng còn chỗ. Mỗi bot tối đa1lời mời/5giây, không mời lại cùng tên trong60giây; lời mời đang chờ được tính giữ chỗ đến hết hạn để tránh mời vượt8người. Bot ở chế độ này không tự chấp nhận lời mời đến. Server vẫn xác minh quyền đội trưởng, giới hạn đội và hạn lời mời.
+
+Cấu hình lưu hai khóa tương thích `activities.autoInviteTeam` và `autoAcceptTeam`: mời=true/false; nhận=false/true; tắt=false/false. Dữ liệu cũ thiếu autoInviteTeam mặc định false; nếu file cũ bật cả hai, chuẩn hóa ưu tiên mời và tắt nhận.
 
 Món đáng chú ý là trang bị **hơn5dòng thuộc tính có giá trị** (từ6), **hoặc** có dòng ẩn hiếm/lớn. Ngưỡng CHỌN hiện tại: hiếm khi trọng số dòng phù hợp trong dữ liệu ≤1200; lớn khi giá trị đạt≥90%max toàn bảng (hoàng kim theo dòng cố định của món). Các ngưỡng tập trung tại `bots/social.ts BOT_TRADE_RULES`.
 
@@ -111,7 +115,7 @@ Cứ 10 giây, lệnh in một dòng trạng thái. Ví dụ thật (12 bot):
   - Luyện quái (khi bật "Tự đổi bãi luyện công theo cấp") vẫn tự đi bãi luyện công theo cấp.
   - Chết thì hồi sinh về thành.
   - Chưa có ô "chỉ hoạt động ở các bản đồ…" trong kịch bản; ô này mới là đề xuất.
-- Bot chưa tự cộng điểm khi lên cấp, chưa mặc đồ nhặt được, chưa có hành vi tổ đội / chat (BACKLOG BT8).
+- Bot chưa tự cộng điểm khi lên cấp, chưa mặc đồ nhặt được, chưa có hành vi đi theo đội/phối hợp mục tiêu hay lịch online/offline (BACKLOG BT8); đã có mời/nhận tổ đội và chat/rao đồ.
 - Số đo hiệu năng server (tick, CPU, RAM, băng thông) là **phần 2**, chưa làm (`bots.md` §3).
 - Sửa tay file JSON cũng được: trường thiếu hoặc sai sẽ lấy giá trị mặc định.
 

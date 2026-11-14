@@ -85,3 +85,7 @@
 #bots-page .bp-gender { display:inline-block; margin-left:3px; font-size:17px; font-weight:700; line-height:1; vertical-align:middle; }
 #bots-page .bp-gender.male { color:#ffd700; }
 #bots-page .bp-gender.female { color:#5cb8ff; }
+
+#bots-page input[type=radio] { width:17px; height:17px; accent-color:#9ccaa8; cursor:pointer; }
+#bots-page .bp-team-mode legend { color:#b8c1ba; font-size:13px; margin-bottom:6px; }
+#bots-page .bp-team-mode .bp-c { min-height:44px; cursor:pointer; }

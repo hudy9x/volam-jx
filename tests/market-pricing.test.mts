@@ -8,7 +8,7 @@ import type { Sim } from '../apps/server/src/world/entity.js';
 const path = join(mkdtempSync(join(tmpdir(), 'jx-pricing-')), 'db.json');
 process.env.DB_PATH = path;
 const { db } = await import('../apps/server/src/account/db.js');
-const { marketPost, marketOnline, marketOffline, marketBuy } = await import('../apps/server/src/world/market.js');
+const { marketPost, marketOnline, marketOffline, marketBuy, purchaseOffer: purchaseOfferForLegacy } = await import('../apps/server/src/world/market.js');
 const { chatHistoryFor } = await import('../apps/server/src/world/chat.js');
 const green: Item = {uid:'green',def:'melee-0-10',q:1,series:0,
   magic:[['addphysicsdamage_p',100],['addphysicsdamage_v',50,1],['attackspeed_v',30],['steallifeenhance_p',10]]};
@@ -85,4 +85,16 @@ test('automatic gold KNB listing is paid and recorded in its original currency',
     assert.equal(buyer.knb,before-line.offer!.price);assert.equal(buyer.knb!+seller.knb!,total);
     assert.equal(db.marketSales().find(s=>s.uid===item.uid)?.currency,'knb');
   }finally{delete overrides[item.def];marketOffline(seller);marketOffline(buyer);}
+});
+test('new contact/invalid-currency offers are rejected without mutation, old contact offers cannot be bought',()=>{
+  const seller=sim('contact-seller'),buyer=sim('contact-buyer');seller.bag![0]={...green,uid:'old-contact'};
+  const before=JSON.stringify([seller,buyer,db.marketSales()]);
+  for(const currency of ['contact','invalid']) {
+    assert.ok(marketPost(seller,{uid:'old-contact',currency:currency as never,price:100,text:'test'}));
+    assert.equal(JSON.stringify([seller,buyer,db.marketSales()]),before);
+  }
+  const line:ChatLine={id:999999,ch:'trade',from:'Seller',text:'legacy',at:1,offer:{seller:seller.charId!,item:seller.bag![0]!,currency:'contact',price:0}};
+  // purchaseOffer is the same validation used by marketBuy for historical snapshots.
+  const value=JSON.stringify([seller,buyer,line]);
+  assert.ok(purchaseOfferForLegacy(buyer,seller,line));assert.equal(JSON.stringify([seller,buyer,line]),value);
 });

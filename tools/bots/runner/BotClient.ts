@@ -3,8 +3,9 @@ import {
   BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillCost,
   tuningOf, weaponOk, weaponTypeOf,
   type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type InventoryMsg, type Item,
-  type SkillDef, type SkillsMsg, type StatsMsg, type TransferMsg,
+  type SkillDef, type SkillsMsg, type StatsMsg, type TransferMsg, type TeamMsg,
 } from '@vltk/shared';
+import { TeamInviter, type TeamCandidate } from './TeamInviter.js';
 import { LootAnnouncer } from './LootAnnouncer.js';
 import { between } from './rng.js';
 
@@ -58,6 +59,8 @@ export class BotClient {
 
   private client: Client;
   private announcer: LootAnnouncer;
+  private team: TeamMsg | null | undefined;
+  private inviter = new TeamInviter();
   private static nextWorldChatAt = 0;
   private cooldowns = new Map<number, number>();
   private sentAt: number[] = [];
@@ -101,6 +104,7 @@ export class BotClient {
     this.leaving = false;
     this.online = true;
     this.actorCache.at = -1;
+    this.team = undefined;
     let autoSynced = false;
     room.onMessage(S2C.autoConfig, () => {
       if (autoSynced) return; autoSynced = true;
@@ -119,9 +123,10 @@ export class BotClient {
     });
     room.onMessage(S2C.transfer, (msg: TransferMsg) => void this.transfer(msg.mapId));
     room.onMessage(S2C.teamInvite, (msg: { from: string }) => {
-      if (this.sc.activities.grind && this.sc.activities.autoAcceptTeam && !this.me()?.team && typeof msg?.from === 'string') this.send(C2S.team, { op: 'accept', name: msg.from });
+      if (this.online && !this.stopped && this.sc.activities.grind && !this.sc.activities.autoInviteTeam && this.sc.activities.autoAcceptTeam && !this.me()?.team && typeof msg?.from === 'string') this.send(C2S.team, { op: 'accept', name: msg.from });
     });
-    for (const type of [S2C.notice, S2C.team, S2C.chat, S2C.chatReacts, S2C.chatOlder, S2C.log, S2C.online]) {
+    room.onMessage(S2C.team, (msg: TeamMsg | null) => { this.team = msg; });
+    for (const type of [S2C.notice, S2C.chat, S2C.chatReacts, S2C.chatOlder, S2C.log, S2C.online]) {
       room.onMessage(type, () => undefined);
     }
     room.onLeave(() => {
@@ -151,7 +156,9 @@ export class BotClient {
   }
 
   updateSocial(now: number): void {
-    if (!this.online || this.stopped || now < BotClient.nextWorldChatAt) return;
+    if (!this.online || this.stopped) return;
+    this.updateTeam(now);
+    if (now < BotClient.nextWorldChatAt) return;
     while (this.sentAt.length && now - this.sentAt[0] > 1000) this.sentAt.shift();
     if (this.sentAt.length >= this.sc.human.maxOrdersPerSec) return;
     const message = this.announcer.next(now, this.bag);
@@ -161,6 +168,19 @@ export class BotClient {
       else this.send(C2S.chat, { text: message });
       BotClient.nextWorldChatAt = now + BOT_TRADE_RULES.fleetGapMs;
     }
+  }
+
+  private updateTeam(now: number): void {
+    if (!this.sc.activities.grind || !this.sc.activities.autoInviteTeam || !this.room) return;
+    const self = this.me();
+    if (!self) return;
+    const candidates: TeamCandidate[] = [];
+    (this.room.state as any)?.actors?.forEach((a: any, id: string) => {
+      if (a.kind === 'player') candidates.push({ id, kind: a.kind, name: a.name, hp: a.hp, team: a.team, x: a.x, y: a.y });
+    });
+    const target = this.inviter.next(now, { id: this.room.sessionId, kind: self.kind, name: self.name,
+      hp: self.hp, team: self.team, x: self.x, y: self.y }, candidates, this.team);
+    if (target) this.send(C2S.team, { op: 'invite', name: target });
   }
 
   private fail(e: unknown): void {

@@ -1045,3 +1045,12 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 ## Checkpoint toàn bộ trước bổ sung tổ đội và tiền rao — 2026-11-14
 
 - USER yêu cầu commit toàn bộ code/doc hiện tại rồi bổ sung radio tổ đội và bỏ Liên hệ. Đã kiểm phạm vi5file dirty nền2374d6b, chỉ bảng bot/docs của các lượt trước; thêm tracking. Commit theo USER, không push.
+
+## Radio tổ đội và Mua bán chỉ dùng lượng hoặc KNB — 2026-11-14
+
+- USER yêu cầu commit toàn bộ hiện tại và bổ sung mời tổ đội loại trừ tự nhận, bỏ hình thức Liên hệ vì không hoạt động. Checkpointfd69fc0 đã commit toàn bộ5file dirty của bảng bot/docs cùng tracking; nền2374d6b.
+- Thêm autoInviteTeam, chuẩn hóa ưu tiên mời khi bật cả hai; file cũ thiếu invite giữ nhận mặc định. UI radio mời/nhận/tắt, form template readonly và lưu/nạp chuẩn. Sửa helper set hỗ trợ checked cho radio (browser phát hiện trước khi hoàn tất).
+- Runner nhận snapshot S2C.team, TeamInviter chọn player sống/chưa đội/cùngmap/gần nhất, tránh self/NPC/quái; chưa đội hoặc đội trưởng còn chỗ,5s/bot/60s/tên, giữ chỗ lời mời chờ tối đa8người. Mời chạy độc lập chat/sell, không tự nhận ở mode mời/off hoặc khi tắt grind/stopped; server vẫn kiểm quyền/quy mô/lời mời.
+- TradePostMsg/TradeCurrency chỉmoney/knb, form bỏ Contact và bắt buộc giá. Server từ chối contact/đơn vị sai và mua tin contact cũ. Giữ TradeOffer contact chỉ để đọc lịch sử, preview báo ngừng hỗ trợ/cần đăng lại, không tự đổi tiền/xóa tin cũ.
+- Typecheck/build/diff-check đạt; bots10/market13/auto4. WS thật2bot+1người chơi trên2568 xác nhận inviter không nhận lời mời đến, accepter nhận, leader mời thêm người, mua lượng/KNB/lưuDB/chặn contact. Chromium1440×1000/390×844 kiểm exclusive/off, hide theo grind, keyboard, save/reload/readonly và form2tiền/required/legacy khôngbuy; ảnh đã xem, khôngpageerror/tràn ngang. DB/config/script/ảnh riêng `/tmp/jx-bot-team-market/`, tool4578/client5174; đã dừng tiến trình thử, không game/DB thật. Chưa native/mobile thật.
+- Cập nhật AGENTS/Auto/Rao bán/bots-guide/bots/tool README và tracking. Commit toàn bộ phần bổ sung theo USER sau checkpointfd69fc0; mã commit cuối xemgitlog. Không push; không restart app/server thật vì có thể đang dùng.

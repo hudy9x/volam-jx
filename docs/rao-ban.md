@@ -4,9 +4,9 @@
 
 ## Rao vật phẩm và mua trực tiếp đã triển khai
 
-Hành trang → **Rao bán** → click vật phẩm → chọn **Ngân lượng**, **Kim nguyên bảo** hoặc **Liên hệ trực tiếp**. Hai loại tiền yêu cầu giá nguyên dương; liên hệ chỉ cần lời rao. Lệnh bài không rao được. Đăng tin không lấy món khỏi túi.
+Hành trang → **Rao bán** → click vật phẩm → chọn **Ngân lượng** hoặc **Kim nguyên bảo**. Bắt buộc giá nguyên dương. Theo USER2026-11-14, đã bỏ hình thức Liên hệ vì chưa hoạt động; server từ chối cả client cũ cố đăng `currency:contact`. Lệnh bài không rao được. Đăng tin không lấy món khỏi túi.
 
-Kênh **Mua bán** nhận cả tin nhắn thường và tin gắn vật phẩm. Bấm tên món mở cửa sổ ảnh và thuộc tính của đúng món (các dòng đã roll), kèm người bán và giá. **Mua với giá…** thực hiện giao dịch ngay. Tin liên hệ không có nút mua. Chưa có đổi trang bị lấy trang bị.
+Kênh **Mua bán** nhận cả tin nhắn thường và tin gắn vật phẩm. Bấm tên món mở cửa sổ ảnh và thuộc tính của đúng món (các dòng đã roll), kèm người bán và giá. **Mua với giá…** thực hiện giao dịch ngay. Tin liên hệ cũ chỉ còn snapshot để xem, hiện thông báo ngừng hỗ trợ và không có nút mua; người bán cần đăng lại với giá lượng/KNB. Không tự đổi tin cũ thành giá0 hoặc xóa lịch sử. Chưa có đổi trang bị lấy trang bị.
 
 Người bán phải trực tuyến. Server kiểm tra món còn trong túi và chưa đổi thuộc tính, người mua đủ tiền/chỗ trống, ví người bán chưa vượt giới hạn. Chuyển tiền và món đồng bộ, đánh dấu tin đã bán, lưu hai nhân vật; không có đoạn chờ giữa kiểm tra và chuyển. Tin trùng cùng một món không mua được lần hai. Nếu người bán đã bán NPC/mặc/vứt/sửa món, tin cũ chỉ còn preview và việc mua bị từ chối. Không khóa/giữ hộ món khi đăng rao, không bán offline.
 
@@ -80,11 +80,16 @@ Kiểm chứng mới: `test:market` có thêm `tests/market-pricing.test.mts`, k
 
 ## Kiểm chứng và giới hạn
 
-- `npm run test:market`: 6 ca gồm định dạng vạn/chuẩn hóa Auto, chuyển món và lượng/KNB/chống lặp, các lỗi không làm đổi ví/túi, mua KNB, cache Auto và lịch sử Mua bán công khai không lộ lịch sử Thế giới của tài khoản khác.
+- `npm run test:market`: gồm định dạng vạn/chuẩn hóa Auto, chuyển món và lượng/KNB/chống lặp, các lỗi không làm đổi ví/túi, mua KNB, cache Auto và lịch sử Mua bán công khai không lộ lịch sử Thế giới của tài khoản khác.
 - `npm run test:bots` kiểm tiêu chí món, fresh pickup, chống lặp và cooldown. Typecheck/build đạt.
 - WebSocket thật kiểm mua lượng, mua KNB, mua lặp bị từ chối, mua KNB từ hệ thống và số dư DB. Chromium kiểm rao, preview ảnh/thuộc tính, mua bằng KNB, mua KNB tại Kỳ Trân Các và số dư hành trang; đã xem ảnh desktop1440/viewport390px cho form/preview.
 - Thử riêng2568/5174 với DB `/tmp/jx-market-auto/db.json`; không tác động game người dùng. Chưa kiểm wrapper native/điện thoại thật.
 - Không bán offline, không escrow/giữ hộ món, chưa đổi trang bị lấy trang bị. Tin rao cũ có thể hết hiệu lực dù vẫn xem snapshot được; server quyết định tại thời điểm mua.
+
+## Kiểm chứng bổ sung chế độ chỉ dùng tiền (2026-11-14)
+
+- `TradeCurrency`/`TradePostMsg` chỉ nhận money/knb; `TradeOffer` vẫn đọc được contact của lịch sử cũ. UI chỉ có hai lựa chọn tiền, giá bắt buộc; server chặn contact/đơn vị lạ, kể cả client cũ. `purchaseOffer` từ chối tin contact cũ.
+- `test:market`13ca đạt, gồm từ chối tin mới contact/đơn vị sai và mua tin cũ không đổi ví/túi. WS thật2568/DBriêng `/tmp/jx-bot-team-market/db.json` kiểm từ chối contact + mua lượng/KNB/lưu lịch sử. Chromium1440/390 kiểm form hai tiền/giá bắt buộc/preview contact cũ không nút mua. Chưa native/mobile thật.
 
 ## Tài liệu liên quan
 

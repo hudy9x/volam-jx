@@ -68,3 +68,11 @@ Bật **Rao bán đồ** trong kịch bản: chỉ đồ xanh/hoàng kim vừa n
 Chỉnh tiêu chí, trọng số, tổ hợp, giá nền/sàn/trần và giá riêng từng món tại `packages/shared/src/formulas/data/market-pricing.json`, sau đó khởi động lại server/runner (và app tool nếu cần cập nhật mô tả). Hiện dùng giá khởi điểm cấu hình, chưa tự tăng/giảm theo cung cầu hoặc tuổi tin. Lịch sử giao dịch thành công được lưu riêng để nghiên cứu giá sau này. Cách tính, ý nghĩa các khóa và giới hạn: [Rao bán](../../docs/rao-ban.md#định-giá-bot-theo-cấu-hình-2026-11-14).
 
 Luật giá dùng chung Web/Desktop/Mobile; runner/tool vẫn là app Node trên máy cục bộ. Đã thử Chromium desktop/viewport390px, chưa kiểm ứng dụng native hay điện thoại thật.
+
+## Tổ đội khi luyện công
+
+Chọn một radio: **Chủ động mời người khác**, **Tự chấp nhận lời mời** (mặc định), hoặc **Tắt tự động tổ đội**. Hai chế độ mời/nhận không thể cùng bật. Chọn template vẫn chỉ đọc; chọn Tự cài đặt để sửa rồi lưu kịch bản. Tắt Luyện công thì không gửi lời mời/nhận.
+
+Bot mời người chơi sống, chưa có đội trong cùng bản đồ, ưu tiên gần; chỉ mời khi chưa có đội hoặc là đội trưởng còn chỗ. Giãn5giây/bot,60giây/tên và giữ chỗ cho lời mời chờ đến hết hạn. Không mời quái/NPC/bản thân, không giành người đã có đội. File cũ thiếu `autoInviteTeam` giữ chế độ nhận cũ; file bật cả hai được chuẩn hóa ưu tiên mời. Giá rao mới của bot/người chơi chỉ bằng lượng/KNB, không còn Liên hệ; tin liên hệ cũ chỉ xem snapshot và phải đăng lại để mua.
+
+Kiểm thử mới: `test:bots` có `bot-team.test.ts` kiểm loại trừ/migration, chọn mục tiêu/cooldown/quyền đội trưởng/chỗ trống và nối protocol; WS thật với2bot +1người chơi trên server2568/DBriêng xác nhận mời→nhận→mời thêm người. UI desktop1440/390 kiểm radio, lưu/nạp/readonly và bàn phím. Chưa điện thoại/native thật.

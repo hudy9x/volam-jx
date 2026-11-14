@@ -28,7 +28,7 @@ assert.equal(announcer.next(BOT_TRADE_RULES.botGapMs*2,[]),null,'Do not advertis
 const chat=new LootAnnouncer({chat:true,sell:false});chat.pickedUp(six);assert.match(chat.next(0,[six])!,/^Vừa nhặt/);
 assert.ok(botLootMessage(six,true)!.length<=CHAT.maxLength);
 const old=normalizeBotScenario({duration:1,behaviors:{pk:100}});assert.equal(old.duration,0);assert.equal(old.activities.grind,true);
-const sc=normalizeBotScenario({activities:{grind:false,chat:true,sell:false,autoAcceptTeam:false}});assert.deepEqual(sc.activities,{grind:false,chat:true,sell:false,autoAcceptTeam:false});
+const sc=normalizeBotScenario({activities:{grind:false,chat:true,sell:false,autoAcceptTeam:false}});assert.deepEqual(sc.activities,{grind:false,chat:true,sell:false,autoAcceptTeam:false,autoInviteTeam:false});
 console.log('PASS: six lines/rare or large hidden options, only fresh loot, dedupe, cooldown, absent items, chat vs sell, indefinite scenario migration');
 assert.equal(normalizeBotScenario({}).joinPerSecond,3);
 assert.equal(normalizeBotScenario({joinPerSecond:1}).joinPerSecond,3);

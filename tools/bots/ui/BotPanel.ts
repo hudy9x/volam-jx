@@ -117,8 +117,13 @@ const PAGE = `
   <fieldset id="sc-fields">
     <h3>Hoạt động</h3>
     <div class="bp-activities">${chk('sc-grind', 'Luyện công')}${chk('sc-chat', 'Chat')}${chk('sc-sell', 'Rao bán đồ')}</div>
-    <div id="sc-team-options">${chk('sc-team', 'Tự đồng ý lời mời gia nhập tổ đội khi luyện công')}</div>
-    <p class="bp-note">Có thể bật cùng nhau. Chat chỉ báo món vừa nhặt đáng chú ý theo thuộc tính hoặc bộ tiêu chí định giá. Bật Rao bán thì tự đánh giá đồ xanh/hoàng kim vừa nhặt và đăng giá trên kênh Mua bán để người chơi mua ngay. Giá khởi điểm theo bộ tiêu chí chung, chưa tự điều chỉnh theo thị trường. Món không đạt tiêu chí sẽ không rao.</p>
+    <fieldset id="sc-team-options" class="bp-team-mode"><legend>Tổ đội khi luyện công</legend>
+      <label class="bp-c"><input type="radio" name="sc-team-mode" id="sc-team-invite" value="invite">Chủ động mời người khác</label>
+      <label class="bp-c"><input type="radio" name="sc-team-mode" id="sc-team" value="accept">Tự chấp nhận lời mời</label>
+      <label class="bp-c"><input type="radio" name="sc-team-mode" id="sc-team-off" value="off">Tắt tự động tổ đội</label>
+      <p class="bp-note">Chỉ chọn một chế độ. Chủ động mời người chơi chưa có đội trong cùng bản đồ, khi chưa có đội hoặc đang làm đội trưởng còn chỗ; không mời lặp một người trong 60 giây.</p>
+    </fieldset>
+    <p class="bp-note">Luyện công, Chat và Rao bán có thể bật cùng nhau. Chat chỉ báo món vừa nhặt đáng chú ý theo thuộc tính hoặc bộ tiêu chí định giá. Bật Rao bán thì tự đánh giá đồ xanh/hoàng kim vừa nhặt và đăng giá trên kênh Mua bán để người chơi mua ngay. Giá khởi điểm theo bộ tiêu chí chung, chưa tự điều chỉnh theo thị trường. Món không đạt tiêu chí sẽ không rao.</p>
     <details id="sc-auto-options"><summary>Thiết lập luyện công</summary><div class="bp-grid" id="sc-auto"></div></details>
     <details><summary>Cài đặt kịch bản nâng cao</summary><div class="bp-grid">
       ${f('Tốc độ vào game', sel('sc-join', opt('3', '3 bot/giây (mặc định)') + opt('4', '4 bot/giây') + opt('5', '5 bot/giây')), 'Bot vào lần lượt, giãn đều trong mỗi giây để giảm tải. Tổng số lấy từ những tên đã chọn ở mục 1.')}
@@ -231,7 +236,7 @@ class BotPanel {
   private on_(id: string): boolean { return this.$<HTMLInputElement>(id).checked; }
   private set(id: string, v: string | number | boolean): void {
     const el = this.$<HTMLInputElement>(id);
-    if (el.type === 'checkbox') el.checked = !!v; else el.value = String(v);
+    if (el.type === 'checkbox' || el.type === 'radio') el.checked = !!v; else el.value = String(v);
   }
 
   private status(text: string, bad = false): void {
@@ -331,7 +336,7 @@ class BotPanel {
     }
     return { ...this.scenarioBase, version: 1, duration: 0, note: this.val('sc-note'), server: this.val('sc-server'),
       bots: { prefix: 'botfixed', count: 0, usernames: [...this.picked] }, joinPerSecond: this.n('sc-join'), reconnect: this.on_('sc-reconnect'),
-      activities: { grind: this.on_('sc-grind'), chat: this.on_('sc-chat'), sell: this.on_('sc-sell'), autoAcceptTeam: this.on_('sc-team') }, auto: auto as unknown as AutoSettings };
+      activities: { grind: this.on_('sc-grind'), chat: this.on_('sc-chat'), sell: this.on_('sc-sell'), autoAcceptTeam: this.on_('sc-team'), autoInviteTeam: this.on_('sc-team-invite') }, auto: auto as unknown as AutoSettings };
   }
 
   private writeScenario(s: BotScenario): void {
@@ -339,7 +344,7 @@ class BotPanel {
     if (s.bots.usernames) { this.picked = new Set(s.bots.usernames); this.loadedSelection = undefined; }
     else { this.loadedSelection = [s.bots.prefix, String(s.bots.count)]; }
     this.set('sc-note', s.note); this.set('sc-server', s.server); this.set('sc-join', s.joinPerSecond); this.set('sc-reconnect', s.reconnect);
-    this.set('sc-grind', s.activities.grind); this.set('sc-chat', s.activities.chat); this.set('sc-sell', s.activities.sell); this.set('sc-team', s.activities.autoAcceptTeam);
+    this.set('sc-grind', s.activities.grind); this.set('sc-chat', s.activities.chat); this.set('sc-sell', s.activities.sell); this.set('sc-team', !s.activities.autoInviteTeam && s.activities.autoAcceptTeam); this.set('sc-team-invite', s.activities.autoInviteTeam); this.set('sc-team-off', !s.activities.autoInviteTeam && !s.activities.autoAcceptTeam);
     for (const k of Object.keys(DEFAULT_AUTO) as (keyof AutoSettings)[]) this.set(`sc-a-${k}`, s.auto[k] as string | number | boolean);
     this.showActivities(); this.renderList();
   }

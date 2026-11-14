@@ -44,8 +44,9 @@ export interface PkMsg { mode: number }
 export interface MountMsg { on: boolean }
 /** Kênh chat (USER 2026-11-13): 'world' = Thế giới, every online character. */
 export type ChatChannel = 'world' | 'trade';
-export type TradeCurrency = 'money' | 'knb' | 'contact';
-export interface TradeOffer { seller: string; item: Item; currency: TradeCurrency; price: number; sold?: boolean; valuation?: import('./formulas/market.js').ItemValuation }
+export type TradeCurrency = 'money' | 'knb';
+/** 'contact' is read-only compatibility for old chat snapshots; new posts accept money/knb only. */
+export interface TradeOffer { seller: string; item: Item; currency: TradeCurrency | 'contact'; price: number; sold?: boolean; valuation?: import('./formulas/market.js').ItemValuation }
 export interface TradePostMsg { uid: string; currency: TradeCurrency; price: number; text: string; autoPrice?: boolean }
 export interface ChatMsg { text: string; ch?: ChatChannel }
 /** `id` numbers the lines of the server run; `reacts` = emoji → names of who put it (CHAT.reactions only). */

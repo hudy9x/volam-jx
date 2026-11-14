@@ -261,3 +261,5 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 - [x] USER2026-11-14 Bảng Bot: ba tab Online/Offline/Chưa thiết lập có tổng số, giới tính emoji sau tên, 🟢/🔴 trước kết nối; checkbox header chọn/bỏ đúng kết quả lọc, indeterminate, giữ lựa chọn qua tab/refresh. Typecheck/build và Chromium1440/390/API giả lập đạt; chưa commit.
 
 - [x] USER2026-11-14 Bảng Bot bổ sung tab Tất cả có tổng số; ♂ vàng cho Nam / ♀ xanh dương cho Nữ. Typecheck/build, Chromium desktop/390 và chọn-bỏ200hàng/lọc/màu thực đạt; chưa commit.
+
+- [x] USER2026-11-14 Commit toàn bộ checkpointfd69fc0; thêm radio bot mời/nhận/tắt (migration, leader/full/cooldown), bỏ Liên hệ mới, chỉ lượng/KNB/giárequired và tương thích preview tin cũ. Bots10/market13/auto4/typecheck/build, WS2bot+1người chơi và Chromium1440/390 đạt trênDB/config riêng; commit theo USER, không push.
