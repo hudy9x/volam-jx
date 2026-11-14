@@ -940,3 +940,15 @@ Người dùng yêu cầu commit trạng thái hiện tại. Commit `fix(server)
 ## 2026-11-14 — Auto/bot kỹ năng, boss và loot
 
 Sửa chọn chiêu dự phòng và vòng xoay trên boss; bot xếp lại thanh khi cưỡi. Sửa ưu tiên boss thật theo bậc và chuyển mục tiêu. Thêm autoMoney/autoSellBlue/autoKeepValuable, kiểm tra kích thước túi; preset30 bật boss/bán xanh bảo vệ. test:auto3 + test:bots6/typecheck/build đạt; chưa test WS hoặc visual QA mới. Không reset DB, không commit/push; giữ index có trước.
+
+## 2026-11-14 — Checkpoint a7180d3 và Auto/market theo USER
+
+Commit yêu cầu trước khi sửa tiếp: `a7180d3 fix(auto): improve bot skills boss targeting and loot handling`, chỉ12file Auto/bot, giữ index xóa frameTrace có trước. Sau đó triển khai Auto theo nhân vật (Z mở, nút chạy/dừng, DB/cache/restore), market chat + linked preview và mua trực tiếp theo lượng/KNB, KNB bán100vạn ở Kỳ Trân Các, moneyText vạn. Mua bán công khai lịch sử, không đổi lịch sử Thế giới; server kiểm món/ví/túi và lưu hai bên đồng bộ. Bot rao liên hệ lên market và lưu runtime Auto theo char.
+
+Kiểm cuối: typecheck/build, auto4/market6/bots6; WS DB/rejoin/mua lượng/KNB/replay và UI Chromium1440/390px, Auto reload/pause, rao/ảnh/thuộc tính, mua KNB và Kỳ Trân Các/số dư; đã xem ảnh. DB riêng `/tmp/jx-market-auto/db.json`, cổng2568/5174, không tác động game thật. Không native/mobile thật. Không commit phần mới/push; không đụng thay đổi khác (kể cả ActorView/character được phiên khác cập nhật trong lúc làm).
+
+## 2026-11-14 — Commit Auto theo nhân vật và Mua bán theo USER
+
+Checkpoint `feat(game): persist character auto and add item marketplace with KNB` (mã xem git log -1). Chỉ phần Auto/Mua bán/KNB và tài liệu/test liên quan; keymap chỉ hướng dẫn Z. Giữ ngoài commit ActorView, staged xóa frameTrace, đổi C→N, kiến trúc và nghiên cứu Tống Kim. Không push.
+
+Bản snapshot chuẩn bị commit được kiểm riêng: typecheck toàn repo + auto4/market6/bots6 đạt. Không lấy thay đổi ActorView hay staged xóa frameTrace làm phụ thuộc.

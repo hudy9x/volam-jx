@@ -91,6 +91,7 @@ export class BotClient {
   async stop(): Promise<void> {
     this.stopped = true;
     this.leaving = true;
+    this.room?.send(C2S.autoConfig, { enabled: false, settings: this.sc.auto });
     try { await this.room?.leave(true); } catch { /* already gone */ }
     this.online = false;
   }
@@ -100,6 +101,12 @@ export class BotClient {
     this.leaving = false;
     this.online = true;
     this.actorCache.at = -1;
+    let autoSynced = false;
+    room.onMessage(S2C.autoConfig, () => {
+      if (autoSynced) return; autoSynced = true;
+      room.send(C2S.autoConfig, { enabled: this.sc.activities.grind, settings: this.sc.auto });
+    });
+    room.onMessage(S2C.tradePost, () => {});
     room.onMessage(S2C.inventory, (msg: InventoryMsg) => {
       this.bag = msg.bag; this.equip = msg.equip; this.money = msg.money;
       this.layoutBar();
@@ -148,7 +155,12 @@ export class BotClient {
     while (this.sentAt.length && now - this.sentAt[0] > 1000) this.sentAt.shift();
     if (this.sentAt.length >= this.sc.human.maxOrdersPerSec) return;
     const message = this.announcer.next(now, this.bag);
-    if (message) { this.send(C2S.chat, { text: message }); BotClient.nextWorldChatAt = now + BOT_TRADE_RULES.fleetGapMs; }
+    if (message) {
+      const item = this.announcer.lastItem;
+      if (this.sc.activities.sell && item) this.send(C2S.tradePost, { uid: item.uid, currency: 'contact', price: 0, text: message });
+      else this.send(C2S.chat, { text: message });
+      BotClient.nextWorldChatAt = now + BOT_TRADE_RULES.fleetGapMs;
+    }
   }
 
   private fail(e: unknown): void {

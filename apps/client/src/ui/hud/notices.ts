@@ -1,14 +1,15 @@
-import { keyLabel } from '../../input/keymap';
 import { $, mount } from '../kit/dom';
 import './notices.css';
 
 /** Server / game messages in the middle of the screen (4 at most, 4 s each) and the "auto-fight on" line. */
 export class Notices {
   private readonly box: HTMLElement;
+  onAutoToggle: (() => void) | null = null;
 
   constructor(parent: HTMLElement) {
     this.box = mount(parent, '<div id="notices"></div>');
-    mount(parent, `<div id="auto-badge" class="hidden">Đang tự động đánh · <b>${keyLabel('auto')}</b> để dừng</div>`);
+    mount(parent, `<button type="button" id="auto-badge" aria-label="Chạy auto" aria-pressed="false">▶ Auto</button>`);
+    $('auto-badge').addEventListener('click', () => this.onAutoToggle?.());
   }
 
   notice(text: string): void {
@@ -21,6 +22,9 @@ export class Notices {
   }
 
   setAutoBadge(on: boolean): void {
-    $('auto-badge').classList.toggle('hidden', !on);
+    const button = $('auto-badge');
+    button.textContent = on ? '❚❚ Auto' : '▶ Auto';
+    button.setAttribute('aria-pressed', String(on));
+    button.setAttribute('aria-label', on ? 'Dừng auto' : 'Chạy auto');
   }
 }

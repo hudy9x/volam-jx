@@ -9,6 +9,6 @@ export const moneyHtml = (id: string): string =>
   `<div class="money-row" title="Tiền túi (lượng)"><i class="money-icon"></i><span class="money" id="${id}"></span></div>`;
 
 export function setMoney(el: HTMLElement, amount: number): void {
-  const text = moneyText(amount);
+  const text = `${moneyText(amount)} lượng`;
   if (el.textContent !== text) el.textContent = text;
 }

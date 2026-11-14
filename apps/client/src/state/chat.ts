@@ -25,7 +25,7 @@ export const chatOnlineCount = new Store<number>(0);
 export function receiveChat(msg: ChatLine | ChatLine[]): void {
   const v = chat.get();
   if (Array.isArray(msg)) chat.set({ lines: msg, done: msg.length < CHAT.page, loading: false });
-  else chat.set({ ...v, lines: [...v.lines, msg].slice(-CHAT_KEEP) });
+  else chat.set({ ...v, lines: v.lines.some(l => l.id === msg.id) ? v.lines.map(l => l.id === msg.id ? msg : l) : [...v.lines, msg].slice(-CHAT_KEEP) });
 }
 
 /** An older page (scrolling up): put before what is shown. */

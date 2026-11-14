@@ -51,6 +51,8 @@ export interface CharacterRecord {
   skills?: Record<string, number>;
   /** Tiền túi (lượng); missing = saved before money existed (gets START_MONEY). */
   money?: number;
+  knb?: number;
+  auto?: import('@vltk/shared').CharacterAuto;
   /** Hệ chosen at creation; missing on records before 2026-11-12 (= the faction's ngũ hành). */
   series?: Element;
   /** Level / exp / points (characters/progression.ts); `level` above mirrors progress.level for the character list. */

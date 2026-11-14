@@ -1,3 +1,4 @@
+import { initMarket, openMarketPost } from './market';
 import {
   BAG_CELL_PX, BAG_COLS, BAG_PAGES, BAG_PAGE_SIZE, BAG_ROWS, KIND_SLOTS, bagCover, bagPage, canWear, equipError, findPlace, fitsAt, itemDef,
   itemSize, moneyText,
@@ -25,9 +26,10 @@ const HTML = `
     `<button type="button" class="bag-tab${p ? '' : ' on'}" data-page="${p}">${p ? `Rương ${p}` : 'Túi'}</button>`).join('')}</div>
   <div class="row spread muted"><span id="bag-mode-hint">Vật phẩm</span><span id="bag-count"></span></div>
   <div id="bag-grid" style="--cell: ${BAG_CELL_PX}px; --cols: ${BAG_COLS}; --rows: ${BAG_ROWS}"></div>
-  <div class="bag-money">${moneyHtml('bag-money')}</div>
+  <div class="bag-money">${moneyHtml('bag-money')}</div><div id="bag-knb">0 Kim nguyên bảo</div>
   <div class="row bag-actions">
     <button type="button" class="btn sm" id="bag-throw" title="Bật rồi click vào món để vứt xuống đất (nhặt lại được trong 60 giây)">Vứt</button>
+    <button type="button" class="btn sm" id="bag-announce">Rao bán</button>
     <button type="button" class="btn sm" id="bag-sell" title="Bật rồi click vào món để bán (1/4 giá)">Bán</button>
   </div>
   ${import.meta.env.DEV ? '<button type="button" class="btn sm" id="bag-dev-money" title="Dev: cộng 100 vạn lượng">+100 vạn</button>' : ''}
@@ -45,10 +47,12 @@ export class InventoryWindow {
   /** Page shown: 0 = hành trang, 1–4 = rương mở rộng (items/bag.ts). */
   private page = 0;
   /** Click mode of the bag's own buttons: throw on the ground / sell (USER 2026-11-12). */
-  private mode: 'none' | 'throw' | 'sell' = 'none';
+  private mode: 'none' | 'throw' | 'sell' | 'announce' = 'none';
 
   constructor(parent: HTMLElement, private ctx: HudContext, private confirm: TradeConfirm) {
     mount(parent, HTML);
+    initMarket(parent, ctx);
+    $('bag-announce').addEventListener('click', () => this.setMode(this.mode === 'announce' ? 'none' : 'announce'));
     dialogs.register(ID, { onClose: () => this.setMode('none') });
     this.buildBag();
     $('bag-tabs').querySelectorAll<HTMLElement>('.bag-tab').forEach(tab => {
@@ -86,13 +90,15 @@ export class InventoryWindow {
     this.renderBag();
   }
 
-  private setMode(mode: 'none' | 'throw' | 'sell'): void {
+  private setMode(mode: 'none' | 'throw' | 'sell' | 'announce'): void {
     this.mode = mode;
+    $('bag-announce').classList.toggle('on', mode === 'announce');
+    $('bag-grid').classList.toggle('announcing', mode === 'announce');
     $('bag-throw').classList.toggle('on', mode === 'throw');
     $('bag-sell').classList.toggle('on', mode === 'sell');
     $('bag-grid').classList.toggle('throwing', mode === 'throw');
     $('bag-grid').classList.toggle('selling-own', mode === 'sell');
-    $('bag-mode-hint').textContent = mode === 'throw' ? 'Click vào món để vứt xuống đất' : mode === 'sell' ? 'Click vào món để bán' : 'Vật phẩm';
+    $('bag-mode-hint').textContent = mode === 'announce' ? 'Click vào vật phẩm muốn rao bán' : mode === 'throw' ? 'Click vào món để vứt xuống đất' : mode === 'sell' ? 'Click vào món để bán' : 'Vật phẩm';
   }
 
   private viewer(): ItemViewer | null {
@@ -152,6 +158,7 @@ export class InventoryWindow {
     const [w, h] = itemSize(def);
     const el = document.createElement('div');
     el.className = 'slot bag-item';
+    el.dataset.uid = item.uid;
     const local = i % BAG_PAGE_SIZE;
     el.style.left = `${(local % BAG_COLS) * BAG_CELL_PX}px`;
     el.style.top = `${Math.floor(local / BAG_COLS) * BAG_CELL_PX}px`;
@@ -171,6 +178,11 @@ export class InventoryWindow {
       this.ctx.actions()?.equip(i);
     };
     el.addEventListener('click', () => {
+      if (this.mode === 'announce') {
+        tooltip.hide();
+        if (item.def === TOKEN_ITEM_ID) { this.ctx.notice('Lệnh bài không thể rao bán.'); return; }
+        openMarketPost(item); this.setMode('none'); return;
+      }
       if (this.mode === 'throw') { tooltip.hide(); this.ctx.actions()?.discard(i); return; }
       if (this.selling()) { askSell(this.confirm, this.ctx, i, def); return; }
       wearOrUse();
@@ -214,5 +226,6 @@ export class InventoryWindow {
     const used = cover.slice(this.page * BAG_PAGE_SIZE, (this.page + 1) * BAG_PAGE_SIZE).filter(c => c >= 0).length;
     $('bag-count').textContent = `${used}/${BAG_PAGE_SIZE} ô`;
     setMoney($('bag-money'), this.inv.money);
+    $('bag-knb').textContent = `${(this.inv.knb ?? 0).toLocaleString('vi-VN')} Kim nguyên bảo`;
   }
 }

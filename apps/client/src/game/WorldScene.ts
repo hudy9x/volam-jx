@@ -292,7 +292,7 @@ export class WorldScene extends Phaser.Scene {
       bind('kytran', () => this.ui.toggleWindow('kytran'));
       bind('shop', () => this.ui.toggleWindow('shop'));
       bind('mount', () => this.ui.toggleMount());
-      bind('auto', () => this.ui.setAuto(!this.ui.auto));
+      bind('auto', () => this.ui.openAuto());
       bind('bag', () => this.ui.toggleWindow('bag'));
       bind('char', () => this.ui.toggleWindow('char'));
       bind('travel', () => this.ui.toggleWindow('travel'));
@@ -327,7 +327,10 @@ export class WorldScene extends Phaser.Scene {
       use: index => this.room.send(C2S.use, { index }),
       discard: index => this.room.send(C2S.discard, { index }),
       forge: (item, series, lines, token) => this.room.send(C2S.forge, { item, series, lines, token }),
-      chat: text => this.room.send(C2S.chat, { text }),
+      chat: (text, ch) => this.room.send(C2S.chat, { text, ch }),
+      tradePost: msg => this.room.send(C2S.tradePost, msg),
+      tradeBuy: id => this.room.send(C2S.tradeBuy, { id }),
+      buyKnb: count => this.room.send(C2S.buyKnb, { count }),
       chatReact: (id, emoji) => this.room.send(C2S.chatReact, { id, emoji }),
       chatMore: before => this.room.send(C2S.chatMore, { before }),
       bagMove: (from, to) => this.room.send(C2S.bagMove, { from, to }),

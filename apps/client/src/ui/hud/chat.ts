@@ -1,4 +1,5 @@
-import { CHAT, type ChatLine } from '@vltk/shared';
+import { openMarketPreview, offerPrice } from '../windows/market';
+import { CHAT, itemDef, type ChatLine } from '@vltk/shared';
 import { chat, chatLoading, chatOnlineCount, type ChatView } from '../../state/chat';
 import { SYSLOG_KEEP, syslog, type SysLog } from '../../state/syslog';
 import { storage } from '../../platform/storage';
@@ -10,6 +11,7 @@ const HTML = `
 <div id="hud-chat" class="on-world">
   <div class="chat-head" role="tablist">
     <button type="button" class="chat-tab on" id="chat-tab-world" role="tab" data-ch="world">Thế giới</button>
+    <button type="button" class="chat-tab" id="chat-tab-trade" role="tab" data-ch="trade">Mua bán</button>
     <button type="button" class="chat-tab" id="chat-tab-sys" role="tab" data-ch="sys">Hệ thống<i class="chat-dot"></i></button>
     <span class="chat-online" id="chat-online" title="Số nhân vật đang trực tuyến (mọi bản đồ)"></span>
     <button type="button" class="chat-fold" id="chat-fold" title="Thu gọn / mở khung chat">–</button>
@@ -24,7 +26,7 @@ const HTML = `
 
 const FOLD_KEY = 'vltk.chatFolded';
 const TAB_KEY = 'vltk.chatTab';
-type Channel = 'world' | 'sys';
+type Channel = 'world' | 'trade' | 'sys';
 /** Hệ thống line time with seconds (many lines a minute under Auto). */
 const hhmmss = (at: number) => new Date(at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 /** Time of a line; older days with their date. */
@@ -63,12 +65,12 @@ export class ChatBox {
     fold(folded);
     $('chat-fold').addEventListener('click', () => fold(!root.classList.contains('folded')));
     // A tab of the folded box opens it on that channel.
-    for (const ch of ['world', 'sys'] as const) $(`chat-tab-${ch}`).addEventListener('click', () => { this.show(ch); fold(false); });
+    for (const ch of ['world', 'trade', 'sys'] as const) $(`chat-tab-${ch}`).addEventListener('click', () => { this.show(ch); fold(false); });
     this.input.addEventListener('keydown', e => {
       e.stopPropagation(); // not the game's / windows' keys (Esc closes windows)
       if (e.key === 'Enter') {
         const text = this.input.value.trim();
-        if (text) this.ctx.actions()?.chat(text);
+        if (text) this.ctx.actions()?.chat(text, this.channel === 'trade' ? 'trade' : 'world');
         this.input.value = '';
         if (!text) this.input.blur();
       } else if (e.key === 'Escape') this.input.blur();
@@ -84,7 +86,7 @@ export class ChatBox {
     syslog.watch(v => this.renderSys(v));
     let saved: string | null = null;
     try { saved = storage.getJson<string>(TAB_KEY); } catch { /* per-device convenience only */ }
-    this.show(saved === 'sys' ? 'sys' : 'world');
+    this.show(saved === 'sys' || saved === 'trade' ? saved : 'world');
     // Scrolling near the top asks for the previous page of the account's history (server world/chat.ts chatOlder).
     // `stick`: the player reads the newest lines (follow the bottom). Kept while the box is hidden / resized too.
     this.log.addEventListener('scroll', () => {
@@ -154,7 +156,10 @@ export class ChatBox {
   /** Show a tab (remembered on this device). */
   private show(ch: Channel): void {
     this.channel = ch;
-    this.root.classList.toggle('on-world', ch === 'world');
+    this.root.classList.toggle('on-world', ch !== 'sys');
+    $('chat-tab-trade').classList.toggle('on', ch === 'trade');
+    $('chat-tab-trade').setAttribute('aria-selected', String(ch === 'trade'));
+    this.input.placeholder = `Bấm vào đây để chat (${ch === 'trade' ? 'Mua bán' : 'Thế giới'})`;
     this.root.classList.toggle('on-sys', ch === 'sys');
     $('chat-tab-world').classList.toggle('on', ch === 'world');
     $('chat-tab-sys').classList.toggle('on', ch === 'sys');
@@ -162,6 +167,7 @@ export class ChatBox {
     $('chat-tab-sys').setAttribute('aria-selected', String(ch === 'sys'));
     if (ch === 'sys') { $('chat-tab-sys').classList.remove('new'); this.sysStick = true; this.sys.scrollTop = this.sys.scrollHeight; }
     else { this.stick = true; this.log.scrollTop = this.log.scrollHeight; }
+    this.render(chat.get());
     try { storage.setJson(TAB_KEY, ch); } catch { /* per-device convenience only */ }
   }
 
@@ -213,7 +219,7 @@ export class ChatBox {
     const head = document.createElement('div');
     head.className = 'chat-more';
     head.textContent = v.loading ? 'Đang tải tin cũ…' : v.done ? (lines.length ? '— Hết lịch sử —' : '') : '↑ Cuộn lên để xem tin cũ';
-    this.log.replaceChildren(head, ...lines.map(l => {
+    this.log.replaceChildren(head, ...lines.filter(l => l.ch === (this.channel === 'trade' ? 'trade' : 'world')).map(l => {
       const row = document.createElement('div');
       row.className = 'chat-line';
       const time = document.createElement('span');
@@ -225,7 +231,13 @@ export class ChatBox {
       const text = document.createElement('span');
       text.className = 'chat-text';
       text.textContent = l.text;
-      row.append(time, from, text, this.reactRow(l, self));
+      row.append(time, from, text);
+      if (l.offer) {
+        const item = document.createElement('button'); item.type = 'button'; item.className = 'chat-item';
+        item.textContent = `[${itemDef(l.offer.item)?.name ?? 'Vật phẩm'}] · ${offerPrice(l)}`;
+        item.addEventListener('click', () => openMarketPreview(l)); row.appendChild(item);
+      }
+      row.appendChild(this.reactRow(l, self));
       return row;
     }));
     // Older lines put on top keep what the player was reading in place; new ones follow the bottom.

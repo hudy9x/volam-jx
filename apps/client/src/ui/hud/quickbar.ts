@@ -28,7 +28,7 @@ const HTML = `
   <button class="fn b-trade" id="shop-open" style="left:615px" title="Thợ rèn: trang bị cấp 1–10 (giao dịch trong thành) (${keyLabel('shop')})"><kbd class="fn-key">${keyLabel('shop')}</kbd></button>
   <button class="fn b-team" id="team-open" style="left:677px" title="Tổ đội (${keyLabel('team')})"><kbd class="fn-key">${keyLabel('team')}</kbd></button>
   <button class="fn b-kytran" id="kytran-open" style="left:722px" title="Kỳ Trân Các: bí kíp kỹ năng (${keyLabel('kytran')})"><kbd class="fn-key">${keyLabel('kytran')}</kbd></button>
-  <button class="fn b-auto" id="auto-toggle" style="left:646px" title="Tự động đánh (${keyLabel('auto')}) · Chuột phải: tùy chọn">AUTO<kbd class="fn-key">${keyLabel('auto')}</kbd></button>
+  <button class="fn b-auto" id="auto-toggle" style="left:646px" title="Mở cài đặt Auto (${keyLabel('auto')})">AUTO<kbd class="fn-key">${keyLabel('auto')}</kbd></button>
   <button class="fn b-system" id="menu-open" style="left:739px" title="Hệ thống (${keyLabel('system')})"><kbd class="fn-key">${keyLabel('system')}</kbd></button>
 </div>`;
 

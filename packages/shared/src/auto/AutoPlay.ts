@@ -272,10 +272,10 @@ export class AutoPlay {
 
   /**
    * In town (revived, out of potions, or started there): buy potions, sell junk, then go to the bãi luyện công (autoMap)
-   * — one step every TOWN_STEP_MS. Without autoMap there is nothing to do in town: stop.
+   * — one step every TOWN_STEP_MS. Without autoMap, wait in town while retaining the character’s enabled preference.
    */
   private town(now: number, opts: Settings): void {
-    if (!opts.autoMap) { this.host.stop('Trong thành không thể động võ: đã dừng tự động đánh.'); return; }
+    if (!opts.autoMap) return;
     if (now < this.townNext) return;
     this.townNext = now + TOWN_STEP_MS;
     switch (this.townStep++) {

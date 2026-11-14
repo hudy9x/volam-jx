@@ -1,4 +1,7 @@
+import { beginCharacterAuto, receiveCharacterAuto } from '../state/characterAuto';
+import { C2S, type CharacterAuto } from '@vltk/shared';
 import { Client, type Room } from '@colyseus/sdk';
+import { marketResult, knbPurchaseResult } from '../state/market';
 import { team, teamInvites } from '../state/team';
 import { chatOnlineCount, receiveChat, receiveOlder, receiveReacts } from '../state/chat';
 import { addSyslog } from '../state/syslog';
@@ -15,7 +18,12 @@ const colyseus = new Client(SERVER_URL);
 
 export async function joinMap(mapId: number, charId: string): Promise<Room> {
   const room = await colyseus.joinOrCreate(MAP_ROOM, { mapId, charId, token: currentToken() });
+  beginCharacterAuto(charId, value => room.send(C2S.autoConfig, value));
+  room.onMessage(S2C.autoConfig, (msg: CharacterAuto) => receiveCharacterAuto(msg));
   // The server sends the bag right after joining, before the scene exists: listen immediately.
+  room.onMessage(S2C.buyKnb, (msg: { error?: string }) => knbPurchaseResult.set(msg));
+  room.onMessage(S2C.tradePost, (msg: { error?: string }) => marketResult.set({ kind: 'post', ...msg }));
+  room.onMessage(S2C.tradeBuy, (msg: { error?: string }) => marketResult.set({ kind: 'buy', ...msg }));
   room.onMessage(S2C.inventory, (msg: InventoryMsg) => inventory.set(msg));
   room.onMessage(S2C.skills, (msg: SkillsMsg) => skillbar.setLevels(msg.levels, msg.exp, msg.bonus));
   room.onMessage(S2C.stats, (msg: StatsMsg) => progress.set(msg));

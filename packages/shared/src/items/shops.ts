@@ -20,7 +20,14 @@ export const BUY_MAX = 99;
 export const sellPrice = (def: ItemDef | undefined): number => Math.floor((def?.price ?? 0) / 4);
 
 /** Money as the original shows it: plain digits (the windows add the "lượng" unit / the silver icon). */
-export const moneyText = (n: number): string => String(Math.max(0, Math.floor(n)));
+export const KNB_PRICE = 1_000_000; // USER: 100 vạn lượng / Kim nguyên bảo.
+export const moneyText = (n: number): string => {
+  const amount = Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+  if (amount < 10000) return amount.toLocaleString('vi-VN');
+  const rest = amount % 10000;
+  const van = Math.floor(amount / 10000);
+  return `${van >= 10000 ? van.toLocaleString('vi-VN') : van} vạn${rest ? ` ${rest}` : ''}`;
+};
 
 /** 'gold' = dev-only tab of Thợ rèn (server DEV_TOOLS): hoàng kim môn phái for tests; in play they drop from bosses. */
 export type ShopId = 'smith' | 'drug' | 'horse' | 'gold' | 'kytran';

@@ -1,4 +1,5 @@
-import { BUY_MAX, KIND_NAMES, SHOP_ITEMS, SHOP_NAMES, SMITH_KINDS, moneyText, roomFor, sellPrice, type ItemDef, type ItemKind, type ShopId } from '@vltk/shared';
+import { knbPurchaseResult } from '../../state/market';
+import { KNB_PRICE, BUY_MAX, KIND_NAMES, SHOP_ITEMS, SHOP_NAMES, SMITH_KINDS, moneyText, roomFor, sellPrice, type ItemDef, type ItemKind, type ShopId } from '@vltk/shared';
 import { itemViewer } from '../../state/progress';
 import { keyLabel } from '../../input/keymap';
 import { bagIndexOf, inventory } from '../../state/inventory';
@@ -18,6 +19,9 @@ const HTML = `
   <div id="shop-tabs" class="tabs"></div>
   <label class="check" id="shop-all-row"><input type="checkbox" id="shop-all" /> Hiện cả đồ của giới tính khác</label>
   <div id="shop-list"></div>
+  <div id="shop-knb" class="hidden"><p>Kim nguyên bảo: 100 vạn lượng / 1 Kim nguyên bảo</p>
+    <label>Số lượng <input type="number" id="shop-knb-count" min="1" max="99" value="1" /></label>
+    <button type="button" class="btn" id="shop-buy-knb">Mua Kim nguyên bảo</button></div>
   <div class="shop-foot">
     <div class="trade-modes">
       <button type="button" class="tab" data-mode="buy">Mua</button>
@@ -43,6 +47,15 @@ export class ShopWindow {
   /** `openForge`: Thợ rèn → Chế tạo (windows/forge.ts), on the kind of the current tab. */
   constructor(parent: HTMLElement, private ctx: HudContext, private confirm: TradeConfirm, openForge: (kind: ItemKind) => void) {
     mount(parent, HTML);
+    $('shop-buy-knb').addEventListener('click', () => {
+      const n = Number($<HTMLInputElement>('shop-knb-count').value);
+      if (!Number.isInteger(n) || n < 1 || n > 99) { this.ctx.notice('Số lượng phải từ 1 đến 99.'); return; }
+      $<HTMLButtonElement>('shop-buy-knb').disabled = true;
+      this.ctx.actions()?.buyKnb(n);
+    });
+    const knbLabel = () => { const n = Number($<HTMLInputElement>('shop-knb-count').value); $('shop-buy-knb').textContent = `Mua ${n || 0} Kim nguyên bảo · ${moneyText(n * KNB_PRICE)} lượng`; };
+    $('shop-knb-count').addEventListener('input', knbLabel); knbLabel();
+    knbPurchaseResult.watch(() => { $<HTMLButtonElement>('shop-buy-knb').disabled = false; });
     $('shop-forge').addEventListener('click', () => openForge(this.tab));
     dialogs.register(ID, {
       onClose: () => trade.set({ shop: null, mode: 'buy' }),
@@ -75,6 +88,7 @@ export class ShopWindow {
     const isOpen = dialogs.isOpen(ID);
     if (open === false || (open === undefined && isOpen && this.shop === shop)) { dialogs.close(ID); return; }
     this.shop = shop;
+    $('shop-knb').classList.toggle('hidden', shop !== 'kytran');
     dialogs.setTitle(ID, SHOP_NAMES[shop]);
     trade.set({ shop, mode: 'buy' });
     this.render();

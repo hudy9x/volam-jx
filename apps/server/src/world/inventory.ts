@@ -1,3 +1,4 @@
+import { moneyText } from '@vltk/shared';
 import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -78,8 +79,8 @@ export function buyItem(w: World, sim: Sim, defId: string, count = 1): boolean {
   if (SHOP_OF[defId] === 'gold' && !devTools()) return false; // dev-only shop
   for (let k = 0; k < n; k++) addToBag(sim.bag!, def.gold ? createGold(def, newItemUid(), sim.stats?.luck ?? 5) : makeItem(defId)!);
   sim.money = (sim.money ?? 0) - cost;
-  w.hooks.notify(sim, `Mua ${n > 1 ? `${n} ` : ''}${def.name}: ${cost} lượng.`);
-  w.hooks.log(sim, 'buy', `Mua ${n > 1 ? `${n} ` : ''}${def.name}: −${cost.toLocaleString('vi-VN')} lượng.`);
+  w.hooks.notify(sim, `Mua ${n > 1 ? `${n} ` : ''}${def.name}: ${moneyText(cost)} lượng.`);
+  w.hooks.log(sim, 'buy', `Mua ${n > 1 ? `${n} ` : ''}${def.name}: −${moneyText(cost)} lượng.`);
   return true;
 }
 
@@ -103,8 +104,8 @@ export function forgeItem(w: World, sim: Sim, defId: string, series: number, lin
   if (magic.length) { item.magic = magic; item.q = QUALITY.magic; }
   if (!addToBag(sim.bag!, item)) { w.hooks.notify(sim, 'Hành trang không đủ chỗ.'); return false; }
   sim.money = (sim.money ?? 0) - cost;
-  w.hooks.notify(sim, viaToken ? `Nhận ${def.name} (Lệnh bài).` : `Chế tạo ${def.name}: ${cost} lượng.`);
-  w.hooks.log(sim, 'buy', viaToken ? `Nhận ${def.name} (Lệnh bài).` : `Chế tạo ${def.name}: −${cost.toLocaleString('vi-VN')} lượng.`);
+  w.hooks.notify(sim, viaToken ? `Nhận ${def.name} (Lệnh bài).` : `Chế tạo ${def.name}: ${moneyText(cost)} lượng.`);
+  w.hooks.log(sim, 'buy', viaToken ? `Nhận ${def.name} (Lệnh bài).` : `Chế tạo ${def.name}: −${moneyText(cost)} lượng.`);
   return true;
 }
 
@@ -129,8 +130,8 @@ export function sellItem(w: World, sim: Sim, index: number): boolean {
   const gain = sellPrice(def);
   sim.bag![index] = null;
   addMoney(sim, gain);
-  w.hooks.notify(sim, `Bán ${def.name}: ${gain} lượng.`);
-  w.hooks.log(sim, 'sell', `Bán ${def.name}: +${gain.toLocaleString('vi-VN')} lượng.`);
+  w.hooks.notify(sim, `Bán ${def.name}: ${moneyText(gain)} lượng.`);
+  w.hooks.log(sim, 'sell', `Bán ${def.name}: +${moneyText(gain)} lượng.`);
   return true;
 }
 

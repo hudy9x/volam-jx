@@ -1,3 +1,4 @@
+import { moneyText } from '@vltk/shared';
 import {
   DROPS,
   addToBag,
@@ -119,8 +120,8 @@ export function pickup(w: World, sim: Sim, id: string): boolean {
     w.hooks.log(sim, 'item', `Nhặt được ${itemDef(d.item)?.name ?? 'vật phẩm'}.`);
   } else {
     addMoney(sim, d.money);
-    w.hooks.notify(sim, `Nhặt được ${d.money} lượng.`);
-    w.hooks.log(sim, 'money', `Nhặt được ${d.money.toLocaleString('vi-VN')} lượng.`);
+    w.hooks.notify(sim, `Nhặt được ${moneyText(d.money)} lượng.`);
+    w.hooks.log(sim, 'money', `Nhặt được ${moneyText(d.money)} lượng.`);
   }
   w.ground.delete(id);
   w.groundSync?.delete(id);

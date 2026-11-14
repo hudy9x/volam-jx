@@ -4,3 +4,13 @@
 #auto-dlg .auto-h { margin-top: 8px; color: var(--gold); }
 #auto-dlg select { margin-left: 6px; }
 #auto-dlg { max-height: calc(100vh - 140px); overflow-y: auto; }
+/* Keep labels readable when long priority text and narrow viewports share this form. */
+#auto-dlg { overflow: hidden; }
+#auto-dlg .dlg-body { max-height: calc(100dvh - 180px); overflow-y: auto; }
+#auto-dlg .row { display: grid; gap: 5px; }
+#auto-dlg select { width: 100%; min-width: 0; margin-left: 0; }
+#auto-dlg .slider { display: grid; grid-template-columns: minmax(0, 1fr) 40px; gap: 5px; }
+#auto-dlg .slider input { grid-column: 1; grid-row: 2; width: 100%; min-width: 0; }
+#auto-dlg .slider span { grid-column: 2; grid-row: 2; text-align: right; }
+#auto-dlg .check { min-height: 32px; }
+@media (pointer: coarse) { #auto-dlg button, #auto-dlg select, #auto-dlg .check { min-height: 44px; } }

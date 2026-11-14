@@ -10,6 +10,9 @@ import type { ActorState } from '../state/actor';
 /** Orders the interface may give; the scene sends them to the server, which checks everything. */
 export interface WorldActions {
   /** Next PK mode (Luyện công → Chiến đấu → Đồ sát). */
+  tradePost: (msg: import('@vltk/shared').TradePostMsg) => void;
+  tradeBuy: (id: number) => void;
+  buyKnb: (count: number) => void;
   pk: () => void;
   /** Tổ đội order. */
   team: (msg: TeamOrderMsg) => void;
@@ -49,7 +52,7 @@ export interface WorldActions {
   /** Lệnh bài option (items/token.ts). */
   token: (msg: TokenMsg) => void;
   /** Kênh chat Thế giới: one line to every online character. */
-  chat: (text: string) => void;
+  chat: (text: string, ch?: import('@vltk/shared').ChatChannel) => void;
   /** Put / take back a reaction on a chat line. */
   chatReact: (id: number, emoji: string) => void;
   /** Older lines of the own chat history, before line `before`. */
@@ -102,6 +105,7 @@ export interface WorldUi {
   talk(npc: NpcTalk): void;
   /** Tự động đánh switch (the scene runs AutoPlay while it is on). */
   readonly auto: boolean;
+  openAuto(): void;
   setAuto(on: boolean, why?: string): void;
   onAuto: ((on: boolean) => void) | null;
 }

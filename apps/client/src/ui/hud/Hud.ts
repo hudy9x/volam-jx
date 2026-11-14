@@ -1,3 +1,4 @@
+import { characterAuto, setCharacterAutoEnabled } from '../../state/characterAuto';
 import type { FactionDef, MapMeta } from '@vltk/shared';
 import type { MapActor, MapLabel, NpcTalk, ViewRect, WindowId, WorldActions, WorldUi } from '../../game/ports';
 import type { ActorState } from '../../state/actor';
@@ -103,7 +104,7 @@ export class Hud implements WorldUi {
     this.quickbar = new Quickbar(root, {
       bag: () => this.toggleWindow('bag'),
       character: () => this.toggleWindow('char'),
-      auto: () => this.setAuto(!this.autoOn),
+      auto: () => this.autoWin.open(),
       autoOptions: () => this.autoWin.open(),
       skills: open => this.skills.toggle(open),
       mount: () => this.toggleMount(),
@@ -143,6 +144,8 @@ export class Hud implements WorldUi {
     });
     this.settings = new SettingsWindow(root);
     this.autoWin = new AutoWindow(root, on => this.setAuto(on));
+    this.notices.onAutoToggle = () => this.setAuto(!this.autoOn);
+    characterAuto.watch(value => this.setAuto(value.enabled));
     this.death = new DeathWindow(root, () => this.actions?.respawn());
     progress.watch(p => { if (p) this.vitals.setExp(p.progress.exp, p.expNext); });
     dialogs.onIdleEscape = () => dialogs.toggle('menu-dlg');
@@ -294,6 +297,8 @@ export class Hud implements WorldUi {
     this.npcTalk.talk(npc);
   }
 
+  openAuto(): void { this.autoWin.open(); }
+
   get auto(): boolean {
     return this.autoOn;
   }
@@ -302,6 +307,7 @@ export class Hud implements WorldUi {
   setAuto(on: boolean, why?: string): void {
     if (on === this.autoOn) { this.autoWin.setChecked(on); return; }
     this.autoOn = on;
+    setCharacterAutoEnabled(on);
     this.autoWin.setChecked(on);
     this.notices.setAutoBadge(on);
     this.quickbar.setAuto(on);

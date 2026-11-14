@@ -42,3 +42,11 @@ test('blue selling is opt-in and never sells golden gear or potions', () => {
   r.auto.start(); r.auto.update(31000, r.opts); assert.deepEqual(r.sold, []);
   r.auto.update(62000, {...r.opts, autoSellBlue: true}); assert.deepEqual(r.sold, [0]);
 });
+test('Auto waits in town instead of clearing enabled state when map travel is disabled', () => {
+  const r = rig();
+  const host = (r.auto as unknown as { host: AutoHost }).host;
+  let stopped = false;
+  host.safe = () => true; host.stop = () => { stopped = true; };
+  r.auto.start(); r.auto.update(1000, {...r.opts, autoMap:false});
+  assert.equal(stopped,false);
+});

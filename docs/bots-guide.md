@@ -68,7 +68,7 @@ Ba hoạt động có thể bật cùng lúc:
 |---|---|
 | Luyện công | Auto đánh quái, dùng thuốc, nhặt đồ, hồi sinh/mua thuốc/đổi bãi theo tùy chọn; mặc định bật |
 | Chat | Chỉ báo món đáng chú ý vừa nhặt trên kênh Thế giới; không chat ngẫu nhiên |
-| Rao bán đồ | Chỉ rao món đáng chú ý vừa nhặt, trên Thế giới. Bật cả Chat và Rao bán thì chỉ gửi một tin rao |
+| Rao bán đồ | Chỉ rao món đáng chú ý vừa nhặt, trên kênh Mua bán kèm link xem ảnh/thuộc tính (liên hệ trực tiếp). Bật cả Chat và Rao bán thì chỉ gửi một tin rao |
 
 Luyện công có **Tự đồng ý lời mời gia nhập tổ đội** (mặc định bật). Bot chỉ nhận lời mời thật qua giao thức tổ đội; server vẫn kiểm đội trưởng, giới hạn thành viên và hạn lời mời. Tắt tùy chọn hoặc tắt Luyện công thì không tự nhận.
 
@@ -128,3 +128,5 @@ Auto xoay chiêu cả trên boss, tìm chiêu tấn công khác đang sẵn sàn
 **Tự nhặt ngân lượng** độc lập với nhặt trang bị và không cần chỗ trong túi. Trang bị chỉ nhặt khi còn vùng trống đủ kích thước. **Tự bán đồ xanh trong túi** kiểm tra mỗi 30 giây (và khi về thành), không bán đồ đang mặc, ngựa, hoàng kim, thuốc hoặc bí kíp. **Giữ đồ xanh có giá trị** bảo vệ món trên 5 dòng hoặc dòng ẩn hiếm/cao theo cùng tiêu chí rao bán. Nếu túi toàn món được bảo vệ, Auto bỏ qua trang bị không vừa, vẫn nhặt tiền; cần tự dọn túi. Bật bán xanh có thể bán cả đồ xanh dự trữ trong túi, nên chỉ bật khi đồng ý quy tắc này.
 
 Preset `luyen-cong-30` bật đánh boss, nhặt tiền và bán xanh có bảo vệ. Các kịch bản tùy chỉnh cũ không bị tự ghi đè. Sau khi đổi mã tool, khởi động lại `npm run bots:ui`; dừng/chạy lại kịch bản để runner nhận thiết lập mới.
+
+Auto lưu theo nhân vật và giao dịch lượng/KNB: [docs/auto-and-market.md](auto-and-market.md).

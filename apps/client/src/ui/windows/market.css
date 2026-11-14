@@ -1,0 +1,12 @@
+#market-dialog { width: min(370px, calc(100vw - 12px)); }
+#market-dialog .dlg-body { max-height: calc(100dvh - 100px); overflow-y: auto; }
+#market-icon { width: 56px; height: 56px; margin: 0 auto 8px; }
+#market-preview { padding: 8px; background: #0008; }
+#market-form { display: grid; gap: 10px; margin-top: 12px; }
+#market-form label { display: grid; gap: 4px; }
+#market-form input, #market-form select { width: 100%; box-sizing: border-box; min-height: 32px; }
+#market-buy { margin-top: 8px; }
+#bag-grid.announcing { cursor: var(--cur-sell, pointer); }
+#bag-grid.announcing .slot, #bag-grid.announcing .slot * { cursor: inherit; }
+.chat-item { color: var(--gold); cursor: pointer; background: transparent; border: 0; text-decoration: underline; font: inherit; }
+#bag-knb { color: var(--gold); text-align: center; margin: 4px 0; }

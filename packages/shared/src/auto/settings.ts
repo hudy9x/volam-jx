@@ -57,3 +57,19 @@ export function approachDistance(range: number, melee: boolean, opts: Pick<AutoS
   if (melee || range <= MELEE_RANGE) return opts.autoMeleeClose ? CLOSE_REACH : Math.max(CLOSE_REACH, range);
   return Math.max(CLOSE_REACH, Math.round((range * opts.autoReachPct) / 100));
 }
+
+export interface CharacterAuto { enabled: boolean; settings: AutoSettings; revision: number }
+/** Only known, bounded fields cross the network or enter a character cache. */
+export function normalizeAuto(raw: unknown): AutoSettings {
+  const out = { ...DEFAULT_AUTO };
+  const v = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
+  for (const key of Object.keys(out) as (keyof AutoSettings)[]) {
+    if (typeof out[key] === 'boolean' && typeof v[key] === 'boolean') (out as unknown as Record<string, unknown>)[key] = v[key];
+  }
+  for (const [key, min, max] of [['autoRadius',200,1200],['autoReachPct',30,100],['autoHp',0,90],['autoMp',0,90]] as const) {
+    if (typeof v[key] === 'number' && Number.isFinite(v[key])) out[key] = Math.max(min, Math.min(max, Math.round(v[key])));
+  }
+  if (v.autoPriority === 'boss' || v.autoPriority === 'near') out.autoPriority = v.autoPriority;
+  if (v.autoLoot === 'all' || v.autoLoot === 'magic' || v.autoLoot === 'money') out.autoLoot = v.autoLoot;
+  return out;
+}

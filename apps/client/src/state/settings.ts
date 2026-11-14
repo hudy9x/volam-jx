@@ -37,7 +37,7 @@ class SettingsStore {
     // Older builds kept the minimap flag on its own.
     if (storage.get('vltk.minimap.hidden') === '1' && saved.minimap === undefined) saved.minimap = false;
     if (saved.zoom !== undefined) saved.zoom = snapZoom(saved.zoom);
-    this.value = { ...DEFAULT_SETTINGS, ...saved };
+    this.value = { ...DEFAULT_SETTINGS, ...saved, ...DEFAULT_AUTO };
   }
 
   get(): Settings {
@@ -47,7 +47,9 @@ class SettingsStore {
   set(patch: Partial<Settings>): void {
     if (patch.zoom !== undefined) patch = { ...patch, zoom: snapZoom(patch.zoom) };
     this.value = { ...this.value, ...patch };
-    storage.setJson(KEY, this.value);
+    const global = { ...this.value } as Partial<Settings>;
+    for (const key of Object.keys(DEFAULT_AUTO) as (keyof AutoSettings)[]) delete global[key];
+    storage.setJson(KEY, global);
     for (const fn of this.listeners) fn(this.value);
   }
 

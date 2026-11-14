@@ -248,3 +248,6 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 - [x] Xa phu hiển thị cấp quái, sắp bãi tăng dần và đánh dấu vượt cấp nhân vật; dùng chung bảng cấp với tool sinh quái (2026-11-13).
 
 - [x] USER2026-11-14 Auto/bot: fallback/xoay chiêu boss, ưu tiên boss2/1/0, ngân lượng độc lập, bán xanh có bảo vệ, tránh loot không vừa; test:auto/typecheck/build đạt, chưa QA gameplay WS và giao diện mới; chưa commit.
+
+- [x] USER2026-11-14 Auto theo nhân vật: Z mở dialog, chạy/dừng riêng, DB + localStorage theocharId, reload tiếp tục nếu bật, quick play/pause cạnh tên; WS/browser đạt.
+- [x] USER2026-11-14 Mua bán + KNB: chat công khai, rao món từ hành trang, preview snapshot, mua bằng lượng/KNB, liên hệ; KNB100vạn tại Kỳ Trân Các, tiền hiển thị vạn; unit/WS/browser đạt, checkpoint theo USER (mã xem git log -1). Đổi trang bị/offline/escrow không trong phạm vi.

@@ -80,6 +80,7 @@ export interface Sim {
   equip?: Equipment;
   /** Tiền túi (lượng); sent with the inventory. */
   money?: number;
+  knb?: number;
   /** Thuốc being pumped (systems/potions.ts): points per pulse, pulses left, time of the next one. */
   potions?: { stat: 'hp' | 'mp'; per: number; left: number; next: number }[];
   // monsters (ai/monster.ts)

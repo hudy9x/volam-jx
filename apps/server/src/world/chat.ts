@@ -42,8 +42,12 @@ function sendOnline(): void {
 }
 
 /** The account's saved lines (oldest first), still in the store. */
-const accountLines = (username: string): ChatLine[] =>
-  (db.userChat(username) ?? []).map(id => byId.get(id)).filter((l): l is ChatLine => !!l);
+const accountLines = (username: string): ChatLine[] => {
+  const seen = (db.userChat(username) ?? []).map(id => byId.get(id)).filter((l): l is ChatLine => !!l);
+  // Public market history must also be visible to buyers who joined after an advertisement was posted.
+  const lines = new Map([...seen, ...store.lines.filter(l => l.ch === 'trade')].map(l => [l.id, l]));
+  return [...lines.values()].sort((a, b) => a.id - b.id).slice(-CHAT.accountLines);
+};
 
 /** The account's last CHAT.page lines, for a character entering a map (older ones load on scrolling up: chatOlder). */
 export const chatHistoryFor = (username: string): ChatLine[] => accountLines(username).slice(-CHAT.page);
@@ -59,7 +63,7 @@ export function chatOlder(username: string, before: unknown): ChatOlderMsg {
 }
 
 /** One line from a character; returns why it was refused (shown to the sender only), or null. */
-export function chatSay(charId: string, name: string, raw: unknown, now = Date.now()): string | null {
+export function chatSay(charId: string, name: string, raw: unknown, now = Date.now(), ch: 'world' | 'trade' = 'world', offer?: import('@vltk/shared').TradeOffer): string | null {
   // Control characters out, spaces collapsed, length capped. Clients show it as plain text (textContent).
   const text = String(raw ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, CHAT.maxLength);
   if (!text) return null;
@@ -67,7 +71,7 @@ export function chatSay(charId: string, name: string, raw: unknown, now = Date.n
   const wait = last === undefined ? 0 : last + CHAT.minGapMs - now;
   if (wait > 0) return `Nói chậm thôi: chờ ${Math.ceil(wait / 1000)} giây nữa.`;
   lastAt.set(charId, now);
-  const line: ChatLine = { id: store.nextId++, ch: 'world', from: name, text, at: now };
+  const line: ChatLine = { id: store.nextId++, ch, ...(offer ? { offer } : {}), from: name, text, at: now };
   store.lines.push(line);
   byId.set(line.id, line);
   while (store.lines.length > CHAT.storeLines) byId.delete(store.lines.shift()!.id);
@@ -105,3 +109,7 @@ export function chatReact(charId: string, name: string, id: unknown, emoji: unkn
   db.touch();
   for (const send of rooms) send(S2C.chatReacts, { id: line.id, reacts: line.reacts ?? {} } satisfies ChatReactsMsg);
 }
+
+export const chatLineById = (id: number): ChatLine | undefined => byId.get(id);
+
+export function chatRefresh(line: ChatLine): void { for (const send of rooms) send(S2C.chat, line); }

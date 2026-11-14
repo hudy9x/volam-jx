@@ -1,3 +1,5 @@
+import { DEFAULT_AUTO, normalizeAuto, type CharacterAuto, type TradePostMsg } from '@vltk/shared';
+import { buyKnb, marketOnline, marketOffline, marketPost, marketBuy } from '../world/market.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Room, ServerError, type Client } from 'colyseus';
@@ -94,10 +96,30 @@ export class MapRoom extends Room<{ state: MapState }> {
     });
     // Kênh chat Thế giới (world/chat.ts): every map room relays every line.
     this.closeChat = chatRoomOpen((type, msg) => this.broadcast(type, msg));
+    this.onMessage(C2S.autoConfig, (client, msg: CharacterAuto) => {
+      const sim = this.simOf(client); if (!sim?.charId) return;
+      const auto: CharacterAuto = { enabled: msg?.enabled === true, settings: normalizeAuto(msg?.settings), revision: Date.now() };
+      db.updateCharacter(sim.charId, { auto });
+      client.send(S2C.autoConfig, auto);
+    });
+    this.onMessage(C2S.tradePost, (client, msg: TradePostMsg) => {
+      const sim = this.simOf(client); if (!sim) return;
+      const err = marketPost(sim, msg); client.send(S2C.tradePost, err ? { error: err } : {}); if (err) this.notify(sim, err);
+    });
+    this.onMessage(C2S.tradeBuy, (client, msg: { id: number }) => {
+      const sim = this.simOf(client); if (!sim) return;
+      const err = marketBuy(sim, Number(msg?.id)); client.send(S2C.tradeBuy, err ? { error: err } : {}); this.notify(sim, err ?? 'Mua vật phẩm thành công.');
+    });
+    this.onMessage(C2S.buyKnb, (client, msg: { count: number }) => {
+      const sim = this.simOf(client); if (!sim) return;
+      const err = buyKnb(sim, msg?.count, this.world.rules.safe);
+      client.send(S2C.buyKnb, err ? { error: err } : {});
+      if (err) this.notify(sim, err); else { this.sendInventory(client, sim); this.saveCharacter(sim); this.notify(sim, 'Đã mua Kim nguyên bảo.'); }
+    });
     this.onMessage(C2S.chat, (client, msg: ChatMsg) => {
       const sim = this.simOf(client);
       if (!sim?.charId) return;
-      const err = chatSay(sim.charId, sim.a.name, msg?.text);
+      const err = chatSay(sim.charId, sim.a.name, msg?.text, Date.now(), msg?.ch === 'trade' ? 'trade' : 'world');
       if (err) this.notify(sim, err);
     });
     this.onMessage(C2S.chatMore, (client, msg: ChatMoreMsg) => {
@@ -239,6 +261,8 @@ export class MapRoom extends Room<{ state: MapState }> {
       char.bot.pending = false;
       this.saveCharacter(sim);
     }
+    marketOnline(sim, () => { this.sendInventory(client, sim); this.saveCharacter(sim); });
+    client.send(S2C.autoConfig, char.auto ?? { enabled: false, settings: { ...DEFAULT_AUTO }, revision: 0 });
     this.sendInventory(client, sim);
     this.sendSkills(client, sim);
     this.sendStats(client, sim);
@@ -252,7 +276,7 @@ export class MapRoom extends Room<{ state: MapState }> {
   }
 
   private sendInventory(client: Client, sim: Sim): void {
-    client.send(S2C.inventory, { ...(sim.pickedUp ? { pickedUp: sim.pickedUp } : {}), bag: sim.bag ?? [], equip: sim.equip ?? {}, money: sim.money ?? 0 } satisfies InventoryMsg);
+    client.send(S2C.inventory, { ...(sim.pickedUp ? { pickedUp: sim.pickedUp } : {}), bag: sim.bag ?? [], equip: sim.equip ?? {}, money: sim.money ?? 0, knb: sim.knb ?? 0 } satisfies InventoryMsg);
     sim.pickedUp = undefined;
     this.sendSkills(client, sim); // worn pieces change skill levels (allskill_v)
   }
@@ -279,6 +303,7 @@ export class MapRoom extends Room<{ state: MapState }> {
   onLeave(client: Client): void {
     const sim = this.world.sims.get(client.sessionId);
     if (!sim) return; // already transferred
+    marketOffline(sim);
     this.saveCharacter(sim);
     this.world.removeSim(client.sessionId);
     teamOffline(sim.charId!, sim);
@@ -288,6 +313,7 @@ export class MapRoom extends Room<{ state: MapState }> {
   }
 
   onDispose(): void {
+    for (const sim of this.world.sims.values()) if (sim.charId) marketOffline(sim);
     this.closeChat?.();
     if (LIVE_WORLDS.get(this.state.mapId) === this.world) LIVE_WORLDS.delete(this.state.mapId);
     db.flush();
@@ -335,7 +361,7 @@ export class MapRoom extends Room<{ state: MapState }> {
       db.updateCharacter(sim.charId, {
         ...at, gender: sim.a.gender as never, horse: sim.a.horse || null, mounted: sim.a.mounted, bag: sim.bag?.slice(),
         bagSpill: sim.bagSpill?.length ? sim.bagSpill.slice() : undefined, equip: { ...sim.equip },
-        skills: Object.fromEntries(sim.skills), money: sim.money ?? 0,
+        skills: Object.fromEntries(sim.skills), money: sim.money ?? 0, knb: sim.knb ?? 0,
         ...(sim.progress ? {
           faction: sim.a.faction, series: sim.progress.series, level: sim.progress.prog.level, progress: sim.progress.prog,
           progressVersion: PROGRESS_VERSION, skillExp: Object.fromEntries(sim.progress.skillExp),
@@ -348,6 +374,7 @@ export class MapRoom extends Room<{ state: MapState }> {
   private transfer(sim: Sim, mapId: number, x: number, y: number): void {
     const client = this.clients.find(c => c.sessionId === sim.sessionId);
     this.saveCharacter(sim, { mapId, x, y });
+    marketOffline(sim);
     this.world.removeSim(sim.id);
     teamOffline(sim.charId!, sim);
     const owner = db.getCharacter(sim.charId!)?.owner;

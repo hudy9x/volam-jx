@@ -121,4 +121,5 @@
 #bag-grid.selling-own .slot,
 #bag-grid.selling-own .slot * {
   cursor: var(--cur-sell, pointer);
-}
+}.bag-actions { gap: 4px; }
+.bag-actions .btn { min-width: 0; white-space: nowrap; padding-left: 5px; padding-right: 5px; }

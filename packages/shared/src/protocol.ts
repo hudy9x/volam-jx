@@ -43,10 +43,13 @@ export interface CastMsg {
 export interface PkMsg { mode: number }
 export interface MountMsg { on: boolean }
 /** Kênh chat (USER 2026-11-13): 'world' = Thế giới, every online character. */
-export type ChatChannel = 'world';
-export interface ChatMsg { text: string }
+export type ChatChannel = 'world' | 'trade';
+export type TradeCurrency = 'money' | 'knb' | 'contact';
+export interface TradeOffer { seller: string; item: Item; currency: TradeCurrency; price: number; sold?: boolean }
+export interface TradePostMsg { uid: string; currency: TradeCurrency; price: number; text: string }
+export interface ChatMsg { text: string; ch?: ChatChannel }
 /** `id` numbers the lines of the server run; `reacts` = emoji → names of who put it (CHAT.reactions only). */
-export interface ChatLine { id: number; ch: ChatChannel; from: string; text: string; at: number; reacts?: Record<string, string[]> }
+export interface ChatLine { id: number; ch: ChatChannel; offer?: TradeOffer; from: string; text: string; at: number; reacts?: Record<string, string[]> }
 /** Put / take back (same emoji again) a reaction on line `id`. */
 export interface ChatReactMsg { id: number; emoji: string }
 /** Older lines of the own account's history, before line `before` (scrolling up). */
@@ -145,6 +148,10 @@ export const C2S = {
   suggest: 'suggest',
   train: 'train',
   aura: 'aura',
+  autoConfig: 'autoConfig',
+  tradePost: 'tradePost',
+  tradeBuy: 'tradeBuy',
+  buyKnb: 'buyKnb',
   chat: 'chat',
   chatReact: 'chatReact',
   chatMore: 'chatMore',
@@ -183,7 +190,7 @@ export interface TeamMsg {
 }
 export interface TeamInviteMsg { from: string }
 /** Owner-only, after any change: hành trang + worn items of the own character (concrete items, items/items.ts) + tiền túi. */
-export interface InventoryMsg { pickedUp?: Item; bag: (Item | null)[]; equip: Partial<Record<string, Item>>; money: number }
+export interface InventoryMsg { pickedUp?: Item; bag: (Item | null)[]; equip: Partial<Record<string, Item>>; money: number; knb?: number }
 export interface NoticeMsg { text: string }
 /** Characters online on every map (kênh Thế giới header — USER 2026-11-13). */
 export interface OnlineMsg { n: number }
@@ -221,6 +228,10 @@ export const S2C = {
   /** TeamInviteMsg. */
   teamInvite: 'teamInvite',
   /** ChatLine (one line) or ChatLine[] (the account's last CHAT.page lines, on entering a map). */
+  autoConfig: 'autoConfig',
+  tradePost: 'tradePost',
+  tradeBuy: 'tradeBuy',
+  buyKnb: 'buyKnb',
   chat: 'chat',
   /** ChatReactsMsg. */
   chatReacts: 'chatReacts',

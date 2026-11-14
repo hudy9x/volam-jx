@@ -10,7 +10,8 @@ import './auto.css';
 const ID = 'auto-dlg';
 const HTML = `
 <section id="${ID}" class="dlg hidden" data-title="Tự động đánh">
-  <label class="check"><input type="checkbox" id="auto-on" /> Đang bật (phím ${keyLabel('auto')})</label>
+  <button type="button" class="btn" id="auto-on">▶ Chạy auto</button>
+  <p class="muted">${keyLabel('auto')} mở cài đặt. Lưu riêng cho nhân vật; tự tiếp tục sau khi tải lại nếu đang bật.</p>
   <div class="auto-h">Đánh quái</div>
   <label class="row">Ưu tiên mục tiêu <select data-set="autoPriority"><option value="near">Gần nhất</option><option value="boss">Hoàng Kim → Boss Xanh → quái thường</option></select></label>
   <label class="check"><input type="checkbox" data-set="autoSkipBoss" /> Bỏ qua boss</label>
@@ -49,7 +50,7 @@ export class AutoWindow {
   constructor(parent: HTMLElement, setAuto: (on: boolean) => void) {
     const el = mount(parent, HTML);
     dialogs.register(ID);
-    $<HTMLInputElement>('auto-on').addEventListener('change', e => setAuto((e.target as HTMLInputElement).checked));
+    $('auto-on').addEventListener('click', () => setAuto($('auto-on').dataset.on !== 'true'));
     bindSettingInputs(el);
     settings.watch(() => this.showReach());
     skillbar.watch(() => this.showReach());
@@ -69,6 +70,7 @@ export class AutoWindow {
   }
 
   setChecked(on: boolean): void {
-    $<HTMLInputElement>('auto-on').checked = on;
+    $('auto-on').dataset.on = String(on);
+    $('auto-on').textContent = on ? '❚❚ Dừng auto' : '▶ Chạy auto';
   }
 }

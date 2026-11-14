@@ -40,7 +40,7 @@ Dữ liệu tài khoản/nhân vật nằm ở `apps/server/data/db.json` (JSON,
 | Click / giữ chuột trái trên mặt đất | Di chuyển |
 | Click chuột trái vào quái (hoặc người khi đang PK) | **Khóa mục tiêu**: đánh liên tục bằng chiêu ô **Chuột trái** (tự chạy lại gần) tới khi mục tiêu chết hoặc ra lệnh khác |
 | Chuột phải | Chiêu ô **Chuột phải** tại con trỏ, một lần (chiêu hỗ trợ như Từ Hàng Phổ Độ: lên bản thân) |
-| **Z** / Hệ thống → **Tự động đánh** | Bật/tắt tự động đánh quái quanh chỗ đứng (phạm vi, bỏ qua boss, tự buff, quay về chỗ cũ) |
+| **Z** / Hệ thống → **Tự động đánh** | Mở cài đặt Auto; bấm Chạy/Dừng hoặc ▶/❚❚ cạnh bảng tên. Cài đặt và trạng thái lưu theo nhân vật, reload tự tiếp tục nếu đang bật |
 | Phím **1**–**9** | Chiêu trên thanh tại con trỏ |
 | **F** / nút **Kỹ năng** (thanh phím tắt) | Bảng kỹ năng dạng lưới: cột cấp 10 → 150, hàng là icon chiêu; rê chuột xem mô tả đầy đủ như bản gốc; kéo xuống ô 1–9 / T / P, Trái / Phải, − / + cấp (dev) |
 | Click minimap | Chạy tới vị trí đó (tự tìm đường) |
@@ -175,7 +175,7 @@ shared (*.gen.ts + phần chỉnh tay) ──► server (world/ + SkillEngine)  
   đẳng cấp hiện thời, mọi thuộc tính của cấp đó bằng câu gốc của `settings/magicdesc.ini` (ngũ hành tương khắc, tiêu hao, phạm vi,
   sát thương, xác suất tự thi triển, "Tầng 2: …" của chiêu con), giới hạn vũ khí / ngựa, rồi **Đẳng cấp kế tiếp**. Chỉ để hiển thị
   (`packages/shared/src/skills/core/describe.ts`), không đổi cách chiêu vận hành; cuối mô tả ghi rõ phần chưa có tác dụng.
-- **Tự động đánh** (Z): đứng ở đâu đánh quanh đó; khóa con quái gần nhất trong phạm vi bằng chiêu ô chuột trái, tự dùng lại bùa lợi
+- **Tự động đánh** (Z mở cài đặt, nút Chạy/Dừng): đứng ở đâu đánh quanh đó; khóa con quái gần nhất trong phạm vi bằng chiêu ô chuột trái, tự dùng lại bùa lợi
   đặt ở phím 1–9 khi hết, bỏ qua boss / cọc gỗ, hết quái thì quay về; bấm tay thì tạm dừng 3 giây; tự dừng khi trọng thương, vào
   thành, chuyển bản đồ. Chạy ở client như tay người chơi (`packages/shared/src/auto/AutoPlay.ts`, cũng là bộ não bot), server kiểm tra mọi lệnh như thường. Bản gốc cần
   Bạch Câu Hoàn và có uống thuốc / nhặt đồ / về thành; ở đây chưa có thuốc nên dễ trọng thương khi bị cả bầy quái vây.
@@ -299,3 +299,5 @@ Danh sách đầy đủ có trạng thái: `tasks/BACKLOG.md`; điểm dừng hi
 - Chưa có lên cấp / điểm kỹ năng / điểm tiềm năng; số liệu quái là bản đơn giản để cân bằng thử.
 
 Tài nguyên hình ảnh/âm thanh là của game gốc (Kingsoft/VNG), chỉ dùng cho prototype nội bộ.
+
+Auto theo nhân vật, kênh Mua bán và Kim nguyên bảo: xem [hướng dẫn](docs/auto-and-market.md).

@@ -41,7 +41,7 @@ export function shortcutHelp(): [string, string][] {
     [`${k('char')} · ${k('skills')} · ${k('bag')} · ${k('travel')} · ${k('bigmap')}`, 'Trang bị và Thuộc tính · Kỹ năng · Hành trang · Chuyển map · Bản đồ lớn'],
     [`${k('mount')} · ${k('pk')}`, 'Lên / xuống ngựa · Đổi chế độ PK (Luyện công → Chiến đấu → Đồ sát)'],
     [`${k('team')} · ${k('kytran')} · ${k('shop')}`, 'Tổ đội · Kỳ Trân Các · Thợ rèn (trong thành)'],
-    [k('auto'), 'Bật / tắt tự động đánh'],
+    [k('auto'), 'Mở cài đặt Auto (chạy/dừng trong hộp thoại)'],
     [k('system'), 'Đóng cửa sổ trên cùng / mở Hệ thống'],
     ['Lăn chuột', 'Phóng to / thu nhỏ'],
   ];
