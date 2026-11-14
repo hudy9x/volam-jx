@@ -1,5 +1,5 @@
 import {
-  actionScale, mergeBag, mergePoison, monsterCombat, moveFactor, passiveBag, skillBonuses, stateBag,
+  attackTiming, mergeBag, mergePoison, monsterCombat, moveFactor, passiveBag, skillBonuses, stateBag,
   type CombatStats, type HitEffects, type PoisonRun,
 } from '@vltk/shared';
 import type { Sim } from '../entity.js';
@@ -45,8 +45,8 @@ export function refreshMoveScale(w: World, sim: Sim): void {
   sim.moveScale = moveFactor(combatOf(sim).bag, slowed(w, sim));
 }
 
-/** How much longer a cast pose lasts: attack / cast speed of the bag, slowed or not (formulas/speed.ts). */
-export const castScale = (w: World, sim: Sim, external: boolean): number => actionScale(combatOf(sim).bag, external, slowed(w, sim));
+/** Snapshot the resolved attack phase at the start of the action. */
+export const castTiming = (w: World, sim: Sim, external: boolean) => attackTiming(combatOf(sim).bag, external, slowed(w, sim));
 
 /** Put a landed hit's effects on `target`. */
 export function applyHitEffects(w: World, attacker: Sim, target: Sim, fx: HitEffects): void {

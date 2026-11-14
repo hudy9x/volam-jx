@@ -6,6 +6,7 @@ import type { World } from '../World.js';
 // otherwise the loop follows movement.
 
 export function playOnce(w: World, sim: Sim, anim: AnimState, seconds: number): void {
+  sim.a.actionMs = seconds * 1000;
   sim.a.anim = anim;
   sim.a.animSeq = (sim.a.animSeq + 1) & 0xffff;
   sim.animUntil = w.now + seconds * 1000;

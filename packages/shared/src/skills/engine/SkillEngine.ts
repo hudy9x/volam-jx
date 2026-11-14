@@ -14,6 +14,7 @@ import {
 } from '../core/types.js';
 import { healAmount } from './damage.js';
 import { resolveHit, skillDamage } from '../../formulas/damage.js';
+import { resolveSpeed } from '../../formulas/speed.js';
 import { hitEffects } from '../../formulas/effects.js';
 import type { Combatant, EnginePort } from './types.js';
 
@@ -130,7 +131,7 @@ export class SkillEngine {
    * melee hits, a bùa lợi on yourself (and allies), an aura switched on or off, a jump (Khinh công) or a blink
    * (Mê Ảnh Tung).
    */
-  cast(c: Combatant, id: number, target: Combatant | undefined, aim: Point): CastResult {
+  cast(c: Combatant, id: number, target: Combatant | undefined, aim: Point, actionMs = resolveSpeed('attack', 100).cycleMs): CastResult {
     const s = getSkill(id)!;
     const level = levelOf(c, id) ?? 1;
     const now = this.port.now();
@@ -141,7 +142,7 @@ export class SkillEngine {
     const to = target ? { x: target.a.x, y: target.a.y } : aim;
     this.port.emit({ t: 'cast', id: c.id, skill: id, x: Math.round(c.a.x), y: Math.round(c.a.y) });
     const anim = castAnim(s, c.a.mounted);
-    const pose = Math.max(MIN_CAST_MS, castAnim(s) === 'cast' ? 530 : 600);
+    const pose = Math.max(1, actionMs);
 
     if (s.style === SkillStyle.State && s.aura) {
       if (this.auras.get(c.id)?.s.id === id) {
@@ -169,9 +170,13 @@ export class SkillEngine {
       this.port.addState(c, { skill: id, kind: 'buff', ms: 1500, by: c.id, level });
       return { anim, ms: pose };
     }
-    const lastTick = this.launch(c.id, s, level, { x: c.a.x, y: c.a.y }, to, target?.id, 0, 0, id);
-    // Hold the pose until the last hit of a combo leaves (attack 18 frames, magic 16 at 30 fps on the client).
-    return { anim, ms: Math.max(pose, (lastTick + 4) * JX_TICK_MS) };
+    // One completed pose releases one primary cast. Secondary pulses / flight retain world timing.
+    const from = { x: c.a.x, y: c.a.y }, destination = { ...to }, targetId = target?.id;
+    this.after(pose / JX_TICK_MS, c.id, () => {
+      const owner = this.port.get(c.id);
+      if (owner && !owner.dead) this.launch(c.id, s, level, from, destination, targetId, 0, 0, id);
+    });
+    return { anim, ms: pose };
   }
 
   /** Aura `c` has switched on, if any. */

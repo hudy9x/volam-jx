@@ -16,6 +16,8 @@ export const Actor = schema({
   dir: t.uint8(),            // 0..7
   anim: t.string(),          // AnimState
   animSeq: t.uint16(),       // bumps to restart one-shot animations (attack, hurt)
+  moveScale: t.float32(),    // running animation rate relative to this actor's base gait (items / horse / slow / AI)
+  actionMs: t.float32(),    // duration of the current one-shot, independent of sprite frame count
   jumpMs: t.uint16(),        // Khinh công: flight time of the jump in progress (anim 'jump'), 0 otherwise
   hp: t.uint32(),
   maxHp: t.uint32(),

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CAMP_COLORS, type Camp, jumpHeight } from '@vltk/shared';
+import { CAMP_COLORS, resolveSpeed, type Camp, jumpHeight } from '@vltk/shared';
 import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
 import type { ActorState } from '../../state/actor';
 import { FRAME_MS, JxSprite, type Source } from './PaperDoll';
@@ -8,8 +8,8 @@ import { StateDecor } from '../fx/StateDecor';
 
 export type { ActorState };
 
-/** Playback of one-shot actions: attacks a little faster than the original 18 fps so they fit the cooldowns. */
-const ONE_SHOT_FPS: Partial<Record<AssocKey, number>> = { attack1: 30, attack2: 30, magic: 30, wound: 30, die: 18 };
+/** Action keys; attacks use the snapshotted actionMs, while hurt/death have fallback playback rates. */
+const ONE_SHOT_FPS: Partial<Record<AssocKey, number>> = { attack1: 18, attack2: 18, magic: 18, wound: 30, die: 18 };
 const DEFAULT_HEIGHT = 90;
 
 /**
@@ -35,7 +35,8 @@ export class ActorView {
   private lastBarKey = '';
   // animation clock
   private loopKey: AssocKey | null = null;
-  private loopStart = 0;
+  private loopAt = 0;
+  private loopFrame = 0;
   private oneShot: { key: AssocKey; start: number; ms: number; hold: boolean } | null = null;
   private seq = -1;
 
@@ -110,7 +111,7 @@ export class ActorView {
     // A jump lasts its flight time (Actor.jumpMs).
     if (isOneShot && s.animSeq !== this.seq) {
       const frames = jx.framesOf(key) || 10;
-      const ms = key === 'jump' ? Math.max(1, s.jumpMs || 800) : (frames * 1000) / ONE_SHOT_FPS[key]!;
+      const ms = key === 'jump' ? Math.max(1, s.jumpMs || 800) : s.actionMs || (key === 'attack1' || key === 'attack2' || key === 'magic' ? resolveSpeed('attack', 100).cycleMs : (frames * 1000) / ONE_SHOT_FPS[key]!);
       this.oneShot = { key, start: now, ms, hold: key === 'die' };
     }
     this.seq = s.animSeq;
@@ -119,14 +120,28 @@ export class ActorView {
     if (shot?.key === 'die' && s.anim !== 'die') shot = this.oneShot = null; // revived
 
     if (shot) {
+      this.loopKey = null;
       const t = (now - shot.start) / shot.ms;
       if (shot.key === 'jump') this.lift = jumpHeight(now - shot.start, shot.ms);
       return jx.render(this.x, this.y, this.y, shot.key, s.dir & 7, n => Math.min(n - 1, Math.floor(t * n)), this.lift);
     }
-    if (key === 'die') return jx.render(this.x, this.y, this.y, 'die', s.dir & 7, n => n - 1);
-    if (key !== this.loopKey) { this.loopKey = key; this.loopStart = now; }
+    if (key === 'die') {
+      this.loopKey = null;
+      return jx.render(this.x, this.y, this.y, 'die', s.dir & 7, n => n - 1);
+    }
     const loop = isOneShot ? (this.peaceful ? 'idle' : 'stand') : key;
-    return jx.render(this.x, this.y, this.y, loop, s.dir & 7, n => Math.floor((now - this.loopStart) / FRAME_MS) % n);
+    if (loop !== this.loopKey) {
+      this.loopKey = loop;
+      this.loopFrame = 0;
+      this.loopAt = now;
+    }
+    // Integrate each interval so changing speed never rescales the elapsed history (which skips frames).
+    // Only the running gait follows movement; standing and one-shot actions keep their own clocks.
+    const running = loop === 'run' || loop === 'townRun';
+    const cycleMs = s.runMs ?? resolveSpeed('run', 100).cycleMs / Math.max(0.001, s.moveScale ?? 1);
+    this.loopFrame += Math.max(0, now - this.loopAt) / (running ? cycleMs : FRAME_MS);
+    this.loopAt = now;
+    return jx.render(this.x, this.y, this.y, loop, s.dir & 7, n => Math.floor(running ? this.loopFrame * n : this.loopFrame) % n);
   }
 
   private drawPlate(): void {

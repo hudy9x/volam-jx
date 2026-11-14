@@ -57,7 +57,7 @@ thử cho trình duyệt desktop (chuột + bàn phím).
 | `npm run gen:player` · `gen:drops -w @vltk/client` | `characters/player.gen.ts` (bảng cấp / nhân vật mới) · `drops/drops.gen.ts` (bảng rơi đồ) |
 | `npm run audit:skills -w @vltk/client` | kiểm tra mọi kỹ năng → `docs/skills-audit.md` |
 
-Không có test runner. Kiểm chứng bằng `typecheck`, `bots`, `/?skills`, `/?gallery`, `/maptest.html?map=37`, và chạy trình duyệt
+Có kiểm tra tốc độ riêng `npm run test:speed` (Node test runner); chưa có bộ test tổng thể. Kiểm chứng thêm bằng `typecheck`, `bots`, `/?skills`, `/?gallery`, `/maptest.html?map=37`, và chạy trình duyệt
 thật bằng Playwright trên server thử nghiệm cổng 2568 / 5174 (cách làm ở `tasks/CURRENT.md` mục 5) — đừng dùng server :2567 / :5173
 của người dùng.
 
@@ -108,6 +108,8 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 8. Dữ liệu tài khoản ở `apps/server/data/db.json` (bị `.gitignore`); xóa file để reset.
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
+
+- **Mốc tốc độ volamidle** (USER2026-11-14, GP6): cấu hình chung **`packages/shared/src/formulas/tuning.ts` → `SPEED`** (tổng25–300%, chạy8frame/đánh20frame, distanceScale1.15), `resolveSpeed` chọn mốc sau buff/chậm, gồm Dương. `Actor.actionMs` giữ thời lượng đòn, `Actor.moveScale` giữ nhịp chạy; client chuẩn hóa thời lượng cho mọi sheet đi chân/cưỡi, không đổi pixel1:1. Hoàn tất pose phát1chiêu chính; đạn/tầng phụ/bẫy/độc giữ nhịp riêng. `?skills` có nhập tốc/tự đánh-chạy/cưỡi và config chỉ phiên thử; muốn chỉnh tốc game lâu dài thì sửa SPEED ở file trên, không thêm hằng số tốc ở renderer/SkillLab. Cài đặt trong `?skills` chỉ tạm thời, không ghi ngược cấu hình game. Kiểm tra `npm run test:speed`. Chi tiết speed.md§10; bảng này là lựa chọn USER, không khẳng định chuẩnSHXT.
 
 - **Phượng Tường + 40 bãi (USER 2026-11-13) & Quái / Boss 3 bậc (USER 2026-11-14):** thêm thành Phượng Tường (1), giữ Biện Kinh (37) / Dược Vương Cốc (140); 40 bãi Field + Cave chia cấp 10–200, hai bản đồ/mốc. Bảng chỉnh tay `packages/shared/src/maps/training-levels.ts`, tài liệu `docs/training-maps.md`; `gen-spawns` ưu tiên bảng này và giữ quái trong band. Đây là cấp riêng của project, không phải dữ liệu cấp từ client gốc. Tổng hiện có 43 bản đồ đã sinh. Bộ lọc Xa phu gộp `City` và `Capital` dưới nhãn **Thành thị** (USER 2026-11-13); giữ nguyên type gốc và luật thành an toàn. Quái chia 3 bậc (`Actor.boss = 0 | 1 | 2`): **Quái thường (`0`)** tên Trắng `#ffffff`, **Boss Xanh (`1`)** tên Xanh dương `#5cb8ff` (máu/exp ×5, 4 lần tung đồ, 2 điểm cố định/bãi + 3% tự hóa xanh khi hồi sinh), **Boss Hoàng Kim (`2`)** tên Vàng `#ffd700` (máu/exp ×12, 8 lần tung bảng `boss/*droprate`, 20 Đại/Tiểu Hoàng Kim trong `GOLDEN_BOSS_LIST` đặt 1 con ở sâu mỗi bãi).
 

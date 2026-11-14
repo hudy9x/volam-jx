@@ -12,7 +12,7 @@ không sửa rải rác.
 | [damage.md](damage.md) | `formulas/damage.ts`, `formulas/combat.ts` | Lực tay của chiêu, trúng / né, chí mạng / chí tử, kháng + xuyên kháng + trần, ngũ hành, PK |
 | [effects.md](effects.md) | `status/states.ts`, `formulas/effects.ts` | Bùa lợi / bùa hại / hào quang / bị động (thuộc tính, thời gian riêng), choáng / chậm / độc / co giật |
 | [drops.md](drops.md) | `formulas/drops.ts` | Bảng rơi, cấp món, tiền, quyền nhặt, dòng xanh + may mắn, chỉ số đồ (TB8) |
-| [speed.md](speed.md) | `formulas/speed.ts` | Tốc đánh / tốc xuất chiêu, tốc chạy, chậm |
+| [speed.md](speed.md) | `formulas/tuning.ts SPEED`, `formulas/speed.ts`, `SkillEngine.ts`, `ActorView.ts` | Mốc volamidle25–300%, chuẩn hóa đánh/chạy đi chân/cưỡi, cấu hình và trang thử `?skills` (§10); phần trước là lịch sử điều tra |
 
 ## Ký hiệu nguồn (dùng trong `tuning.ts` và mọi tài liệu ở đây)
 

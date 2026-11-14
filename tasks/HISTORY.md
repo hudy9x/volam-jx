@@ -2,6 +2,46 @@
 
 Mới nhất ở trên. Mỗi vòng: người dùng yêu cầu gì → đã làm gì → commit.
 
+## 2026-11-14 · Commit GP6 và lưu chỉ dẫn cấu hình cho AI
+
+- USER yêu cầu commit phần tốc độ và lưu vị trí cài đặt để AI ở phiên sau tự tìm đúng file.
+- Chỉ dẫn cố định tại AGENTS.md §6 và docs/formulas/speed.md §10.1: `packages/shared/src/formulas/tuning.ts` → `SPEED`, bảng ánh xạ khóa chỉnh sàn/trần/mốc/FPS/frame tham chiếu/quãng đường. Phân biệt chỉnh game lâu dài với cấu hình tạm ở `?skills`; không sinh thêm bảng tốc riêng ở client/server.
+- Commit `feat: add configurable speed phases and skill lab controls` (hash xem git log); không push. Chỉ stage phần GP6, giữ nguyên và không đưa Bot/KN14/Tống Kim đang có vào commit.
+- Kiểm chứng typecheck,3test tốc độ,build đã đạt; các kiểm tra Chromium/WebSocket/màn nhỏ ghi ở speed.md§10.4. Không kiểm wrapper native thật.
+
+## 2026-11-14 · GP6 — áp dụng bảng mốc volamidle, chuẩn hóa hoạt ảnh và trang thử tốc
+
+- USER duyệt bảng cho đánh/chạy, yêu cầu trần + chuẩn hóa đi chân/cưỡi + cài đặt + tự thử tại ?skills.
+- SPEED trong shared/formulas/tuning.ts là cấu hình chung: tổng25–300%, chạy8frame, đánh20frame, bảngFPS đúngvolamidle, distanceScale1.15. resolveSpeed chọn mốc sau khi tổng hợpbuff/chậm; cộng cả thuộc tính Dương. Bỏ actionFrames/actionScale cũ.
+- Server giữduration từ đầu đòn, playOnce đồng bộ Actor.actionMs; client phát đúngduration mọi sheet và tích lũy số vòng chạy để chuẩn hóa đi chân/cưỡi. Engine chờ hoàn tất pose phát1chiêu chính, cancel bỏ lần chưa phát; thời gian đạn/tầng phụ/bẫy/độc và hồi chiêu riêng giữ nguyên. Không sửa asset/cách dựng1:1.
+- SkillLab có nhập/chọn mốc tốc, chế độ tự đánh/chạy/cảhai, cưỡi cùng tổng tốc; hiển thịphase/FPS/ms, editorcấu hình nâng cao + validate/reset chỉ trong phiên thử. Nhập phím không điều khiển phái/chiêu; camera màn nhỏ giữ nhân vật cạnh bảng.
+- Kiểm tra typecheck/test:speed(3test)/build/diff-check đạt; Chromium75tổ hợp30/60/120FPS×5tốc×5frame-count, auto100/200/999% cho2/4/6lượt trong1,8s vàduration800/400/285,7ms; đi chân11frame/ngựa10frame ở200% cùng3vòng/s. Sửa/reset/lỗi config và formkeyboard đạt. HaiWebSocket thực xác minh phase/cap/duration/mount và quãng đường, DB riêng trên2569 vì2568 có phiên khác. Viewport390×844 và DPR1/2, chưa thử wrapper native. Script/ảnh /tmp/jx-speed-phases; test cốt lõi tests/speed-phases.test.ts, lệnh npm run test:speed.
+- Bổ sung docs/formulas/speed.md§10 (thay thế công thức lịch sử), README công thức, GP6 và CURRENT. Không commit/push; giữ thay đổi Bot/KN14/Tống Kim song song. Commit nền460930c. Build chỉ cảnh báo chunk lớn sẵn có.
+
+## 2026-11-14 · GP6 — bảng mốc tốc độ volamidle và đối chiếu SHXT
+
+- USER yêu cầu bảng2cột mốc tốc độ/frame vẽ vì thấy quá nhanh, chỉ định hai nguồn volamidle và Client_VLTK_SHXT. Chỉ điều tra, không chỉnh cân bằng/code.
+- Đọc config/runtime/render bridge volamidle HEAD7f8aa64, gọi resolveSpeed xác nhận chọn mốc/trần: chạy chuẩn8frame, đánh20frame; tổng25–300%, các FPS đã lưu speed.md§9. Phân biệt tổng100%=+0%, FPS tham chiếu và FPS ảnh theo số frame sheet.
+- So sánh bản hiện tại: chạy18FPSảnh×rate chưa trần/chưa chuẩn hóa; ngựa10frame tổng200%36FPS vs volamidle30FPSảnh. Đánh hiện30FPSảnh và server530/600ms, phần sửa đánh vẫn chờ. SHXT xác minh18/18/14/12frame cấu hình; chưa có bảng mốc tương đương được kiểm chứng. Chỉ mục volamidle chậm1commit và có lỗi ký tự nên kết luận dùng nguồn trực tiếp.
+- Bổ sung docs/formulas/speed.md§9 và tasks. Commit nền460930c; không sửa gameplay/commit/push, giữ các thay đổi khác.
+
+## 2026-11-14 · GP6 — sửa nhịp hoạt ảnh chạy / cưỡi theo tốc di chuyển
+
+- USER yêu cầu sửa sau điều tra; triển khai phần di chuyển, chưa triển khai tốc đánh/xuất chiêu.
+- Thêm trường schema `Actor.moveScale`, khởi tạo1 cho người chơi/quái; `followPath` đồng bộ cùng hệ số thực tế tới mọi client, gồm hệ số AI đi dạo. Client tích lũy frame theo thời gian và rate, tránh nhảy phase khi đổi tốc; đi chân/RideRun cùng áp dụng, các lớp thân/ngựa/vũ khí/bóng giữ tiến độ chung. Đứng/one-shot không bị nhân tốc chạy. Không thêm thư viện hoặc sửa tài nguyên/cách dựng1:1.
+- Kiểm chứng: typecheck/build/diff-check đạt; Chromium36 tổ hợp30/60/120FPS ×6rate ×trong/ngoài thành; đổi tốc/slow/idle/quay lại chạy sau đánh đạt. Cảnh Phaser thật6nhân vật đi chân/cưỡi ×0,5/1/2 tải đủ, phase tỉ lệ1:2:4, không pageerror. Hai WebSocket thực trên2568 nhận đúng rate1/1,5/2, slow/hết slow và mặc ngựa chưa cưỡi/lên/xuống; bước đi130/260/520iso px/s đúng. Scratch `/tmp/jx-movement-smoke/`, DB riêng; không sửa DB thật. Build có cảnh báo chunk lớn sẵn có.
+- Tài liệu §8 ghi rõ cadence theo hệ số là lựa chọn trải nghiệm đã triển khai, chưa chứng minh công thức engine gốc. Logic dùng chung3nền tảng; chưa thử wrapper native/thiết bị cảm ứng thật.
+- Commit nền `460930c`, không commit/push; giữ nguyên thay đổi Tống Kim và file khác có sẵn. Cập nhật GP6/CURRENT/speed.md.
+
+## 2026-11-14 · GP6 — điều tra hoạt ảnh di chuyển / cưỡi ngựa
+
+- Người dùng thấy tốc độ vị trí thay đổi nhưng nhịp chân/ngựa không đổi; yêu cầu điều tra thêm, chưa yêu cầu sửa code.
+- Xác minh `moveFactor -> Sim.moveScale -> followPath -> Actor.x/y`, còn `ActorView.ts:129` lặp frame theo `FRAME_MS=1000/18` cố định. Schema/ActorState chưa có tốc/cadence; cưỡi chọn `RideRun` nhưng dùng cùng đồng hồ cố định. Các lớp người/ngựa/vũ khí/bóng đang dùng chung tiến độ frame.
+- Đọc metadata thực tế: thân hàng0 nam11frame, nữ12frame, cưỡi10frame/hướng. Chu kỳ hiện tại611,1/666,7/555,6ms không đổi theo fastwalkrun_p. Là phân tích mã/metadata, chưa đo trình duyệt hoặc client gốc.
+- Đối chiếu file rời và PAK thắng ưu tiên (`resolveFile` -> `update01/_unnamed/dat/918609f6.dat`): RunFrame14/WalkFrame12, RunSpeed10/WalkSpeed5. Đã đính chính tài liệu nhầm Speed thành Frame. Chưa chứng minh công thức cadence của engine gốc; không suy ra mốc chạy từ bảng tốc đánh.
+- Bổ sung `docs/formulas/speed.md` §7, GP6 và CURRENT: hướng đề xuất đồng bộ nhịp cho mọi actor, tích lũy phase tránh nhảy frame khi tốc thay đổi, thử đi chân/cưỡi/chậm/đổi ngựa/client quan sát ở các FPS trên ba nền tảng.
+- Commit nền `460930c`. Không sửa gameplay, không commit/push; giữ nguyên các thay đổi khác đang có, gồm tài liệu Tống Kim. GitNexus không có chỉ mục repo này, nên dùng mã nguồn trực tiếp.
+
 ## 2026-11-14 · Điều tra & lập tài liệu Tốc độ đánh / Xuất chiêu (`docs/formulas/speed.md`, `BACKLOG.md` mục `GP6`)
 
 - Người dùng: phản ánh tốc độ đánh đang cố định (chỉ thấy giá trị tốc độ thay đổi về mặt số liệu, còn tốc độ thực tế luôn cố định và rất nhanh); yêu cầu kiểm tra rà soát dựa vào `/Users/hudy/ws/volam-shxt/Client_VLTK_SHXT`, sau đó tạo tài liệu chi tiết (đường dẫn file, công thức, tình trạng hiện tại, nhận định, hướng xử lý) và lưu vào backlog để triển khai sau.

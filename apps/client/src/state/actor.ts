@@ -14,6 +14,12 @@ export interface ActorState {
   dir: number;
   anim: AnimState;
   animSeq: number;
+  /** Running animation rate from the server; absent on static NPCs / local previews. */
+  moveScale?: number;
+  /** Optional lab override for the complete running cycle, in milliseconds. */
+  runMs?: number;
+  /** Server-snapshotted duration of the current one-shot. */
+  actionMs?: number;
   /** Khinh công: flight time of the jump in progress (anim 'jump'), 0 otherwise. */
   jumpMs: number;
   hp: number;

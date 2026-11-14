@@ -7,7 +7,7 @@ import { updateSpeed } from './movement.js';
 import { endJump } from './jump.js';
 import { clearStates } from './status.js';
 import { practice, recordDamage, refreshStats, shareKillExp } from '../progress.js';
-import { applyHitEffects, castScale, clearEffects, combatOf } from './effects.js';
+import { applyHitEffects, castTiming, clearEffects, combatOf } from './effects.js';
 import { dropLoot } from './drops.js';
 import { syncVitals } from './sync.js';
 
@@ -18,12 +18,11 @@ const CORPSE_SECONDS = 2.5;
 
 /** Start a skill now (players and monsters alike): the engine fires it, the caster holds the pose. */
 export function castNow(w: World, sim: Sim, skillId: number, target: Sim | undefined, aim: Point): void {
-  const pose = w.engine.cast(sim, skillId, target, aim);
-  if (pose.note && sim.kind === 'player') w.hooks.notify(sim, pose.note);
-  // Attack / cast speed and slows stretch the pose (formulas/speed.ts); the jump keeps its own flight time.
   const s = getSkill(skillId);
-  const scale = pose.anim === 'jump' || !s ? 1 : castScale(w, sim, isExternal(s, levelOf(sim, skillId) ?? 1));
-  sim.castUntil = w.now + Math.round(pose.ms * scale);
+  const timing = castTiming(w, sim, !!s && isExternal(s, levelOf(sim, skillId) ?? 1));
+  const pose = w.engine.cast(sim, skillId, target, aim, timing.cycleMs);
+  if (pose.note && sim.kind === 'player') w.hooks.notify(sim, pose.note);
+  sim.castUntil = w.now + pose.ms;
   sim.lastAttackAt = w.now;
   playOnce(w, sim, pose.anim, pose.ms / 1000);
   syncVitals(sim);

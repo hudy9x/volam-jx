@@ -52,7 +52,7 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
   const a = new Actor();
   Object.assign(a, {
     kind: 'player', name: char.name, sprite: '', faction, gender: char.gender, level: prog.level,
-    x: Math.round(x), y: Math.round(y), dir: 0, anim: 'idle', animSeq: 0, jumpMs: 0,
+    x: Math.round(x), y: Math.round(y), dir: 0, anim: 'idle', animSeq: 0, jumpMs: 0, moveScale: 1,
     hp: 1, maxHp: 1, mp: 0, maxMp: 0,
     pk: 0, camp: campOf(faction), team: '', boss: 0, scale: 1, protectedUntil: Date.now() + SPAWN_PROTECTION * 1000,
     horse: '', mounted: false,

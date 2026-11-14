@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "concurrently -n server,client -c yellow,cyan \"npm run dev -w @vltk/server\" \"npm run dev -w @vltk/client\"",
     "bots": "npm run bots -w @vltk/server --",
+    "test:speed": "node --import tsx --test tests/speed-phases.test.ts",
     "typecheck": "tsc -p packages/shared && tsc -p apps/server && tsc -p apps/client && tsc -p apps/client/src/platform/sw",
     "build": "npm run build -w @vltk/client"
   },

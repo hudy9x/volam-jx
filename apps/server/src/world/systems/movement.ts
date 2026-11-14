@@ -1,4 +1,4 @@
-import { PLAYER_SPEED, clearSegment, direction8, findPath, isWalkable, isoDistance, stepToward, type Point } from '@vltk/shared';
+import { PLAYER_SPEED, SPEED, clearSegment, direction8, findPath, isWalkable, isoDistance, stepToward, type Point } from '@vltk/shared';
 import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
 
@@ -22,8 +22,10 @@ export function setPath(w: World, sim: Sim, dest: Point, force = false): void {
 }
 
 export function followPath(sim: Sim, dt: number, speedScale = 1): void {
+  // Share the same rate with observers; AI wandering can add its own speedScale.
+  sim.a.moveScale = speedScale * (sim.moveScale ?? 1);
   if (!sim.path.length) return;
-  let budget = sim.speed * speedScale * (sim.moveScale ?? 1) * dt; // items / bùa / chậm (systems/effects.ts)
+  let budget = sim.speed * SPEED.run.distanceScale * sim.a.moveScale * dt; // items / bùa / chậm (systems/effects.ts)
   let x = sim.a.x, y = sim.a.y;
   const startX = x, startY = y;
   while (budget > 0 && sim.path.length) {

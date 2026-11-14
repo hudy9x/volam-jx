@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import {
+  SPEED, HORSE_IDS, PLAYER_SPEED, resolveSpeed, stepToward, type SpeedConfiguration,
   FACTIONS, FACTION_IDS, ITEM_LIST, SKILL_CATEGORY_NAMES, SkillEngine, getSkill, isCastable, learnTiers, lookOfOutfit,
   JUMP, SkillStyle, TRIGGER_NAMES, castRange, direction8, isoDistance, maxLevelOf, skillCategory, skillRange, starterEquipment, stateDurationMs, stateLines,
   jumpMs, tierOf, triggersOf, weaponName,
@@ -7,7 +8,7 @@ import {
  monsterCombat,} from '@vltk/shared';
 import { ActorView, type ActorState } from '../../game/actors/ActorView';
 import { Effects } from '../../game/fx/Effects';
-import { uiPx } from '../../game/display';
+import { DPR, uiPx } from '../../game/display';
 import { SkillLabPanel } from './SkillLabPanel';
 
 interface LabActor { state: ActorState; c: Combatant; view: ActorView; states: Map<number, number> }
@@ -35,7 +36,12 @@ export class SkillLabScene extends Phaser.Scene {
   private skillIndex = 0;
   private level = 10;
   private auto = false;
-  private nextAuto = 0;
+  private autoRun = false;
+  private attackPercent = 100;
+  private runPercent = 100;
+  private speedConfig: SpeedConfiguration = structuredClone(SPEED);
+  private runDirection = 1;
+  private castCount = 0;
   private info!: Phaser.GameObjects.Text;
   private panel!: SkillLabPanel;
   private poseUntil = 0;
@@ -46,10 +52,11 @@ export class SkillLabScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor('#2f3a2a');
     this.cameras.main.roundPixels = true;
-    const W = this.scale.width, H = this.scale.height;
-    const cx = Math.round(W * 0.42), cy = Math.round(H * 0.58);
+    const W = this.scale.width, H = this.scale.height, compact = W / DPR < 650;
+    const cx = Math.round(Math.max(350, W * 0.42)), cy = Math.round(H * 0.58);
     this.caster = this.addActor('caster', 'player', cx, cy);
     this.home = { x: cx, y: cy };
+    if (compact) this.cameras.main.startFollow(this.caster.view.anchor, false, 1, 1, W * 0.22, 0);
     const spots = [[300, 0], [380, -50], [380, 50], [470, 0], [300, -100], [300, 100], [560, -60], [560, 60]];
     spots.forEach(([dx, dy], i) => this.addActor(`dummy${i}`, 'monster', cx + dx, cy + dy));
 
@@ -98,19 +105,25 @@ export class SkillLabScene extends Phaser.Scene {
     this.effects = new Effects(this, this.views, 'caster', () => undefined);
 
     const style = { fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(13), color: '#f1e6cf', stroke: '#000', strokeThickness: 3 };
-    this.info = this.add.text(12, 10, '', { ...style, fontSize: uiPx(14), color: '#e8c879' }).setDepth(2e6);
+    this.info = this.add.text(12, 10, '', { ...style, fontSize: uiPx(14), color: '#e8c879' }).setDepth(2e6).setScrollFactor(0);
+    if (compact) this.info.setVisible(false);
     this.panel = new SkillLabPanel({
       faction: i => this.selectFaction(i),
       skill: i => this.selectSkill(i),
       level: d => { this.level += d; this.refresh(); },
       cast: () => this.castAt(this.actors[1]),
       auto: () => { this.auto = !this.auto; this.refresh(); },
+      speed: (kind, percent) => { if (kind === 'attack') this.attackPercent = percent; else this.runPercent = percent; this.refresh(); },
+      mode: mode => { this.auto = mode === 'attack' || mode === 'both'; this.autoRun = mode === 'run' || mode === 'both'; this.refresh(); },
+      mounted: on => { this.caster.c.a.mounted = this.caster.state.mounted = on; this.caster.state.horse = on ? HORSE_IDS[0] : ''; this.refresh(); },
+      configuration: config => { this.speedConfig = config; this.refresh(); },
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.panel.destroy());
     this.events.once(Phaser.Scenes.Events.DESTROY, () => this.panel.destroy());
 
     const k = this.input.keyboard!;
     k.on('keydown', (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement)?.closest('input,select,textarea,button')) return;
       const n = FACTION_IDS.length, m = Math.max(1, this.skills().length);
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); this.selectFaction((this.faction + (e.key === 'ArrowUp' ? n - 1 : 1)) % n); }
       else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') this.selectSkill((this.skillIndex + (e.key === 'ArrowLeft' ? m - 1 : 1)) % m);
@@ -158,6 +171,10 @@ export class SkillLabScene extends Phaser.Scene {
 
   /** Back to the start spot (new skill / faction). */
   goHome(): void {
+    this.engine.cancel(this.caster.c.id);
+    this.poseUntil = this.time.now;
+    this.caster.state.anim = 'idle';
+    this.caster.state.animSeq++;
     this.caster.c.a.x = this.caster.state.x = this.home.x;
     this.caster.c.a.y = this.caster.state.y = this.home.y;
   }
@@ -177,6 +194,10 @@ export class SkillLabScene extends Phaser.Scene {
 
   /** Dress the caster for the faction and the weapon the current skill needs. */
   private refresh(): void {
+    const run = resolveSpeed('run', this.runPercent, this.speedConfig);
+    this.caster.state.moveScale = run.multiplier;
+    this.caster.state.runMs = run.cycleMs;
+    if (!this.autoRun && this.time.now >= this.poseUntil) this.caster.state.anim = 'idle';
     const fid = FACTION_IDS[this.faction];
     const faction = FACTIONS[fid];
     const s = this.current();
@@ -203,6 +224,8 @@ export class SkillLabScene extends Phaser.Scene {
     this.panel.render({
       faction: this.faction, skillIndex: this.skillIndex, skills: this.skills(), level: this.level,
       maxLevel: s ? maxLevelOf(s) : 0, auto: this.auto,
+      autoRun: this.autoRun, mounted: this.caster.state.mounted,
+      attackPercent: this.attackPercent, runPercent: this.runPercent, config: this.speedConfig,
     });
     if (!s) { this.info.setText(`${faction.name}: không có chiêu chủ động`); return; }
     const cat = skillCategory(s);
@@ -252,16 +275,36 @@ export class SkillLabScene extends Phaser.Scene {
     }
     const dx = aim.x - c.a.x, dy = aim.y - c.a.y;
     c.a.dir = this.caster.state.dir = direction8(dx, dy);
-    const pose = this.engine.cast(c, s.id, target === this.caster ? undefined : target?.c, aim);
+    if (!this.engine.ready(c, s.id)) return;
+    const duration = resolveSpeed('attack', this.attackPercent, this.speedConfig).cycleMs;
+    const pose = this.engine.cast(c, s.id, target === this.caster ? undefined : target?.c, aim, duration);
+    this.castCount++;
     this.poseUntil = this.time.now + pose.ms;
+    this.caster.state.actionMs = pose.ms;
     this.caster.state.anim = pose.anim;
     this.caster.state.animSeq++;
-    this.time.delayedCall(pose.ms, () => { this.caster.state.anim = 'idle'; });
+
   }
 
   update(time: number, delta: number): void {
     this.engine.update();
-    if (this.auto && time >= this.nextAuto) { this.nextAuto = time + 1400; this.castAt(this.actors[1]); }
+    let turn = !this.autoRun;
+    if (time >= this.poseUntil) {
+      this.caster.state.anim = 'idle';
+      if (this.autoRun) {
+        const run = resolveSpeed('run', this.runPercent, this.speedConfig);
+        const start = this.home.x - 20, end = this.home.x + 220;
+        const target = { x: this.runDirection > 0 ? end : start, y: this.home.y + 140 };
+        const state = this.caster.state;
+        const [x, y, arrived] = stepToward(state.x, state.y, target.x, target.y,
+          PLAYER_SPEED * this.speedConfig.run.distanceScale * run.multiplier * delta / 1000);
+        state.dir = this.caster.c.a.dir = direction8(x - state.x, y - state.y);
+        this.caster.c.a.x = state.x = x; this.caster.c.a.y = state.y = y;
+        state.anim = 'run';
+        if (arrived) { this.runDirection *= -1; turn = true; }
+      }
+      if (this.auto && turn) this.castAt(this.actors[1]);
+    }
     for (const a of this.actors) {
       if (a.c.kind === 'monster' && a.state.hp < 9e5) a.state.hp = 1e6;
       for (const [id, until] of a.states) if (until <= time) a.states.delete(id);

@@ -110,13 +110,33 @@ export const EFFECTS = {
   monsterHurtFrames: 10,
 } as const;
 
-/** Action speed (tốc đánh / tốc xuất chiêu). Docs: docs/formulas/speed.md. */
+/** USER 2026-11-14: speed phases from volamidle/src/client/speed/config.ts.
+ * Percent is TOTAL speed (100 = baseline, 200 = +100%). Tune all platforms here.
+ * Reference frames define a cycle, never the frame count of an individual sprite. */
 export const SPEED = {
-  /** Frames of one attack / cast at 0 % speed (DATA basevalue.ini AttackFrame / CastFrame). */
-  attackFrames: 18,
-  castFrames: 18,
-  /** Shortest action whatever the speed (CHỌN, the SRC table stops at 6 frames for +158 %). */
-  minFrames: 6,
+  minPercent: 25,
+  maxPercent: 300,
+  run: {
+    distanceScale: 1.15,
+    referenceFrames: 8,
+    phases: [
+      { minPercent: 25, fps: 3 }, { minPercent: 50, fps: 6 },
+      { minPercent: 75, fps: 9 }, { minPercent: 100, fps: 12 },
+      { minPercent: 120, fps: 14.4 }, { minPercent: 150, fps: 18 },
+      { minPercent: 200, fps: 24 }, { minPercent: 250, fps: 30 },
+      { minPercent: 300, fps: 36 },
+    ],
+  },
+  attack: {
+    referenceFrames: 20,
+    phases: [
+      { minPercent: 25, fps: 5 }, { minPercent: 50, fps: 15 },
+      { minPercent: 75, fps: 20 }, { minPercent: 100, fps: 25 },
+      { minPercent: 125, fps: 35 }, { minPercent: 150, fps: 40 },
+      { minPercent: 200, fps: 50 }, { minPercent: 250, fps: 60 },
+      { minPercent: 300, fps: 70 },
+    ],
+  },
 } as const;
 
 /** Drops on the ground (VT7–VT9) and boss tier multipliers (GP11). Docs: docs/formulas/drops.md, research docs/research/luck-drops.md. */

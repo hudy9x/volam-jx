@@ -1,5 +1,5 @@
 import { PK_MODE_NAMES,
-  ELEMENT_NAMES, SLOT_NAMES, wornActiveCount, attrOf, canWear, getSkill, itemDef, moveFactor, portraitFaction, speedPoints, seriesOf, skillDamage,
+  ELEMENT_NAMES, SLOT_NAMES, wornActiveCount, canWear, getSkill, itemDef, moveFactor, portraitFaction, speedPoints, attackSpeedPct, castSpeedPct, seriesOf, skillDamage,
   type EquipSlot, type Gender, type InventoryMsg, type Item,
 } from '@vltk/shared';
 import { itemViewer, ownSeries, progress } from '../../state/progress';
@@ -139,7 +139,7 @@ export class CharacterWindow {
     set('ca-dmg-l', hand('left')); set('ca-dmg-r', hand('right'));
     if (p.combat) {
       set('ca-run', String(speedPoints(moveFactor(p.combat.bag, false) * 100)));
-      set('ca-aspd', `${attrOf(p.combat.bag, 'attackspeed_v')}/${attrOf(p.combat.bag, 'castspeed_v')}`);
+      set('ca-aspd', `${attackSpeedPct(p.combat.bag)}/${castSpeedPct(p.combat.bag)}`);
       $('ca-aspd').title = 'Tốc độ đánh ngoại công / nội công (formulas/speed.ts)';
     }
     set('ca-res-phy', `${st.resist.phys}%`); set('ca-res-cold', `${st.resist.cold}%`); set('ca-res-light', `${st.resist.light}%`);
