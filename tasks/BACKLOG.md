@@ -287,3 +287,6 @@ Ghi chú GP8 — 2026-11-14 · Điều tra die (chưa sửa): HEAD8a8b6ff. Serve
 ✅ GP8 phần hiển thị chết (2026-11-14): die18FPS, ẩn tên ngay, xác ẩn sau2s/về thành, bỏ fade. Typecheck/build/harness4loại đạt; chưa kiểm browser/native/WS hồi sinh. GP8 phần phạt tử vong vẫn chưa triển khai.
 
 - [x] GP8 hiển thị die/xác: commit riêng theo USER2026-11-15, nền206b4be; typecheck/harness4loại/diff-check đạt, không push.
+
+
+- [x] Tooltip bị dialog che (2026-11-15): USER duyệt sửa; Dialogs.front đánh lại thứ tự từ20, tooltip1000. Typecheck/build/harness10.000lần chuyển đạt; chưa kiểm hình browser/native.

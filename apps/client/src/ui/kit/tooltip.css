@@ -1,7 +1,8 @@
 /* Tooltip (ui/kit/tooltip.ts) and the lines of item / skill descriptions (ui/tips/); #skill-detail reuses the skill lines. */
 #item-tip {
   position: fixed;
-  z-index: 100;
+  /* Dialog ranks are compacted by Dialogs.front; tooltips occupy a separate higher layer. */
+  z-index: 1000;
   pointer-events: none;
   background: rgba(4, 5, 5, 0.94);
   border: 1px solid var(--teal);

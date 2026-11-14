@@ -25,7 +25,6 @@ interface Entry { el: HTMLElement; opts: DialogOptions; z: number }
 
 export class Dialogs {
   private entries = new Map<string, Entry>();
-  private z = Z0;
   /** ESC with no window open (the system menu). */
   onIdleEscape: (() => void) | null = null;
 
@@ -125,9 +124,15 @@ export class Dialogs {
   private front(id: string): void {
     const en = this.entries.get(id);
     if (!en) return;
-    if (en.z === this.z) return;
-    en.z = ++this.z;
-    en.el.style.zIndex = String(en.z);
+    const ordered = [...this.entries.values()].sort((a, b) => a.z - b.z);
+    if (ordered.at(-1) === en && en.z >= Z0) return;
+    // Keep window order compact: repeated opens/clicks must never reach the tooltip layer.
+    ordered.splice(ordered.indexOf(en), 1);
+    ordered.push(en);
+    ordered.forEach((entry, index) => {
+      entry.z = Z0 + index;
+      entry.el.style.zIndex = String(entry.z);
+    });
   }
 
   /** A window inside a hidden container (HUD while on the login screen) does not count. */

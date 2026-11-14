@@ -1188,3 +1188,23 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - AutoPlay.buff chỉ quét keys1–9, không quét mọi chiêu đã học/ô tay; loại aura/passive/support, không kiểm host.ready trước cast, mỗi800ms/từng chiêu thử lại15s khi chưa thấy state; chỉ kiểm ID hiện diện, không thời hạn từng thuộc tính. Không buff trong thành. Hào quang ô tay có đường duy trì riêng, ưu tiên phải; server tự giữ/khôi phục sau hồi sinh hoặc hết hạn chế vũ khí/ngựa, độc lập autoBuff.
 - Bot layoutBar lấy tối đa2buff, ưu tiên ReqLevel cao: Thúy Yên đủ120 chọn713+109 bỏ100; Hoa Sơn đủ150 chọn1369+1364 bỏ1358/1376. Chưa có whitelist loại ẩn thân/chiêu đặc biệt, chính sách chọn bộ buff theo phái, hồi phục/giải trạng thái theo nhu cầu. Người chơi mặc định chỉ tự xếp chiêu tấn công.
 - Kiểm bằng đọc nguồn và truy vấn registry/metadata thực tế; chưa kiểm tích hợp mọi phái, chưa sửa code/asset/DB, không commit/push. HEAD hiện3fa3fff (phiên khác đã commit Hoa Sơn, khác8a8b6ff đầu lượt trước); giữ thay đổi BACKLOG/scenario đồng thời. Web/Desktop/Mobile dùng chung luật, chưa kiểm native.
+
+
+## 2026-11-15 · Điều tra tooltip bị Hành trang che (chưa sửa)
+
+- HEAD `1c6d0bb`, khớp commit die mới nhất trong CURRENT; giữ scenario untracked. USER hỏi nguyên nhân, chưa yêu cầu triển khai.
+- Xác minh nguồn: tooltip.css đặt #item-tip z-index cố định100; Dialogs.z bắt đầu20, front() tăng khi đưa một cửa sổ khác lên đầu, không giới hạn/reset. register bắt pointerdown, open cũng gọi front. Khi z dialog vượt100 thì che tooltip. Click liên tục chính cửa sổ trên cùng không tăng do guard en.z===this.z. Tooltip và dialog cùng HUD.
+- Chưa đo DOM phiên USER hoặc tái hiện browser; ảnh phù hợp lỗi thứ tự lớp. Đề xuất quản lý lớp dialog có giới hạn và lớp tooltip riêng cao hơn; chưa sửa code/commit/push. Web/Desktop/Mobile dùng chung HTML, native chưa kiểm. Không có GitNexus tool khả dụng, điều tra nguồn trực tiếp.
+
+
+## 2026-11-15 · Sửa tooltip bị dialog che theo USER
+
+- USER duyệt triển khai; HEAD1c6d0bb. Dialogs.front bỏ bộ đếm tăng vô hạn, sắp thứ tự hiện tại rồi đánh lại z từ20 theo số dialog đã đăng ký; giữ cửa sổ vừa mở/bấm trên cùng và ESC theo thứ tự. Tooltip dùng lớp1000 riêng (số dialog hiện tại thấp hơn ngưỡng).
+- Typecheck/build/diff-check đạt, build còn cảnh báo chunk lớn cũ. Harness chạy class Dialogs production đã transpile, DOM giả lập:10.000lần chuyển3cửa sổ chỉ20–22, bấm lại trên cùng/ESC/đưa cửa sổ đóng lên đầu và thứ tự so tooltip đạt. Chưa kiểm hình browser/native; không khẳng định đã test hover thực tế.
+- Dùng chung Web/Desktop/Mobile; không đổi cách mở tooltip bằng chạm. Không commit/push, giữ scenario untracked và thay đổi tracking đồng thời.
+
+
+## 2026-11-15 · Commit sửa lớp tooltip theo USER
+
+- USER yêu cầu commit riêng sửa tooltip: `fix(ui): keep tooltips above repeatedly focused dialogs`, nền1c6d0bb; không push.
+- Typecheck/build/harness10.000lần chuyển đã đạt ở lượt triển khai; staged diff-check kiểm trước commit. Chưa kiểm hình browser/native. Giữ riêng ghi chú điều tra khống chế và scenario untracked ngoài commit.
