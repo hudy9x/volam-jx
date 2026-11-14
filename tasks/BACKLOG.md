@@ -280,3 +280,5 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 
 - [x] Đối chiếu buff từng phái và Auto/bot: giới hạn keys1–9/tối đa2buff bot, Nga My712 gộp5hào quang, Côn Lôn173/178 có chỉ số và FX nhưng thiếu đường hiển thị passive. Chi tiết CURRENT/HISTORY.
 - [x] USER đã duyệt và hoàn tất: Auto từ mọi kỹ năng đã học, loại Ngự Tuyết Ẩn, duy trì aura/NgaMy712, ready/retry/revive, FX riêng173/178; checkbox tạo bot mặc địnhbật + migrationbotcũ + giữexplicitoff mới. Test:auto22/bots10/market13/typecheck/build/WS11phái/Chromium1440/390 đạt; chưa sửa công thức nội lực Hoa Sơn/native. Commit phần buff theo USER; hash xem git log, không push; chi tiết CURRENT/HISTORY và docs/auto.md.
+
+- [x] USER duyệt và hoàn tất Auto/bot vùng gần600px: gần trước/xếp bậc trong vùng, đang đi được đổi, server xác nhận đã ra đòn thì giữ tới chết; bỏ HPkhônggiảm6s→đổi địch, chốngkẹt loại chờchiêu/NL/choáng/thi triển, giữ địch đã đánh. Auto34/bots10/market13/typecheck/build và WSbotboss/Chromiumblue1440/390/giữ12,5sHPđứngyên+bossgần+loot đạt. Chưa native/cân bằng thật. Commit riêng theo USER2026-11-15 (hash xem git log), nền e86caf5, khôngpush; chi tiết docs/auto và CURRENT/HISTORY.

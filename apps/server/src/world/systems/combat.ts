@@ -98,6 +98,7 @@ export function kill(w: World, target: Sim, killer: Sim | undefined): void {
   target.dead = true;
   target.path = [];
   target.pending = null;
+  target.a.attackTarget = '';
   target.castUntil = 0;
   endJump(target);
   target.potions = undefined;

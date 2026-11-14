@@ -84,7 +84,7 @@ Kiểm thử mới: `test:bots` có `bot-team.test.ts` kiểm loại trừ/migra
 
 ## Ưu tiên mục tiêu khi luyện công
 
-Dùng chung AutoPlay với Auto trong game: **Hoàng Kim → Boss Xanh → Quái thường**, **Boss Xanh → Quái thường** (bỏ Hoàng Kim), hoặc **Gần nhất**. Hai chế độ boss chọn bậc cao nhất rồi con gần nhất trong bậc đó; giữ đánh đến chết/mất/không còn hợp lệ, rồi chọn con kế tiếp. Không đổi giữa trận vì có con gần hơn; buff/debuff giữ mục tiêu và nhặt đồ giữa lượt hạ mục tiêu. Bỏ qua boss vẫn loại mọi boss. Có cơ chế chống kẹt/không gây sát thương như [tài liệu Auto](../../docs/auto.md), không thay công thức chiến đấu.
+Dùng chung AutoPlay với Auto trong game: **Hoàng Kim → Boss Xanh → Quái thường**, **Boss Xanh → Quái thường** (bỏ Hoàng Kim), hoặc **Gần nhất**. Chọn quái trong600px isometric quanh bot trước, rồi mới xếp bậc và khoảng cách trong vùng; không còn quái gần mới đi tìm xa. Đang đi được dừng đánh quái mới gặp. Khi server xác nhận đã bắt đầu đòn đánh thì giữ tới chết/mất/không hợp lệ ở cả3chếđộ; không đổi vì boss mới, HPkhônggiảm6giây, buff/debuff hay tiền rơi. Chỉ đích chưa giao chiến thật sự không tiến ngoài tầm hơn6giây mới bị tạm bỏ; thiếu nội lực/hồi chiêu/thi triển/choáng không tính kẹt. Nhặt giữa lượt hạ mục tiêu. Bỏ qua boss vẫn loại mọi boss. Có cơ chế chống kẹt/không gây sát thương như [tài liệu Auto](../../docs/auto.md), không thay công thức chiến đấu.
 
 Cấu hình mới `auto.autoPriority: "blue"` được chuẩn hóa/lưu ở cả kịch bản bot và Auto theo nhân vật. Sau khi sửa, restart tool và dừng/chạy lại runner để nạp mã; không tự ghi đè lựa chọn trong các kịch bản cũ. Đã kiểm WS thật trên mục tiêu kiểm soát + Chromium1440/390, chưa cân bằng chiến đấu hay native/mobile thật.
 

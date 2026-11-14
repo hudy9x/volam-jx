@@ -15,6 +15,7 @@ export const Actor = schema({
   y: t.uint16(),
   dir: t.uint8(),            // 0..7
   anim: t.string(),          // AnimState
+  attackTarget: t.string(),  // last server-started offensive target; queued movement is not engagement
   animSeq: t.uint16(),       // bumps to restart one-shot animations (attack, hurt)
   moveScale: t.float32(),    // running animation rate relative to this actor's base gait (items / horse / slow / AI)
   actionMs: t.float32(),    // duration of the current one-shot, independent of sprite frame count

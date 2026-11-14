@@ -1,5 +1,30 @@
 # Điểm dừng hiện tại
 
+## 2026-11-15 · Commit Auto vùng gần600px theo USER
+
+- Commit riêng Auto người chơi/bot vùng600px, xác nhận giao chiến từ server, giữ địch tới chết và sửa bỏ nhầm do6giây; tiêu đề `fix(auto): prioritize nearby enemies and retain confirmed combat`, mã xem git log. Không push.
+- Kiểm đã đạt: Auto34/bots10/market13/typecheck/build, WSbotboss/Chromiumblue và giữ12,5sHPkhônggiảm+bossgần+loot; xem mục triển khai. Giữ riêng hoạt ảnh chết GP8 và scenario untracked ngoài commit; combat chỉ lấy dòng xóa attackTarget khi chết.
+
+
+## 2026-11-14 · Vùng gần600px / đang đi được đổi / đã đánh giữ tới chết (hoàn tất, chưa commit)
+
+- USER duyệt vùng600px isometric, gặp quái gần trên đường thì chọn, đã đánh phải tới chết; rà bỏ nhầm sau6giây, dùng chung bot và test kỹ. HEAD nền e86caf5 (buff đã commit riêng, không push).
+- AutoPlay: quái trong600px quanh nhân vật được xét trước đích xa; trong vùng xếp bậc rồi khoảng cách theo boss/blue, near chỉ khoảng cách. Hết quái gần mới đi xa; đích đi xa giữ ổn định tới lúc gặp quái gần. Giữ lọc radius quanh anchor khi autoSeekfalse, SkipBoss/blue loại vàng/đổi chế độ/thao tác tay.
+- Actor.attackTarget do server ghi khi processPending đã kiểm điều kiện/tầm và bắt đầu tấn công; xếp hàng chạy tới/hồi chiêu/cast lỗi chưa xác nhận. Buff giữ xác nhận, di chuyển/chết/hồi sinh/room mới xóa. Auto latches engaged, theo dõi các đích đã gửi để xử lý ack trễ (giới hạn32, clear theo lifecycle). Đã đánh không đổi vì boss mới, HPkhônggiảm, buff/debuff/loot, cả3chếđộ.
+- Bỏ tiêu chí HPkhônggiảm6s→ban. Chỉ đích chưa giao chiến đứng ngoài tầm liên tục>6s không tiến12px mới tạm bỏ10s; loại thi triển/đánh/hurt/jump/choáng/chờchiêu hoặc NL. Dùng tầm chiêu đang gửi kể cả fallback. Địch đã giao chiến bị kẹt thì retry/nudge cùng địch, khôngban.
+- Kiểm:4ca tái hiện fail trước sửa; test:auto34 (22cũ+12mới), test:bots10, test:market13, typecheck/build/diff-check đạt; build chỉcảnhbáochunklớncũ. Test server queue/range/ready/reject/buff/manualmove dùng hàm production không phụ thuộc asset.
+- WS bot chế độboss và Chromium client chế độblue: thường90px trước bossxa2200px; hạ thường→đi xa→gặpquái trênđường→giữgiao chiến12,5s khôngmấtHP dù bossgầnhơn/tiềnrơi; chỉsauhạmớichọnboss. Clientblue có thêmvànggần vẫn bỏ. Damage bị chặn riêng trong harness để kiểm khôngHPgiảm; không phải cân bằng boss thật.1440/390 khôngpageerror/trànngang, đã xemảnh. Đã chạy lại luồng thật sau thêm xử lý acktrễ.
+- DB/script/ảnh riêng `/tmp/jx-auto-near/`, server2568/client5174, dừng saukiểm; không sửa DB/game thật. Cần reload/restart server/client/runner để nhận schema/mã mới; chưa wrapperDesktop/Mobile/điệnthoạithật, logic dùngchung. Khôngcommit/push phầnmới. Giữ thayđổi GP8 đồngthời (WorldScene/ActorView/PaperDoll/combat) và scenario untracked; combat chỉ thêm xóa attackTarget khi chết, không nhận phần die thành công việc Auto. GitNexus không có tool khả dụng, xác minh nguồn/kiểmthửtrực tiếp.
+
+
+
+## 2026-11-14 · Commit buff và thảo luận ưu tiên quái gần (chưa sửa chọn mục tiêu)
+
+- Đã commit phần buff/checkbox bot/FX Côn Lôn và tài liệu theo USER: `e86caf5 feat(auto): maintain learned buffs and faction auras`; không push. Giữ ghi chú GP8 BACKLOG và scenario untracked ngoài commit. Kiểm chứng45ca/typecheck/build/WS/Chromium ở lượt trước, staged diff-check sạch; mã không đổi trước commit.
+- USER báo Auto boss/blue chạy quá xa, có lúc bỏ con chưa chết; yêu cầu trao đổi trước thực thi. Xác minh AutoPlay dùng radiusInfinity khi autoSeek=true, xếp bậc trước khoảng cách, focus giữ ngay từ lúc chọn dù còn ở rất xa. Tái hiện read-only: quái thường50px/bossxanh10000px chọnxanh và move10000. Tái hiện ngoại lệ: boss100pxHPkhônggiảm>6s thì bịban10s và đổi sangthường dù bosscònsống; chưa kết luận nguyên nhân phiên chơiUSER. Ngoại lệ kẹt1.5s, mất/khônghợplệ,đổicấuhình/thaotá tay/vềthành/đổimap cũng phảiphânbiệt. KhôngcóGitNexus tool khảdụng, đọcnguồn+chạyhàmthật.
+- Đề xuất CHƯA DUYỆT: ưu tiênboss cục bộ trong vùng quanhnhânvật (vídụ600pxcầnduyệt); khi khôngcóquáigầnmớiđitìmxa. Tách đangđiđường và đãgiaochiến: trênđườngchochọnquáigầnmớigặp, rađònrồi thìgiữtớichết; modebluevẫnbỏHoàngKim. Ràchốngkẹt/khôngsátthương riêng, khôngbỏbảovệ hoặcquy mọi casebỏđịchlàđổipriority. Chưa sửa gameplay/code/UI/testchọnmụctiêu; chờ USER chốt. ÁpdụngchungAuto/bot, Web/Desktop/Mobile; chưatestnative.
+
+
 ## 2026-11-14 · Auto buff mọi kỹ năng đã học + bot mặc định bật + FX Côn Lôn (hoàn tất, commit theo USER)
 
 - USER yêu cầu commit phần đã kiểm chứng; không push. Commit xem `git log -1` với tiêu đề `feat(auto): maintain learned buffs and faction auras`. Chưa sửa chọn mục tiêu; USER yêu cầu trao đổi trước.

@@ -11,6 +11,7 @@ import type { World } from './World.js';
 export function commandMove(w: World, sim: Sim, x: number, y: number): void {
   if (sim.dead || !Number.isFinite(x) || !Number.isFinite(y)) return;
   sim.pending = null;
+  sim.a.attackTarget = '';
   if (w.now < sim.castUntil) return; // finish the current pose first
   setPath(w, sim, { x, y });
 }

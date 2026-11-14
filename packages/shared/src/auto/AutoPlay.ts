@@ -29,6 +29,10 @@ export interface AutoActorState {
   sprite: string;
   /** Bùa lợi / bùa hại (skill ids) on it. */
   states?: Iterable<number>;
+  /** Target of the latest attack actually started by the server (not a queued approach). */
+  attackTarget?: string;
+  anim?: string;
+  ctl?: number;
 }
 
 /** An actor as auto-fight sees it (the client's actor views and the bot's room actors fit this). */
@@ -106,9 +110,8 @@ const POTION_SLACK_MS = 300;
 const POTION_RUSH_GAP_MS = 500;
 const STAT_NAMES: Record<PotionStat, string> = { hp: 'Sinh lực', mp: 'Nội lực' };
 const BASIC_ATTACK = 1;
-/** Nearest-mode target choice (jx-web-main state-and-save-01.js iD): keep the current one unless another is closer than half − 40. */
-const SWITCH_FACTOR = 0.5;
-const SWITCH_MARGIN = 40;
+/** USER: boss rank only competes inside this moving neighbourhood first. */
+export const AUTO_NEAR_RADIUS = 600;
 /**
  * Approach (how close: state/settings.ts approachDistance): targets further than WALK_BEYOND are walked to first (the
  * server gives a lock up beyond 1600), the walk re-sent every WALK_GAP_MS.
@@ -117,12 +120,11 @@ const WALK_BEYOND = 1200;
 const WALK_GAP_MS = 700;
 /**
  * Stuck ("điểm kẹt"): we should be walking to the target but have not moved STALL_STEP in STALL_MS (no path, wall, cliff),
- * or we stand in reach and its Sinh lực has not dropped in NO_DAMAGE_MS → that target is left alone for BAN_MS. Two stalls
+ * with no action/control/resource wait; only an unengaged destination is left alone for BAN_MS. Two stalls
  * within NUDGE_WINDOW_MS: step NUDGE_STEP aside to get off the stuck spot.
  */
-const STALL_MS = 1500;
+const STALL_MS = 6000;
 const STALL_STEP = 12;
-const NO_DAMAGE_MS = 6000;
 const BAN_MS = 10000;
 const NUDGE_WINDOW_MS = 8000;
 const NUDGE_STEP = 240;
@@ -147,9 +149,9 @@ const DUMMY_SPRITES = new Set(Object.values(MONSTERS).filter(d => d.dummy).map(d
  * Tự động đánh, after jx-web-main's auto-play (docs/auto-play.md):
  *  - drinks potions under the chosen % (and Nội lực under twice the skill's cost), buys them in town when the bag has none;
  *  - maintains learned beneficial buffs and a suitable aura, puts the hotkey bùa hại on bosses / crowds;
- *  - picks the highest-ranked nearest monster, finishes it in boss modes (nearest mode may switch); walks to far ones, locks near
+ *  - picks by rank inside 600px first, can replace a travel destination, finishes confirmed combat in all modes; locks near
  *    ones with an approach distance (close combat right up to it, ranged skills a % of their range — approachDistance);
- *  - leaves a target it cannot reach (not moving) or does not hurt (Sinh lực not dropping), and steps off a stuck spot;
+ *  - temporarily skips blocked travel destinations, retries an engaged enemy without abandoning it, and steps off a stuck spot;
  *    with rotation, cycles the attack skills of keys 1–9 (including bosses);
  *  - picks up between kills what it may take (quality filter), sells white pieces it cannot wear;
  *  - looks for monsters further away when none is left (autoSeek), else walks back;
@@ -162,6 +164,9 @@ export class AutoPlay {
   private anchor: Point | null = null;
   /** Selected enemy, independent of the last cast/lock interrupted by buffs or curses. */
   private focus: string | null = null;
+  /** Latched only after a server-confirmed attack against the selected target. */
+  private engaged: string | null = null;
+  private requestedTargets = new Set<string>();
   private focusPriority: Settings['autoPriority'] | null = null;
   private lootAfterKill = false;
   private target: string | null = null;
@@ -175,9 +180,9 @@ export class AutoPlay {
   private lastReturn = -Infinity;
   private pausedUntil = 0;
   private bans = new Map<string, number>();
-  /** Where we last moved (stall check), the target's Sinh lực when it last dropped, when it became the target, stalls. */
+  /** Movement and uninterrupted approach windows, independent of enemy HP. */
   private moved = { x: 0, y: 0, at: 0 };
-  private hurt = { id: '', hp: 0, at: 0 };
+  private pursuit = { id: '', at: 0 };
   private stalls: number[] = [];
   private lastWalk = -Infinity;
   private picking: { id: string; until: number } | null = null;
@@ -204,7 +209,12 @@ export class AutoPlay {
     this.anchor = self ? { x: self.x, y: self.y } : null;
     this.target = null;
     this.focus = null;
+    this.engaged = null;
+    this.requestedTargets.clear();
     this.lootAfterKill = false;
+    this.pursuit = { id: '', at: 0 };
+    this.moved = { x: self?.x ?? 0, y: self?.y ?? 0, at: 0 };
+    this.lastWalk = -Infinity;
     this.buffTried.clear();
     this.lastBuff = -Infinity;
     this.pickTried.clear();
@@ -221,6 +231,8 @@ export class AutoPlay {
     this.anchor = null;
     this.target = null;
     this.focus = null;
+    this.engaged = null;
+    this.requestedTargets.clear();
     this.lootAfterKill = false;
     this.picking = null;
   }
@@ -230,6 +242,8 @@ export class AutoPlay {
     this.pausedUntil = now + MANUAL_PAUSE_MS;
     this.target = null;
     this.focus = null;
+    this.engaged = null;
+    this.requestedTargets.clear();
     this.lootAfterKill = false;
   }
 
@@ -244,6 +258,8 @@ export class AutoPlay {
       if (!opts.autoRevive) { this.host.stop('Trọng thương: đã dừng tự động đánh.'); return; }
       if (!this.diedAt) {
         this.diedAt = now;
+        this.focus = this.engaged = this.target = null;
+        this.requestedTargets.clear();
         this.buffTried.clear();
         this.lastBuff = -Infinity;
       }
@@ -267,6 +283,15 @@ export class AutoPlay {
     if (now < this.pausedUntil) return;
     if ((opts.autoJunk || opts.autoSellBlue) && now - this.lastJunk > JUNK_GAP_MS) { this.lastJunk = now; this.sellJunk(opts); }
 
+    const acknowledged = self.state.attackTarget;
+    if (!this.engaged && acknowledged && this.requestedTargets.has(acknowledged)) {
+      const confirmed = this.find(acknowledged);
+      if (confirmed && this.candidate(confirmed, opts, now)) {
+        // The acknowledgement may arrive after choosing another travel destination. The real fight wins.
+        this.focus = this.engaged = acknowledged;
+        this.requestedTargets.clear();
+      }
+    }
     const previous = this.focus ? this.find(this.focus) : undefined;
     if (this.focus && (!previous || previous.state.hp <= 0)) this.lootAfterKill = true;
     const radius = opts.autoSeek ? Infinity : opts.autoRadius;
@@ -277,6 +302,7 @@ export class AutoPlay {
       if (this.pick(now, self, near, !!target, opts)) { this.target = null; return; }
     }
     this.lootAfterKill = false;
+    if (this.focus !== (target?.id ?? null)) this.engaged = null;
     this.focus = target?.id ?? null;
     if (opts.autoBuff && this.buff(now, self, learned)) return;
     if (target) {
@@ -411,6 +437,10 @@ export class AutoPlay {
     }
     if (!this.host.ready(skill)) skill = this.attackSkills().find(id => id !== BASIC_ATTACK && this.host.ready(id)) ?? BASIC_ATTACK;
     if (target.id !== this.target || skill !== this.skillUsed || now - this.lockedAt > RELOCK_MS) {
+      if (!this.engaged) {
+        this.requestedTargets.add(target.id);
+        if (this.requestedTargets.size > 32) this.requestedTargets.delete(this.requestedTargets.values().next().value!);
+      }
       this.host.cast(skill, target, target.x, target.y, true, this.reachOf(skill, opts));
       this.target = target.id;
       this.skillUsed = skill;
@@ -424,7 +454,7 @@ export class AutoPlay {
 
   /** A far target: walk towards it (the server finds the way round obstacles), the lock comes once it is near. */
   private walkTo(now: number, target: AutoActor): void {
-    if (target.id !== this.target) { this.target = target.id; this.skillUsed = 0; }
+    if (target.id !== this.target) { this.target = target.id; this.skillUsed = 0; this.lastWalk = -Infinity; }
     if (now - this.lastWalk < WALK_GAP_MS) return;
     this.lastWalk = now;
     this.lockedAt = -Infinity; // lock again as soon as we are near
@@ -432,31 +462,39 @@ export class AutoPlay {
   }
 
   /**
-   * Stuck on this target: not moving while out of reach (no way there), or in reach but its Sinh lực does not drop (the
-   * hits do not land) → leave it alone for a while; a second stall soon after → step aside from the stuck spot.
+   * No movement outside reach for an uninterrupted approach window: retry the path, with a nudge after repeated stalls.
+   * Only destinations not yet fought may be temporarily skipped. Confirmed combat remains locked.
    */
   private stuck(now: number, self: AutoActor, target: AutoActor, opts: Settings): boolean {
-    if (this.hurt.id !== target.id || target.state.hp < this.hurt.hp) this.hurt = { id: target.id, hp: target.state.hp, at: now };
-    const since = Math.max(this.hurt.at, this.pausedUntil);
-    const d = isoDistance(self.x, self.y, target.x, target.y);
-    const near = d <= this.reachOf(this.mainSkill(), opts) + CLOSE_REACH;
-    const stalled = !near && now - this.moved.at > STALL_MS && now - since > STALL_MS;
-    const futile = near && now - since > NO_DAMAGE_MS;
-    if (!stalled && !futile) return false;
-    this.ban(now, target.id);
-    this.focus = null;
-    this.hurt = { id: '', hp: 0, at: now };
+    if (this.pursuit.id !== target.id) {
+      this.pursuit = { id: target.id, at: now };
+      this.moved = { x: self.x, y: self.y, at: now };
+    }
+    const skill = this.skillUsed || this.mainSkill();
+    const busy = !!((self.state.ctl ?? 0) & 1) || ['attack', 'attack2', 'cast', 'hurt', 'jump'].includes(self.state.anim ?? '');
+    const near = isoDistance(self.x, self.y, target.x, target.y) <= this.reachOf(skill, opts) + CLOSE_REACH;
+    // Standing still to cast, wait for mana/cooldown or suffer control is not a failed path.
+    // Unchanged HP is never grounds for abandoning an enemy: misses, slow attacks and shields are legitimate.
+    if (near || busy || !this.host.ready(skill)) {
+      this.moved.at = this.pursuit.at = now;
+      return false;
+    }
+    if (now - this.moved.at <= STALL_MS || now - Math.max(this.pursuit.at, this.pausedUntil) <= STALL_MS) return false;
+
+    if (this.engaged !== target.id) {
+      this.ban(now, target.id);
+      this.focus = this.engaged = null;
+    }
+    // An engaged enemy stays locked even when chasing it stalls; retry the path to the same enemy.
     this.target = null;
-    if (stalled) {
-      this.stalls = this.stalls.filter(at => now - at < NUDGE_WINDOW_MS);
-      this.stalls.push(now);
-      if (this.stalls.length >= 2) {
-        this.stalls = [];
-        // Step aside, away from where we were heading.
-        const a = Math.atan2(self.y - target.y, self.x - target.x) + (Math.random() - 0.5) * Math.PI;
-        this.host.move(self.x + Math.cos(a) * NUDGE_STEP, self.y + (Math.sin(a) * NUDGE_STEP) / 2);
-        this.moved = { x: self.x, y: self.y, at: now };
-      }
+    this.pursuit.at = this.moved.at = now;
+    this.lastWalk = -Infinity;
+    this.stalls = this.stalls.filter(at => now - at < NUDGE_WINDOW_MS);
+    this.stalls.push(now);
+    if (this.stalls.length >= 2) {
+      this.stalls = [];
+      const a = Math.atan2(self.y - target.y, self.x - target.x) + (Math.random() - 0.5) * Math.PI;
+      this.host.move(self.x + Math.cos(a) * NUDGE_STEP, self.y + Math.sin(a) * NUDGE_STEP / 2);
     }
     return true;
   }
@@ -484,7 +522,7 @@ export class AutoPlay {
       this.buffTried.set(s.id, now);
       this.lastBuff = now;
       this.target = null;
-      this.hurt.at = now; this.moved.at = now;
+      this.pursuit.at = now; this.moved.at = now;
       this.host.cast(s.id, undefined, self.x, self.y, false);
       return true;
     }
@@ -510,7 +548,7 @@ export class AutoPlay {
       this.curseTried.set(k, now);
       if (this.curseTried.size > 200) this.curseTried.clear();
       this.host.cast(s.id, target, target.x, target.y, false);
-      this.hurt.at = now; this.moved.at = now;
+      this.pursuit.at = now; this.moved.at = now;
       this.target = null;
       return true;
     }
@@ -531,24 +569,32 @@ export class AutoPlay {
     return (this.bans.get(v.id) ?? 0) <= now;
   }
 
-  /** Boss modes finish the selected enemy; nearest mode retains its historical distance hysteresis. */
+  /** Rank nearby enemies first. A travel destination is replaceable; a confirmed fight is not. */
   private pickTarget(now: number, self: AutoActor, radius: number, opts: Settings): AutoActor | undefined {
-    if (this.focusPriority !== opts.autoPriority) { this.focus = null; this.focusPriority = opts.autoPriority; }
+    if (this.focusPriority !== opts.autoPriority) {
+      this.focus = this.engaged = null;
+      this.requestedTargets.clear();
+      this.focusPriority = opts.autoPriority;
+    }
     const anchor = this.anchor!;
     let cur = this.focus ? this.find(this.focus) : undefined;
     if (cur && !this.candidate(cur, opts, now)) cur = undefined;
     if (cur && radius !== Infinity && isoDistance(anchor.x, anchor.y, cur.x, cur.y) > radius * 1.5) cur = undefined;
-    if (cur && opts.autoPriority !== 'near') return cur;
-    let best: AutoActor | undefined, bestD = Infinity, bestRank = -1;
+    if (!cur) this.engaged = null;
+    if (cur && this.engaged === cur.id) return cur;
+    let local: AutoActor | undefined, localD = Infinity, localRank = -1;
+    let far: AutoActor | undefined, farD = Infinity, farRank = -1;
     for (const v of this.host.actors()) {
       if (!this.candidate(v, opts, now)) continue;
       if (radius !== Infinity && isoDistance(anchor.x, anchor.y, v.x, v.y) > radius) continue;
       const d = isoDistance(self.x, self.y, v.x, v.y);
       const rank = opts.autoPriority === 'near' ? 0 : Number(v.state.boss);
-      if (rank > bestRank || rank === bestRank && d < bestD) { best = v; bestD = d; bestRank = rank; }
+      if (d <= AUTO_NEAR_RADIUS) {
+        if (rank > localRank || rank === localRank && d < localD) { local = v; localD = d; localRank = rank; }
+      } else if (rank > farRank || rank === farRank && d < farD) { far = v; farD = d; farRank = rank; }
     }
-    if (cur && (!best || best.id === cur.id || bestD >= isoDistance(self.x, self.y, cur.x, cur.y) * SWITCH_FACTOR - SWITCH_MARGIN)) return cur;
-    return best;
+    // Keep a distant destination stable until encountering a local enemy, rather than zigzagging between far bosses.
+    return local ?? cur ?? far;
   }
 
   // ======================= loot =======================

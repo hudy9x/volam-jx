@@ -14,6 +14,7 @@ export interface ActorState {
   dir: number;
   anim: AnimState;
   animSeq: number;
+  attackTarget?: string;
   /** Running animation rate from the server; absent on static NPCs / local previews. */
   moveScale?: number;
   /** Optional lab override for the complete running cycle, in milliseconds. */

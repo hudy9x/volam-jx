@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { AutoPlay, DEFAULT_AUTO, normalizeAuto, normalizeBotScenario, getSkill, skillCategory, isCastable, ITEMS, QUALITY, type AutoHost, type AutoActor, type Item } from '../packages/shared/src/index.js';
+import { AutoPlay, DEFAULT_AUTO, normalizeAuto, normalizeBotScenario, getSkill, skillCategory, isCastable, ITEMS, QUALITY, type AutoHost, type AutoActor, type AutoActorState, type Item } from '../packages/shared/src/index.js';
 
 function rig() {
   const actor = (id: string, boss: number, x: number): AutoActor => ({ id, x, y: 0, isSelf: false,
     state: { kind: 'monster', level: 100, hp: 100, maxHp: 100, mp: 100, maxMp: 100, boss, sprite: '' } });
-  const self = { ...actor('self', 0, 0), isSelf: true };
+  const self: AutoActor & {state: AutoActorState} = { ...actor('self', 0, 0), isSelf: true };
+  let acknowledge = true;
   const actors = [actor('normal', 0, 20), actor('blue', 1, 40), actor('gold', 2, 80)];
   let bag: (Item | null)[] = [];
   let slots: (number | null)[] = [];
@@ -13,11 +14,11 @@ function rig() {
   const attack = Array.from({ length: 1500 }, (_, id) => getSkill(id)).find(s => s && s.id !== 1 && isCastable(s) && skillCategory(s) === 'attack')!.id;
   const host = { learnedSkills: () => slots.filter((id): id is number => id !== null), aura: (_id: number | null) => {}, self: () => self, actors: () => actors, safe: () => false, skillAt: (slot: 'left' | number) => slot === 'left' ? 1 : slots[slot] ?? null,
     usable: (id: number) => id === 1 || id === attack, ready: (id: number) => id === attack, cost: () => 0, range: () => 500, melee: () => false,
-    cast: (id: number) => casts.push(id), move() {}, bag: () => bag, money: () => 100000, use() {}, sell: (i: number) => sold.push(i), buy() {},
+    cast: (id: number, target?: AutoActor) => { casts.push(id); if(acknowledge && target && skillCategory(getSkill(id)!) === 'attack') self.state.attackTarget = target.id; }, move() {}, bag: () => bag, money: () => 100000, use() {}, sell: (i: number) => sold.push(i), buy() {},
     wearable: () => false, drops: () => [{id: 'gear', def: Object.values(ITEMS).find(d => d.kind === 'melee')!.id, q: QUALITY.magic, owner: '', x: 1, y: 0}, {id: 'money', def: 'money', q: 0, owner: '', x: 5, y: 0}], pickup: (id: string) => pickups.push(id), train() {}, goTown() {}, respawn() {}, notice() {}, stop() {} } satisfies AutoHost;
   const auto = new AutoPlay(host);
   const opts = { ...DEFAULT_AUTO, autoMap: false, autoBuff: false, autoCurse: false, autoHp: 0, autoMp: 0, autoPickup: false, autoMoney: false, autoJunk: false };
-  return { auto, opts, actors, casts, pickups, sold, attack, slots, host, self, setBag: (b: (Item|null)[]) => { bag = b; } };
+  return { auto, opts, actors, casts, pickups, sold, attack, slots, host, self, acknowledge: (on: boolean) => { acknowledge = on; }, setBag: (b: (Item|null)[]) => { bag = b; } };
 }
 test('priority finishes the current target, then picks the highest tier; skip still works', () => {
   const r = rig(); const gold = r.actors.pop()!, blue = r.actors.pop()!;
@@ -66,7 +67,7 @@ test('loot cannot interrupt a living boss lock', () => {
   assert.equal((r.auto as unknown as {target:string}).target, 'gold');
 });
 test('highest tier then nearest within tier; finish each gold, then each blue, then normal', () => {
-  const r=rig(), log:string[]=[];r.host.cast=(_skill,target)=>{if(target)log.push(target.id);};
+  const r=rig(), log:string[]=[];r.host.cast=(_skill,target)=>{if(target){log.push(target.id);r.self.state.attackTarget=target.id;}};
   const gold=r.actors[2],blue=r.actors[1];
   r.actors.push({...gold,id:'far-gold',x:500,state:{...gold.state}}, {...blue,id:'near-blue',x:10,state:{...blue.state}});
   r.auto.start();r.auto.update(1000,r.opts);assert.equal(log.at(-1),'gold');
@@ -103,11 +104,12 @@ test('pickup after kill completes before next lock; cannot steal focus in the ne
   ground=[];r.auto.update(1500,opts);assert.equal((r.auto as unknown as {target:string}).target,'blue');
   ground=[{id:'new-money',def:'money',q:0,owner:'',x:5,y:0}];r.auto.update(1750,opts);assert.deepEqual(r.pickups,['money']);
 });
-test('nearest mode may switch, policy changes apply immediately and genuine no-damage targets still time out', () => {
+test('policy changes apply immediately but unchanged HP never abandons a fight', () => {
   const r=rig();r.actors[2].x=600;r.auto.start();r.auto.update(1000,r.opts);
   r.auto.update(1250,{...r.opts,autoPriority:'near'});assert.equal((r.auto as unknown as {focus:string}).focus,'normal');
   r.auto.update(1500,{...r.opts,autoPriority:'blue'});assert.equal((r.auto as unknown as {focus:string}).focus,'blue');
-  r.auto.update(8000,{...r.opts,autoPriority:'blue'});assert.equal((r.auto as unknown as {focus:string|null}).focus,null);
+  r.auto.update(8000,{...r.opts,autoPriority:'blue'});assert.equal((r.auto as unknown as {focus:string|null}).focus,'blue');
+  r.actors[1].state.hp=0;
   r.auto.update(8250,{...r.opts,autoPriority:'blue'});assert.equal((r.auto as unknown as {focus:string}).focus,'normal');
 });
 
@@ -189,4 +191,94 @@ test('unacknowledged buff commands are throttled, and disabling autoBuff does no
   for(let now=1000;now<15000;now+=1000)r.auto.update(now,{...r.opts,autoBuff:true});
   assert.deepEqual(r.casts,[100]);
   r.auto.update(17000,r.opts); assert.deepEqual(r.casts,[100]);
+});
+
+
+test('600px local targets beat a boss across the map in both boss modes', () => {
+  for(const autoPriority of ['boss','blue'] as const){
+    const r=rig();r.actors[1].x=10000;r.actors[2].x=20000;
+    r.auto.start();r.auto.update(1000,{...r.opts,autoPriority});
+    assert.equal((r.auto as any).focus,'normal');
+  }
+});
+
+test('an approach command is not engagement: take a newly encountered local monster', () => {
+  for(const x of [1000,10000]){
+    const r=rig();r.acknowledge(false);r.actors.splice(0,2);r.actors[0].x=x;
+    r.auto.start();r.auto.update(1000,r.opts);
+    r.actors.push({id:'on-road',x:100,y:0,isSelf:false,state:{...r.actors[0].state,boss:0}});
+    r.auto.update(1250,r.opts);assert.equal((r.auto as any).focus,'on-road');
+  }
+});
+
+test('server-confirmed engagement survives slow damage, missing mana, cooldown and a closer higher-tier boss', () => {
+  for(const condition of ['slow','mana','cooldown','stun'] as const){
+    const r=rig();r.actors.splice(1);r.auto.start();r.auto.update(1000,r.opts);
+    r.actors.push({id:'new-gold',x:1,y:0,isSelf:false,state:{...r.actors[0].state,boss:2}});
+    if(condition==='mana'){r.self.state.mp=0;r.host.ready=()=>false;}
+    if(condition==='cooldown')r.host.ready=()=>false;
+    if(condition==='stun')r.self.state.ctl=1;
+    r.auto.update(8000,r.opts);r.auto.update(15000,r.opts);
+    assert.equal((r.auto as any).focus,'normal',condition);
+    assert.equal((r.auto as any).bans.size,0,condition);
+  }
+});
+
+test('600px boundary is isometric and search-off still respects the original anchor radius', () => {
+  const r=rig();r.actors[2].x=601;r.actors[1].x=600;
+  r.auto.start();r.auto.update(1000,r.opts);assert.equal((r.auto as any).focus,'blue');
+  const a=rig();a.actors[2].x=400;a.actors[1].x=250;a.self.x=0;
+  a.auto.start();a.auto.update(1000,{...a.opts,autoSeek:false,autoRadius:300});assert.equal((a.auto as any).focus,'blue');
+});
+
+
+test('priority is local to a moving 600px isometric neighbourhood', () => {
+  const r=rig();r.actors[2].x=0;r.actors[2].y=301;r.actors[1].x=0;r.actors[1].y=300;
+  r.auto.start();r.auto.update(1000,r.opts);assert.equal((r.auto as any).focus,'blue');
+});
+
+test('transit stays stable without local enemies, and genuinely blocked travel can be skipped after 6s', () => {
+  const r=rig();r.acknowledge(false);r.host.ready=()=>true;r.actors.splice(0,2);r.actors[0].x=10000;
+  r.auto.start();r.auto.update(1000,r.opts);
+  r.actors.push({id:'far-new-gold',x:2000,y:0,isSelf:false,state:{...r.actors[0].state}});
+  r.auto.update(2000,r.opts);assert.equal((r.auto as any).focus,'gold');
+  r.auto.update(7250,r.opts);assert.equal((r.auto as any).focus,null);assert.ok((r.auto as any).bans.has('gold'));
+  r.auto.update(7500,r.opts);assert.equal((r.auto as any).focus,'far-new-gold');
+});
+
+test('long casting, cooldown, mana and control waits never count as blocked travel', () => {
+  for(const reason of ['cast','mana','control','cooldown']){
+    const r=rig();r.acknowledge(false);r.actors.splice(0,2);r.actors[0].x=10000;
+    r.auto.start();r.auto.update(1000,r.opts);
+    if(reason==='cast')r.self.state.anim='cast';
+    if(reason==='control')r.self.state.ctl=1;
+    if(reason==='mana'||reason==='cooldown')r.host.ready=()=>false;
+    r.auto.update(15000,r.opts);assert.equal((r.auto as any).focus,'gold',reason);assert.equal((r.auto as any).bans.size,0);
+    r.self.state.anim='idle';r.self.state.ctl=0;r.host.ready=()=>true;
+    r.auto.update(15500,r.opts);assert.equal((r.auto as any).focus,'gold');
+  }
+});
+
+test('an engaged target moving out of range is retried, never banned; buff, loot and closer enemies cannot steal it', () => {
+  const r=rig();r.auto.start();r.auto.update(1000,r.opts);r.auto.update(1250,r.opts);
+  r.actors[2].x=10000;
+  r.auto.update(2000,r.opts);r.auto.update(9000,{...r.opts,autoMoney:true});r.auto.update(16000,r.opts);
+  assert.equal((r.auto as any).focus,'gold');assert.equal((r.auto as any).bans.size,0);assert.deepEqual(r.pickups,[]);
+});
+
+test('nearest mode also finishes confirmed combat, but manual input and invalid targets release it', () => {
+  const r=rig();const opts={...r.opts,autoPriority:'near' as const};r.auto.start();r.auto.update(1000,opts);
+  r.self.x=70;r.auto.update(1250,opts);assert.equal((r.auto as any).focus,'normal');
+  r.auto.pause(1300);r.auto.update(4500,opts);assert.equal((r.auto as any).focus,'gold');
+  r.actors.pop();r.auto.update(5000,opts);assert.equal((r.auto as any).focus,'blue');
+});
+
+
+test('a delayed server acknowledgement beats a newer travel choice', () => {
+  const r=rig();r.acknowledge(false);r.actors.splice(0,2);r.actors[0].x=1000;
+  r.auto.start();r.auto.update(1000,r.opts);
+  r.actors.push({id:'road',x:100,y:0,isSelf:false,state:{...r.actors[0].state,boss:0}});
+  r.auto.update(1250,r.opts);assert.equal((r.auto as any).focus,'road');
+  r.self.state.attackTarget='gold';r.auto.update(1500,r.opts);
+  assert.equal((r.auto as any).focus,'gold');assert.equal((r.auto as any).engaged,'gold');
 });

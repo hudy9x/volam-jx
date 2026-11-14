@@ -54,7 +54,7 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
   const a = new Actor();
   Object.assign(a, {
     kind: 'player', name: char.name, sprite: '', faction, gender: char.gender, level: prog.level,
-    x: Math.round(x), y: Math.round(y), dir: 0, anim: 'idle', animSeq: 0, jumpMs: 0, moveScale: 1,
+    x: Math.round(x), y: Math.round(y), dir: 0, anim: 'idle', animSeq: 0, attackTarget: '', jumpMs: 0, moveScale: 1,
     hp: 1, maxHp: 1, mp: 0, maxMp: 0,
     pk: 0, camp: campOf(faction), team: '', boss: 0, scale: 1, protectedUntil: Date.now() + SPAWN_PROTECTION * 1000,
     horse: '', mounted: false,
@@ -93,6 +93,7 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
 export function revive(w: World, sim: Sim, x: number, y: number): void {
   const [sx, sy] = nearestWalkable(w.grid, x, y);
   sim.dead = false;
+  sim.a.attackTarget = '';
   sim.hp = sim.a.maxHp;
   sim.mp = sim.a.maxMp;
   sim.a.x = Math.round(sx);
@@ -187,6 +188,7 @@ function processPending(w: World, sim: Sim): void {
   if (err) { w.hooks.notify(sim, err); return; }
   sim.path = [];
   face(sim, aim.x - sim.a.x, aim.y - sim.a.y);
+  if (category === 'attack' && target && target !== sim) sim.a.attackTarget = target.id;
   castNow(w, sim, p.skill, target === sim ? undefined : target, aim);
   // Locked target: queue the same attack again (it waits for the pose / cooldown, and stops once the target is gone).
   if (p.lock && target && target !== sim && !target.dead) sim.pending = { ...p, repathAt: 0, engaged: true };
