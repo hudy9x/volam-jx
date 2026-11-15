@@ -19,6 +19,8 @@ Dược Vương Cốc có 3 cọc gỗ để thử chiêu.
 
 Yêu cầu Node.js 22+.
 
+**Map Creator:** `npm run map:creator` → http://localhost:4569. Upload ground/world, kéo thả và chỉnh collider, lưu/mở project, xuất bộ map. Chạy độc lập game; chưa đăng ký map vào game. [Hướng dẫn](tools/map-creator/README.md).
+
 ```sh
 npm install          # .npmrc đã bật legacy-peer-deps (npm treo khi giải peer deps qua proxy)
 cp apps/server/.env.example apps/server/.env   # cấu hình server (cổng, DB, AUTH_SECRET…); thiếu file thì dùng mặc định
@@ -286,7 +288,6 @@ watcher; nếu không, polling làm mỗi file tĩnh mất ~9 giây mới trả 
 ## Chưa làm (bước tiếp theo gợi ý)
 
 Danh sách đầy đủ có trạng thái: `tasks/BACKLOG.md`; điểm dừng hiện tại và bước tiếp theo: `tasks/CURRENT.md`.
-
 
 - Chỉ số trang bị mới có Sinh lực/Nội lực (hardcode theo loại × cấp); chưa có thuộc tính ẩn, kháng, yêu cầu.
 - Ngựa chỉ có tốc độ (chưa có thuộc tính khác của bảng gốc); chưa có tiền nên mọi thứ giá 0 lượng.
