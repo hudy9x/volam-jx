@@ -88,7 +88,7 @@ Nguồn: tài liệu 09 §9, §11–§14; `docs/combat-formulas.md` §9, §11. B
 | ⬜ | KN14 | **Điều tra và sửa hỗ trợ kỹ năng cho chiêu 80/120/150**: đối chiếu nguồn + mapping hỗ trợ, xác minh skillBonuses và truyền bonus root/child, sửa phần hỗ trợ thật sự thiếu; tooltip thể hiện nguồn/% hỗ trợ đúng với phép tính. Không tự xem việc thiếu dòng tooltip là mất sát thương; chiêu120 cần rà cơ chế từng chiêu, không mặc định đều nhận addskilldamage. | USER2026-11-14 giới hạn session này vào hỗ trợ80/120/150. Hoa Sơn phân tuyến/Gợi ý/mô tả chuyển KN15; đổi đường cong sát thương150, độc, tên lỗi mã và cơ chế candetonate không thuộc phạm vi hiện tại. Chi tiết nghiên cứu cũ trong HISTORY. Chưa triển khai. |
 | ✅ | KN15 | **Hoa Sơn: phân biệt Kiếm Tông/Khí Tông, sửa Gợi ý cộng điểm kỹ năng + tiềm năng và mô tả trong bảng Kỹ năng**. Giữ icon gốc, làm rõ vai trò/quan hệ của chiêu cùng icon; chưa mở rộng sang cơ chế khí trường, cân bằng, thục luyện hoặc đổi bảng học. | USER2026-11-14 duyệt triển khai: metadata28chiêu, Gợi ý giữ Trấn phái→cấp10→tuyến→giữ dư, loại công rõ, mô tả/quan hệ icon + cửa sổ đọc bằng chạm. 5test +448so sánh10phái +WS/Chromium2568/5174 đạt; chi tiết `docs/huashan-skill-routes.md` §7. Chưa native/botrunner thật; commit theo USER, không push. |
 | ⬜ | KN7 | Kỹ năng bạch kim (trạng thái 白金… từ Thiên Tứ, `script/skill/special/platina.lua`) | Đi cùng TB12 |
-| ✅ | KN10 | **Tầng chiêu 90 / 150 mở theo cấp** (rà 2026-11-12): 30 chiêu có `skill_start/fly/collide/vanishedevent` bật theo cấp (28 chiêu ở cấp 11; Võ Đang 368 / 1079 thêm tầng cấp 16; Thiên Vương 1084 ở cấp 16). **Lỗi**: khi thuộc tính đang tắt, `SkillEngine` vẫn lấy chiêu con từ cột `skills.txt` → 21 chiêu bật tầng từ cấp 1. Sửa: thuộc tính tắt thì không gọi; mô tả theo `skill_showevent` (1 lúc ra chiêu, 2 khi bay, 4 khi trúng, 8 khi biến mất). Chiêu 120: không có tầng | 2026-11-12: `core/events.ts`, engine + mô tả theo cấp; `gen:skills` gom chiêu con chỉ nêu ở thuộc tính (thêm 4 chiêu, vd. vòng tròn 162). `docs/skills-layers.md` |
+| 🟡 | KN10 | **Tầng chiêu 90 / 150 mở theo cấp** (rà 2026-11-12): 30 chiêu có `skill_start/fly/collide/vanishedevent` bật theo cấp (28 chiêu ở cấp 11; Võ Đang 368 / 1079 thêm tầng cấp 16; Thiên Vương 1084 ở cấp 16). **Lỗi**: khi thuộc tính đang tắt, `SkillEngine` vẫn lấy chiêu con từ cột `skills.txt` → 21 chiêu bật tầng từ cấp 1. Sửa: thuộc tính tắt thì không gọi; mô tả theo `skill_showevent` (1 lúc ra chiêu, 2 khi bay, 4 khi trúng, 8 khi biến mất). Chiêu 120: không có tầng | 2026-11-12: `core/events.ts`, engine + mô tả theo cấp; `gen:skills` gom chiêu con chỉ nêu ở thuộc tính (thêm 4 chiêu, vd. vòng tròn 162). `docs/skills-layers.md` |
 | ✅ | KN11 | Dịch tên chiêu 150 Thiên Vương id 1084 (đang lỗi mã tiếng Trung) | 2026-11-12: 1084 / 1086 / 1087 / 1088 là chiêu con; `tools/data/subskill-names.ts` |
 | ✅ | KN12 | Giới hạn cấp chiêu theo cấp nhân vật: tối đa = cấp nhân vật − cấp học + 1 (chiêu 90 / 150 lên bằng thục luyện) | 2026-11-12: `levelCap` (CHỌN: gốc có chặn nhưng không có công thức); chiêu tiền đề của 5 chiêu 90 + 1110 (DATA skilllvlup.lua) |
 | ✅ | KN13 | **Kỳ Trân Các + bí kíp** (USER 2026-11-12): nút "Bảo Vật" gốc, NPC Bách Bảo Lão Nhân, bí kíp 90 / 120 / 150 (hiện chiêu kế tiếp), Đại thành bí kíp (lên cấp 20); chiêu tầng 90 / 120 / 150 chỉ có qua bí kíp | `items/books.ts`, `useBook`. Giá do agent chọn. NPC: Bách Bảo Lão Nhân |
@@ -229,6 +229,14 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 | ⬜ | BT7 | Kịch bản đám đông quanh một người chơi trình duyệt cho PF1 (FPS, bộ nhớ texture) | Nối với PF1, HT8 |
 | 🟡 | BT8 | Tổ đội/Chat/Ra vào game; tự cộng điểm/mặc đồ nhặt; LAN | 2026-11-14 đã có auto nhận lời mời khi luyện công + chat/rao đồ đáng chú ý khi nhặt + reconnect liên tục. Chưa có AI tổ đội chủ động, lịch online/offline, cộng điểm/mặc đồ nhặt và kiểm LAN. |
 
+## 11. Map Creator (MC)
+
+| Trạng thái | Mã | Công việc | Ghi chú |
+|---|---|---|---|
+| ✅ | MC1 | Tool upload ground/world, sắp xếp/cấu hình world, lưu/mở lại và xuất bộ map | USER2026-11-15. `tools/map-creator`, localhost4569, `npm run map:creator`. Chỉnh anchor/scale/depth/collider, manual blockers/entry, undo/redo, revision conflict, upload chuẩn hóa. Xuất ground512/world/nav32×16/preview vào project, không publish game hoặc gộp spawn. Unit3ca + Chromium desktop/mobile/touch mô phỏng và API đạt; chưa native/điện thoại thật/che khuất trong game. Đăng ký map vào game và tool spawn riêng là bước sau, chưa triển khai. |
+| ✅ | MC2 | Map Manager: đặt NPC thành thị và lưu thẳng cấu hình game | USER2026-11-15. tools/map-manager:4570, chọn/thêm/kéo/chỉnh NPC/name/action/res/dir, map ground+objects/nav/preview; atomic JSONsource/CAS, shared adapter giữ fallback. Unit3ca/typecheck/build và browser desktop/mobile đạt; quái/Boss Xanh để sau, chưa native/live-patch. |
+
+
 ## Cài đặt máy macOS (2026-11-13)
 
 - [x] Cài dependency và tạo cấu hình server từ mẫu.
@@ -304,3 +312,13 @@ Ghi chú GP8 — 2026-11-14 · Điều tra die (chưa sửa): HEAD8a8b6ff. Serve
 - ✅ HU1 USER2026-11-15 thử choángthật×2 bằng tuning;18caeffects/typecheck đạt. 🟡 Băng tốc/FPS cốđịnh đang thảo luận số, chưatriểnkhai.
 
 - ✅ HU1 USER2026-11-15: tách từng côngthức và tuning hiệuứng, gom visualconfig, thêm hướngdẫn bắtbuộc AI đọc docs/formulas/effects.md; giữ API/hànhvi qua96cađốichiếu; effects18/speed5/typecheck/build đạt. Commit theoUSER, khôngpush; băngcốđịnh chưa triểnkhai.
+
+Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không chạy từ cấp11 do autoExplode bỏ nhánh collide (step gọi area nhưng area không phát event). Hai chiêu Lôi375/1081 chạy tầng2 trong harness cấp11/20. Đã đối chiếu Lua/PAK SHXT và chạy12tổ hợp; chưa sửa mã, chờ USER duyệt. Chi tiết đầu CURRENT/HISTORY.
+
+- MC1 demo2026-11-15: đã ghép ground cỏ3584×3584 từ24crop/81lượt đặt bằng overlap/mincut, upload/save project9101 và export49region; mở lại Chrome xác nhận. Texture AI mới theo fallbackUSER, không phải ảnh gốc sessionTerrain. Dữ liệu projects/9101 gitignore; chưa đưa map vào game.
+
+- MC2 cập nhật2026-11-15: sidebar43map cópreview/tên,2nhómThànhthị2/Luyệncông41, tìmkiếm vàconfirmbảnnháp; mapluyệncông chỉpreview/khóaNPC. Typecheck/3ca/Chromedesktopmobile đạt, chưaspawn.
+
+- MC2 cập nhật2026-11-15: bổ sung NPC Thợ rèn/Xa phu/Bán ngựa 8 hướng gốc SHXT, tên la bàn/khóa hướng không hỗ trợ/giữ hình cũ; 4 test gồm bảo toàn chức năng qua8dir, typecheck/build và Chrome đạt.
+
+- MC2 nghiên cứu2026-11-15: vùng an toàn nội thành/chiến đấu ngoại thành ở docs/research/town-safe-zones-study.md; chỉ study, chưa duyệt triển khai.

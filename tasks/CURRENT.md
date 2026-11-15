@@ -1,3 +1,73 @@
+## 2026-11-15 · Commit Map Manager theo USER
+
+- Đã commit 62cce60: NPC placement/sidebar/8hướng, shared adapter, generator metadata, README và kiểm thử. Test4ca/typecheck đạt; graph gate235symbols/7flows tập trung tool. CLI chỉ in15symbols dù --limit1000; phạm vi đã đối chiếu staged files/source, không xem là danh sách hiển thị đầy đủ. Tiếp theo commit nghiên cứu/tracking rồi triển khai pen.
+
+## 2026-11-15 · Commit Map Creator theo USER
+
+- Đã commit 4305c35: tool Map Creator + kiểm thử/cấu hình chạy/tài liệu riêng. Test3ca/typecheck đạt; giữ project upload/ảnh tham chiếu ngoài commit. Tiếp theo commit Map Manager rồi tài liệu nghiên cứu, sau đó triển khai pen vùng an toàn đã được USER yêu cầu.
+
+## 2026-11-15 · Nghiên cứu vùng an toàn thành thị (chưa triển khai)
+
+- USER chỉ yêu cầu study: cấm dùng chiêu/PK trong thành, ra ngoài vẫn luyện công/PK, tham khảo SHXT. Tài liệu docs/research/town-safe-zones-study.md ghi hiện trạng, nguồn gốc, giới hạn và thiết kế đề xuất. Hiện safe/pvp áp toàn map; City/Capital không có ranh theo vị trí. SHXT xác minh FightState/script station/waypoint và TRAPX/Y safe↔fight ở map đặc thù; chưa phục hồi ranh gốc 1/37 (hash trap không khớp Lua biết tên).
+- Đề xuất vùng polygon cấu hình trong Map Manager, shared query theo tọa độ, server kiểm cả hai bên lúc cast/hit, giữ luật PK hiện có ngoài vùng; không gộp quyền NPC/regen vào biến combat. Ngoại lệ hào quang hiện có và chính sách trạng thái đang tồn tại cần chốt riêng nếu cấm tuyệt đối. Chưa được duyệt triển khai.
+- GitNexus current HEAD aca6c91/context commandCast/canAttack khớp mã; nguồn SHXT graph không có flow phù hợp, kiểm script PAK thắng trực tiếp. Chỉ ghi nghiên cứu/tracking, không sửa mã/config/assets/DB/commit. Giữ toàn bộ thay đổi trước.
+
+## 2026-11-15 · Bổ sung NPC 8 hướng theo USER (chưa commit)
+
+- Sinh bằng gen-assets từ VLTK-SHXT các passerby004_4/037_4/040_4 (đủ 8 hướng), generator giữ bản _1. Mẫu NPC trong towns.ts dùng bản _4, giữ nguyên ID/name/action/dx/dy/dir; bản lưu cũ giữ nguyên res. Không sửa tay *.gen.ts/publicassets; manifest chỉ pack npc đổi.
+- Map Manager có 9 hình: 6 mẫu hiện tại + 3 hình cũ cố định. Tên hướng la bàn, 1 hướng khóa select và có hướng dẫn chọn hình 8 hướng, Rương 2 hình; metadata dirs từ sprite thực. Đổi res/dir không ghi action. README cập nhật; nguồn placements vẫn maps:{}.
+- Typecheck/build đạt (cảnh báo chunk lớn cũ). 4 test đạt, có kiểm cả 6 chức năng qua đủ 8 dir: save/reopen/adapter giữ ID/action/tọa độ và NPC_WINDOWS đúng. Chrome thật xoay Thợ rèn NW, Xa phu SE, Bán ngựa NW/SE giữ shop/travel/horse; thử hình cũ khóa hướng và giữ action. Đã xem ảnh /tmp/jx-map-manager-evidence/npc-directions.jpg, ảnh đầy đủ npc-directions-full.jpg. Bỏ toàn bộ bản nháp thử, tool4570/tabBiệnKinh sẵn dùng. Chưa thử giao dịch thực trong scene hoặc native/mobile thật; logic tương tác/server không sửa.
+- HEAD aca6c91 khớp checkpoint; giữ các thay đổi trước, không commit/push. Dữ liệu dùng chung Web/Desktop/Mobile, tool loopback và chưa đóng gói native.
+
+## 2026-11-15 · Xác minh NPC 8 hướng trong VLTK-SHXT
+
+- Theo USER, tra trực tiếp bảng npcres và header/giải mã SPR của Client_VLTK_SHXT. Có passerby004_4 (Thợ rèn), passerby037_4 (Bán ngựa), passerby040_4 (Xa phu), dùng các file *z.spr với 8 hướng thật; lần lượt 152/152/80 frame. Bản _1/_2/_3 dùng *s1/s2/s3.spr, mỗi file chỉ 1 hướng.
+- Đã xem contact sheet đủ 8 hướng tại /tmp/jx-npc-directions/preview.png; bản _4 là dáng đứng, riêng Thợ rèn không kèm bàn/lò rèn. Nguồn bảng 普通npc资源.txt + 人物类型.txt, giải quyết đường PAK qua source.ts/hashindex.ts; chi tiết file/hash ở /tmp/jx-npc-directions/results.json. Generator hiện chưa chọn các bản _4.
+- Kết luận có thể bổ sung tài nguyên gốc để chọn NW/SE trong Map Manager và game; chưa sinh asset, đổi sprite, sửa UI/config hoặc commit/push. Đây là điều tra, chờ USER yêu cầu triển khai. HEAD aca6c91, giữ các thay đổi sẵn có.
+
+## 2026-11-15 · Sidebar map có preview trong Map Manager
+
+- USER yêu cầu thay select thành sidebar map thành thị/luyện công, có tên và ảnh preview. Đã đổi tools/map-manager: sidebar trái có43card, nhómThànhthị2/Luyệncông41, tìm tênkhôngdấu/ID, thumb→minimapfallback, lazyload và trạngtháichọn/thiếuasset. NPC list + inspector chungcộtphải; mobile sidebar lêntrên với vùngcuộn riêng.
+- Bootstrap thêm Field/Cave/Country vào nhóm luyệncông; chỉ cho xemmap, tắt Thêm/LưuNPC và không gọi endpointNPCthành. Backend vẫn từchốighiNPC mapluyệncông; chưa triểnkhai spawn/BossXanh. Chuyểnmap cóbảnnháp dùng Xácnhận/Hủy, không tự lưu.
+- GitNexusimpact openTownLOW(1caller), controls/inspectorMEDIUM(7affected), đãgiữphạmvitool; khôngsửagameplay/sharedconfig. HEADaca6c91 khớp checkpoint, giữ thayđổitrước/ngườikhác.
+- Typechecktoànrepo/testmapmanager3ca/diffcheckđạt. Chrome thật: chọnBiệnKinh→sửanháp→Hủygiữtên→XácnhậnmởPhượngTường; tìm140/mởDượcVươngCốcpreview vànútLưuoff đạt. APIbootstrap43map/2city/41training/0editabletraining, PUTNPC140 trả400. 1440×1000/390×844 khôngtrànngang,43ảnhpreview; đãxemảnh /tmp/jx-map-manager-evidence/sidebar-{desktop,mobile}.jpg. Toolbảncuốichạy4570, tabBiệnKinh giữdeliverable.
+- SourceNPC town-placements.json vẫn maps:{}, khôngsavebảnnháp/khôngđụngDB hoặc publicassets/khôngcommitpush. README cậpnhật; chưa native/điệnthoạithật.
+
+## 2026-11-15 · Map Manager NPC thành thị theo USER (chưa commit)
+
+- USER yêu cầu tool map mới, NPC thành thị trước, spawn quái/Boss Xanh sau; Lưu ghi trực tiếp cấu hình trong code. HEADaca6c91 khớp checkpoint; giữ thay đổi MapCreator và sprite Rương/gen-assets/data.gen/cachemeta có sẵn, không commit/push.
+- Tool tools/map-manager, npm run map:manager, localhost4570. UI theo guideline: chọn thành, danh sách/tìm NPC, add/delete/role/name/res/dir, click/kéo vị trí, x/y/snap, pan/zoom/minimap/ground+objectchunks/nav/previewframegốc. Chỉ6dịch vụ hiệncó, chưa mọi NPC/quest hoặc spawn. Không Phaser/HMRgame/dependency mới. Dùng Dialogs chung cho xác nhận/Hủy/Esc/focus sau khi phát hiện nativeconfirm không ổn định qua extension; dialog nội bộ đã thử xóa/lưu và Esc không đổi dữ liệu.
+- Source packages/shared/src/npcs/town-placements.json(version1/maps), shared placements.ts adapter absolute→offset và TOWN_NPCS áp override theo thành. DEFAULT_TOWN_NPCS giữ fallback/map140 và sprite Rươngpasserby198 từ thay đổi có sẵn. Backend atomic save/CAS theo map, chỉloopback/sameorigin, giới hạn dữ liệu/IDs/action/res/dir/tọađộ và canStandAt/getGrid. Giữ nguyên thành khác; [] có nghĩa xóa hết NPC thành đó. Một tiến trình tool/file, chưa khóa liên tiến trình.
+- Lưu trực tiếp source theoUSER, không nútApplygiả: watcher dev có thểreload/restart; production cầnbuild/tảilạiclient, chưa livepatchscene. Cấu hình nguồn mặc định giữ maps:{} lúc bàn giao; mọi thao tác thử ghi /tmp/jx-map-manager-test-config.json qua cổng4580, không đặt lại NPC thật/DB/assets.
+- Kiểm typecheck toànrepo/buildclient đạt(cảnhbáochunklớncũ),3caunit validation/save/reopen/stalerevision/mapisolation/emptylist/gameadapter. HTTPstale/blocked/origin rejected và file không đổi. Chrome thật rename(inputevent)/x/snap/dir/drag20270,13118→20305,13138/add7→save→PhượngTường6→BiệnKinh7/delete→save6/Esc đạt. 1440×1000 và390×844 khôngtrànngang, đãxemảnh /tmp/jx-map-manager-evidence/{desktop,mobile-final,final}.jpg; bản4570 mở BiệnKinh mặc định và giữtabdeliverable. Chưa native/điệnthoạithật hoặc chạy lại scene game bằng vị trí tùy chỉnh; adapter/build kiểm đường dữ liệu.
+- GitNexuscontext/impactTOWN_NPCS UNKNOWN không cócallergraph; đã xác minh text WorldScene/npcState trước sửa và giữcontract. Indexrefresh xong, kiểmdifftrước bàn giao; không coi graph rỗng là không ảnh hưởng. MC2xong trongphạmviNPC, READMEtool/root/AGENTS đãghi. Quái/BossXanh chưa triểnkhai.
+
+## 2026-11-15 · Tạo map thử từ terrain pack theo USER
+
+- USER cho phép thay ảnh chưa truy xuất được bằng cách tạo ground pack nhiều mảnh ngẫu nhiên rồi ghép. Đã dùng built-in ImageGen tạo texture cỏ mới1254×1254 (không phải ảnh gốc sessionTerrain); prompt/source lưu trong tools/map-creator/projects/9101/source.
+- Cắt24crop512×512, đặt81lượt với overlap96px, chọn theo sai khác vùng chồng và đường cắt min-error bằng DP; giữ nativepixel, không xoay/lật/upscale. Source/quilt.cjs + recipe.json tái lập seed9101. Ground3584×3584 WebP lossless12.834.132bytes; đã xem preview và crop mép nối1:1.
+- Tạo project9101 “Đồng cỏ thử nghiệm”, upload qua APItool vì Chromeextension filechooser yêu cầu Allow access to file URLs; không đổi quyền extension. Lưu revision1, entry1792/1792, world0/blockedtay0. Exportbuildr1-ecd76e96 có49ground512×512/nav112×224, kiểm kích thước và toàn bộ mask khôngchặn đạt; verification.json lưu nguồn.
+- Mở lại bản lưu trên Chrome thật localhost4569, chọn Vừa khung, thấy map/ground3584/revision1 đúng; giữ tab deliverable. Screenshot source/editor.jpg. Chưa chơi tronggame/đăngkýcatalog hoặc đặtworld/quái; spawn tool vẫn đểsau. Chưa lấy ảnh gốc sessionTerrain, không còn bị chặn bản demo theo hướng mới.
+- Chỉ thêm dữ liệu project gitignore và tracking, giữ source tool/thay đổi trước, HEADaca6c91; khôngcommit/push/DBgame/publicassets. Dữ liệu demo lưu tools/map-creator/projects/9101; tool vẫn chạy4569.
+
+## 2026-11-15 · Triển khai Map Creator theo USER (chưa commit)
+
+- USER yêu cầu tool Map Creator: upload ground/world, sắp xếp/cài đặt world rồi lưu; tách tool spawn quái/Boss Xanh để làm sau. HEAD `aca6c91` khớp checkpoint; giữ thay đổi tracking có sẵn, không commit/push.
+- Tool Node/esbuild/Canvas độc lập ở tools/map-creator, lệnh npm run map:creator, localhost4569. Không thêm dependency hoặc nạp Phaser/game entrypoint. UI token guideline tools, bundle Dialogs dùng chung với skin tool, responsive desktop/mobile. Skill design-taste không áp dụng editor/admin nên dùng guideline repo; isometric-map-creator dùng để đối chiếu phân lớp, không dùng schema tool khác thay game schema.
+- Có create/list/open/save project theo ID, ảnh upload PNG/JPG/WebP chuẩn hóa WebP lossless/hash, ground giữ kích thước, world instances kéo/đặt/nhân bản/xóa, anchor/scale/depth/collider ellipse, paint/erase blockers/entry, undo/redo50bước, zoom/pan/grid, backup JSON. Atomic save/revision chống ghi đè tab khác; kiểm dữ liệu backend, same-origin/Host/loopback và giới hạn upload/path. Ảnh/project/build gitignore.
+- Export lưu snapshot rồi cắt ground512, world pages/frame/piece theo MapView (dùng lại frame trong chunk), nav32×16 gồm manual+collider+alpha, catalog-entry/minimap/thumb/preview. Giữ nguồn manual blockers riêng tránh collider cũ. Xuất vào project/builds, chưa tự đăng ký/publish game, không sửa shared MAPS/gen-maps/public/assets/manifest/DB. Chưa chơi map tự dựng trong game hoặc chứng minh đường liên thông; sprite lớn/công trình phức tạp còn cần tích hợp/phân mảnh.
+- Kiểm: typecheck toànrepo/buildclient đạt (cảnh báo chunk lớn cũ);3caunit có upload/save/revision/collider move/edge tile/alpha/entry/depth. Chromium thật1440×1000 và390×844: create/upload/place/drag/scale/collider/duplicate/undo/redo/paint/save/reload/export/Esc đạt, không pageerror/tràn ngang; touch mô phỏng đặtworld, sai scale rollback, delete/undo, Esc trảfocus và API stale revision/origin/ID rejection đạt. Dữ liệu thử riêng /tmp/jx-map-creator-browser, ảnh/harness /tmp/jx-map-creator-check. Chưa native/điện thoại thật hoặc che khuất runtimegame.
+- GitNexusCLI index nềnaca6c91; impact MAPS UNKNOWN đã đối chiếu source, writeCatalog CRITICAL nhưng không chỉnh hai symbol này. Symbol tool mới chưa có index lúc kiểm impact, đã kiểm callsites nguồn; refresh graph và kiểm diff trước bàn giao. MC1 xong trong phạm vi editor/lưu/xuất; tool spawn và bước đăng ký game để sau theo USER. READMEtool/root/AGENTS cập nhật.
+
+## 2026-11-15 · Điều tra tầng 2 chiêu 80/150 Côn Lôn (chưa sửa mã)
+
+- USER yêu cầu điều tra và đọc docs; xác nhận phạm vi Côn Lôn. HEAD `aca6c91`, nhánh `codex/viewport-culling`, cây làm việc sạch lúc bắt đầu; khớp checkpoint culling hiện tại. Đã đọc `docs/skills-layers.md`, `docs/formulas/skills.md` và đối chiếu KN10.
+- Đã xác minh lỗi Đao: Ngạo Tuyết Tiêu Phong372 → Khiếu Phong Tam Liên Kích373 và Cửu Thiên Cương Phong1080 → Phong Minh Ngọc Toái1108 đều mở từ cấp chiêu11. Đạn178/342 có `autoExplode=true`; SkillEngine.step bỏ collide, chỉ gọi area cho nhịp nổ và lúc hết hạn. area gây sát thương nhưng không gọi event collide, nên tầng2 không được launch dù dữ liệu và tooltip có. Đây là lỗi engine dùng chung, không phải thiếu skill con hoặc asset.
+- Harness chạy SkillEngine thật với mục tiêu bất tử ở100px, bước25ms/8giây, cấp chiêu10/11/20 (12 tổ hợp):372/1080 không launch con và không gọi collide ở cả3cấp;375 Lôi Động Cửu Thiên launch387 từ11 (4→8hit trong fixture);1081 Thiên Lôi Chấn Nhạc launch1109 từ11 (2→7hit). Các số hit chỉ mô tả fixture, không phải benchmark cân bằng. Chưa tái hiện mất tầng của hai chiêu Lôi trong browser phiên USER.
+- Nguồn gốc kiểm đọc PAK thắng ưu tiên tại `Client_VLTK_SHXT/data_extract/slistcache/_unnamed/dat/ec1243ff.dat` (skills), `27c30c17.dat` (kunlun.lua), missles qua source.ts với JX_CLIENT chỉ định; đường mặc định jx-origin/data_extract không tồn tại trên máy. Lua xác nhận mốc11 và các ID. Đạn370 của1108 không có bất kỳ AnimFile nào ngay trong bảng gốc: riêng tầng này không được tự suy luận cần một sheet riêng hoặc thiếu gen. Đạn179 của373 có hình thật. Kiểm đồ thị104skill liên quan80/150 và114FXkey đang tham chiếu: metadata/các trangWebP đều tồn tại, không chứng minh mọi đạn cóFX.
+- GitNexusCLI index đã refresh đếnHEAD; context eventSkill trả liên kết không phù hợp nguồn nên không dùng làm bằng chứng caller. Kết luận dựa mã thật + registry + chạy engine. Lab mặc định cấp10 là yếu tố riêng, chưa biết có phải tình huống USER. Đề xuất sửa đường phát collide cho đạn autoExplode khi thật sự chạm mục tiêu, giữ nhịp/đời đạn và tránh phát sai khi nổ rỗng; cần test hồi quy trước sửa dùng chung. Chờ USER duyệt triển khai.
+- Chỉ cập nhật tracking; không sửa gameplay/gen/asset/DB, không commit/push. Luật shared áp dụng Web/Desktop/Mobile; chưa kiểm hình browser/native. KN10 mở lại một phần vì lỗi Đao mới xác minh.
+
 ## 2026-11-15 · Commit culling và báo cáo hiệu suất theo USER
 
 - USER hủy yêu cầu đánh giá VPS, yêu cầu commit code hiện tại. Commit `perf(client): cull offscreen ground and actors` (mã xem git log), nền1668d90, nhánhcodex/viewport-culling; không push/deploy.
@@ -345,6 +415,7 @@ Server dev của người dùng (nếu đang chạy từ đường dẫn cũ) ph
 | Event và nhiệm vụ | SK | 0 | 1 | 10 | 0 | SK1 đang nghiên cứu SHXT, cao cấp trước; thiếu script điều phối/điểm/thưởng; chưa có gameplay |
 | Hạ tầng | HT | 2 | 1 | 7 | 0 | HT1 đóng gói Desktop / Mobile |
 | Hiệu năng tải (cache) | PF | 3 | 1 | 5 | 2 | **Cache còn dở:** PF6 server thật phục vụ asset (⏸ chờ chọn nginx / Caddy / CDN), PF7 Desktop / Mobile (⏸ chờ HT1), PF8 đo + kiểm chứng đủ (sau PF1), PF9 việc nhỏ (CSS chưa `?v=`); PF1 có trace/A/B, chưa overlay/đo tải đầy đủ; PF10viewport/HUD/input đã xong2026-11-15; PF2–PF3/culling chưa làm |
+| Map Creator/Manager | MC | 2 | 0 | 0 | 0 | MC1 editor/lưu/xuất xong; chưa đăng ký map vào game hoặc làm tool spawn |
 | Bot + hiệu năng server | BT | 5 | 1 | 5 | 0 | **Phần 1 bot xong** (vòng 35, `/?bots` + `npm run bots -- <kịch bản>`); Phần 2 đo đếm: BT1 số đo → BT9 kịch bản đo → BT5 baseline → BT6 sửa nghẽn |
 
 Người dùng hỏi **"thống kê công việc"**: in bảng trên (đếm lại từ `BACKLOG.md`) + liệt kê mọi mục 🟡 / ⬜ / ⏸ đáng chú ý, **luôn có
@@ -707,3 +778,47 @@ Kiểm chứng cuối (2026-11-13): `npm run typecheck` và `npm run build` đ�
 
 - USER yêu cầu commit riêng sửa tooltip: `fix(ui): keep tooltips above repeatedly focused dialogs`, nền1c6d0bb; không push.
 - Typecheck/build/harness10.000lần chuyển đã đạt ở lượt triển khai; staged diff-check kiểm trước commit. Chưa kiểm hình browser/native. Giữ riêng ghi chú điều tra khống chế và scenario untracked ngoài commit.
+
+
+## 2026-11-15 · Tra cứu cấu hình spawn quái và Boss Xanh
+
+- USER hỏi cơ chế tự sinh và khả năng chỉnh vị trí/loại/cấp theo map; chỉ điều tra, chưa yêu cầu triển khai. HEAD `aca6c91` khớp CURRENT; giữ các thay đổi tracking có sẵn.
+- Xác minh gen-spawns ghi zones vào shared/spawns/<id>.json; server đọc file và sinh/hồi sinh theo slot, Boss Xanh có zone boss:1 và xác suất chung3% cho slot thường mỗi lần sinh. Level map ở training-levels.ts; cấp thực tế ở từng cặp [monsterId,level] trong JSON.
+- Tab → Quái(dev) hỗ trợ tạo/xóa khu, loại/cấp/số lượng/bán kính/hồi sinh; lưu auto:false và reload quái ngay. UI Boss còn checkbox true→tier2, không chọn riêng tier1; spawner hiện bỏ tier2 trong zones vì Hoàng Kim đã chuyển sang cấu hình trung tâm. Không dùng checkbox này để đặt Boss Xanh.
+- GitNexus CLI query + nguồn trực tiếp; index commit aca6c91. Chưa thử UI runtime; không sửa code/DB/asset, không commit/push; không thêm hoặc hoàn tất backlog. Luật server chung3nền tảng; editor hiện phục vụ desktop, chưa xác minh thao tác chạm.
+
+
+## 2026-11-15 · Tra cứu cách thêm và tự tạo map
+
+- USER hỏi các bước tạo map, chưa giao triển khai. HEAD aca6c91; chỉ tra cứu gen-maps, shared/maps metadata và tài liệu sinh tài nguyên.
+- Phân biệt thêm map gốc bằng gen:maps (nguồn maplist/.wor/region, xuất ground/object/nav/minimap/catalog) với dựng địa hình mới. Repo hiện chưa có map editor/importer map tự dựng; gen:maps không tạo địa hình từ ảnh hoặc prompt. Map tự dựng cần pipeline xuất đúng định dạng renderer/nav/catalog, giữ source ngoài public/assets và kiểm đường đi/che khuất/entry.
+- Giải thích quy trình thêm map gốc, cấp/spawn, cổng và kiểm thử; chưa gen/sửa gameplay/asset/DB hoặc commit/push. GitNexus CLI query tại index aca6c91 và đối chiếu mã thật; không có mục backlog mới hoặc mục hoàn tất.
+
+## 2026-11-15 · Thử ground cỏ từ hội thoại Terrain (chờ lấy ảnh nguồn)
+
+- USER yêu cầu lấy ground cỏ từ session “TẠO TERRAIN NGẪU NHIÊN”, ghép3584×3584 rồi upload/tạo map thử. Tìm được ChatGPT conversation6af30f13-25cc-83ec-8107-dd49d74c09d0 qua connector; read_thread chỉ có user text, attachments rỗng, chưa có ảnh.
+- Mở đúng hội thoại bằng Chrome nhưng bị chuyển tới trang đăng nhập. Đã hỏi USER đăng nhập tab nguồn hoặc cho đường dẫn ảnh local; chưa lấy ảnh, chưa ghép/tạo project thay thế bằng ảnh khác. Không điều khiển app ChatGPT native vì CUA từ chối truy cập. Tab Chrome giữ handoff để USER đăng nhập.
+- Đã khởi động lại Map Creator localhost4569 (tool ở tools/map-creator, project ở tools/map-creator/projects); chưa sửa source/code/assetgame/DB, không commit/push. HEADaca6c91 khớp checkpoint, giữ thay đổi trước. Khi có ảnh nguồn: kiểm ảnh, ghép không upscale quá mật độ nguồn, upload/save/export rồi kiểm preview.
+
+## 2026-11-15 · World và bằng chứng nhân vật trên map9101
+
+- Đã thêm44cây/6đá, alpha sprite riêng/colliderellipse, projectrevision2 và buildr2-0ed11ff8. Source và scripts trong projects/9101/source (gitignore), không sửa game source/publicassets.
+- Chạy gameplay production trên Colyseus2568/Vite5174, DB/spawn/maploader riêng /tmp/jx-custom-map-9101. Server bootstrap thêm MAPS9101 trongbộnhớ, Vite bổsung catalog và serve bảnxuất trongphiênthử; chưa publish/catalogchính.
+- Đăng nhập nhânvật Thử Map quaUIChrome thật; clickdi chuyển, minimap224/112→253/115→229/109. Evidence01-start.jpg/02-after-move.jpg/03-return.jpg trong projects/9101/evidence. Nhânvật thật/phaser/server thật, không ảnhghép. Chưa kiểm đầyđủ collider/occlusionmọivậtthể/native/mobile. Giữtabgame để xem, khôngđụng2567/5173/DBthật, khôngcommit/push.
+
+
+## 2026-11-15 · Thay hình NPC rương theo USER
+
+- Đổi npc-ruong từ passerby023 sang passerby198 theo bảng NPC VLTK-SHXT; cập nhật danh sách gen-assets và sinh lại bằng JX_CLIENT trỏ Client_VLTK_SHXT. Giữ vị trí/action stash.
+- gen:assets hoàn tất, sprite passerby198.webp và metadata đã có; manifest cập nhật nhóm npc. Typecheck đạt. Chưa kiểm hình trong game; generator còn báo các tham chiếu thiếu khác. Không commit/push; HEAD aca6c91, giữ thay đổi có sẵn.
+
+## 2026-11-15 · Bổ sung bóng cây map9101 theo USER
+
+- USER phản hồi thiếu bóng. Thêm44instance Bóng cây từ silhouette alpha cây chiếu phải/dưới, alpha32%/blur2; ảnh riêng tree-shadow.webp, anchor tại chân, depthOffset-4096 dưới world/actor và trên ground, collider tắt. Không sửa renderer hoặc bóng nhânvật.
+- Projectrevision3, buildr3-a0dd7623;94objects gồm44cây/6đá/44bóng. Kiểm nav bản3 giống hệt bản2. Preview crop từ project thật ở evidence/04-tree-shadows.png đã xem; chưa chụp lại gameplay sau thêm bóng. Source/add-shadows.cjs và shadow-verification.json lưu projectgitignore, cập nhật world-verification cho bootstrap thử dùng bản mới.
+- Đã đọc docs/shadows.md: bản đồ gốc họa sĩ bake bóng, map tự dựng dùng assetbóng riêng theo USER. Không sửa shared/client/server/publicassets/DBthật, khôngcommit/push.
+
+## 2026-11-15 · Tra cứu hướng đứng NPC
+
+- USER hỏi NPC có quay NW–SE không. Đã kiểm metadata sprite đã sinh và spriteRow: engine8hướng0S/1SW/2W/3NW/4N/5NE/6E/7SE. Dượcđiếm/BáchBảo8hướng; Thợrèn/Xaphu/Bánngựa1hướngcốđịnh; Rương2hướng. Mộthướng không khẳngđịnh hình nhìnSouth, phải xemart.
+- Tool hiện8lựachọn chung gâyhiểunhầm cho sprite1/2hướng. Đềxuất chỉhiện hướngthực vàtênla bàncho8hướng; chọnspritekhác/bổsungartnếucần hướngthiếu. Basepasserby004/037/040 chưa có trongassetđãsinh, chưatra nguồn gốc đểkhẳngđịnh cóđủ8. Chỉđiềutra/đềxuất, khôngsửacode/art/config/commit.
