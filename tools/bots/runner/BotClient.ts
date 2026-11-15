@@ -1,6 +1,6 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillCost,
+  combatRulesAt, BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillCost,
   tuningOf, weaponOk, weaponTypeOf, autoAuraSkill,
   type AutoSettings, type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type InventoryMsg, type Item,
   type SkillDef, type SkillsMsg, type StatsMsg, type TransferMsg, type TeamMsg,
@@ -219,7 +219,7 @@ export class BotClient {
     return (this.room?.state as any)?.actors?.get(this.room!.sessionId);
   }
 
-  safe(): boolean { return !!MAPS[this.mapId]?.safe; }
+  safe(): boolean { const map = MAPS[this.mapId], me = this.me(); return !!map && (me ? combatRulesAt(map, me).safe : map.safe); }
 
   /** Dead for at least `after` ms: revive (in town when on another map — the server moves us). */
   private diedAt = 0;

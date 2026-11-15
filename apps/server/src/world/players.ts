@@ -1,5 +1,5 @@
 import {
-  levelOf, campOf,
+  combatRulesAt, levelOf, campOf,
   FACTIONS, HORSES, LEGACY_HORSES, MAX_MONEY, MissileForm, PLAYER_SPEED, PROGRESS_VERSION, SPAWN_PROTECTION, START_MONEY,
   SkillStyle, attrOf, canStandAt, castRange, weaponOk, getSkill, isoDistance, nearestWalkable, skillCategory, starterEquipment,
   type Element, type Progress,
@@ -112,8 +112,9 @@ export function revive(w: World, sim: Sim, x: number, y: number): void {
 export function regen(w: World, sim: Sim, dt: number): void {
   const a = sim.a;
   const idle = w.now - Math.max(sim.lastDamagedAt, sim.lastAttackAt) > 5000;
-  const hpRate = w.rules.safe ? 0.25 : idle ? 0.03 : 0;
-  const mpRate = w.rules.safe ? 0.25 : idle ? 0.05 : 0.015;
+  const safe = combatRulesAt(w.meta, a, w.rules).safe;
+  const hpRate = safe ? 0.25 : idle ? 0.03 : 0;
+  const mpRate = safe ? 0.25 : idle ? 0.05 : 0.015;
   // lifereplenish_v / manareplenish_v of items and bùa: points every half second (magicdesc.ini "mỗi nửa giây").
   const bag = sim.combat?.bag;
   const lifePerS = bag ? attrOf(bag, 'lifereplenish_v') * 2 : 0, manaPerS = bag ? attrOf(bag, 'manareplenish_v') * 2 : 0;
@@ -123,11 +124,13 @@ export function regen(w: World, sim: Sim, dt: number): void {
 }
 
 export function updatePlayer(w: World, sim: Sim, dt: number): void {
+  if (combatRulesAt(w.meta, sim.a, w.rules).safe) { sim.pending = null; sim.a.attackTarget = ''; }
   if (sim.slotAura) holdSlotAura(w, sim, sim.slotAura);
   if (w.now < sim.castUntil) return;
   if (sim.pending) processPending(w, sim);
   if (w.now < sim.castUntil) return;
   followPath(sim, dt);
+  if (combatRulesAt(w.meta, sim.a, w.rules).safe) { sim.pending = null; sim.a.attackTarget = ''; }
   if (sim.path.length) checkPortals(w, sim);
 }
 

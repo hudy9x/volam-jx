@@ -322,3 +322,5 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 - MC2 cập nhật2026-11-15: bổ sung NPC Thợ rèn/Xa phu/Bán ngựa 8 hướng gốc SHXT, tên la bàn/khóa hướng không hỗ trợ/giữ hình cũ; 4 test gồm bảo toàn chức năng qua8dir, typecheck/build và Chrome đạt.
 
 - MC2 nghiên cứu2026-11-15: vùng an toàn nội thành/chiến đấu ngoại thành ở docs/research/town-safe-zones-study.md; chỉ study, chưa duyệt triển khai.
+
+- MC2: USER đã duyệt và commit luật vùng an toàn; giao diện pen/minimap được tách commit kế tiếp.

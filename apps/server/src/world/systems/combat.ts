@@ -1,4 +1,5 @@
 import {
+  combatRulesAt, combatPairRules,
   levelOf,
   attrOf,
   damageReturn,
@@ -33,6 +34,7 @@ const CORPSE_SECONDS = 2;
 
 /** Start a skill now (players and monsters alike): the engine fires it, the caster holds the pose. */
 export function castNow(w: World, sim: Sim, skillId: number, target: Sim | undefined, aim: Point): void {
+  if (combatRulesAt(w.meta, sim.a, w.rules).safe) return;
   const s = getSkill(skillId);
   const timing = castTiming(w, sim, !!s && isExternal(s, levelOf(sim, skillId) ?? 1));
   const pose = w.engine.cast(sim, skillId, target, aim, timing.cycleMs);
@@ -44,6 +46,8 @@ export function castNow(w: World, sim: Sim, skillId: number, target: Sim | undef
 }
 
 export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & { dot?: boolean; reflected?: boolean }): void {
+  // Protect at impact time too: missiles, area hits, reflection and ongoing damage.
+  if (combatPairRules(w.meta, attacker.a, target.a, w.rules).safe) return;
   if (target.dead || target.jump) return; // Khinh công in flight: no damage (see World's EnginePort.hostile)
   target.lastDamagedAt = w.now;
   attacker.lastAttackAt = w.now;

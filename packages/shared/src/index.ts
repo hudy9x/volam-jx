@@ -7,6 +7,7 @@ export * from './maps/nav/types.js';
 export { decodeGrid, isWalkable, canStandAt, nearestWalkable, clearSegment } from './maps/nav/grid.js';
 export { findPath } from './maps/nav/pathfinding.js';
 export * from './maps/index.js';
+export * from './maps/safe-zones.js';
 export * from './characters/index.js';
 export * from './monsters/index.js';
 export * from './items/index.js';

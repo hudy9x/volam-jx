@@ -1,4 +1,4 @@
-import { HORSES, getSkill, maxLevelOf, type PkMode } from '@vltk/shared';
+import { combatRulesAt, HORSES, getSkill, maxLevelOf, type PkMode } from '@vltk/shared';
 import type { Sim } from './entity.js';
 import { refreshStats } from './progress.js';
 import { setPath, updateSpeed } from './systems/movement.js';
@@ -24,7 +24,7 @@ export function commandCast(w: World, sim: Sim, skillId: number, targetId: strin
     w.hooks.notify(sim, 'Hào quang đang đặt ở ô tay trái / phải: tự bật, đổi chiêu ở ô đó để thay hoặc tắt.');
     return;
   }
-  if (w.rules.safe) { w.hooks.notify(sim, 'Trong thành không thể động võ.'); return; }
+  if (combatRulesAt(w.meta, sim.a, w.rules).safe) { w.hooks.notify(sim, 'Trong thành không thể động võ.'); return; }
   const err = w.engine.check(sim, skillId);
   if (err) { w.hooks.notify(sim, err); return; }
   sim.pending = { skill: skillId, targetId, x, y, repathAt: 0, lock: lock && !!targetId, reach: targetId ? reach : undefined };
@@ -54,7 +54,7 @@ export function setSkillLevel(sim: Sim, skillId: number, level: number): boolean
 export function setPk(w: World, sim: Sim, mode: number): void {
   if (sim.dead) return;
   const m = Math.max(0, Math.min(2, Math.floor(mode) || 0)) as PkMode;
-  if (m && !w.rules.pvp) { w.hooks.notify(sim, 'Bản đồ này không cho phép PK.'); return; }
+  if (m && !combatRulesAt(w.meta, sim.a, w.rules).pvp) { w.hooks.notify(sim, 'Bản đồ này không cho phép PK.'); return; }
   if (m && sim.a.camp === 'new') { w.hooks.notify(sim, 'Tân thủ (chưa vào môn phái, chữ trắng) không thể PK.'); return; }
   sim.a.pk = m;
   w.hooks.notify(sim, [

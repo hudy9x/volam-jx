@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import type { Room } from '@colyseus/sdk';
 import { Callbacks, CloseCode } from '@colyseus/sdk';
 import {
-  AutoPlay, castRange, getSkill, isMelee, skillCost, equipError, TOWN_MAP_ID, pvpAllowed, type Camp,
+  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, skillCost, equipError, TOWN_MAP_ID, pvpAllowed, type Camp,
   C2S, FACTIONS, ITEMS, MAPS, NPC_LINES, S2C, TOWN_NPCS, hasNav, registerNav,
   type FxEvent, type MapMeta, type NavFile, type NoticeMsg, type TownNpc, type TransferMsg,
 } from '@vltk/shared';
@@ -366,7 +366,7 @@ export class WorldScene extends Phaser.Scene {
       aura: id => this.setAutoAura(id),
       self: () => this.self,
       actors: () => this.views.values(),
-      safe: () => this.meta.safe,
+      safe: () => !this.self || combatRulesAt(this.meta, this.self.state).safe,
       skillAt: slot => skillbar.skillAt(slot),
       usable: skill => {
         const s = getSkill(skill);
@@ -435,10 +435,10 @@ export class WorldScene extends Phaser.Scene {
 
   /** Client-side hint only; the server decides with the same canAttack rules. */
   private isHostile(view: ActorView): boolean {
-    if (view.state.hp <= 0 || this.meta.safe || view.state.kind === 'npc') return false;
+    if (view.state.hp <= 0 || !this.self || combatPairRules(this.meta, this.self.state, view.state).safe || view.state.kind === 'npc') return false;
     if (view.state.kind === 'monster') return true;
     const me = this.self?.state;
-    return this.meta.pvp && !!me && view.state.kind === 'player' && pvpAllowed(
+    return !!me && combatPairRules(this.meta, me, view.state).pvp && view.state.kind === 'player' && pvpAllowed(
       { pk: me.pk, camp: (me.camp || 'new') as Camp, team: me.team ?? '' },
       { camp: (view.state.camp || 'new') as Camp, team: view.state.team ?? '' });
   }
@@ -448,7 +448,7 @@ export class WorldScene extends Phaser.Scene {
   update(_time: number, deltaMs: number): void {
     if (!this.ready) return;
     const dt = deltaMs / 1000;
-    for (const view of this.views.values()) view.update(dt);
+    for (const view of this.views.values()) { view.setPeaceful(combatRulesAt(this.meta, view.state).safe); view.update(dt); }
     for (const n of this.npcs) n.view.update(dt);
     this.effects.update();
     this.auto?.update(this.time.now, settings.get());

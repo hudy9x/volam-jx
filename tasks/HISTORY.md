@@ -1417,3 +1417,9 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 ## 2026-11-15 · Commit Map Manager
 
 - USER yêu cầu chia commit: 62cce60 feat(map-manager), gồm sidebar/NPC/8hướng. Test4ca/typecheck đạt.
+
+## 2026-11-15 · Commit luật chiến đấu theo vùng an toàn
+
+- USER yêu cầu tách commit luật chiến đấu và giao diện tool. Commit này chứa shared polygon/validation/config, server cast/target/hit/regen, client targeting/Auto/dáng đứng và bot theo vị trí; giữ nguyên quyền dịch vụ NPC. Cấu hình USER đã lưu: map1 một vùng9điểm, map37 một vùng42điểm, đã kiểm hợp lệ.
+- Typecheck/build đạt; safe-zone4ca (3runtime/hìnhhọc +1store ở commit UI kế tiếp), NPC4/Auto34/effects20/bots10 đạt. Tách test store khỏi runtime để commit này không phụ thuộc backend editor chưa commit. Chưa kiểm trận PK thật trong scene.
+- Checkpoint trước commit8c7efc6; tiếp theo commit pen/minimap/backend lưu. Không push. Giữ cấu hình vị trí NPC USER đã sửa và ảnh .codex-attachments ngoài phạm vi hai commit.

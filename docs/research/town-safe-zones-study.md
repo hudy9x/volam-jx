@@ -1,6 +1,6 @@
 # Nghiên cứu vùng an toàn trong thành · 2026-11-15
 
-Trạng thái: **chỉ nghiên cứu theo USER, chưa duyệt triển khai**. Mục tiêu: cấu hình cấm dùng chiêu/PK trong nội thành, ngoài thành trên cùng map trở lại luyện công/PK theo luật hiện có. Không thay chức năng NPC.
+Trạng thái lịch sử: nghiên cứu ban đầu; **USER đã yêu cầu triển khai pen sau khi chia commit ngày2026-11-15**. Phần nghiên cứu bên dưới giữ nguyên để phân biệt dữ liệu gốc với thiết kế. Bản triển khai mô tả tại tools/map-manager/README.md; cấu hình nguồn hiện đã có polygon do USER lưu cho Phượng Tường (1) và Biện Kinh (37). Mục tiêu: cấu hình cấm dùng chiêu/PK trong nội thành, ngoài thành trên cùng map trở lại luyện công/PK theo luật hiện có. Không thay chức năng NPC.
 
 ## 1. Hiện trạng đã xác minh
 
