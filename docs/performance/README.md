@@ -2,9 +2,11 @@
 
 > Viết 2026-11-13 theo yêu cầu người dùng: "ứng dụng web không thể tải hết toàn bộ asset" (hơn 15 GB khi đủ bản đồ).
 > Đây là **hướng dẫn triển khai**. Đã làm: **PF4 phần web** (vòng 34, trạng thái ở `05` §0); PF1–PF3 chưa có code. Đầu việc tương ứng: nhóm **PF** trong `tasks/BACKLOG.md` §9.
-> **2026-11-15:** đã phân tích trace render và kiểm chứng culling bằng Phaser thật, xem **02 §4 và §7**. PF1 mới có nghiên cứu/số liệu trace, chưa có overlay hay phép đo tải đầy đủ. Chưa triển khai MSAA/culling/viewport.
-> **A/B tiếp theo:** USER duyệt đo canvas/MSAA; đã hoàn tất32lượt trên GPU M1Max, số liệu/ảnh/mẫu gốc ở **02 §8**. Đề xuất2preset1280×720/1280×800, render2× và MSAA tắt; vẫn chờ chốt triển khai, chưa sửa mã game.
-> **Đã triển khai theo USER2026-11-15:**2preset1280×720/1280×800, render2×, MSAAoff, HUD/input đồng bộ khung; **02 §9 / PF10** là trạng thái mới nhất. Chưa culling/PF2/PF3, chưa commit.
+> **Điều tra ban đầu 2026-11-15:** trace render và kiểm chứng culling bằng Phaser thật ở **02 §4 và §7**; lúc đó chưa triển khai viewport.
+> **A/B đã hoàn tất:**32lượt trên GPU M1Max, số liệu/ảnh/mẫu gốc ở **02 §8**.
+> **Đã triển khai và commit `1668d90`:**2preset1280×720/1280×800, render2×, MSAAoff, HUD/input đồng bộ khung; **02 §9 / PF10**. Chưa culling ground/actor hoặc PF2/PF3.
+> **Rà soát trace mới 2026-11-15:** **02 §10**, presentation khoảng41,7FPS, nhịp đều hơn trace cũ; còn culling, cập nhật depth/plate/minimap và quản lý texture cần tối ưu. Mới điều tra, chưa triển khai tiếp. PF1 vẫn một phần, chưa overlay/phép đo tải đầy đủ.
+> **USER đã duyệt và triển khai culling:** **02 §11**, ground/actor/decor ngoài khung ngừng dựng hình, clock/state tiếp tục. A/B18lượt GPUgiảm30–39%, mainthreadwall tăng~1ms; USER yêu cầu commit2026-11-15. PF2/PF3 còn thiếu.
 > Nền tảng mục tiêu Web + Desktop app + Mobile (`AGENTS.md` §1): mỗi tài liệu có mục "Ba nền tảng".
 
 ## Nguyên tắc

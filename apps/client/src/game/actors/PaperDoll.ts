@@ -127,6 +127,24 @@ export class JxSprite {
     img.setPosition(x + bx - FOOT_X, y + by - FOOT_Y).setDepth(depth).setVisible(true).setAlpha(1);
   }
 
+  /** Conservative metadata bounds, including fallback, shadow and space for labels/decorations. */
+  intersects(view: Phaser.Geom.Rectangle, x: number, y: number, key: AssocKey, lift: number): boolean {
+    const margin = 128;
+    const overlaps = (left: number, top: number, width: number, height: number) =>
+      left < view.right + margin && left + width > view.x - margin &&
+      top < view.bottom + margin && top + height > view.y - margin;
+    if (overlaps(x - 128, y - lift - Math.max(128, this.height), 256, Math.max(128, this.height) + lift)) return true;
+    for (const k of new Set([key, 'stand' as AssocKey])) {
+      const pose = this.pose(k);
+      if (!pose) continue;
+      for (const layer of [...pose.layers, ...(pose.shadow ? [pose.shadow] : [])]) {
+        const [w, h, bx, by] = layer.meta;
+        if (overlaps(x + bx - FOOT_X, y + by - FOOT_Y - (layer === pose.shadow ? 0 : lift), w, h)) return true;
+      }
+    }
+    return false;
+  }
+
   hide(): void {
     for (const img of this.images) img.setVisible(false);
     this.shadow?.setVisible(false);

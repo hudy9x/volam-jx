@@ -1,3 +1,25 @@
+## 2026-11-15 · Commit culling và báo cáo hiệu suất theo USER
+
+- USER hủy yêu cầu đánh giá VPS, yêu cầu commit code hiện tại. Commit `perf(client): cull offscreen ground and actors` (mã xem git log), nền1668d90, nhánhcodex/viewport-culling; không push/deploy.
+- Gồm culling,29ca kiểm hồi quy, tài liệu/trace review và dữ liệu A/B18lượt. Typecheck/build/tests/browser đã đạt ở lượt triển khai; source không đổi từ đó. Kiểm lại diff và graph trước commit. Giới hạn/thời gian mainthread tăng~1ms ghi ở02§11; chưa PF2/PF3 hoặc kiểm Mobile thật.
+
+## 2026-11-15 · Triển khai culling ground/actor theo USER (chưa commit)
+
+- USER duyệt triển khai; HEAD1668d90, nhánh `codex/viewport-culling`. Giữ tài liệu điều tra chưa commit từ lượt trước; không commit/push.
+- MapView cull ground còn giữ với margin96px, streaming/eviction không đổi. ActorView xét metadata bounds sprite/shadow/fallback/oneshot/frozen +128px; ngoài khung ẩn sprite/plate/decor và không requestSheets, nhưng tiếp tục tọa độ/anchor/clock/frame ảo và xử lý hết hạn. Không thay gameplay, viewport/render2×/MSAAoff hoặc PF2/PF3.
+- Typecheck/build, effects20 + culling2 + viewport2 + speed5 (29ca) đạt; build còn cảnh báo chunk lớn cũ. Browser thật kiểm18actor/19ground ngoài khung ẩn, quay lại hiện, zoom và preset800 buffer2560×1600 đạt. Đã kiểm lại sau guard bounds oneshot/frozen/NPC; không đổi kịch bản A/B, chưa lặp toàn ma trận sau guard.
+- A/B Chromium/MetalM1Max:18lượt=3cảnh×3lặp×2cấu hình×30s,49actor/31ground warmed. GPU median đứng3,868→2,706ms, camera pan3,934→2,390ms, combatmôphỏng3,983→2,798ms (-30–39%); FPS vòng game59,13/59,23/58,11→~60. RenderList346→261. Mainthreadwall quanh update/render tăng~0,9–1ms, không khẳng định CPUgiảm. Zero pageerror/disjoint. Probe10s khung800 sau guard: presentation56,6→60FPS, drawcall104→67, chỉ1lượt cótracing.
+- Báo cáo02§11 và raw/harness/checks ở `docs/performance/measurements/2026-11-15-culling/`. Camera pan và attack/số sát thương mô phỏng client, chưa combatserver/chiêu bay đông/native/WebKit/điện thoại thật. Không so trực tiếp với trace map50. Tối ưutexture/depth/plate/minimap chưa làm.
+- Server2568/Vite5174/browser/DB/spawn thử riêng đã dừng; không đụng2567/5173/DB thật. GitNexus kiểm impact (ActorView/JxSpriteHIGH dùng chung skill-lab; giữAPI), refresh và kiểm thay đổi cuối. Tiếp theo đo máy yếu/Mobile, cân nhắc chi phíCPU/bounds và PF2/PF3; chưa tự triển khai tiếp.
+
+## 2026-11-15 · Rà soát hiệu suất sau viewport (chưa sửa game)
+
+- USER yêu cầu kiểm tra `Trace-20261115T112206.json` và tìm tối ưu tiếp. HEAD `1668d90` khớp checkpoint viewport; không commit/push, không thay game/asset/DB hoặc chạy server thật.
+- Trace 6,974s: rAF cadence42,08FPS, median23,876/p9525,770ms, 0/282khoảng>33,334ms; presentation41,66FPS so với17,20FPS ở trace14/11. CallbackCPU median1,716/p952,212ms. Khác cảnh/cỡcửa sổ nên không coi làA/B. Task đầu259,705ms chủ yếu bật profiler258,865ms; GC7,245ms tổng, chưa là nút nghẽn. Không gọi GPUTaskwall làGPUhardwarebusy.
+- Xác minh mã: object đã cull; ground còn giữ và actor ngoài camera chưa cull. PaperDoll luôn setDepth và Phaser queue sort kể cả giá trị cũ; thanh máu redraw theo vị trí. Minimap có58forcedlayout8,070ms +58style10,014ms từ đọc kích thước sau HUDwrites, nhưng chi phí này nhỏ. Sprite prefetch9pose/texture khôngLRU vẫn là PF2/PF3, chưa chứng minh thiếu RAM bằng trace7giây.
+- Báo cáo `docs/performance/02-do-luong.md` §10; script tái lập và summary nhỏ ở `measurements/2026-11-15-trace-review/`. Không dùng CPUProfileChunk có1.250delta âm để công bốms từnghàm. Graph repo đã refresh và đối chiếu nguồn thật; không benchmark mới/native/mobile. PF1 vẫn một phần, PF10 giữ xong.
+- Đề xuất chờ USER duyệt: A/B culling ground/actor trước, giữ2preset/render2×/MSAAoff; đoGPUtimer/drawcall/presentation trong cùng cảnh/lộ trình, rồi mới quyết định batching hoặc thay chất lượng. Tiếp theo có giảm depth/plate/minimap và PF2/PF3. Chưa duyệt triển khai các bước này.
+
 ## 2026-11-15 · Commit viewport/HUD/input theo USER
 
 - USER yêu cầu commit code hiện tại, thay chỉ đạo chưa commit trước đó. Commit `feat(client): add fixed viewports and synchronize HUD input` (mã xem git log), nền727a7e1; không push.

@@ -46,6 +46,8 @@ export class MapView {
   private destroyed = false;
   private readonly prefix: string;
   private readonly base: string;
+  /** Diagnostic A/B switch; streaming remains independent of visibility. */
+  cullingEnabled = true;
   private lastCull = { x: NaN, y: NaN, w: 0, h: 0 };
 
   constructor(private scene: Phaser.Scene, meta: MapMeta) {
@@ -81,6 +83,10 @@ export class MapView {
     if (!force && Math.abs(view.x - l.x) < 24 && Math.abs(view.y - l.y) < 24 && view.width === l.w && view.height === l.h) return;
     this.lastCull = { x: view.x, y: view.y, w: view.width, h: view.height };
     const x0 = view.x - CULL_MARGIN, y0 = view.y - CULL_MARGIN, x1 = view.right + CULL_MARGIN, y1 = view.bottom + CULL_MARGIN;
+    for (const r of this.regions.values()) {
+      const img = r.image;
+      if (img) img.visible = !this.cullingEnabled || (img.x < x1 && img.x + img.width > x0 && img.y < y1 && img.y + img.height > y0);
+    }
     for (const c of this.chunks.values()) for (const img of c.images) {
       img.visible = img.x < x1 && img.x + img.width > x0 && img.y < y1 && img.y + img.height > y0;
     }
@@ -152,6 +158,7 @@ export class MapView {
     if (!img || state.dead || this.destroyed) return;
     if (!this.scene.textures.exists(state.key)) this.scene.textures.addImage(state.key, img);
     const rs = this.json!.regionSize;
+    this.lastCull.x = NaN; // a retained region must receive the current visibility on completion
     state.image = this.scene.add.image(gx * rs, gy * rs, state.key).setOrigin(0).setDepth(GROUND_DEPTH);
   }
 

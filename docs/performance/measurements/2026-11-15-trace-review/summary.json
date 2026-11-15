@@ -1,0 +1,468 @@
+[
+  {
+    "file": "Trace-20261114T210657.json",
+    "sha256": "31fc78e9c6ed4eb443ec6338747d1ea18af960bf224b043c576178ef1c940655",
+    "window_us": {
+      "min": 566103128896,
+      "max": 566111264228,
+      "range": 8135332
+    },
+    "duration_s": 8.135332,
+    "renderer_pid": 96230,
+    "main_tid": 17011842,
+    "frames": {
+      "FireAnimationFrame": {
+        "count": 139,
+        "interval": {
+          "n": 138,
+          "total_ms": 8112.9,
+          "median_ms": 57.944,
+          "p95_ms": 62.399,
+          "max_ms": 276.184
+        },
+        "cadence_fps": 17.01,
+        "intervals_over_33_334_ms": 135,
+        "intervals_over_50_ms": 135
+      },
+      "DrawFrame": {
+        "count": 139,
+        "interval": {
+          "n": 138,
+          "total_ms": 8112.871,
+          "median_ms": 57.957,
+          "p95_ms": 62.486,
+          "max_ms": 274.813
+        },
+        "cadence_fps": 17.01,
+        "intervals_over_33_334_ms": 135,
+        "intervals_over_50_ms": 135
+      },
+      "BeginFrame": {
+        "count": 488,
+        "interval": {
+          "n": 487,
+          "total_ms": 8116.342,
+          "median_ms": 16.666,
+          "p95_ms": 16.666,
+          "max_ms": 16.666
+        },
+        "cadence_fps": 60.002,
+        "intervals_over_33_334_ms": 0,
+        "intervals_over_50_ms": 0
+      },
+      "AnimationFrame::Presentation": {
+        "count": 134,
+        "interval": {
+          "n": 133,
+          "total_ms": 7733.024,
+          "median_ms": 58.331,
+          "p95_ms": 66.664,
+          "max_ms": 66.664
+        },
+        "cadence_fps": 17.199,
+        "intervals_over_33_334_ms": 133,
+        "intervals_over_50_ms": 118
+      }
+    },
+    "raf_callback": {
+      "n": 139,
+      "total_ms": 612.658,
+      "median_ms": 2.454,
+      "p95_ms": 2.815,
+      "max_ms": 273.388
+    },
+    "raf_callback_under_50_ms": {
+      "n": 138,
+      "total_ms": 339.27,
+      "median_ms": 2.453,
+      "p95_ms": 2.797,
+      "max_ms": 3.033
+    },
+    "main_run_task": {
+      "n": 1794,
+      "total_ms": 881.803,
+      "median_ms": 0.009,
+      "p95_ms": 3.615,
+      "max_ms": 274.486
+    },
+    "main_long_tasks": [
+      {
+        "duration_ms": 274.486,
+        "offset_s": 0.001699
+      }
+    ],
+    "profiler_start": {
+      "n": 1,
+      "total_ms": 270.562,
+      "median_ms": 270.562,
+      "p95_ms": 270.562,
+      "max_ms": 270.562
+    },
+    "gc": {
+      "MinorGC": {
+        "n": 4,
+        "total_ms": 2.491,
+        "median_ms": 0.587,
+        "p95_ms": 0.788,
+        "max_ms": 0.788
+      },
+      "MajorGC": null
+    },
+    "main_durations": {
+      "Layout": {
+        "n": 148,
+        "total_ms": 22.107,
+        "median_ms": 0.15,
+        "p95_ms": 0.196,
+        "max_ms": 0.304
+      },
+      "UpdateLayoutTree": {
+        "n": 151,
+        "total_ms": 20.082,
+        "median_ms": 0.154,
+        "p95_ms": 0.191,
+        "max_ms": 0.355
+      },
+      "Paint": {
+        "n": 477,
+        "total_ms": 22.641,
+        "median_ms": 0.033,
+        "p95_ms": 0.123,
+        "max_ms": 0.151
+      },
+      "V8Console::Log": {
+        "n": 28,
+        "total_ms": 3.655,
+        "median_ms": 0.127,
+        "p95_ms": 0.163,
+        "max_ms": 0.173
+      }
+    },
+    "layouts_by_first_stack_frame": {
+      "Layout": {
+        "(no JS stack)": {
+          "n": 144,
+          "total_ms": 21.63,
+          "median_ms": 0.151,
+          "p95_ms": 0.196,
+          "max_ms": 0.304
+        },
+        "http://localhost:5173/node_modules/.vite/deps/phaser.js?v=cf8473d1:getParentBounds": {
+          "n": 4,
+          "total_ms": 0.477,
+          "median_ms": 0.117,
+          "p95_ms": 0.128,
+          "max_ms": 0.128
+        }
+      },
+      "UpdateLayoutTree": {
+        "(no JS stack)": {
+          "n": 147,
+          "total_ms": 19.669,
+          "median_ms": 0.155,
+          "p95_ms": 0.191,
+          "max_ms": 0.355
+        },
+        "http://localhost:5173/node_modules/.vite/deps/phaser.js?v=cf8473d1:getParentBounds": {
+          "n": 4,
+          "total_ms": 0.413,
+          "median_ms": 0.108,
+          "p95_ms": 0.114,
+          "max_ms": 0.114
+        }
+      }
+    },
+    "gpu_task_wall": {
+      "n": 9297,
+      "total_ms": 7465.619,
+      "median_ms": 0.321,
+      "p95_ms": 0.747,
+      "max_ms": 42.307
+    },
+    "gpu_thread_cpu_ms": 1128.85,
+    "gpu_reported_used_bytes_first_last": [
+      479854968,
+      290740092
+    ],
+    "counters_first_last": [
+      {
+        "documents": 6,
+        "jsEventListeners": 2727,
+        "jsHeapSizeUsed": 59868696,
+        "nodes": 9963
+      },
+      {
+        "documents": 6,
+        "jsEventListeners": 2749,
+        "jsHeapSizeUsed": 53201396,
+        "nodes": 10288
+      }
+    ],
+    "viewport": [
+      {
+        "dpr": 2,
+        "viewport_rect": [
+          0,
+          0,
+          1500,
+          0,
+          1500,
+          1001,
+          0,
+          1001
+        ]
+      }
+    ],
+    "requests": [
+      "http://localhost:5173/assets/ui/cursor/attack.png?v=06eca22301"
+    ],
+    "negative_profile_deltas": 825
+  },
+  {
+    "file": "Trace-20261115T112206.json",
+    "sha256": "3b5a93742608a907e19b05a93d13839ac742d2cfc7a3787022138254db8c56e0",
+    "window_us": {
+      "min": 617410961143,
+      "max": 617417935328,
+      "range": 6974185
+    },
+    "duration_s": 6.974185,
+    "renderer_pid": 19233,
+    "main_tid": 19042683,
+    "frames": {
+      "FireAnimationFrame": {
+        "count": 283,
+        "interval": {
+          "n": 282,
+          "total_ms": 6700.741,
+          "median_ms": 23.876,
+          "p95_ms": 25.77,
+          "max_ms": 31.782
+        },
+        "cadence_fps": 42.085,
+        "intervals_over_33_334_ms": 0,
+        "intervals_over_50_ms": 0
+      },
+      "DrawFrame": {
+        "count": 284,
+        "interval": {
+          "n": 283,
+          "total_ms": 6960.582,
+          "median_ms": 23.898,
+          "p95_ms": 25.756,
+          "max_ms": 237.089
+        },
+        "cadence_fps": 40.658,
+        "intervals_over_33_334_ms": 1,
+        "intervals_over_50_ms": 1
+      },
+      "BeginFrame": {
+        "count": 418,
+        "interval": {
+          "n": 417,
+          "total_ms": 6949.722,
+          "median_ms": 16.666,
+          "p95_ms": 16.666,
+          "max_ms": 16.666
+        },
+        "cadence_fps": 60.002,
+        "intervals_over_33_334_ms": 0,
+        "intervals_over_50_ms": 0
+      },
+      "AnimationFrame::Presentation": {
+        "count": 278,
+        "interval": {
+          "n": 277,
+          "total_ms": 6649.734,
+          "median_ms": 24.999,
+          "p95_ms": 24.999,
+          "max_ms": 33.332
+        },
+        "cadence_fps": 41.656,
+        "intervals_over_33_334_ms": 0,
+        "intervals_over_50_ms": 0
+      }
+    },
+    "raf_callback": {
+      "n": 283,
+      "total_ms": 497.567,
+      "median_ms": 1.716,
+      "p95_ms": 2.212,
+      "max_ms": 2.362
+    },
+    "raf_callback_under_50_ms": {
+      "n": 283,
+      "total_ms": 497.567,
+      "median_ms": 1.716,
+      "p95_ms": 2.212,
+      "max_ms": 2.362
+    },
+    "main_run_task": {
+      "n": 3191,
+      "total_ms": 1119.634,
+      "median_ms": 0.007,
+      "p95_ms": 2.431,
+      "max_ms": 259.705
+    },
+    "main_long_tasks": [
+      {
+        "duration_ms": 259.705,
+        "offset_s": 0.005146
+      }
+    ],
+    "profiler_start": {
+      "n": 1,
+      "total_ms": 258.865,
+      "median_ms": 258.865,
+      "p95_ms": 258.865,
+      "max_ms": 258.865
+    },
+    "gc": {
+      "MinorGC": {
+        "n": 5,
+        "total_ms": 3.116,
+        "median_ms": 0.595,
+        "p95_ms": 0.772,
+        "max_ms": 0.772
+      },
+      "MajorGC": {
+        "n": 1,
+        "total_ms": 4.129,
+        "median_ms": 4.129,
+        "p95_ms": 4.129,
+        "max_ms": 4.129
+      }
+    },
+    "main_durations": {
+      "Layout": {
+        "n": 297,
+        "total_ms": 36.767,
+        "median_ms": 0.12,
+        "p95_ms": 0.17,
+        "max_ms": 0.216
+      },
+      "UpdateLayoutTree": {
+        "n": 297,
+        "total_ms": 39.961,
+        "median_ms": 0.145,
+        "p95_ms": 0.22,
+        "max_ms": 0.258
+      },
+      "Paint": {
+        "n": 942,
+        "total_ms": 44.863,
+        "median_ms": 0.032,
+        "p95_ms": 0.125,
+        "max_ms": 0.188
+      },
+      "V8Console::Log": {
+        "n": 18,
+        "total_ms": 1.997,
+        "median_ms": 0.118,
+        "p95_ms": 0.143,
+        "max_ms": 0.143
+      }
+    },
+    "layouts_by_first_stack_frame": {
+      "Layout": {
+        "ui/hud/minimap.ts:draw": {
+          "n": 58,
+          "total_ms": 8.07,
+          "median_ms": 0.134,
+          "p95_ms": 0.18,
+          "max_ms": 0.193
+        },
+        "(no JS stack)": {
+          "n": 230,
+          "total_ms": 27.668,
+          "median_ms": 0.114,
+          "p95_ms": 0.166,
+          "max_ms": 0.216
+        },
+        "http://localhost:5173/node_modules/.vite/deps/phaser.js?v=cf8473d1:getParentBounds": {
+          "n": 9,
+          "total_ms": 1.029,
+          "median_ms": 0.108,
+          "p95_ms": 0.147,
+          "max_ms": 0.147
+        }
+      },
+      "UpdateLayoutTree": {
+        "ui/hud/minimap.ts:draw": {
+          "n": 58,
+          "total_ms": 10.014,
+          "median_ms": 0.167,
+          "p95_ms": 0.251,
+          "max_ms": 0.258
+        },
+        "(no JS stack)": {
+          "n": 230,
+          "total_ms": 28.749,
+          "median_ms": 0.095,
+          "p95_ms": 0.21,
+          "max_ms": 0.238
+        },
+        "http://localhost:5173/node_modules/.vite/deps/phaser.js?v=cf8473d1:getParentBounds": {
+          "n": 9,
+          "total_ms": 1.198,
+          "median_ms": 0.128,
+          "p95_ms": 0.175,
+          "max_ms": 0.175
+        }
+      }
+    },
+    "gpu_task_wall": {
+      "n": 2072,
+      "total_ms": 6525.376,
+      "median_ms": 0.129,
+      "p95_ms": 21.943,
+      "max_ms": 29.316
+    },
+    "gpu_thread_cpu_ms": 1016.411,
+    "gpu_reported_used_bytes_first_last": [
+      184732608,
+      170728048
+    ],
+    "counters_first_last": [
+      {
+        "documents": 3,
+        "jsEventListeners": 2474,
+        "jsHeapSizeUsed": 53307776,
+        "nodes": 11250
+      },
+      {
+        "documents": 3,
+        "jsEventListeners": 2420,
+        "jsHeapSizeUsed": 41373524,
+        "nodes": 9696
+      }
+    ],
+    "viewport": [
+      {
+        "dpr": 2,
+        "viewport_rect": [
+          0,
+          0,
+          1139,
+          0,
+          1139,
+          748,
+          0,
+          748
+        ]
+      }
+    ],
+    "requests": [
+      "http://localhost:5173/assets/sound/skill/x772ef9a5.mp3?v=06eca22301",
+      "http://localhost:5173/assets/skill/fx/f613c20a.webp?v=977de56736",
+      "blob:http://localhost:5173/f09143b1-27d4-432b-8e6a-b502eba75ceb",
+      "http://localhost:5173/assets/maps/50/ground/4_6.webp?v=f1a4be8450",
+      "http://localhost:5173/assets/maps/50/ground/5_6.webp?v=f1a4be8450",
+      "http://localhost:5173/assets/maps/50/ground/3_3.webp?v=f1a4be8450",
+      "http://localhost:5173/assets/maps/50/ground/3_4.webp?v=f1a4be8450",
+      "http://localhost:5173/assets/maps/50/ground/3_5.webp?v=f1a4be8450",
+      "http://localhost:5173/assets/maps/50/ground/3_6.webp?v=f1a4be8450"
+    ],
+    "negative_profile_deltas": 1250
+  }
+]

@@ -29,12 +29,13 @@ export class StateDecor {
   }
 
   /** `ids` = state skill ids; (x, y) feet; `height` of the body. */
-  update(ids: Iterable<number>, x: number, y: number, height: number, ctl = 0): void {
+  update(ids: Iterable<number>, x: number, y: number, height: number, ctl = 0, visible = true): void {
     const now = this.scene.time.now;
     if (ctl & 1) {
       this.stun ??= { start: now };
       const key = CONTROL_FX.stun.key;
-      if (fxReady(this.scene, key)) {
+      this.stun.fx?.setVisible(visible);
+      if (visible && fxReady(this.scene, key)) {
         const m = SKILL_FX[key];
         const ms = m[8] >= 20 ? m[8] : JX_TICK_MS;
         const col = Math.floor((now - this.stun.start) / ms) % m[4];
@@ -59,6 +60,8 @@ export class StateDecor {
       if (!s) continue;
       let v = this.shown.get(id);
       if (!v) this.shown.set(id, v = { start: now });
+      v.fx?.setVisible(visible);
+      if (!visible) continue;
       const sfx = stateFxOf(s);
       if (!sfx || !fxReady(this.scene, sfx.key)) continue;
       const m = SKILL_FX[sfx.key];

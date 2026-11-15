@@ -32,6 +32,9 @@ export class ActorView {
   private jx: JxSprite | null = null;
   private sourceKey = '';
   private shown = false;
+  /** Diagnostic A/B switch. State and animation clocks advance while culled. */
+  cullingEnabled = true;
+  private inView = true;
   private diedAt: number | null = null;
   x: number;
   y: number;
@@ -97,6 +100,13 @@ export class ActorView {
     }
     this.anchor.setPosition(this.x, this.y);
     this.syncSource();
+    const shot = this.oneShot;
+    const lift = shot?.key === 'jump' ? jumpHeight(this.scene.time.now - shot.start, shot.ms) : 0;
+    const camera = this.scene.cameras?.main;
+    this.inView = !this.cullingEnabled || !camera || !this.jx ||
+      this.jx.intersects(camera.worldView, this.x, this.y, this.wanted(), lift) ||
+      (!!shot && this.jx.intersects(camera.worldView, this.x, this.y, shot.key, lift)) ||
+      (!!this.frozen && this.jx.intersects(camera.worldView, this.x, this.y, this.frozen.key, lift));
     this.lift = 0;
     const dead = s.kind !== 'npc' && s.hp <= 0;
     if (dead) this.diedAt ??= this.scene.time.now;
@@ -105,7 +115,18 @@ export class ActorView {
       this.jx?.hide();
       this.shown = false;
     } else this.shown = !!this.jx && this.renderSprite();
-    this.drawPlate();
+    if (this.inView) {
+      this.label.setVisible(true);
+      this.bar.setVisible(true);
+      this.drawPlate();
+    } else {
+      this.jx?.hide();
+      this.label.setVisible(false);
+      this.bar.setVisible(false);
+      const s = this.state;
+      const alive = s.hp > 0 || s.kind === 'npc';
+      this.decor.update(alive ? [...(s.states ?? []), ...(s.passiveFx ?? [])] : [], this.x, this.y, this.headHeight, alive ? s.ctl ?? 0 : 0, false);
+    }
   }
 
   /** (Re)build the sprite source when equipment, horse or res changes. */
@@ -143,13 +164,22 @@ export class ActorView {
 
   private renderSprite(): boolean {
     const s = this.state, now = this.scene.time.now, jx = this.jx!;
+    const render = (...args: Parameters<JxSprite['render']>) => {
+      if (this.inView) return jx.render(...args);
+      // Keep the virtual pose/frame current, including a later freeze while off screen.
+      const n = jx.framesOf(args[3]) || 1;
+      jx.frames = n;
+      jx.frame = Math.max(0, Math.min(n - 1, args[5](n)));
+      jx.action = args[3];
+      return false;
+    };
     const alive = s.hp > 0 && s.kind !== 'npc';
     const control = controlAppearance(s.ctl ?? 0, alive);
     jx.tint = control.tint;
     if (control.frozen) {
       this.frozen ??= { at: now, key: (jx.action || this.wanted()) as AssocKey, frame: jx.frame, dir: this.drawnDir };
       const held = this.frozen;
-      return jx.render(this.x, this.y, this.y, held.key, held.dir, () => held.frame);
+      return render(this.x, this.y, this.y, held.key, held.dir, () => held.frame);
     }
     if (this.frozen) {
       // Exclude the pause from both animation clocks; death must always start immediately.
@@ -217,11 +247,11 @@ export class ActorView {
       this.loopKey = null;
       const t = (now - shot.start) / shot.ms;
       if (shot.key === 'jump') this.lift = jumpHeight(now - shot.start, shot.ms);
-      return jx.render(this.x, this.y, this.y, shot.key, s.dir & 7, n => Math.min(n - 1, Math.floor(t * n)), this.lift);
+      return render(this.x, this.y, this.y, shot.key, s.dir & 7, n => Math.min(n - 1, Math.floor(t * n)), this.lift);
     }
     if (key === 'die') {
       this.loopKey = null;
-      return jx.render(this.x, this.y, this.y, 'die', s.dir & 7, n => n - 1);
+      return render(this.x, this.y, this.y, 'die', s.dir & 7, n => n - 1);
     }
     const loop = isOneShot ? (this.peaceful ? 'idle' : 'stand') : key;
     if (loop !== this.loopKey) {
@@ -274,7 +304,7 @@ export class ActorView {
     // Attack duration remains snapshotted by the server.
     this.loopFrame += Math.max(0, now - this.loopAt) / (running ? cycleMs : FRAME_MS) * control.loopRate;
     this.loopAt = now;
-    return jx.render(this.x, this.y, this.y, loop, s.dir & 7, n => Math.floor(running ? this.loopFrame * n : this.loopFrame) % n);
+    return render(this.x, this.y, this.y, loop, s.dir & 7, n => Math.floor(running ? this.loopFrame * n : this.loopFrame) % n);
   }
 
   private drawPlate(): void {
