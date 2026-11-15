@@ -13,14 +13,16 @@
     "test:effects": "node --import tsx --test tests/control-effects.test.ts tests/control-effects-render.test.cjs",
     "test:speed": "node --import tsx --test tests/speed-phases.test.ts",
     "test:viewport": "node --import tsx --test tests/viewport.test.ts",
-    "typecheck": "tsc -p packages/shared && tsc -p apps/server && tsc -p apps/client && tsc -p apps/client/src/platform/sw && tsc -p tools/bots && tsc -p tools/map-creator",
+    "typecheck": "tsc -p packages/shared && tsc -p apps/server && tsc -p apps/client && tsc -p apps/client/src/platform/sw && tsc -p tools/bots && tsc -p tools/map-creator && tsc -p tools/map-manager",
     "build": "npm run build -w @vltk/client",
     "bots:ui": "node --import tsx tools/bots/server.ts",
     "test:bots": "node --import tsx --test tests/bot-roster.test.ts tests/bot-social.test.ts tests/bots-tool.test.ts tests/bot-team.test.ts",
     "test:auto": "node --import tsx --test tests/auto-behavior.test.ts tests/auto-passive-fx.test.ts tests/auto-server-target.test.ts",
     "test:market": "node --import tsx --test tests/market-auto-profile.test.mts tests/market-pricing.test.mts",
     "map:creator": "node --import tsx tools/map-creator/server.ts",
-    "test:map-creator": "node --import tsx --test tests/map-creator.test.ts"
+    "test:map-creator": "node --import tsx --test tests/map-creator.test.ts",
+    "map:manager": "node --import tsx tools/map-manager/server.ts",
+    "test:map-manager": "node --import tsx --test tests/map-manager.test.ts"
   },
   "devDependencies": {
     "concurrently": "^10.0.7",
