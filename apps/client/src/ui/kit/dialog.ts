@@ -2,6 +2,7 @@ import { storage } from '../../platform/storage';
 import { $ } from './dom';
 import { tooltip } from './tooltip';
 import './dialog.css';
+import { hudSize, localPoint } from './viewport';
 
 /**
  * One kind of window for the whole interface (original JX1 look: jade frame, stone title bar with the two
@@ -25,6 +26,9 @@ interface Entry { el: HTMLElement; opts: DialogOptions; z: number }
 
 export class Dialogs {
   private entries = new Map<string, Entry>();
+  private sizes = new ResizeObserver(changes => {
+    for (const { target } of changes) if (!target.classList.contains('hidden')) this.clamp(target as HTMLElement);
+  });
   /** ESC with no window open (the system menu). */
   onIdleEscape: (() => void) | null = null;
 
@@ -38,7 +42,9 @@ export class Dialogs {
       if (this.closeTop()) { e.preventDefault(); return; }
       if (!typing && this.onIdleEscape && this.anyVisibleRoot()) { e.preventDefault(); this.onIdleEscape(); }
     }, true);
-    window.addEventListener('resize', () => { for (const [id, en] of this.entries) if (this.isOpen(id)) this.clamp(en.el); });
+    const clamp = () => { for (const [id, en] of this.entries) if (this.isOpen(id)) this.clamp(en.el); };
+    window.addEventListener('resize', clamp);
+    document.addEventListener('viewportchange', clamp, true);
   }
 
   /** Turn `<section class="dlg" id=… data-title=…>` into a window. */
@@ -68,6 +74,7 @@ export class Dialogs {
       this.dragByHead(id, el, head);
     }
     el.addEventListener('pointerdown', () => this.front(id), true);
+    this.sizes.observe(el);
     return el;
   }
 
@@ -152,10 +159,13 @@ export class Dialogs {
       if (e.button !== 0) return;
       e.preventDefault();
       const r = el.getBoundingClientRect();
-      const dx = e.clientX - r.left, dy = e.clientY - r.top;
+      const parent = el.offsetParent as HTMLElement;
+      const [px, py] = localPoint(parent, e.clientX, e.clientY);
+      const [left, top] = localPoint(parent, r.left, r.top);
+      const dx = px - left, dy = py - top;
       head.setPointerCapture(e.pointerId);
       el.classList.add('dragging');
-      const move = (m: PointerEvent) => this.place(el, m.clientX - dx, m.clientY - dy);
+      const move = (m: PointerEvent) => { const [x, y] = localPoint(parent, m.clientX, m.clientY); this.place(el, x - dx, y - dy); };
       const up = () => {
         head.removeEventListener('pointermove', move);
         head.removeEventListener('pointerup', up);
@@ -172,18 +182,18 @@ export class Dialogs {
       storage.remove(POS_KEY + id);
       el.style.left = el.style.top = el.style.right = el.style.bottom = el.style.transform = '';
       el.classList.remove('placed');
+      this.clamp(el);
     });
   }
 
-  /** Absolute position (viewport px), kept inside the window with the title bar reachable. */
+  /** Absolute position in logical HUD pixels, kept inside the game frame. */
   private place(el: HTMLElement, x: number, y: number): void {
     const w = el.offsetWidth, h = el.offsetHeight;
-    const vw = window.innerWidth, vh = window.innerHeight;
+    const { width: vw, height: vh } = hudSize();
     el.classList.add('placed');
     el.style.right = el.style.bottom = el.style.transform = '';
-    el.style.left = `${Math.round(Math.max(Math.min(0, vw - w), Math.min(vw - Math.min(w, 120), Math.max(-w + 120, x))))}px`;
-    el.style.top = `${Math.round(Math.max(0, Math.min(vh - 40, y)))}px`;
-    void h;
+    el.style.left = `${Math.round(Math.max(0, Math.min(Math.max(0, vw - w), x)))}px`;
+    el.style.top = `${Math.round(Math.max(0, Math.min(Math.max(0, vh - h), y)))}px`;
   }
 
   private restore(id: string, el: HTMLElement): void {
@@ -193,8 +203,11 @@ export class Dialogs {
   }
 
   private clamp(el: HTMLElement): void {
-    if (!el.classList.contains('placed')) return;
-    this.place(el, parseFloat(el.style.left) || 0, parseFloat(el.style.top) || 0);
+    const r = el.getBoundingClientRect();
+    const parent = el.offsetParent as HTMLElement;
+    if (!parent) return;
+    const [x, y] = localPoint(parent, r.left, r.top);
+    this.place(el, x, y);
   }
 }
 

@@ -1,3 +1,4 @@
-#settings-dlg { top: 12%; width: min(440px, calc(100vw - 16px)); }
+#settings-dlg { top: 12%; width: min(440px, calc(var(--hud-w, 100vw) - 16px)); }
+#settings-dlg select { width: 100%; margin-top: 4px; padding: 5px 8px; border: 1px solid var(--teal); background: #0b0d0c; color: var(--text); font: inherit; }
 .keys { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 12px; }
 .keys span:nth-child(odd) { color: var(--gold); white-space: nowrap; }

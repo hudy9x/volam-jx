@@ -1,5 +1,5 @@
-#shop-panel { width: min(420px, calc(100vw - 16px)); }
-#shop-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 4px; max-height: 44vh; overflow: auto; }
+#shop-panel { width: min(420px, calc(var(--hud-w, 100vw) - 16px)); }
+#shop-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 4px; max-height: calc(var(--hud-h, 100vh) * 0.44); overflow: auto; }
 .shop-item { display: flex; gap: 8px; align-items: center; padding: 5px; border: 1px solid var(--line); background: #0b0e0d; cursor: pointer; }
 .shop-item:hover { border-color: var(--teal-hi); background: #121a17; }
 .shop-item .fname { font-size: 12px; }

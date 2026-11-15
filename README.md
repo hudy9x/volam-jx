@@ -226,8 +226,10 @@ npm run gen:maps -w @vltk/client       # mọi bản đồ của maplist.ini (~3
   thường / chạy / đâm / chém / nội công / trúng đòn / ngã, và bộ cưỡi ngựa), `贴图顺序表` cho thứ tự vẽ theo
   hướng và từng khung hình. Trong thành dùng tư thế thường, ngoài thành dùng tư thế chiến đấu của vũ khí.
 - **Trang bị → hình**: `*res.txt` cho số bộ phận của từng món; hàng trong bảng bộ phận = số bộ phận − 2.
-- Sheet là WebP lossless, một sheet cho mỗi sprite gốc, tải dần khi cần. Canvas vẽ theo pixel thật của màn hình
-  (kể cả khi Windows đặt tỉ lệ 125–150%) và làm tròn tọa độ, nên 1 pixel ảnh gốc = 1 pixel màn hình; lăn chuột để zoom.
+- Sheet là WebP lossless ở độ phân giải gốc, tải dần khi cần. Game dùng khung **1280×720 /1280×800**, render **2×**, tắt MSAA,
+  làm tròn tọa độ; phóng/thu theo tỉ lệ và căn giữa cửa sổ. **Tùy chỉnh → Khung game** chọn tự động hoặc một trong2khung;
+  HUD/cửa sổ/chuột/cảm ứng bám cùng khung, lăn chuột để zoom100/150/200%. Canvas tối đa2560×1600, không tăng theo DPR/màn4K.
+  Gallery/skill-lab/maptest giữ cách dựng riêng. Xem `docs/performance/02-do-luong.md` §9.
 - Xem toàn bộ áo/mũ cấp 1–10 nam và nữ, mọi động tác, 8 hướng, có/không ngựa: `http://localhost:5173/?gallery`
   (phím 1–9 động tác, ←/→ hướng, W vũ khí, H mũ, M ngựa). Xem bản đồ riêng: `/maptest.html?map=37`.
 - Asset: toàn bộ `apps/client/public/assets/` không vào git (trừ `portraits/`), kể cả ảnh Biện Kinh (37) / Dược Vương Cốc (140);

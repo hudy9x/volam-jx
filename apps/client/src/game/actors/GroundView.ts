@@ -1,7 +1,7 @@
 import { moneyText } from '@vltk/shared';
 import Phaser from 'phaser';
 import { ITEMS, QUALITY_COLORS } from '@vltk/shared';
-import { ui, uiPx, zoomPlate } from '../display';
+import { ui, uiPx, textResolution, zoomPlate } from '../display';
 import { assetUrl } from '../../art/assets';
 
 /** A drop on the ground as the server syncs it (MapState.ground). */
@@ -35,7 +35,7 @@ export class GroundView {
     }
     const name = def ? def.name : `${moneyText(g.amount)} lượng`;
     this.label = scene.add.text(g.x, g.y - 30, name, {
-      fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(12), stroke: '#000', strokeThickness: ui(3),
+      resolution: textResolution(), fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(12), stroke: '#000', strokeThickness: ui(3),
       color: def ? QUALITY_COLORS[g.q] ?? '#ffffff' : MONEY_COLOR,
     }).setOrigin(0.5, 1).setScale(zoomPlate().textScale).setDepth(1e6 - 1);
   }

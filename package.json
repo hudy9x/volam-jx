@@ -12,6 +12,7 @@
     "boss": "node --import tsx tools/boss/server.ts",
     "test:effects": "node --import tsx --test tests/control-effects.test.ts tests/control-effects-render.test.cjs",
     "test:speed": "node --import tsx --test tests/speed-phases.test.ts",
+    "test:viewport": "node --import tsx --test tests/viewport.test.ts",
     "typecheck": "tsc -p packages/shared && tsc -p apps/server && tsc -p apps/client && tsc -p apps/client/src/platform/sw && tsc -p tools/bots",
     "build": "npm run build -w @vltk/client",
     "bots:ui": "node --import tsx tools/bots/server.ts",

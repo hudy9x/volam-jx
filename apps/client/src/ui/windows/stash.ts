@@ -12,6 +12,7 @@ import { getActiveGridDrag, gridCellAt, setActiveGridDrag } from '../kit/itemGri
 import { moneyHtml, setMoney } from '../kit/money';
 import { setSlotIcon } from '../kit/slot';
 import { tooltip } from '../kit/tooltip';
+import { localPoint } from '../kit/viewport';
 import type { HudContext } from '../hud/context';
 import { showItemTip } from '../tips/itemTip';
 import './stash.css';
@@ -178,8 +179,7 @@ export class StashWindow {
     el.draggable = true;
     el.addEventListener('dragstart', e => {
       tooltip.hide();
-      const r = el.getBoundingClientRect();
-      setActiveGridDrag({ source: 'stash', index: i, grab: [e.clientX - r.left, e.clientY - r.top] });
+      setActiveGridDrag({ source: 'stash', index: i, grab: localPoint(el, e.clientX, e.clientY) });
       e.dataTransfer?.setData('text/stash', String(i));
     });
     el.addEventListener('dragend', () => {

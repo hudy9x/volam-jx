@@ -1,8 +1,8 @@
-#notices { position: absolute; top: 120px; left: 50%; transform: translateX(-50%); display: grid; gap: 4px; justify-items: center; width: min(600px, calc(100vw - 32px)); }
+#notices { position: absolute; top: 120px; left: 50%; transform: translateX(-50%); display: grid; gap: 4px; justify-items: center; width: min(600px, calc(var(--hud-w, 100vw) - 32px)); }
 .notice { color: var(--hl); font-size: 14px; font-weight: 700; padding: 3px 14px; text-align: center; text-shadow: var(--outline);
   background: linear-gradient(90deg, transparent, #000a 20%, #000a 80%, transparent); animation: fade 4s forwards; }
 @keyframes fade { 0%, 75% { opacity: 1 } 100% { opacity: 0 } }
 #auto-badge { position: absolute; top: 8px; left: 350px; min-width: 64px; min-height: 44px; pointer-events: auto;
   background: var(--body); border: 1px solid var(--teal); color: var(--gold); cursor: pointer; border-radius: 4px; }
 #auto-badge[aria-pressed="true"] { color: var(--green); }
-@media (max-width: 460px) { #auto-badge { left: 8px; top: 126px; min-width: 64px; } }
+@container (max-width: 460px) { #auto-badge { left: 8px; top: 126px; min-width: 64px; } }

@@ -2,6 +2,9 @@
 
 > Viết 2026-11-13 theo yêu cầu người dùng: "ứng dụng web không thể tải hết toàn bộ asset" (hơn 15 GB khi đủ bản đồ).
 > Đây là **hướng dẫn triển khai**. Đã làm: **PF4 phần web** (vòng 34, trạng thái ở `05` §0); PF1–PF3 chưa có code. Đầu việc tương ứng: nhóm **PF** trong `tasks/BACKLOG.md` §9.
+> **2026-11-15:** đã phân tích trace render và kiểm chứng culling bằng Phaser thật, xem **02 §4 và §7**. PF1 mới có nghiên cứu/số liệu trace, chưa có overlay hay phép đo tải đầy đủ. Chưa triển khai MSAA/culling/viewport.
+> **A/B tiếp theo:** USER duyệt đo canvas/MSAA; đã hoàn tất32lượt trên GPU M1Max, số liệu/ảnh/mẫu gốc ở **02 §8**. Đề xuất2preset1280×720/1280×800, render2× và MSAA tắt; vẫn chờ chốt triển khai, chưa sửa mã game.
+> **Đã triển khai theo USER2026-11-15:**2preset1280×720/1280×800, render2×, MSAAoff, HUD/input đồng bộ khung; **02 §9 / PF10** là trạng thái mới nhất. Chưa culling/PF2/PF3, chưa commit.
 > Nền tảng mục tiêu Web + Desktop app + Mobile (`AGENTS.md` §1): mỗi tài liệu có mục "Ba nền tảng".
 
 ## Nguyên tắc
@@ -11,7 +14,8 @@
 3. **Trả lại bộ nhớ** khi không dùng: bộ nhớ đồ họa (GPU) là giới hạn thật trên điện thoại, không phải băng thông.
 4. **Tải một lần, dùng nhiều lần**: mọi file có phiên bản để lưu đệm lâu dài (HTTP cache, Service Worker, đĩa của app).
 5. **Đo trước, chỉnh sau**: mọi ngưỡng trong các tài liệu dưới đây là số đề xuất, chốt bằng số liệu của PF1.
-6. Không đổi cách dựng hình 1:1 / WebP lossless (`AGENTS.md` §5.5).
+6. Giữ ảnh gốc/WebP lossless/roundPixels. Theo USER2026-11-15, game dùng2khung cố định/render2×/MSAAoff (`AGENTS.md` §5.5);
+   không tự tăng backing theo DPR/màn hình. Các mô tả device-pixel1:1 ở tài liệu01–05 là hiện trạng lịch sử trước quyết định này.
 
 ## Tài liệu (đọc theo thứ tự)
 

@@ -1,4 +1,4 @@
-#npc-dlg { top: auto; bottom: 110px; width: min(560px, calc(100vw - 16px)); }
+#npc-dlg { top: auto; bottom: 110px; width: min(560px, calc(var(--hud-w, 100vw) - 16px)); }
 /* NPC */
 .npc-talk { display: flex; gap: 12px; align-items: flex-start; }
 .npc-face { width: 72px; height: 96px; flex: none; border: 1px solid var(--teal); background: radial-gradient(#1d2a24, #060807); display: grid; place-items: end center; overflow: hidden; }

@@ -1,6 +1,6 @@
 #auto-dlg {
-  width: min(560px, calc(100vw - 16px));
-  max-height: calc(100dvh - 110px);
+  width: min(560px, calc(var(--hud-w, 100vw) - 16px));
+  max-height: calc(var(--hud-h, 100vh) - 110px);
   overflow: hidden;
 }
 #auto-dlg .dlg-body { overflow: hidden; }
@@ -20,6 +20,6 @@
 @media (pointer: coarse) {
   #auto-dlg button, #auto-dlg select, #auto-dlg .check { min-height: 44px; }
 }
-@media (max-height: 600px) {
-  #auto-dlg { top: 24px; max-height: calc(100dvh - 40px); }
+@container (max-height: 600px) {
+  #auto-dlg { top: 24px; max-height: calc(var(--hud-h, 100vh) - 40px); }
 }

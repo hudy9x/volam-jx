@@ -1,4 +1,4 @@
-#forge-panel { width: min(720px, calc(100vw - 16px)); }
+#forge-panel { width: min(720px, calc(var(--hud-w, 100vw) - 16px)); }
 .forge-body { display: flex; gap: 14px; align-items: flex-start; }
 .forge-form { flex: 1 1 auto; min-width: 0; }
 .forge-pick { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -22,7 +22,7 @@
 .forge-preview .slot { width: 64px; height: 96px; }
 .forge-preview .tip-name { font-weight: 700; font-size: 13px; }
 .forge-preview .tip-sub { color: #9aa49e; font-size: 11px; margin-bottom: 3px; }
-@media (max-width: 640px) {
+@container (max-width: 640px) {
   .forge-body { flex-direction: column; }
   .forge-preview { flex-basis: auto; align-self: stretch; }
 }

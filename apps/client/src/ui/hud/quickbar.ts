@@ -7,6 +7,7 @@ import { $, mount } from '../kit/dom';
 import { showItemTip } from '../tips/itemTip';
 import { showSkillTip } from '../tips/skillTip';
 import './quickbar.css';
+import { hudSize } from '../kit/viewport';
 
 /** Width of the original quick bar art; narrower windows scale the whole bar down. */
 const QUICKBAR_W = 800;
@@ -105,8 +106,9 @@ export class Quickbar {
     $('auto-toggle').addEventListener('click', () => h.auto());
     $('auto-toggle').addEventListener('contextmenu', e => { e.preventDefault(); h.autoOptions(); });
     skillbar.watch(() => this.render());
-    const fit = () => document.documentElement.style.setProperty('--qb', String(Math.min(1, (window.innerWidth - 8) / QUICKBAR_W)));
+    const fit = () => document.documentElement.style.setProperty('--qb', String(Math.min(1, (hudSize().width - 8) / QUICKBAR_W)));
     window.addEventListener('resize', fit);
+    parent.addEventListener('viewportchange', fit);
     fit();
   }
 

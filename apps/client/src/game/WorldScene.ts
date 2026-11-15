@@ -21,7 +21,7 @@ import { bagIndexOf, inventory } from '../state/inventory';
 import { settings } from '../state/settings';
 import { BASIC_SKILL, skillbar, type BarSlot } from '../state/skillbar';
 import { assetUrl } from '../art/assets';
-import { setActiveZoom, stepZoom, ui, uiPx, zoomPlate, type ZoomPct } from './display';
+import { setActiveZoom, stepZoom, ui, uiPx, zoomPlate, worldRenderScale, textResolution, type ZoomPct } from './display';
 
 /**
  * The map being played: draws the original map, actors and effects, turns clicks / keys into orders for the server,
@@ -69,6 +69,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.applyZoom(settings.get().zoom);
     const state = this.room.state as { mapId: number; actors: Map<string, ActorState> };
     this.meta = MAPS[state.mapId];
     // Original-client map, streamed by region around the camera; wait for the area around the player first.
@@ -168,7 +169,7 @@ export class WorldScene extends Phaser.Scene {
   private applyZoom(pct: number): ZoomPct {
     const z = setActiveZoom(pct);
     const plate = zoomPlate();
-    this.cameras.main.setZoom(plate.zoom);
+    this.cameras.main.setZoom(plate.zoom * worldRenderScale());
     for (const t of this.portalLabels) t.setScale(plate.textScale);
     for (const g of this.ground.values()) g.syncZoom();
     return z;
@@ -184,7 +185,7 @@ export class WorldScene extends Phaser.Scene {
       this.tweens.add({ targets: ring, alpha: 0.45, duration: 900, yoyo: true, repeat: -1 });
       this.portalLabels.push(
         this.add.text(p.x, p.y - 28, `➜ ${p.label}`, {
-          fontFamily: 'Segoe UI, sans-serif', fontSize: uiPx(14), color: '#bfeaff', stroke: '#000', strokeThickness: ui(4),
+          resolution: textResolution(), fontFamily: 'Segoe UI, sans-serif', fontSize: uiPx(14), color: '#bfeaff', stroke: '#000', strokeThickness: ui(4),
         }).setOrigin(0.5).setScale(s).setDepth(1e6),
       );
     }
@@ -220,8 +221,10 @@ export class WorldScene extends Phaser.Scene {
       this.room.send(C2S.move, { x: Math.round(wx), y: Math.round(wy) });
     };
 
+    const inside = (p: Phaser.Input.Pointer) => p.x >= 0 && p.y >= 0 && p.x < this.scale.width && p.y < this.scale.height;
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
-      if (!this.ready) return;
+      if (!this.ready || !inside(p)) return;
+      p.updateWorldPoint(this.cameras.main);
       // A drop under the cursor: pick it up (the server walks there first when far).
       const drop = !p.rightButtonDown() ? this.pickGround(p.worldX, p.worldY) : undefined;
       if (drop) { this.auto?.pause(this.time.now); this.room.send(C2S.pickup, { id: drop.id }); return; }
@@ -233,7 +236,8 @@ export class WorldScene extends Phaser.Scene {
     });
     // Hold the left button to keep walking toward the cursor; otherwise show what a click would do (original cursors).
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
-      if (!this.ready) return;
+      if (!this.ready || !inside(p)) return;
+      p.updateWorldPoint(this.cameras.main);
       const over = this.pickActor(p.worldX, p.worldY);
       this.setCursor(this.pickGround(p.worldX, p.worldY) ? 'pick'
         : !over ? 'normal' : over.state.kind === 'npc' ? 'talk' : this.isHostile(over) ? 'attack' : 'normal');
@@ -252,8 +256,8 @@ export class WorldScene extends Phaser.Scene {
     };
     this.cleanups.push(flushZoomSave);
 
-    this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
-      if (dy === 0) return;
+    this.input.on('wheel', (p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
+      if (dy === 0 || !inside(p)) return;
       const dir: -1 | 1 = dy > 0 ? -1 : 1;
       const now = performance.now();
       if (dir === wheelDir && now - wheelStepAt < 80) return;
@@ -278,6 +282,7 @@ export class WorldScene extends Phaser.Scene {
       this.cleanups.push(() => { document.removeEventListener('focusin', typing); document.removeEventListener('focusout', typing); keys.enabled = true; });
       const atPointer = (slot: number) => {
         const p = this.input.activePointer;
+        if (!inside(p)) return;
         const wp = this.cameras.main.getWorldPoint(p.x, p.y);
         const target = this.pickActor(wp.x, wp.y);
         cast(slot, wp.x, wp.y, target && target.state.kind !== 'npc' ? target : undefined);

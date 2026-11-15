@@ -1,4 +1,4 @@
-#horse-shop { width: min(700px, calc(100vw - 16px)); }
+#horse-shop { width: min(700px, calc(var(--hud-w, 100vw) - 16px)); }
 /* ngựa */
 .horse-shop { display: flex; gap: 8px; min-height: 0; }
 .horse-view { width: 210px; flex: none; display: grid; gap: 3px; justify-items: center; align-content: start; text-align: center;
@@ -9,7 +9,7 @@
 .horse-view .price.short { color: rgb(0, 135, 133); }
 .horse-preview { position: relative; width: 196px; height: 170px; overflow: hidden; background: radial-gradient(#1d2a24, #060807); }
 #horse-list { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); grid-auto-rows: min-content; gap: 3px;
-  max-height: min(60vh, 520px); overflow: auto; align-content: start; }
+  max-height: min(calc(var(--hud-h, 100vh) * 0.6), 520px); overflow: auto; align-content: start; }
 .horse-cell { display: grid; justify-items: center; gap: 1px; padding: 3px 2px; border: 1px solid var(--line); background: #0b0e0d; cursor: pointer; }
 .horse-cell img { width: 46px; height: 70px; object-fit: contain; pointer-events: none; }
 .horse-cell span { font-size: 11px; line-height: 1.2; color: var(--gold); text-align: center; }

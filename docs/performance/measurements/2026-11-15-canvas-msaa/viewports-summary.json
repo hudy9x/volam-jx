@@ -1,0 +1,656 @@
+{
+  "browser": "151.0.7922.34",
+  "scene": "D\u01b0\u1ee3c V\u01b0\u01a1ng C\u1ed1c140; 48 monsters + 1 player; full WorldScene and HTML HUD; static positions, idle animations; no culling changes",
+  "runs": [
+    {
+      "rep": 0,
+      "case": "1280x720-1x",
+      "fps": 54.46641237860034,
+      "interval_ms": {
+        "n": 327,
+        "mean": 18.35993883806631,
+        "median": 18.5,
+        "p95": 20.59999990463257,
+        "min": 8.299999952316284,
+        "max": 21.399999976158142
+      },
+      "cpu_ms": {
+        "n": 328,
+        "mean": 0.8804878036423427,
+        "median": 0.8999999761581421,
+        "p95": 1,
+        "min": 0.3999999761581421,
+        "max": 1.2000000476837158
+      },
+      "gpu_ms": {
+        "n": 41,
+        "mean": 5.163988414634146,
+        "median": 5.052125,
+        "p95": 6.393666,
+        "min": 3.332249,
+        "max": 6.595166
+      },
+      "disjoints": 0,
+      "meta": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "glVersion": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "context": {
+          "alpha": false,
+          "antialias": false,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "default",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": true,
+          "xrCompatible": false
+        },
+        "samples": 0,
+        "buffer": [
+          1280,
+          720
+        ],
+        "css": [
+          1500,
+          844
+        ],
+        "world": [
+          4640,
+          9240,
+          1280,
+          720
+        ],
+        "actors": 49,
+        "ground": 20,
+        "objectChunks": 5,
+        "objects": 334,
+        "visibleObjects": 74,
+        "renderList": 335,
+        "textures": 164,
+        "textureBytes": 185737371.703125
+      },
+      "frames_gt33ms": 0,
+      "frames_gt50ms": 0,
+      "frame_intervals": 327,
+      "errors": []
+    },
+    {
+      "rep": 0,
+      "case": "1280x800-1x",
+      "fps": 53.64610232680188,
+      "interval_ms": {
+        "n": 322,
+        "mean": 18.640683230035794,
+        "median": 18.5,
+        "p95": 21.700000047683716,
+        "min": 8.199999928474426,
+        "max": 26.100000023841858
+      },
+      "cpu_ms": {
+        "n": 323,
+        "mean": 0.883591330457398,
+        "median": 0.8999999761581421,
+        "p95": 1,
+        "min": 0.5999999046325684,
+        "max": 1.1999999284744263
+      },
+      "gpu_ms": {
+        "n": 40,
+        "mean": 5.157602525,
+        "median": 5.118874,
+        "p95": 6.566542,
+        "min": 3.351458,
+        "max": 7.148916
+      },
+      "disjoints": 0,
+      "meta": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "glVersion": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "context": {
+          "alpha": false,
+          "antialias": false,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "default",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": true,
+          "xrCompatible": false
+        },
+        "samples": 0,
+        "buffer": [
+          1280,
+          800
+        ],
+        "css": [
+          1500,
+          938
+        ],
+        "world": [
+          4640,
+          9200,
+          1280,
+          800
+        ],
+        "actors": 49,
+        "ground": 20,
+        "objectChunks": 5,
+        "objects": 334,
+        "visibleObjects": 89,
+        "renderList": 350,
+        "textures": 164,
+        "textureBytes": 185737371.703125
+      },
+      "frames_gt33ms": 0,
+      "frames_gt50ms": 0,
+      "frame_intervals": 322,
+      "errors": []
+    },
+    {
+      "rep": 0,
+      "case": "1280x720-2x",
+      "fps": 54.61660144867205,
+      "interval_ms": {
+        "n": 328,
+        "mean": 18.309451219512194,
+        "median": 18.799999952316284,
+        "p95": 21.600000023841858,
+        "min": 0.6999999284744263,
+        "max": 25.300000071525574
+      },
+      "cpu_ms": {
+        "n": 329,
+        "mean": 0.8401215790252917,
+        "median": 0.8000000715255737,
+        "p95": 1,
+        "min": 0.5,
+        "max": 1.2999999523162842
+      },
+      "gpu_ms": {
+        "n": 41,
+        "mean": 5.497572829268293,
+        "median": 5.532583,
+        "p95": 7.038416,
+        "min": 3.455833,
+        "max": 7.492291
+      },
+      "disjoints": 0,
+      "meta": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "glVersion": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "context": {
+          "alpha": false,
+          "antialias": false,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "default",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": true,
+          "xrCompatible": false
+        },
+        "samples": 0,
+        "buffer": [
+          2560,
+          1440
+        ],
+        "css": [
+          1500,
+          844
+        ],
+        "world": [
+          4640,
+          9240,
+          1280,
+          720
+        ],
+        "actors": 49,
+        "ground": 20,
+        "objectChunks": 5,
+        "objects": 334,
+        "visibleObjects": 74,
+        "renderList": 335,
+        "textures": 164,
+        "textureBytes": 185737371.703125
+      },
+      "frames_gt33ms": 0,
+      "frames_gt50ms": 0,
+      "frame_intervals": 328,
+      "errors": []
+    },
+    {
+      "rep": 0,
+      "case": "1280x800-2x",
+      "fps": 50.96517379770239,
+      "interval_ms": {
+        "n": 306,
+        "mean": 19.621241830143273,
+        "median": 19.40000009536743,
+        "p95": 23.899999976158142,
+        "min": 2.700000047683716,
+        "max": 26.899999976158142
+      },
+      "cpu_ms": {
+        "n": 307,
+        "mean": 0.8905537497337167,
+        "median": 0.8999999761581421,
+        "p95": 1.100000023841858,
+        "min": 0.5999999046325684,
+        "max": 1.2000000476837158
+      },
+      "gpu_ms": {
+        "n": 38,
+        "mean": 5.965777894736842,
+        "median": 5.7895615,
+        "p95": 8.287541,
+        "min": 3.754416,
+        "max": 9.110166
+      },
+      "disjoints": 0,
+      "meta": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "glVersion": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "context": {
+          "alpha": false,
+          "antialias": false,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "default",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": true,
+          "xrCompatible": false
+        },
+        "samples": 0,
+        "buffer": [
+          2560,
+          1600
+        ],
+        "css": [
+          1500,
+          938
+        ],
+        "world": [
+          4640,
+          9200,
+          1280,
+          800
+        ],
+        "actors": 49,
+        "ground": 20,
+        "objectChunks": 5,
+        "objects": 334,
+        "visibleObjects": 89,
+        "renderList": 350,
+        "textures": 164,
+        "textureBytes": 185737371.703125
+      },
+      "frames_gt33ms": 0,
+      "frames_gt50ms": 0,
+      "frame_intervals": 306,
+      "errors": []
+    },
+    {
+      "rep": 1,
+      "case": "1280x800-2x",
+      "fps": 51.1036388456268,
+      "interval_ms": {
+        "n": 307,
+        "mean": 19.568078175818105,
+        "median": 19.399999976158142,
+        "p95": 23.800000071525574,
+        "min": 4.100000023841858,
+        "max": 27.700000047683716
+      },
+      "cpu_ms": {
+        "n": 308,
+        "mean": 0.8133116856023863,
+        "median": 0.7999999523162842,
+        "p95": 1,
+        "min": 0.3999999761581421,
+        "max": 1.399999976158142
+      },
+      "gpu_ms": {
+        "n": 38,
+        "mean": 6.127525789473684,
+        "median": 5.718458,
+        "p95": 8.777375,
+        "min": 3.882666,
+        "max": 9.505957
+      },
+      "disjoints": 0,
+      "meta": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "glVersion": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "context": {
+          "alpha": false,
+          "antialias": false,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "default",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": true,
+          "xrCompatible": false
+        },
+        "samples": 0,
+        "buffer": [
+          2560,
+          1600
+        ],
+        "css": [
+          1500,
+          938
+        ],
+        "world": [
+          4640,
+          9200,
+          1280,
+          800
+        ],
+        "actors": 49,
+        "ground": 20,
+        "objectChunks": 5,
+        "objects": 334,
+        "visibleObjects": 89,
+        "renderList": 350,
+        "textures": 164,
+        "textureBytes": 185737371.703125
+      },
+      "frames_gt33ms": 0,
+      "frames_gt50ms": 0,
+      "frame_intervals": 307,
+      "errors": []
+    },
+    {
+      "rep": 1,
+      "case": "1280x720-2x",
+      "fps": 53.969417330393895,
+      "interval_ms": {
+        "n": 324,
+        "mean": 18.529012345605427,
+        "median": 18.600000023841858,
+        "p95": 21.0,
+        "min": 3.399999976158142,
+        "max": 23.399999976158142
+      },
+      "cpu_ms": {
+        "n": 325,
+        "mean": 0.7901538412387554,
+        "median": 0.7999999523162842,
+        "p95": 1,
+        "min": 0.3999999761581421,
+        "max": 1.399999976158142
+      },
+      "gpu_ms": {
+        "n": 40,
+        "mean": 5.13747245,
+        "median": 5.317041,
+        "p95": 6.927583,
+        "min": 3.523958,
+        "max": 7.218958
+      },
+      "disjoints": 0,
+      "meta": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "glVersion": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "context": {
+          "alpha": false,
+          "antialias": false,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "default",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": true,
+          "xrCompatible": false
+        },
+        "samples": 0,
+        "buffer": [
+          2560,
+          1440
+        ],
+        "css": [
+          1500,
+          844
+        ],
+        "world": [
+          4640,
+          9240,
+          1280,
+          720
+        ],
+        "actors": 49,
+        "ground": 20,
+        "objectChunks": 5,
+        "objects": 334,
+        "visibleObjects": 74,
+        "renderList": 335,
+        "textures": 164,
+        "textureBytes": 185737371.703125
+      },
+      "frames_gt33ms": 0,
+      "frames_gt50ms": 0,
+      "frame_intervals": 324,
+      "errors": []
+    },
+    {
+      "rep": 1,
+      "case": "1280x800-1x",
+      "fps": 54.602963209588815,
+      "interval_ms": {
+        "n": 328,
+        "mean": 18.3140243902439,
+        "median": 18.299999952316284,
+        "p95": 21.600000023841858,
+        "min": 7.899999976158142,
+        "max": 25.299999952316284
+      },
+      "cpu_ms": {
+        "n": 329,
+        "mean": 0.8082066897563297,
+        "median": 0.8000000715255737,
+        "p95": 1,
+        "min": 0.3999999761581421,
+        "max": 1.399999976158142
+      },
+      "gpu_ms": {
+        "n": 41,
+        "mean": 5.290652024390244,
+        "median": 5.21025,
+        "p95": 6.518,
+        "min": 3.246375,
+        "max": 8.038458
+      },
+      "disjoints": 0,
+      "meta": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "glVersion": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "context": {
+          "alpha": false,
+          "antialias": false,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "default",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": true,
+          "xrCompatible": false
+        },
+        "samples": 0,
+        "buffer": [
+          1280,
+          800
+        ],
+        "css": [
+          1500,
+          938
+        ],
+        "world": [
+          4640,
+          9200,
+          1280,
+          800
+        ],
+        "actors": 49,
+        "ground": 20,
+        "objectChunks": 5,
+        "objects": 334,
+        "visibleObjects": 89,
+        "renderList": 350,
+        "textures": 164,
+        "textureBytes": 185737371.703125
+      },
+      "frames_gt33ms": 0,
+      "frames_gt50ms": 0,
+      "frame_intervals": 328,
+      "errors": []
+    },
+    {
+      "rep": 1,
+      "case": "1280x720-1x",
+      "fps": 55.38830026201864,
+      "interval_ms": {
+        "n": 333,
+        "mean": 18.054354354067964,
+        "median": 18.0,
+        "p95": 21.699999928474426,
+        "min": 3.5,
+        "max": 24.399999976158142
+      },
+      "cpu_ms": {
+        "n": 334,
+        "mean": 0.8224550885354688,
+        "median": 0.8000000715255737,
+        "p95": 1,
+        "min": 0.40000009536743164,
+        "max": 1.2999999523162842
+      },
+      "gpu_ms": {
+        "n": 41,
+        "mean": 5.129676292682927,
+        "median": 5.034041,
+        "p95": 8.069041,
+        "min": 3.071291,
+        "max": 8.296916
+      },
+      "disjoints": 0,
+      "meta": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "glVersion": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "context": {
+          "alpha": false,
+          "antialias": false,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "default",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": true,
+          "xrCompatible": false
+        },
+        "samples": 0,
+        "buffer": [
+          1280,
+          720
+        ],
+        "css": [
+          1500,
+          844
+        ],
+        "world": [
+          4640,
+          9240,
+          1280,
+          720
+        ],
+        "actors": 49,
+        "ground": 20,
+        "objectChunks": 5,
+        "objects": 334,
+        "visibleObjects": 74,
+        "renderList": 335,
+        "textures": 164,
+        "textureBytes": 185737371.703125
+      },
+      "frames_gt33ms": 0,
+      "frames_gt50ms": 0,
+      "frame_intervals": 333,
+      "errors": []
+    }
+  ],
+  "groups": {
+    "1280x720-1x": {
+      "runs": 2,
+      "fps_median": 54.927356320309485,
+      "fps_min": 54.46641237860034,
+      "fps_max": 55.38830026201864,
+      "interval_p95_median": 21.149999916553497,
+      "gpu_median_ms": 5.043083,
+      "gpu_p95_median_ms": 7.2313535,
+      "cpu_median_ms": 0.8500000238418579,
+      "over33_pct": 0.0,
+      "disjoints": 0,
+      "buffer": [
+        1280,
+        720
+      ]
+    },
+    "1280x800-1x": {
+      "runs": 2,
+      "fps_median": 54.12453276819535,
+      "fps_min": 53.64610232680188,
+      "fps_max": 54.602963209588815,
+      "interval_p95_median": 21.650000035762787,
+      "gpu_median_ms": 5.164562,
+      "gpu_p95_median_ms": 6.5422709999999995,
+      "cpu_median_ms": 0.8500000238418579,
+      "over33_pct": 0.0,
+      "disjoints": 0,
+      "buffer": [
+        1280,
+        800
+      ]
+    },
+    "1280x720-2x": {
+      "runs": 2,
+      "fps_median": 54.29300938953297,
+      "fps_min": 53.969417330393895,
+      "fps_max": 54.61660144867205,
+      "interval_p95_median": 21.30000001192093,
+      "gpu_median_ms": 5.424811999999999,
+      "gpu_p95_median_ms": 6.9829995,
+      "cpu_median_ms": 0.800000011920929,
+      "over33_pct": 0.0,
+      "disjoints": 0,
+      "buffer": [
+        2560,
+        1440
+      ]
+    },
+    "1280x800-2x": {
+      "runs": 2,
+      "fps_median": 51.03440632166459,
+      "fps_min": 50.96517379770239,
+      "fps_max": 51.1036388456268,
+      "interval_p95_median": 23.850000023841858,
+      "gpu_median_ms": 5.75400975,
+      "gpu_p95_median_ms": 8.532457999999998,
+      "cpu_median_ms": 0.8499999642372131,
+      "over33_pct": 0.0,
+      "disjoints": 0,
+      "buffer": [
+        2560,
+        1600
+      ]
+    }
+  }
+}

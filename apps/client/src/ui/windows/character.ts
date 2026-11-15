@@ -13,6 +13,7 @@ import type { HudContext } from '../hud/context';
 import { showItemTip } from '../tips/itemTip';
 import './character.css';
 import { assetUrl } from '../../art/assets';
+import { gameViewport, watchViewport } from '../../platform/viewport';
 
 const ID = 'char-panel';
 
@@ -212,10 +213,23 @@ export class CharacterWindow {
     const dlg = $('ca-pot-dlg') as HTMLDialogElement;
     dlg.returnValue = '';
     dlg.showModal();
+    this.placePotDialog();
     input.select();
   }
 
+  /** Native modal dialogs live in the top layer, outside the HUD's transform. */
+  private placePotDialog(): void {
+    const dlg = $('ca-pot-dlg') as HTMLDialogElement, frame = gameViewport();
+    if (!dlg.open || !frame) return;
+    Object.assign(dlg.style, {
+      position: 'fixed', margin: '0',
+      left: `${frame.left + frame.width * frame.scale / 2}px`, top: `${frame.top + frame.height * frame.scale / 2}px`,
+      transform: `translate(-50%, -50%) scale(${frame.scale})`,
+    });
+  }
+
   private setupPotDialog(): void {
+    watchViewport(() => this.placePotDialog());
     const dlg = $('ca-pot-dlg') as HTMLDialogElement;
     const input = $('ca-pot-input') as HTMLInputElement;
     dlg.querySelectorAll<HTMLButtonElement>('.ca-pot-preset').forEach(btn => {

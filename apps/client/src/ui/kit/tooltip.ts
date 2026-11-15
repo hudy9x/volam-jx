@@ -1,5 +1,6 @@
 import { mount } from './dom';
 import './tooltip.css';
+import { hudSize, localPoint } from './viewport';
 
 /**
  * The one floating tooltip of the HUD (#item-tip): items, skills, states. Shown next to the hovered element — above it
@@ -23,8 +24,12 @@ export const tooltip = {
     const r = anchor.getBoundingClientRect();
     el.classList.remove('hidden');
     const w = el.offsetWidth, h = el.offsetHeight;
-    el.style.left = `${Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2))}px`;
-    el.style.top = `${r.top - h - 8 > 8 ? r.top - h - 8 : r.bottom + 8}px`;
+    const parent = el.parentElement!;
+    const [x, top] = localPoint(parent, r.left + r.width / 2, r.top);
+    const [, bottom] = localPoint(parent, r.left, r.bottom);
+    const { width, height } = hudSize();
+    el.style.left = `${Math.max(8, Math.min(width - w - 8, x - w / 2))}px`;
+    el.style.top = `${Math.max(8, Math.min(height - h - 8, top - h - 8 >= 8 ? top - h - 8 : bottom + 8))}px`;
   },
 
   hide(): void {

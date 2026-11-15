@@ -11,6 +11,7 @@ import { tooltip } from '../kit/tooltip';
 import type { HudContext } from '../hud/context';
 import { CATEGORY_CLASS, fillSkillTip, showSkillTip } from '../tips/skillTip';
 import './skills.css';
+import { localPoint } from '../kit/viewport';
 
 const ID = 'skill-panel';
 const HTML = `
@@ -246,10 +247,10 @@ export class SkillsWindow {
       b.addEventListener('click', () => { this.assign(b.dataset.to as 'left' | 'right', s.id); this.popOpen = false; box.classList.add('hidden'); });
     });
     // Under the cell, inside the window.
-    const panel = $(ID).getBoundingClientRect(), r = cell.getBoundingClientRect();
+    const panel = $(ID), r = cell.getBoundingClientRect();
+    const [x, y] = localPoint(panel, r.left, r.bottom);
     box.classList.remove('hidden');
-    const left = Math.max(4, Math.min(r.left - panel.left, panel.width - box.offsetWidth - 4));
-    box.style.left = `${left}px`;
-    box.style.top = `${r.bottom - panel.top + 2}px`;
+    box.style.left = `${Math.max(4, Math.min(x - panel.clientLeft, panel.clientWidth - box.offsetWidth - 4))}px`;
+    box.style.top = `${Math.min(y - panel.clientTop + 2, panel.clientHeight - box.offsetHeight - 4)}px`;
   }
 }

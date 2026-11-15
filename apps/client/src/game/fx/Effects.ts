@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { getSkill, type FxEvent } from '@vltk/shared';
-import { ui, uiPx, zoomPlate } from '../display';
+import { ui, uiPx, textResolution, zoomPlate } from '../display';
 import type { ActorView } from '../actors/ActorView';
 import { SkillFx } from './SkillFx';
 import { fxSound } from '../audio/fxSounds';
@@ -82,7 +82,7 @@ export class Effects {
   private floatText(view: ActorView, value: string, color: string, size: number, dy = 0): void {
     const s = zoomPlate().textScale;
     const text = this.scene.add.text(view.x + (Math.random() - 0.5) * 24 * s, view.headY - 6 * s + dy * s, value, {
-      fontFamily: 'Segoe UI, sans-serif', fontSize: uiPx(size), fontStyle: 'bold',
+      resolution: textResolution(), fontFamily: 'Segoe UI, sans-serif', fontSize: uiPx(size), fontStyle: 'bold',
       color, stroke: '#000', strokeThickness: ui(4),
     }).setOrigin(0.5).setScale(s).setDepth(1e6 + 1);
     this.scene.tweens.add({

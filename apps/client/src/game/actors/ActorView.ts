@@ -7,7 +7,7 @@ import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
 import type { ActorState } from '../../state/actor';
 import { progress } from '../../state/progress';
 import { FRAME_MS, JxSprite, type Source } from './PaperDoll';
-import { ui, uiPx, zoomPlate } from '../display';
+import { ui, uiPx, textResolution, zoomPlate } from '../display';
 import { StateDecor } from '../fx/StateDecor';
 import { controlAppearance } from '../fx/controlEffects';
 
@@ -78,7 +78,7 @@ export class ActorView {
     this.y = state.y;
     this.anchor = scene.add.zone(this.x, this.y, 1, 1);
     this.label = scene.add.text(this.x, this.y, '', {
-      fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(13), stroke: '#000', strokeThickness: ui(3),
+      resolution: textResolution(), fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(13), stroke: '#000', strokeThickness: ui(3),
     }).setOrigin(0.5, 1).setDepth(1e6);
     this.bar = scene.add.graphics().setDepth(1e6);
     this.decor = new StateDecor(scene);

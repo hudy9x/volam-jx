@@ -38,6 +38,7 @@ import { Quickbar } from './quickbar';
 import { StatusIcons } from './status';
 import { Vitals } from './vitals';
 import './hud.css';
+import { bindHudViewport } from '../kit/viewport';
 
 /** Hệ thống menu actions that leave the world (app/App.ts). */
 export interface AppActions {
@@ -88,6 +89,8 @@ export class Hud implements WorldUi {
 
   constructor(parent: HTMLElement, private loadingScreen: LoadingScreen) {
     this.root = mount(parent, '<div id="hud" class="hidden"></div>');
+    bindHudViewport(this.root);
+    this.root.addEventListener('viewportchange', () => tooltip.hide());
     const ctx: HudContext = {
       actions: () => this.actions, self: () => this.self, notice: text => this.notice(text), openBag: () => this.bag.toggle(true),
       toggleBag: () => this.bag.toggle(),

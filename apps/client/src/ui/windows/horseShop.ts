@@ -100,7 +100,7 @@ function fillPreview(el: HTMLElement, horseRow: number): void {
   el.dataset.row = String(horseRow);
   el.replaceChildren();
   if (horseRow < 0) return;
-  const box = el.getBoundingClientRect();
+  const box = { width: el.clientWidth, height: el.clientHeight };
   const k = 1, cx = (box.width || 196) / 2, cy = (box.height || 170) - 14; // 1:1, foot point inside the box
   for (const part of horsePreview(horseRow)) {
     const [w, h, bx, by, perDir, dirs, cols] = part.meta;

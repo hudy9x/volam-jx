@@ -1,0 +1,428 @@
+{
+  "checks": [
+    {
+      "test": "frame",
+      "width": 1500,
+      "height": 1001,
+      "v": {
+        "buffer": [
+          2560,
+          1600
+        ],
+        "samples": 0,
+        "canvas": {
+          "x": 0,
+          "y": 31.75,
+          "width": 1500,
+          "height": 937.5
+        },
+        "hud": {
+          "x": 0,
+          "y": 31.75,
+          "width": 1500,
+          "height": 937.5
+        },
+        "world": [
+          1280,
+          800
+        ],
+        "zoom": 2,
+        "label": {
+          "size": "13px",
+          "res": 2
+        },
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "viewport": "1280x800",
+        "scroll": false
+      }
+    },
+    {
+      "test": "world-pointer",
+      "at": {
+        "x": 1095,
+        "y": 519,
+        "wx": 5458,
+        "wy": 9339
+      },
+      "order": {
+        "type": "move",
+        "msg": {
+          "x": 5458,
+          "y": 9339
+        }
+      }
+    },
+    {
+      "test": "frame",
+      "width": 1920,
+      "height": 1080,
+      "v": {
+        "buffer": [
+          2560,
+          1440
+        ],
+        "samples": 0,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "hud": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "world": [
+          1280,
+          720
+        ],
+        "zoom": 2,
+        "label": {
+          "size": "13px",
+          "res": 2
+        },
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "viewport": "1280x720",
+        "scroll": false
+      }
+    },
+    {
+      "test": "world-pointer",
+      "at": {
+        "x": 1402,
+        "y": 562,
+        "wx": 5459,
+        "wy": 9337
+      },
+      "order": {
+        "type": "move",
+        "msg": {
+          "x": 5459,
+          "y": 9337
+        }
+      }
+    },
+    {
+      "test": "frame",
+      "width": 800,
+      "height": 600,
+      "v": {
+        "buffer": [
+          2560,
+          1600
+        ],
+        "samples": 0,
+        "canvas": {
+          "x": 0,
+          "y": 50,
+          "width": 800,
+          "height": 500
+        },
+        "hud": {
+          "x": 0,
+          "y": 50,
+          "width": 800,
+          "height": 500
+        },
+        "world": [
+          1280,
+          800
+        ],
+        "zoom": 2,
+        "label": {
+          "size": "13px",
+          "res": 2
+        },
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "viewport": "1280x800",
+        "scroll": false
+      }
+    },
+    {
+      "test": "world-pointer",
+      "at": {
+        "x": 584,
+        "y": 310,
+        "wx": 5458,
+        "wy": 9340
+      },
+      "order": {
+        "type": "move",
+        "msg": {
+          "x": 5458,
+          "y": 9340
+        }
+      }
+    },
+    {
+      "test": "frame",
+      "width": 390,
+      "height": 844,
+      "v": {
+        "buffer": [
+          2560,
+          1600
+        ],
+        "samples": 0,
+        "canvas": {
+          "x": 0,
+          "y": 300.125,
+          "width": 390,
+          "height": 243.75
+        },
+        "hud": {
+          "x": 0,
+          "y": 300.125,
+          "width": 390,
+          "height": 243.75
+        },
+        "world": [
+          1280,
+          800
+        ],
+        "zoom": 2,
+        "label": {
+          "size": "13px",
+          "res": 2
+        },
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "viewport": "1280x800",
+        "scroll": false
+      }
+    },
+    {
+      "test": "world-pointer",
+      "at": {
+        "x": 285,
+        "y": 427,
+        "wx": 5459,
+        "wy": 9339
+      },
+      "order": {
+        "type": "move",
+        "msg": {
+          "x": 5459,
+          "y": 9339
+        }
+      }
+    },
+    {
+      "test": "frame",
+      "width": 2560,
+      "height": 1440,
+      "v": {
+        "buffer": [
+          2560,
+          1440
+        ],
+        "samples": 0,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "hud": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "world": [
+          1280,
+          720
+        ],
+        "zoom": 2,
+        "label": {
+          "size": "13px",
+          "res": 2
+        },
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "viewport": "1280x720",
+        "scroll": false
+      }
+    },
+    {
+      "test": "world-pointer",
+      "at": {
+        "x": 1869,
+        "y": 749,
+        "wx": 5459,
+        "wy": 9335
+      },
+      "order": {
+        "type": "move",
+        "msg": {
+          "x": 5459,
+          "y": 9336
+        }
+      }
+    },
+    {
+      "test": "frame",
+      "width": 1500,
+      "height": 1001,
+      "v": {
+        "buffer": [
+          2560,
+          1600
+        ],
+        "samples": 0,
+        "canvas": {
+          "x": 0,
+          "y": 31.75,
+          "width": 1500,
+          "height": 937.5
+        },
+        "hud": {
+          "x": 0,
+          "y": 31.75,
+          "width": 1500,
+          "height": 937.5
+        },
+        "world": [
+          1280,
+          800
+        ],
+        "zoom": 2,
+        "label": {
+          "size": "13px",
+          "res": 2
+        },
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, Unspecified Version)",
+        "viewport": "1280x800",
+        "scroll": false
+      }
+    },
+    {
+      "test": "letterbox-no-input"
+    },
+    {
+      "test": "drag-dialog",
+      "bag": {
+        "x": 973.828125,
+        "y": 227.453125,
+        "width": 267.1875,
+        "height": 650.9765625
+      }
+    },
+    {
+      "test": "tooltip",
+      "tip": {
+        "x": 826.171875,
+        "y": 186.4375,
+        "width": 398.4375,
+        "height": 163.3392333984375
+      }
+    },
+    {
+      "test": "native-bag-drag",
+      "dragOrders": [
+        {
+          "type": "bagMove",
+          "msg": {
+            "from": 0,
+            "to": 30
+          }
+        }
+      ]
+    },
+    {
+      "test": "bigmap",
+      "bigOrders": [
+        {
+          "type": "move",
+          "msg": {
+            "x": 4353,
+            "y": 5632
+          }
+        }
+      ]
+    },
+    {
+      "test": "minimap"
+    },
+    {
+      "test": "manual-preset"
+    },
+    {
+      "test": "settings-select-and-persistence"
+    },
+    {
+      "test": "native-modal-resize-enter"
+    },
+    {
+      "test": "right-click-target",
+      "enemy": {
+        "id": "perf-monster-3",
+        "x": 366,
+        "y": 104
+      },
+      "cast": [
+        {
+          "type": "cast",
+          "msg": {
+            "skill": 14,
+            "targetId": "perf-monster-3",
+            "x": 5110,
+            "y": 9009,
+            "lock": false
+          }
+        }
+      ]
+    },
+    {
+      "test": "DPR1-mouse",
+      "at": {
+        "x": 956,
+        "y": 384,
+        "wx": 5420,
+        "wy": 9323,
+        "buffer": [
+          2560,
+          1440
+        ]
+      },
+      "move": {
+        "type": "move",
+        "msg": {
+          "x": 5420,
+          "y": 9323
+        }
+      }
+    },
+    {
+      "test": "DPR3-touch",
+      "at": {
+        "x": 561,
+        "y": 195,
+        "wx": 5421,
+        "wy": 9323,
+        "buffer": [
+          2560,
+          1440
+        ]
+      },
+      "move": {
+        "type": "move",
+        "msg": {
+          "x": 5421,
+          "y": 9323
+        }
+      }
+    },
+    {
+      "test": "dev-scene-legacy-frame",
+      "dv": {
+        "frame": null,
+        "buffer": [
+          800,
+          600
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

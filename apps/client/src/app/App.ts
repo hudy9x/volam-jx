@@ -155,7 +155,7 @@ export async function startApp(root: HTMLElement): Promise<void> {
     const route = params.has('gallery') ? 'gallery' : params.has('skills') ? 'skills' : null;
     if (route) {
       loading.set('Đang tải…');
-      void Promise.all([import('../dev'), bootGame(() => undefined)]).then(([dev]) => {
+      void Promise.all([import('../dev'), bootGame(() => undefined, false)]).then(([dev]) => {
         loading.set(null);
         if (route === 'gallery') dev.startGallery(); else dev.startSkillLab();
       });

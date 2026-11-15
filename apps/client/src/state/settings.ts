@@ -1,6 +1,7 @@
 import { DEFAULT_AUTO, type AutoSettings } from '@vltk/shared';
 import { snapZoom, type ZoomPct } from '../game/display';
 import { storage } from '../platform/storage';
+import { viewportChoice, type ViewportChoice } from '../platform/viewport';
 
 /**
  * Player options of this device (Tùy chỉnh): sound volumes, mute, interface toggles, auto-fight options (shared
@@ -17,13 +18,14 @@ export interface Settings extends AutoSettings {
   minimap: boolean;
   /** Độ phóng camera (%): 100 | 150 | 200. */
   zoom: ZoomPct;
+  viewport: ViewportChoice;
   /** Tổ đội: tự từ chối mọi lời mời. */
   teamRefuse: boolean;
 }
 
 const KEY = 'vltk.settings';
 export const DEFAULT_SETTINGS: Settings = {
-  ...DEFAULT_AUTO, mute: false, master: 80, sfx: 80, music: 50, minimap: true, zoom: 100, teamRefuse: false,
+  ...DEFAULT_AUTO, mute: false, master: 80, sfx: 80, music: 50, minimap: true, zoom: 100, viewport: 'auto', teamRefuse: false,
 };
 
 type Listener = (s: Settings) => void;
@@ -37,6 +39,7 @@ class SettingsStore {
     // Older builds kept the minimap flag on its own.
     if (storage.get('vltk.minimap.hidden') === '1' && saved.minimap === undefined) saved.minimap = false;
     if (saved.zoom !== undefined) saved.zoom = snapZoom(saved.zoom);
+    saved.viewport = viewportChoice(saved.viewport);
     this.value = { ...DEFAULT_SETTINGS, ...saved, ...DEFAULT_AUTO };
   }
 
@@ -46,6 +49,7 @@ class SettingsStore {
 
   set(patch: Partial<Settings>): void {
     if (patch.zoom !== undefined) patch = { ...patch, zoom: snapZoom(patch.zoom) };
+    if (patch.viewport !== undefined) patch = { ...patch, viewport: viewportChoice(patch.viewport) };
     this.value = { ...this.value, ...patch };
     const global = { ...this.value } as Partial<Settings>;
     for (const key of Object.keys(DEFAULT_AUTO) as (keyof AutoSettings)[]) delete global[key];

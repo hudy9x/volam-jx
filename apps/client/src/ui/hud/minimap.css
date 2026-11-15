@@ -15,7 +15,7 @@
 #hud-minimap.collapsed #minimap, #hud-minimap.collapsed .mm-foot { display: none; }
 #hud-minimap.collapsed .mm-head { margin-bottom: 0; }
 
-@media (max-width: 720px) {
+@container (max-width: 720px) {
   #minimap { width: 128px; height: 128px; }
   #hud-map { max-width: 80px; }
 }

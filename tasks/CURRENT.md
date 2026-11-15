@@ -1,3 +1,36 @@
+## 2026-11-15 · Commit viewport/HUD/input theo USER
+
+- USER yêu cầu commit code hiện tại, thay chỉ đạo chưa commit trước đó. Commit `feat(client): add fixed viewports and synchronize HUD input` (mã xem git log), nền727a7e1; không push.
+- Gồm code viewport2preset/render2×/MSAAoff, HUD/input/maps/modal, kiểm thử, tài liệu và dữ liệu A/B hiện tại; kế hoạch06 giữ trạng thái đề xuất ở các phần chưa triển khai.
+- Typecheck/build, viewport2/effects18/speed5 và24kiểm Chromium đã đạt ở lượt triển khai; mã không đổi từ lượt đó. Kiểm diff và graph trước commit. Chưa WebKit/native/điện thoại thật; không thêm culling hoặc PF2/PF3.
+
+## 2026-11-15 · Triển khai2viewport/MSAAoff + HUD/input theo USER (chưa commit)
+
+- USER đã chốt1280×720/1280×800, render2×/MSAAoff, triển khai HUD/input cùng khung và **không commit**. HEAD727a7e1/main giữ nguyên; giữ kế hoạch06 untracked và dữ liệu/tài liệu A/B trước.
+- `platform/viewport.ts` nguồn2preset/renderScale2/layout fit và watch; Tùy chỉnh cóauto/720/800, lưu/sanitize. Canvaschỉ2560×1440/2560×1600, fit/căn giữa/viền trống, không nhânDPR/cỡmàn; camera2×zoom100/150/200. Sửa Scale.NONE để không giữ CSSheightcũ lúc zoomcanvas=1. Devgallery/skill-lab/maptest giữ khung riêng; login/characters không đổi.
+- HUD1280×H transformtheofit, CSS--hud-w/h/containerquery. LocalPoint quy client→HUD cho dialog/tooltip/skillpopup/chatpicker/gridgrab/drop; cửa sổ clamp và ResizeObserver khi đổi nội dung; modal tiềm năngnative tự căn/scale vìtoplayer. Textworlddùng13pxlogical/resolution2, khôngnhânDPR; minimap/bigmapbackingDPR×fit. Pointerđượcđổi theo camerahiệntại, viềntrốngkhônggửilệnh. Khôngsửa gameplay/server/asset/culling/PF2/PF3/nộisuy.
+- Kiểm đạt: typecheck/build (cảnhbáochunklớncũ), test:viewport2 + effects18 + speed5; Chromium/MetalM1Max **24checks**, khung1500/1920/800/390/2560 và resizevềCSSzoom1, worldclick/chọnquáichuộtphải/zoom, dialogdrag/tooltip/nativebagMove0→30, bigmap/minimap, Tab/Esc, presetselect/reload, nativeModalresize/focus/Enter12điểm, DPR1mouse/DPR3touchmôphỏngngang844×390, skilllab800×600khungcũ; khôngpageerror. Lệnh chỉ kiểm phía client, chặn trước áp vào thế giới thử, chưa combat/serverflow mới.
+- Đã xemảnh viewport; dữliệubền `docs/performance/measurements/2026-11-15-viewport-implementation/` và báo cáo02§9. Smoke1lượt4s/preset camera tựbámnhânvật khoảng51,7/55,1FPS, bufferđúng/MSAA0; khôngphảiA/Bđủlặp hoặc bằngchứng800nhanhhơn720. ChưaWebKit/wrappernative/điệnthoạithật; GD4 vẫnthiếubốtụcchạm, fixedHUDthu nhỏkhônghoànthànhMobileUI.
+- Server2568/Vite5174/browser/DB/tài khoản/spawn thửriêng; đãdừng, khôngđụng2567/5173/DBthật. Harness/ảnhđầyđủtạm/tmp/jx-viewport*. GitNexusimpactcácAPIgame/UIphạmvirộngCRITICAL/HIGH, tooltipUNKNOWNđãđốichiếucallersthật; graphđãrefreshvàkiểmthayđổi, khôngcoimứccriticallàlỗihaybỏquaảnhhưởng. AGENTS/README/ui-platforms/architecture đãghi quyếtđịnhmới; PF10xong, PF1vẫnmộtphần. Khôngcommit/push.
+
+## 2026-11-15 · Đo A/B canvas/MSAA theo USER, chờ chốt viewport
+
+- USER duyệt đo A/B độ phân giải canvas và MSAA, báo kết quả trước khi chốt viewport; chưa duyệt triển khai tối ưu. HEAD `727a7e1`, giữ kế hoạch06 untracked và tài liệu điều tra trước.
+- Hoàn tất32lượt hợp lệ trên Chromium151 mở cửa sổ thật, ANGLE Metal/Apple M1Max/WebGL1; loại headless vì probe dùng SwiftShader CPU. Server2568/Vite5174/DB/tài khoản/spawn riêng `/tmp/jx-perf-ab`; không tác động game2567/5173. Biến thể chỉ qua Vite transform trong bộ nhớ, không sửa source app; bootGame impactCRITICAL (2caller/7process/3module) đã kiểm và giữ phạm vi thử riêng.
+- Ma trận24lượt=4backing×MSAA4/0×3lượt6s, camera cùng3000×2002world; chuẩn hóa residency trước đo, cùng49actor/42ground/503piece/285visible/568renderList. 6,006Mpx MSAA4→off:35,9→39,5FPS trung vị, GPUquery13,46→10,42ms (~-22,6%), frame>33,33ms14,5→2,7%. Sau tắtMSAA, giảm xuống0,961Mpx chỉ39,5→41,5FPS (~+5,1%), không đủ để hứa60FPS; CPU1–1,2ms. Không dùng lượt thăm dò có số ground khác nhau làm kết quả cuối.
+- Ma trận viewport8lượt=1280×720/1280×800×1/2××2lượt6s, MSAAoff: khung720 1×54,9FPS/2×54,3; khung800 1×54,1/2×51,0. RenderList335/350 và ground20; FOV nhỏ thực sự nên không quy mọi chênh giữa hai ma trận thành giảm pixel. GPUtimer mỗi8frame; tổng8.412frame/1.037GPUmẫu, không disjoint/pageerror; buffer và MSAA đúng. Không benchmark combat/missile/di chuyển/64người/native/mobile.
+- Ảnh2× rõ hơn1×; crop ground tĩnh1300×240pixel RGB giống hệt giữa MSAAon/off ở backing6M (chỉ vùng kiểm này). Đề xuất CHƯA CHỐT:2preset1280×720(16:9)/1280×800(16:10), mặc định2×+MSAAoff cho máy tương tự, backing3,69/4,10Mpx;1×cho giảm tải sau kiểm máy yếu/Mobile. Chỉ1preset ưu tiên tốc chọn720;800thêm80worldpx chiều cao. Chưa HUD/nameplate/input/resize hoàn thiện, chưa đổi1:1 ứng dụng thật hoặc culling.
+- Báo cáo `docs/performance/02-do-luong.md` §8; mẫu gốc/tổng hợp/ảnh bền ở `docs/performance/measurements/2026-11-15-canvas-msaa/`. Runner/fixture tạm `/tmp/jx-perf-ab`. Browser/server thử đã đóng; không đổi DB thật/asset/config/source, không commit/push. PF1 vẫn một phần: chưa overlay/các mốc tải/2chếđộmạng/cache đầy đủ. Chờ USER chốt viewport và duyệt mã; các bước sau còn culling/PF2/PF3 và kiểm compositor/draw-call nếu cần.
+
+## 2026-11-15 · Điều tra trace hiệu suất và viewport cố định (chưa sửa mã)
+
+- USER yêu cầu điều tra `Trace-20261114T210657.json` và docs/performance, nghi canvas lớn/thiếu culling, muốn1–2khung viewport cố định. HEAD `727a7e1`, nhánh thực tế main; mới hơn mốc đầu CURRENT. Giữ nguyên `docs/performance/06-render-gpu-va-chuyen-dong.md` untracked có sẵn; nội dung kế hoạch không là ủy quyền triển khai trong lượt này.
+- Đã đọc docs01–06, phân tích lại65.389events/8,135s:139rAF≈17,09FPS, khoảngframe median57,944/p9562,399ms; callback sau profiler median2,453/p952,797ms. Task274msđầu chứa CpuProfiler270,562ms; GC4lần tổng2,491ms. Đường đồ họa là nghi vấn mạnh, không gọi walltimeGPUTask là %GPUphầncứng hoặc khẳng định fill-rate/MSAA4× của phiên trace.
+- Trace có viewport1500×1001 CSS/DPR2; mã hiện tại backing3000×2002=6,006Mpx. Ground chỉ streaming384/KEEP1400, khôngcull; object cócull+96/24px; ActorView mọiactor nhậnđược vẫn render/plate/xinsheet9nhóm, khôngxét camera. Phaser4.2.1 plainImage không tự cull biên; GPU vẫn clipping nên submitngoàimàn khôngđồngnghĩa tôpixeltoànmap.
+- Harness Chromium/Phaser thật tại5174, khônggameServer/DB: groundtại20000,20000 vẫnvisible/renderWebGLStep/renderList; objectngoàiviewẩn, objecttrongviewhiện; canvas/buffer3000×2002đúng. Context thử antialiastrue/SAMPLES4, khônggán cho phiêntrace. Khôngpageerror; browser/server thửđãđóng. Script/sốliệu `/tmp/jx-perf-investigation/`; khôngđoFPSgameA/B/native/mobile.
+- Kết quả bền ở docs/performance/02-do-luong.md §4/§7. ĐềxuấtCHƯADUYỆT1280×720/1280×800 và giới hạnbackingđộc lậpDPR;1×giảmpixel83–85%,2×32–39%, khôngdựbáoFPS. ChỉcốđịnhworldView/CSSkhôngđủ. ChờUSERduyệttriểnkhai và chọnđánhđổinét/tỉlệ/viềntrống; Web/Desktopchung, MobilecầnHUDchạm/ngânsáchriêng. PF1chuyểnnghiêncứumộtphần, cònoverlay/tải/cache/2chếđộmạng.
+- GitNexusCLI cậpnhật graphđến727a7e1, query/context + nguồnthật; cógiớihạnflow/bỏdata.genlớn. Khôngsửamãứngdụng/asset/DB/1:1, khôngcommit/push; chỉ docs/tracking. ChưathựchiệncácbướcR1–R6trong06.
+
 ## 2026-11-15 · Tách module hiệu ứng và commit theo USER
 
 - USER yêu cầu tổ chức độc lập, tài liệu AI tự tra cứu và commit code hiện tại. Commit phần hiệu ứng + refactor + docs/tests với tiêu đề `feat(effects): render control states and isolate effect formulas` (mã xem git log); không push. Giữ scenario untracked không liên quan ngoài commit. HEAD nền6d8df48.
@@ -289,7 +322,7 @@ Server dev của người dùng (nếu đang chạy từ đường dẫn cũ) ph
 | Gameplay | GP | 3 | 7 | 8 | 1 | GP1–GP2 cấp / tiềm năng; GP4 công thức sát thương (⏸) |
 | Event và nhiệm vụ | SK | 0 | 1 | 10 | 0 | SK1 đang nghiên cứu SHXT, cao cấp trước; thiếu script điều phối/điểm/thưởng; chưa có gameplay |
 | Hạ tầng | HT | 2 | 1 | 7 | 0 | HT1 đóng gói Desktop / Mobile |
-| Hiệu năng tải (cache) | PF | 2 | 0 | 6 | 2 | **Cache còn dở:** PF6 server thật phục vụ asset (⏸ chờ chọn nginx / Caddy / CDN), PF7 Desktop / Mobile (⏸ chờ HT1), PF8 đo + kiểm chứng đủ (sau PF1), PF9 việc nhỏ (CSS chưa `?v=`); PF1–PF3 chưa làm |
+| Hiệu năng tải (cache) | PF | 3 | 1 | 5 | 2 | **Cache còn dở:** PF6 server thật phục vụ asset (⏸ chờ chọn nginx / Caddy / CDN), PF7 Desktop / Mobile (⏸ chờ HT1), PF8 đo + kiểm chứng đủ (sau PF1), PF9 việc nhỏ (CSS chưa `?v=`); PF1 có trace/A/B, chưa overlay/đo tải đầy đủ; PF10viewport/HUD/input đã xong2026-11-15; PF2–PF3/culling chưa làm |
 | Bot + hiệu năng server | BT | 5 | 1 | 5 | 0 | **Phần 1 bot xong** (vòng 35, `/?bots` + `npm run bots -- <kịch bản>`); Phần 2 đo đếm: BT1 số đo → BT9 kịch bản đo → BT5 baseline → BT6 sửa nghẽn |
 
 Người dùng hỏi **"thống kê công việc"**: in bảng trên (đếm lại từ `BACKLOG.md`) + liệt kê mọi mục 🟡 / ⬜ / ⏸ đáng chú ý, **luôn có

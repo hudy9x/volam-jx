@@ -1,5 +1,5 @@
 /* Who reacted to a chat line (ui/windows/chatReacts.ts). */
-#chat-reacts-dlg { width: min(320px, calc(100vw - 32px)); }
+#chat-reacts-dlg { width: min(320px, calc(var(--hud-w, 100vw) - 32px)); }
 .cr-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding-bottom: 6px; border-bottom: 1px solid #5a4d28; margin-bottom: 6px; }
 .cr-tab { padding: 2px 8px; background: none; border: 0; border-bottom: 2px solid transparent; color: #e8e2cf; cursor: pointer; font: inherit; }
 .cr-tab.on { border-bottom-color: #ffd96a; color: #ffd96a; }

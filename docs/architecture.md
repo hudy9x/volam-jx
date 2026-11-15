@@ -77,6 +77,7 @@ state/            dùng chung cho game và giao diện: settings.ts (Tùy chỉn
                   Mua / Bán) · store.ts (Store<T> có watch)
 input/            keymap.ts (bảng phím duy nhất); tự động đánh = shared `auto/AutoPlay.ts` (một nguồn lệnh như chuột / phím, cũng là bộ não bot)
 platform/         storage.ts (localStorage có try/catch; thay bằng kho native khi đóng gói Desktop / Mobile) · assetCache.ts
+                  viewport.ts (2preset, render2×, layout fit và thông báo đổi khung dùng chung game/UI)
                   (đăng ký + nói chuyện với Service Worker, chỉ bản build web) · sw/ (sw.ts → /sw.js, tsconfig riêng lib WebWorker)
 art/              tra cứu hình gốc dùng chung: jx/ (paper-doll, sheet, data.gen.ts) · icons.ts · cursors.ts (+ .gen) ·
                   assets.ts (**assetUrl()**: mọi URL tới public/assets đi qua đây, gắn `?v=` theo manifest — đừng ghép chuỗi 'assets/…')

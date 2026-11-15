@@ -1,12 +1,15 @@
 /**
- * The canvas is rendered at device pixels (1 art pixel = 1 screen pixel, as in the original client) even when
- * the OS scales the page (125 %, 150 % …). World-space text and bars are sized with `ui()` so they stay
- * readable; when the camera zooms in (100 % – 300 %), world-space labels and HP bars scale down via `ZOOM_PLATES`
- * so they stay proportional to the character instead of blowing up.
+ * The game uses a fixed world frame rendered at 2x, independent of device DPR. Labels/bars use world units;
+ * dev scenes keep their device-pixel sizing. Camera zoom steps compensate labels via ZOOM_PLATES.
  */
+import { gameViewport, RENDER_SCALE } from '../platform/viewport';
+
 export const DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-export const ui = (px: number) => Math.round(px * DPR);
+/** World labels use world units; dev scenes retain their device-pixel layout. */
+export const ui = (px: number) => Math.round(px * (gameViewport() ? 1 : DPR));
 export const uiPx = (px: number) => `${ui(px)}px`;
+export const textResolution = () => gameViewport() ? RENDER_SCALE : 1;
+export const worldRenderScale = () => gameViewport() ? RENDER_SCALE : 1;
 
 /** Fixed camera zoom levels (%) selectable in Tùy chỉnh and via mouse wheel. */
 export const ZOOM_STEPS = [100, 150, 200] as const;

@@ -6,6 +6,7 @@ import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
 import './bigmap.css';
 import { assetUrl } from '../../art/assets';
+import { hudSize } from '../kit/viewport';
 
 const REDRAW_MS = 150;
 
@@ -54,7 +55,9 @@ export class BigMap {
       const [x, y] = this.toWorld(e);
       $('bigmap-pos').textContent = `Tọa độ ${Math.round(x / 8)}/${Math.round(y / 16)}`;
     });
-    window.addEventListener('resize', () => { if (this.isOpen) this.layout(); });
+    const fit = () => { if (this.isOpen) this.layout(); };
+    window.addEventListener('resize', fit);
+    parent.addEventListener('viewportchange', fit);
   }
 
   get isOpen(): boolean {
@@ -89,9 +92,10 @@ export class BigMap {
     const { width: mw, height: mh } = this.meta.raw.size;
     // Room for the window frame (jade border, title bar, footer) and the dev spawn editor when open.
     const side = $('spawn-editor')?.classList.contains('hidden') === false ? 312 : 0;
-    const maxW = window.innerWidth * 0.94 - 60 - side, maxH = window.innerHeight * 0.9 - 100;
+    const size = hudSize();
+    const maxW = size.width * 0.94 - 60 - side, maxH = size.height * 0.9 - 100;
     const css = Math.min(maxW / mw, maxH / mh);
-    const dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+    const dpr = Math.max(1, Math.min(4, (window.devicePixelRatio || 1) * (this.canvas.closest<HTMLElement>('#hud')?.getBoundingClientRect().width || size.width) / size.width));
     this.canvas.style.width = `${Math.round(mw * css)}px`;
     this.canvas.style.height = `${Math.round(mh * css)}px`;
     this.canvas.width = Math.round(mw * css * dpr);

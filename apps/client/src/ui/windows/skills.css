@@ -1,6 +1,6 @@
 #skill-panel {
   width: max-content;
-  max-width: calc(100vw - 16px);
+  max-width: calc(var(--hud-w, 100vw) - 16px);
 }
 
 /* kỹ năng: lưới theo cấp, mỗi cột rộng đúng bằng ô icon skill (40px) */
@@ -242,11 +242,11 @@
 #skill-description {
   top: 24px;
   width: 380px;
-  max-width: calc(100vw - 16px);
+  max-width: calc(var(--hud-w, 100vw) - 16px);
 }
 
 .sk-description-body {
-  max-height: calc(100dvh - 140px);
+  max-height: calc(var(--hud-h, 100vh) - 140px);
   overflow-y: auto;
   touch-action: pan-y;
   padding: 12px 16px;

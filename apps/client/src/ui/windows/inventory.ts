@@ -12,6 +12,7 @@ import { getActiveGridDrag, gridCellAt, setActiveGridDrag } from '../kit/itemGri
 import { moneyHtml, setMoney } from '../kit/money';
 import { setSlotIcon } from '../kit/slot';
 import { tooltip } from '../kit/tooltip';
+import { localPoint } from '../kit/viewport';
 import type { HudContext } from '../hud/context';
 import { showItemTip } from '../tips/itemTip';
 import { askSell } from './shop';
@@ -214,8 +215,7 @@ export class InventoryWindow {
     el.addEventListener('contextmenu', e => { e.preventDefault(); wearOrUse(); });
     el.addEventListener('dragstart', e => {
       tooltip.hide();
-      const r = el.getBoundingClientRect();
-      setActiveGridDrag({ source: 'bag', index: i, grab: [e.clientX - r.left, e.clientY - r.top] });
+      setActiveGridDrag({ source: 'bag', index: i, grab: localPoint(el, e.clientX, e.clientY) });
       e.dataTransfer?.setData('text/bag', String(i));
       if (usableItem(def)) e.dataTransfer?.setData('text/item', item.def);
     });

@@ -3,7 +3,7 @@
 /* One block: a header strip (tabs · online · fold) on the body; folded = the strip alone, as wide as its content.
    Sits right on the quick bar (92 px, scaled by --qb like it). */
 #hud-chat {
-  position: absolute; left: 8px; bottom: calc(92px * var(--qb, 1) + 4px); width: min(400px, calc(100vw - 16px));
+  position: absolute; left: 8px; bottom: calc(92px * var(--qb, 1) + 4px); width: min(400px, calc(var(--hud-w, 100vw) - 16px));
   display: flex; flex-direction: column; pointer-events: auto;
   font: 12px Tahoma, sans-serif; color: var(--text);
 }
@@ -60,7 +60,7 @@
 #chat-input::placeholder { color: #5f6a62; }
 #chat-input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 4px #ffe27a66; }
 #hud-chat.folded .chat-body { display: none; }
-@media (max-width: 700px) { .chat-log { height: 96px; } .chat-tab { min-width: 64px; } }
+@container (max-width: 700px) { .chat-log { height: 96px; } .chat-tab { min-width: 64px; } }
 
 /* Hệ thống lines: colour by what happened (LogMsg.kind) */
 .sys-kill .chat-text { color: #ff9a6a; }

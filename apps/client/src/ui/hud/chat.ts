@@ -6,6 +6,7 @@ import { storage } from '../../platform/storage';
 import { $, mount } from '../kit/dom';
 import type { HudContext } from './context';
 import './chat.css';
+import { localPoint } from '../kit/viewport';
 
 const HTML = `
 <div id="hud-chat" class="on-world">
@@ -142,9 +143,10 @@ export class ChatBox {
       pick.appendChild(b);
     }
     $('hud-chat').appendChild(pick);
-    const box = $('hud-chat').getBoundingClientRect(), a = anchor.getBoundingClientRect();
-    pick.style.left = `${Math.max(0, Math.min(a.left - box.left - 60, box.width - 210))}px`;
-    pick.style.top = `${a.top - box.top - 36}px`;
+    const box = $('hud-chat'), a = anchor.getBoundingClientRect();
+    const [x, y] = localPoint(box, a.left, a.top);
+    pick.style.left = `${Math.max(0, Math.min(x - 60, box.clientWidth - 210))}px`;
+    pick.style.top = `${y - 36}px`;
     this.picker = pick;
     setTimeout(() => document.addEventListener('pointerdown', e => { if (!pick.contains(e.target as Node)) pick.remove(); }, { once: true }));
   }

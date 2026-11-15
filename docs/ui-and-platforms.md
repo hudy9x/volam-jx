@@ -106,8 +106,21 @@ Client gốc JX1 vẽ giao diện trong engine vì công nghệ thời đó; kh�
    toàn màn, giữ lâu thay rê chuột, không có chuột phải). Thanh phím gốc rộng 800px, ô 36px — điện thoại ngang khoảng 844 CSS px
    và ngón tay cần ô ≥ 44px, nên mobile cần bố cục riêng chứ không chỉ thu nhỏ.
 2. **Một lớp nhập liệu:** phím / chuột / chạm (và Auto) đều quy về ý định chung: đi tới, ra chiêu ô X, khóa mục tiêu, mở cửa sổ.
-3. **Hình 1:1 trên điện thoại** (tính toán, chưa thử): canvas theo pixel thiết bị nên điện thoại DPR 3 thấy vùng khoảng 2532×1170
-   (gấp ~3 lần 800×600 gốc), nhân vật cao vài mm. Có thể phải phóng to theo bội số nguyên trên mobile — đụng quy tắc "không đổi cách
-   dựng hình" (`AGENTS.md` §5.5), người dùng quyết khi làm mobile.
+3. **Khung game (USER 2026-11-15):** vùng nhìn cố định1280×720 hoặc1280×800, render2× và fit theo tỉ lệ, độc lập DPR;
+   HUD cũng fit cùng khung. Đã kiểm input cảm ứng mô phỏng Chromium/DPR3, chưa kiểm điện thoại thật. Việc có viewport cố định
+   không thay cho bố cục mobile: chữ/nút của HUD desktop vẫn nhỏ khi cả khung bị thu lại; GD4 còn cần làm riêng.
 4. **Tài nguyên hơn 15 GB** không đóng gói được vào app mobile: tải theo nhu cầu từ server (đang làm vậy) + lưu đệm.
 5. **Thử trên WebKit** ngoài Chromium (iOS, macOS / Tauri).
+
+## 6. Khung game cố định — đã triển khai 2026-11-15
+
+- Hai preset1280×720(16:9)/1280×800(16:10), tự chọn tỉ lệ gần nhất hoặc chọn trong Tùy chỉnh; lưu theo thiết bị.
+- Backing2×=2560×1440/2560×1600, MSAA0, texture filtering hiện tại giữ nguyên. Fit theo tỉ lệ/căn giữa/viền trống;
+  zoom100/150/200thay vùng thế giới trong khung, không thay backing hoặc phóng HUD.
+- `platform/viewport.ts` tính layout và phát thay đổi; game đặt canvas, `ui/kit/viewport.ts` đặt HUD và quy đổi tọa độ.
+  Cửa sổ/tooltip/popup và HTML drag dùng đơn vị HUD; dialog tự kẹp trong khung cả khi nội dung thay đổi.
+  Modal tiềm năng dùng top layer của browser nên tự áp vị trí/tỉ lệ thay vì dựa vào transform của cha.
+- Chữ thế giới dùng13worldpx/resolution2 thay vì13×DPRworldpx; canvas2D bản đồ có backing theo DPR×fit để giữ nét.
+  CSS HUD dùng --hud-w/h, container query theo kích thước logic, không theo toàn cửa sổ.
+- Gallery/skill-lab và maptest không áp khung game; màn đăng nhập/chọn/tạo nhân vật vẫn toàn cửa sổ.
+- Số đo, phạm vi kiểm và giới hạn: [02-do-luong.md §9](performance/02-do-luong.md#9-triển-khai-viewport-hudinput-theo-user--2026-11-15).

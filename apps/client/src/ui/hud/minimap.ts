@@ -1,3 +1,4 @@
+import { localPoint } from '../kit/viewport';
 import { CAMP_COLORS, type Camp } from '@vltk/shared';
 import type { MapMeta } from '@vltk/shared';
 import type { MapActor, ViewRect } from '../../game/ports';
@@ -41,9 +42,8 @@ class Minimap {
     canvas.addEventListener('pointerdown', e => {
       if (!this.meta || e.button !== 0) return;
       e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const px = ((e.clientX - rect.left) / rect.width) * canvas.width;
-      const py = ((e.clientY - rect.top) / rect.height) * canvas.height;
+      const [lx, ly] = localPoint(canvas, e.clientX, e.clientY);
+      const px = lx - canvas.clientLeft, py = ly - canvas.clientTop;
       const x = Math.round(this.win.x + px / this.win.k), y = Math.round(this.win.y + py / this.win.k);
       this.plant(x, y);
       onPick(x, y);
@@ -80,12 +80,19 @@ class Minimap {
     if (!this.meta || now - this.lastDraw < REDRAW_MS) return;
     this.lastDraw = now;
     const { ctx, canvas } = this;
+    const width = canvas.clientWidth, height = canvas.clientHeight;
+    if (!width || !height) return;
+    const fit = canvas.getBoundingClientRect().width / canvas.offsetWidth;
+    const density = Math.max(1, Math.min(4, (window.devicePixelRatio || 1) * fit));
+    const bw = Math.round(width * density), bh = Math.round(height * density);
+    if (canvas.width !== bw || canvas.height !== bh) { canvas.width = bw; canvas.height = bh; }
+    ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
     const { width: mw, height: mh } = this.meta.raw.size;
 
     // Window centred on the camera, clamped to the map (whole map when it is small enough).
     const span = Math.min(SPAN, Math.max(mw, mh));
-    const k = Math.min(canvas.width, canvas.height) / span;
-    const vw = canvas.width / k, vh = canvas.height / k;
+    const k = Math.min(width, height) / span;
+    const vw = width / k, vh = height / k;
     const cx = view.x + view.width / 2, cy = view.y + view.height / 2;
     const wx = mw <= vw ? (mw - vw) / 2 : Math.max(0, Math.min(mw - vw, cx - vw / 2));
     const wy = mh <= vh ? (mh - vh) / 2 : Math.max(0, Math.min(mh - vh, cy - vh / 2));
@@ -93,12 +100,12 @@ class Minimap {
     const toX = (x: number) => (x - wx) * k, toY = (y: number) => (y - wy) * k;
 
     ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, width, height);
     if (this.image) {
       const s = this.image.width / mw; // minimap px per world px
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(this.image, wx * s, wy * s, vw * s, vh * s, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(this.image, wx * s, wy * s, vw * s, vh * s, 0, 0, width, height);
     }
 
     ctx.lineWidth = 1.5;

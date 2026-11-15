@@ -16,6 +16,7 @@ const HTML = `
   <label class="slider">Hiệu ứng <input type="range" min="0" max="100" data-set="sfx" /><span></span></label>
   <label class="slider">Nhạc nền <input type="range" min="0" max="100" data-set="music" /><span></span></label>
   <h4>Giao diện</h4>
+  <label>Khung game <select data-set="viewport"><option value="auto">Tự động theo tỉ lệ màn hình</option><option value="1280x720">1280 × 720 (16:9)</option><option value="1280x800">1280 × 800 (16:10)</option></select></label>
   <label class="check"><input type="checkbox" data-set="minimap" /> Hiện bản đồ nhỏ</label>
   <label class="slider">Độ phóng (%) <input type="range" min="100" max="200" step="50" data-set="zoom" /><span></span></label>
   <h4>Bộ nhớ đệm</h4>

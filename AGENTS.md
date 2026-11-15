@@ -108,8 +108,10 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
    Giao thức nằm trong `packages/shared/src/protocol.ts`.
 4. **Không đụng `public/assets/**` bằng tay**, không đọc hàng loạt (hàng chục nghìn file, ổ `/mnt` rất chậm).
    Dùng tool `gen:*`; đo dung lượng thì tránh `du` toàn thư mục (quá thời gian).
-5. **Hình ảnh 1:1 đã được chấp nhận ("rất tốt")**: canvas theo pixel thật của thiết bị, `roundPixels`, WebP lossless.
-   **Không đổi cách dựng hình.**
+5. **Khung game cố định (USER 2026-11-15):** chỉ **1280×720 /1280×800**, render **2×** (backing2560×1440/2560×1600),
+   **MSAA tắt**, `roundPixels`, ảnh gốc WebP lossless giữ nguyên. Tự chọn theo tỉ lệ cửa sổ hoặc chọn trong Tùy chỉnh;
+   fit/căn giữa, có viền trống, không nhân backing theo DPR/cỡ màn. HUD và input cùng khung. Quyết định này thay cách vẽ
+   toàn cửa sổ theo pixel thiết bị trước đây; dev gallery/skill-lab/maptest giữ khung riêng. Không tự đổi render scale/preset.
 6. **Asset không vào git:** toàn bộ `apps/client/public/assets/` nằm trong `.gitignore` (người dùng yêu cầu 2026-11-12), trừ `portraits/`
    (không có tool sinh). Sinh lại bằng `gen:*` theo `docs/regenerate-assets.md`.
 7. **Vite không được poll `public/assets/**`** (mỗi file tĩnh sẽ mất ~9 s). Vite và server đã bật polling cho WSL
@@ -117,6 +119,13 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 8. Dữ liệu tài khoản ở `apps/server/data/db.json` (bị `.gitignore`); xóa file để reset.
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
+
+- **Viewport game + HUD/input (USER 2026-11-15):** `platform/viewport.ts` là nguồn duy nhất của2preset/renderScale2/layout fit;
+  `game/index.ts` đặt canvas và MSAA, `game/display.ts` dùng world units cho chữ/thanh máu và resolution2, camera=2×zoom100/150/200.
+  HUD dùng khung1280×H và transform theo fit (`ui/kit/viewport.ts`), không dùng tọa độ màn hình trực tiếp cho dialog/tooltip/grid.
+  Tùy chỉnh lưu `viewport=auto|1280x720|1280x800`; CSS trong HUD dùng --hud-w/h và container query. Bản đồ nhỏ/lớn có mật độ pixel riêng;
+  modal tiềm năng native tự căn theo khung. Web/Desktop dùng chung; Mobile chưa có bố cục chạm riêng, không tự hạ render2×.
+  Culling ground/actor, PF2/PF3 và thay đổi nội suy không nằm trong lượt triển khai này. Chi tiết docs/performance/02-do-luong.md §9.
 
 - **Auto buff toàn bộ kỹ năng + bot mặc định bật (USER2026-11-14):** lấy kỹ năng đã học, không phụ thuộc thanh phím/giới hạn2buff; bỏ Ngự Tuyết Ẩn, không spam hỗ trợ giải trạng thái. Hào quang phù hợp đã học, Nga My ưu tiên Bế Nguyệt Phất Trần120 gộp5aura; dừng Auto người chơi trả aura tay. BotTemplate.autoBuff mặc địnhtrue, bot cũ mặc địnhbật; scenario cũfalse cũng migrate bật, scenario mới buffVersion1 giữ lựa chọnfalse rõ ràng. Thiết lập nhân vật hoặc kịch bản mới bỏtick thì không tựbuff/aura. Côn Lôn173/178 dùng Actor.passiveFx riêng, không thêm vàoActiveStates hoặc nhân chỉ số. Chi tiết `docs/auto.md`.
 

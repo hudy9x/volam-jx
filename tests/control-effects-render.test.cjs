@@ -9,7 +9,7 @@ let sprites=[];
 class Sprite{height=80;framesOf(){return 10}render(x,y,d,key,dir,frame){this.frame=frame(10);this.action=key;this.dir=dir;this.visible=true;return true}hide(){this.visible=false}destroy(){this.destroyed=true}constructor(){sprites.push(this)}}
 const visualSource=fs.readFileSync('apps/client/src/game/fx/controlEffects.ts','utf8');
 const visuals=vm.runInNewContext(transformSync(visualSource,{loader:'ts',format:'cjs'}).code+';module.exports',{module:{exports:{}},exports:{}});
-const ActorView=load('apps/client/src/game/actors/ActorView.ts','ActorView',{makeLook:()=>({}),lookKey:()=> 'look',hasNpc:()=>true,JxSprite:Sprite,StateDecor:class{update(){}destroy(){}},ui:x=>x,uiPx:x=>x,zoomPlate:()=>({textScale:1,gapY:2,barBossW:40,barW:30,barH:3,zoom:1}),controlAppearance:visuals.controlAppearance,CAMP_COLORS:{new:'#fff'},resolveSpeed:()=>({cycleMs:800}),SPEED:{basePercent:100},FRAME_MS:1000/18,console});
+const ActorView=load('apps/client/src/game/actors/ActorView.ts','ActorView',{makeLook:()=>({}),lookKey:()=> 'look',hasNpc:()=>true,JxSprite:Sprite,StateDecor:class{update(){}destroy(){}},ui:x=>x,uiPx:x=>x,textResolution:()=>2,zoomPlate:()=>({textScale:1,gapY:2,barBossW:40,barW:30,barH:3,zoom:1}),controlAppearance:visuals.controlAppearance,CAMP_COLORS:{new:'#fff'},resolveSpeed:()=>({cycleMs:800}),SPEED:{basePercent:100},FRAME_MS:1000/18,console});
 
 for(const [kind,boss] of [['player',0],['monster',0],['monster',1],['monster',2]]){
  test(`${kind}/${boss}: control colours, exact frozen frame, thaw and death`,()=>{

@@ -1,3 +1,30 @@
+## 2026-11-15 · Commit viewport/HUD/input theo USER
+
+- USER yêu cầu commit code hiện tại, thay chỉ đạo chưa commit trước đó. Commit `feat(client): add fixed viewports and synchronize HUD input` (mã xem git log), nền727a7e1; không push.
+- Gồm code viewport2preset/render2×/MSAAoff, HUD/input/maps/modal, kiểm thử, tài liệu và dữ liệu A/B hiện tại; kế hoạch06 giữ trạng thái đề xuất ở các phần chưa triển khai.
+- Typecheck/build, viewport2/effects18/speed5 và24kiểm Chromium đã đạt ở lượt triển khai; mã không đổi từ lượt đó. Kiểm diff và graph trước commit. Chưa WebKit/native/điện thoại thật; không thêm culling hoặc PF2/PF3.
+
+## 2026-11-15 · Triển khai viewport2khung/render2×/MSAAoff và đồng bộ HUD/input
+
+- USER chốt1280×720/1280×800, render2×/MSAAoff, duyệt thực hiện và dặn chưa commit. HEAD727a7e1/main giữ nguyên; giữ tài liệu/measurements A/B trước và kế hoạch06 untracked. Không triển khai culling/PF2/PF3 hoặc đổi gameplay.
+- Thêm platform/viewport.ts + ui/kit/viewport.ts, chọn tự động/ghiđè trong Tùy chỉnh và lưu. Canvas2×cố định/fit/căn giữa/viềntrống/resize/zoom; giữdevscenekhungriêng. SửaPhaserScaleNONECSSstaleởzoomcanvas1. HUDlogic1280×H, CSSvars/containerquery, dialog clamp/sizeobserver, tooltip/popups, grab/dropgrid, 2DmapsDPR×fit, nativeModalvịtrí/scale riêng; textworldkhôngnhânDPR/resolution2. Pointer/chuộtphải/touch/viềntrống dùngđúngkhung.
+- Đạt typecheck/build, viewport2/effects18/speed5; 24checksChromiumMetalM1Max:nhiềukíchthước/DPR1/DPR3touch, khung+input+zoom+dialogdrag+tooltip+nativebagMove+bigmap/minimap+Tab/Esc+select/reload+nativepotentialModalresize/focus/Enter; khôngpageerror. Đãxemảnh, rawchecks/ảnh/perfsmokeởmeasurements/2026-11-15-viewport-implementation và02§9. Smoke4s/preset~51,7/55,1FPS chỉxácnhậnbuffer/MSAA, khôngcoilàA/Bhoặchứa60FPS.
+- Schema/server/DB/assetgiữnguyên; thử2568/5174/DBriêng đãdừng. ChưaWebKit/native/điệnthoạithật/luồngcombatserver, GD4 chưa hoànthành. Đãkiểmimpactgraphphạmvirộngvàrefresh/detectcuối, ghiAGENTS/README/architecture/ui-platforms; PF10xong, PF1vẫnmộtphần. Khôngcommit/push theoUSER.
+
+## 2026-11-15 · Đo A/B canvas và MSAA, báo để chốt viewport
+
+- USER duyệt phép đo, chưa triển khai tối ưu. HEAD727a7e1; giữ source ứng dụng và kế hoạch06 có sẵn. BootGame impactCRITICAL, thử biến thể chỉ qua Vite transform trong bộ nhớ trên5174/server2568/DB riêng; không tác động2567/5173/DB thật. HeadedChromium151 dùng MetalM1Max; headlessSwiftShader bị loại khỏi FPS benchmark.
+- 24lượt6s chuẩn hóa cùng workload49actor/42ground/503piece/285visible/568renderList:6,006Mpx MSAA4→off35,9→39,5FPS, GPUquery13,46→10,42ms (-22,6%). Sau tắtMSAA,0,961Mpx41,5FPS, chỉ+5,1% so6M; không coi giảm83%pixel là tăng tương ứng FPS. CPU1–1,2ms. Loại lượt thăm dò chưa đồng nhất ground.
+- 8lượt viewport6s MSAAoff:1280×720 ở1×54,9FPS/2×54,3;1280×800 ở1×54,1/2×51,0. 2×ảnh rõ hơn; cropground1300×240 RGB không đổi do MSAA (chỉ vùng kiểm). Tổng32lượt/8.412frame/1.037mẫuGPU, khôngerror/disjoint; không thử combat/missile/di chuyển/native/mobile. Viewport FOV nhỏ gửi ít object hơn, không so như cùng workload với ma trận pixel.
+- Đề xuất CHƯA CHỐT1280×720/1280×800, render2×+MSAAoff cho Web/Desktop máy tương tự,1×phương án tải thấp; chưa hứa60FPS hoặc chọn cho Mobile. Cần hoàn thiện HUD/nameplate/input/resize khi USER duyệt mã. Báo cáo02§8, raw/tổng hợp/ảnh trong docs/performance/measurements/2026-11-15-canvas-msaa; runner tạm/tmp/jx-perf-ab. Đã dừng browser/server thử; không sửa source/config/asset/DB thật, khôngcommit/push. PF1vẫn một phần, chưa culling hoặc PF2/PF3.
+
+## 2026-11-15 · Điều tra trace hiệu suất, culling và 1–2 viewport cố định
+
+- USER yêu cầu điều tra, chưa triển khai. HEAD727a7e1; giữ kế hoạch06 untracked cósẵn. Kết quả chi tiết và giới hạn ở docs/performance/02-do-luong.md §4/§7, README và PF1 đãcậpnhật.
+- Trace14/11 8,135s/65.389events:17,09FPS, khoảngframe57,944ms nhưng callbackmedian2,453ms; profiler gây taskdàiđầu, GC2,491ms. Có dấuhiệu nghẽn đườngđồhọa; khôngcoiwalltimeGPUtask làhardwareutilization/MSAA4× đãđo. Viewport1500×1001/DPR2 → backingtheomãhiện3000×2002~6Mpx.
+- Source + Chromium/Phaser thật5174: groundngoàiviewvẫnvàoRenderStep, objectngoàiviewđượcẩn; ActorView khôngcamera-cull và xin9nhómđộngtác. Hardwareclipping vẫnloạipixelngoàimàn; khônghứacullinggiảmfill-rate tươngứngsốobject. HarnesskhôngWS/DB, khôngpageerror, đóngbrowser/server; outputtạm/tmp/jx-perf-investigation. ChưaA/Bcảnhgame/native/mobile.
+- Đềxuất2preset1280×720/1280×800 + ngânsáchbackingđộc lậpDPR;1×bớtpixel83–85%,2×32–39%, khôngphảimứcFPSđãđo. Cầnchốtđánhđổinét/kíchthước/viềnvàkiểmHUD/input. Khôngcoikếhoạch06hoặcnhữngquyếtđịnhghitrongđólàlệnhtriểnkhaihiệntại. Chưasửamã/asset/DB/1:1, khôngcommit/push; graphđãcậpnhật727a7e1cógiớihạnflow.
+
 ## 2026-11-15 · Tách module hiệu ứng và commit theo USER
 
 - USER yêu cầu tổ chức độc lập, tài liệu AI tự tra cứu và commit code hiện tại. Commit phần hiệu ứng + refactor + docs/tests với tiêu đề `feat(effects): render control states and isolate effect formulas` (mã xem git log); không push. Giữ scenario untracked không liên quan ngoài commit. HEAD nền6d8df48.
