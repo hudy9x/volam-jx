@@ -17,3 +17,6 @@ apps/client/tools/.cache/asset-hashes.json
 .gitnexus
 # Uploaded map sources and exported builds stay local.
 tools/map-creator/projects/
+
+# Auth secret when server is launched from repository root (integration tests/dev).
+/data/secret

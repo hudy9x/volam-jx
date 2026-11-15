@@ -1,9 +1,10 @@
 import { Server } from 'colyseus';
+import { refreshMapRegistry, registrySnapshot } from './mapRegistry.js';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { Encoder } from '@colyseus/schema';
 import fs from 'node:fs';
 import path from 'node:path';
-import { MAP_ROOM, setNavLoader, setSpawnLoader, type NavFile, type SpawnFile } from '@vltk/shared';
+import { MAP_ROOM, mapAssetSuffix, setNavLoader, setSpawnLoader, type NavFile, type SpawnFile } from '@vltk/shared';
 import { registerAuthRoutes } from './account/auth.js';
 import { db } from './account/db.js';
 import { registerDevRoutes } from './dev/devtools.js';
@@ -15,9 +16,11 @@ import { MapRoom } from './net/MapRoom.js';
 // default 8 KB encode buffer.
 Encoder.BUFFER_SIZE = 256 * 1024;
 
+refreshMapRegistry(true);
+
 // Map grids live next to the generated map art (env.ts MAPS_DIR); monster spawns in SPAWNS_DIR.
 setNavLoader(mapId => {
-  const file = path.join(MAPS_DIR, String(mapId), 'nav.json');
+  const file = path.join(MAPS_DIR, mapAssetSuffix(mapId), 'nav.json');
   return fs.existsSync(file) ? (JSON.parse(fs.readFileSync(file, 'utf8')) as NavFile).navigation : null;
 });
 
@@ -33,6 +36,7 @@ const server = new Server({
     registerAuthRoutes(app);
     registerDevRoutes(app, SPAWNS_DIR);
     registerBotRoutes(app);
+    app.get('/api/maps', (_req, res) => { refreshMapRegistry(true); res.setHeader('Cache-Control', 'no-store'); res.json(registrySnapshot()); });
     app.get('/api/health', (_req, res) => { res.json({ ok: true }); });
   },
 });

@@ -1,3 +1,5 @@
+import customSource from './custom-maps.json';
+import { customMapMeta, validateMapRegistry, type MapRegistry } from './registry.js';
 import { decodeGrid, nearestWalkable } from './nav/grid.js';
 import type { GridDefinition, NavigationGrid } from './nav/types.js';
 import { MAP_CATALOG } from './catalog.gen.js';
@@ -60,11 +62,28 @@ export const MAPS: Record<number, MapMeta> = Object.fromEntries(MAP_CATALOG.map(
   return [m.id, meta];
 }));
 
+/** Runtime registry shared by the game and admin tools. Generated catalog stays untouched. */
+const originalIds = new Set(MAP_CATALOG.map(m => m.id));
+export function applyMapRegistry(value: unknown): void {
+  validateMapRegistry(value, originalIds);
+  const registry = value as MapRegistry;
+  for (const id of Object.keys(MAPS).map(Number)) if (!originalIds.has(id) && !registry.maps[String(id)]) { delete MAPS[id]; clearMapNavigation(id); }
+  for (const m of Object.values(registry.maps)) {
+    if (MAPS[m.id]?.customBuild !== m.build) clearMapNavigation(m.id);
+    MAPS[m.id] = customMapMeta(m);
+  }
+}
+export const isMapEnabled = (id: number) => !!MAPS[id] && MAPS[id].enabled !== false;
+export const mapAssetSuffix = (id: number) => `${id}${MAPS[id]?.customBuild ? '/' + MAPS[id].customBuild : ''}`;
+export * from './registry.js';
+
 // ======================= navigation grids (loaded on demand) =======================
 
 let navLoader: ((mapId: number) => GridDefinition | null) | null = null;
 const navDefs = new Map<number, GridDefinition>();
 const grids = new Map<number, NavigationGrid>();
+export function clearMapNavigation(id: number): void { navDefs.delete(id); grids.delete(id); }
+applyMapRegistry(customSource);
 
 /** Where grids come from: the server reads assets/maps/<id>/nav.json from disk. */
 export function setNavLoader(loader: (mapId: number) => GridDefinition | null): void {

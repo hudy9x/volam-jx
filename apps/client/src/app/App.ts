@@ -103,6 +103,7 @@ export async function startApp(root: HTMLElement): Promise<void> {
       backToCharacters(`Không vào được bản đồ: ${(err as Error).message}`);
       return;
     }
+    mapId = Number(room.state.mapId);
     assetCache.protect([`map/${mapId}`, `map/${nearestTown(mapId)}`]);
     startWorld({ room, ui: hud, onTransfer: transfer, onDisconnect: backToCharacters });
   }

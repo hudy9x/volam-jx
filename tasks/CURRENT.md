@@ -1,3 +1,30 @@
+## 2026-11-15 · Bật/Tắt map Creator và fallback Biện Kinh (chưa commit)
+
+- USER duyệt triển khai bật/tắt, thêm yêu cầu trả người đang ở map không còn dùng được về Biện Kinh37. HEAD87eccd9 giữ nguyên; không commit/push, không sửa cấu hình NPC/vùng an toàn USER.
+- Creator thêm loại map + nút/xác nhận Bật/Tắt; pipeline PublicationStore xuất/dùng lại immutable build, kiểm nav/entry, cập nhật manifest rồi registry custom-maps.json atomic/revision. Giữ nguồn/build khi tắt; không sửa catalog.gen.ts. Manager làm mới danh sách/focus/10giây, map tắt giữ preview/nhãn Đã tắt, giữ bản nháp.
+- Server đọc registry động, chặn join/teleport và room build cũ; online chuyển37 qua transfer chuẩn, offline canonicalize lúc đọc/enter-map; logout không ghi lại map hỏng. Mất đăng ký/thiếu map.json/nav.json cũng fallback. Client/bot sync registry/preflight; travel/training lọc map tắt. MapState.mapId đổi uint32 để giữ ID1000–999999 (test91001 bắt được lỗi uint16).
+- Map9101 Đồng cỏ thử nghiệm revision3 đã BẬT qua UI, build r3-bc3ba525; nguồn3584×3584/94world giữ nguyên. Chrome thật: vào9101 → Tắt → thông báo/chuyển Biện Kinh; Manager còn nhãn Đã tắt → bật lại nhận map. Ảnh /tmp/jx-map-enable-evidence/{creator-enabled,manager-enabled,returned-bien-kinh,grass-game}.jpg. HUD xác nhận chuyển map; screenshot scene game bị đen trong phiên thử nên không coi là bằng chứng render địa hình. Dùng server2568/client5174 và DB /tmp/jx-map-enable-demo, không thao tác DB người dùng2567.
+- GitNexus đã refresh; diff gate30file/82symbol/80flow riskCritical do đường tick/transfer/auth dùng chung. Đã đọc nguồn và hồi quy liên quan; đồ thị bị giới hạn nhánh/entry, không coi thiếu flow là không có tác động. File mới chưa tracked được kiểm nguồn/test trực tiếp.
+- Typecheck/build đạt (cảnh báo chunk lớn cũ). Publication/access3ca gồm build reuse/revision/CAS/collision, real Colyseus join/teleport/online/offline/mất đăng ký/thiếu tài nguyên đạt. Creator3/Manager4/Auto34/bots10/safe-zones4 =55ca hồi quy đạt. Bot team fixture thêm HTTP preflight mock. Native/mobile thật chưa kiểm. Tài liệu Creator/Manager/root/AGENTS cập nhật; cần restart server/build client khi cài code lần đầu, sau đó bật/tắt đọc động; remote phải triển khai cả asset/manifest.
+
+## 2026-11-15 · Kiểm tra animation ngựa cho ý tưởng thuần hóa
+
+- USER hỏi sprite có hỗ trợ ngựa tấn công; chỉ điều tra, chưa duyệt triển khai. HEAD87eccd9 khớp CURRENT, giữ thay đổi tracking có sẵn.
+- Metadata hiện có tách 3 lớp HorseFront/Middle/Back (12/13/14), các mẫu row3/4/7/8/11/22 có RideCut/ha01 và RidePuncture/ha02 đủ8hướng. Mẫu Hắc Mã row3: Cut12frame/hướng, Puncture14; có đứng/chạy/wound/die. Đây là pose khi cưỡi, chưa phải actor ngựa hoang.
+- Đã ghép và xem sprite thực Hắc Mã không người cưỡi: /tmp/jx-horse-actions.png, hàng đứng/Cut/Puncture. Cut có chồm và nhấc hai chân trước, phù hợp tái dụng làm đòn ngựa; Puncture chuyển động nhẹ, không khẳng định có cú đá hậu/cắn riêng. Art vẫn có yên/cương.
+- Chức năng map ngựa/AI chiến đấu/rơi vật phẩm ngựa chưa triển khai; có thể dùng chung luật server cho Web/Desktop/Mobile, cần bổ sung render actor3lớp. GitNexus index87eccd9, queryhorsePreview đối chiếu source. Không sửa code/assets/DB, khôngcommit/push; không thêm/tick backlog vì mới hỏi khả năng.
+
+## 2026-11-15 · Thảo luận bật/tắt map tự dựng (chưa triển khai)
+
+- USER hỏi cần action enable/disable và khienable có xuất hiện MapManager. Đã xác minh Creator chỉexport build/catalog-entry; sharedMAPS lấycataloggen vàManager bootstrap lọc loạiCity/Capital/Field/Cave/Country + kiểmasset. Chưa có registry/toggle map dùng tronggame.
+- Đề xuất action Bật map thực hiện kiểm bảnlưu/build/tài nguyên/nav/entry và đăngký/phânphối qua pipeline, dùngcấuhình custom riêng khôngsửataygen; sauđó Manager cùnggameđọcnguồnchung. MapđăngkýbịTắt vẫnhiệntrongManager kèmtrạngthái đểquảntrị, gamechặnjoin/teleport/portal vànhânvậtcũvềthành. Projectnháp vẫnởCreator, chưađưa vàogame. Chỉthảoluận,chưaduyệttriểnkhai; khônghứalivepatch.
+- HEAD87eccd9 khớp checkpoint, chỉcậpnhậttracking, khôngsửamã/config/project/DB/commit.
+
+## 2026-11-15 · Xác minh nơi lưu map thử Map Creator
+
+- USER hỏi không thấy map đã tạo. Đã xác minh file projects/9101/project.json và API4569/projects trả Đồng cỏ thử nghiệm,revision3; ground3584×3584,94objects (44cây/6đá/44bóng theo lịch sử), buildr3-a0dd7623 còn trên ổ đĩa. Không có9101 trongcatalog chính nên chưa hiển thị MapManager/Xaphu; bản chơi thử trước dùng bootstrap riêng trong/tmp, khôngpublish.
+- HEAD87eccd9 (commitNPC củaUSER) mới hơn checkpoint a4b836e; đã báo và giữnguyên. Lượt này chỉ kiểm tra/lưu checkpoint, không sửa code/config/project/commit.
+
 ## 2026-11-15 · Đã chia commit luật chiến đấu và giao diện pen/minimap
 
 - USER yêu cầu commit phần mới, tách luật chiến đấu và giao diện tool. Luật đã commit `d9a7828` (`feat(combat): enforce town safe zones by world coordinates`): shared hình học/config, server/client/bot và3test core. Cấu hình USER lưu map1 (9điểm)/map37 (42điểm) đã validate và đi cùng commit luật.
@@ -442,7 +469,7 @@ Server dev của người dùng (nếu đang chạy từ đường dẫn cũ) ph
 | Event và nhiệm vụ | SK | 0 | 1 | 10 | 0 | SK1 đang nghiên cứu SHXT, cao cấp trước; thiếu script điều phối/điểm/thưởng; chưa có gameplay |
 | Hạ tầng | HT | 2 | 1 | 7 | 0 | HT1 đóng gói Desktop / Mobile |
 | Hiệu năng tải (cache) | PF | 3 | 1 | 5 | 2 | **Cache còn dở:** PF6 server thật phục vụ asset (⏸ chờ chọn nginx / Caddy / CDN), PF7 Desktop / Mobile (⏸ chờ HT1), PF8 đo + kiểm chứng đủ (sau PF1), PF9 việc nhỏ (CSS chưa `?v=`); PF1 có trace/A/B, chưa overlay/đo tải đầy đủ; PF10viewport/HUD/input đã xong2026-11-15; PF2–PF3/culling chưa làm |
-| Map Creator/Manager | MC | 2 | 0 | 0 | 0 | MC1 editor/lưu/xuất xong; chưa đăng ký map vào game hoặc làm tool spawn |
+| Map Creator/Manager | MC | 3 | 0 | 0 | 0 | MC1–MC3 xong: editor/NPC/Pen/minimap/Bật Tắt; spawn riêng chưa làm |
 | Bot + hiệu năng server | BT | 5 | 1 | 5 | 0 | **Phần 1 bot xong** (vòng 35, `/?bots` + `npm run bots -- <kịch bản>`); Phần 2 đo đếm: BT1 số đo → BT9 kịch bản đo → BT5 baseline → BT6 sửa nghẽn |
 
 Người dùng hỏi **"thống kê công việc"**: in bảng trên (đếm lại từ `BACKLOG.md`) + liệt kê mọi mục 🟡 / ⬜ / ⏸ đáng chú ý, **luôn có

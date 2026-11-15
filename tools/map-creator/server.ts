@@ -4,11 +4,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { ProjectStore } from './Store.js';
+import { PublicationStore } from './PublicationStore.js';
+import { updateManifest, ASSETS_DIR } from '../../apps/client/tools/jx/manifest.js';
 import { exportMap } from './export.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.MAP_CREATOR_PORT ?? 4569);
 const store = new ProjectStore(path.resolve(process.env.MAP_CREATOR_DIR ?? path.join(here, 'projects')));
+const publications = new PublicationStore(store, path.resolve(process.env.MAP_REGISTRY_FILE ?? path.join(here, '../../packages/shared/src/maps/custom-maps.json')), path.resolve(process.env.MAP_CREATOR_MAPS_DIR ?? path.join(ASSETS_DIR, 'maps')), id => { if (!process.env.MAP_CREATOR_MAPS_DIR) updateManifest([`map/${id}`]); });
 const bundle = await build({ entryPoints: [path.join(here, 'ui/main.ts')], bundle: true, write: false, outdir: path.join(here, '.bundle'), format: 'esm', platform: 'browser', target: 'es2022', plugins: [{ name: 'tool-dialog-style', setup(b) { b.onLoad({ filter: /[/\\]ui[/\\]kit[/\\](dialog|tooltip)\.css$/ }, () => ({ contents: '', loader: 'css' })); } }] });
 const files = new Map(bundle.outputFiles.map(f => [`/${path.basename(f.path)}`, f.contents]));
 const page = await fs.readFile(path.join(here, 'ui/index.html'));
@@ -32,6 +35,12 @@ const server = http.createServer(async (req, res) => {
     if (u.pathname === '/api/projects') {
       if (req.method === 'GET') { json(await store.list()); return; }
       if (req.method === 'POST') { const b = JSON.parse((await body(req, 4096)).toString()); json(await store.create(b.id, b.name)); return; }
+    }
+    const publication = /^\/api\/projects\/(\d+)\/publication$/.exec(u.pathname);
+    if (publication) {
+      const id = Number(publication[1]); await store.read(id);
+      if (req.method === 'GET') { json(await publications.status(id)); return; }
+      if (req.method === 'PUT') { const b = JSON.parse((await body(req, 4096)).toString()); json(await publications.set(id, b.enabled, b.projectRevision, b.revision, b.type)); return; }
     }
     const match = /^\/api\/projects\/(\d+)(?:\/(assets|export)(?:\/([a-f0-9]{64}))?)?$/.exec(u.pathname);
     if (match) {

@@ -1446,3 +1446,30 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - Typecheck/build đạt (cảnh báo chunk lớn hiện có); safe-zone4/NPC4/Auto34/effects20/bots10 =72test đạt. Các kiểm tra Chrome về pen/minimap/zoom/390×844 ở checkpoint trước vẫn áp dụng; lượt này chỉ chia commit/tách file test, không sửa gameplay hay giao diện.
 - GitNexus stagedgate core16file/52symbol/31flow Critical do luật combat dùng chung; đã đối chiếu đúng phạm vi và hồi quy. Gate all trướccommit bao gồm cả fileNPC USER sửa, không có nghĩa file đó được stage/commit. Không push.
 - Giữ ngoài hai commit: `packages/shared/src/npcs/town-placements.json` (vị trí NPC USER đã lưu) và `.codex-attachments/` (ảnh tham chiếu local). Không xóa/ghi lại dữ liệu này, không sinh asset/đụng DB. Không còn code pen/minimap chờ commit sau checkpoint này.
+
+## 2026-11-15 · Xác minh nơi lưu map thử Map Creator
+
+- USER hỏi không thấy map đã tạo. Đã xác minh file projects/9101/project.json và API4569/projects trả Đồng cỏ thử nghiệm,revision3; ground3584×3584,94objects (44cây/6đá/44bóng theo lịch sử), buildr3-a0dd7623 còn trên ổ đĩa. Không có9101 trongcatalog chính nên chưa hiển thị MapManager/Xaphu; bản chơi thử trước dùng bootstrap riêng trong/tmp, khôngpublish.
+- HEAD87eccd9 (commitNPC củaUSER) mới hơn checkpoint a4b836e; đã báo và giữnguyên. Lượt này chỉ kiểm tra/lưu checkpoint, không sửa code/config/project/commit.
+
+## 2026-11-15 · Thảo luận bật/tắt map tự dựng (chưa triển khai)
+
+- USER hỏi cần action enable/disable và khienable có xuất hiện MapManager. Đã xác minh Creator chỉexport build/catalog-entry; sharedMAPS lấycataloggen vàManager bootstrap lọc loạiCity/Capital/Field/Cave/Country + kiểmasset. Chưa có registry/toggle map dùng tronggame.
+- Đề xuất action Bật map thực hiện kiểm bảnlưu/build/tài nguyên/nav/entry và đăngký/phânphối qua pipeline, dùngcấuhình custom riêng khôngsửataygen; sauđó Manager cùnggameđọcnguồnchung. MapđăngkýbịTắt vẫnhiệntrongManager kèmtrạngthái đểquảntrị, gamechặnjoin/teleport/portal vànhânvậtcũvềthành. Projectnháp vẫnởCreator, chưađưa vàogame. Chỉthảoluận,chưaduyệttriểnkhai; khônghứalivepatch.
+- HEAD87eccd9 khớp checkpoint, chỉcậpnhậttracking, khôngsửamã/config/project/DB/commit.
+
+## 2026-11-15 · Kiểm tra animation ngựa cho ý tưởng thuần hóa
+
+- USER hỏi sprite có hỗ trợ ngựa tấn công; chỉ điều tra, chưa duyệt triển khai. HEAD87eccd9 khớp CURRENT, giữ thay đổi tracking có sẵn.
+- Metadata hiện có tách 3 lớp HorseFront/Middle/Back (12/13/14), các mẫu row3/4/7/8/11/22 có RideCut/ha01 và RidePuncture/ha02 đủ8hướng. Mẫu Hắc Mã row3: Cut12frame/hướng, Puncture14; có đứng/chạy/wound/die. Đây là pose khi cưỡi, chưa phải actor ngựa hoang.
+- Đã ghép và xem sprite thực Hắc Mã không người cưỡi: /tmp/jx-horse-actions.png, hàng đứng/Cut/Puncture. Cut có chồm và nhấc hai chân trước, phù hợp tái dụng làm đòn ngựa; Puncture chuyển động nhẹ, không khẳng định có cú đá hậu/cắn riêng. Art vẫn có yên/cương.
+- Chức năng map ngựa/AI chiến đấu/rơi vật phẩm ngựa chưa triển khai; có thể dùng chung luật server cho Web/Desktop/Mobile, cần bổ sung render actor3lớp. GitNexus index87eccd9, queryhorsePreview đối chiếu source. Không sửa code/assets/DB, khôngcommit/push; không thêm/tick backlog vì mới hỏi khả năng.
+
+## 2026-11-15 · Bật/Tắt map Creator và fallback Biện Kinh (chưa commit)
+
+- USER duyệt triển khai bật/tắt, thêm yêu cầu trả người đang ở map không còn dùng được về Biện Kinh37. HEAD87eccd9 giữ nguyên; không commit/push, không sửa cấu hình NPC/vùng an toàn USER.
+- Creator thêm loại map + nút/xác nhận Bật/Tắt; pipeline PublicationStore xuất/dùng lại immutable build, kiểm nav/entry, cập nhật manifest rồi registry custom-maps.json atomic/revision. Giữ nguồn/build khi tắt; không sửa catalog.gen.ts. Manager làm mới danh sách/focus/10giây, map tắt giữ preview/nhãn Đã tắt, giữ bản nháp.
+- Server đọc registry động, chặn join/teleport và room build cũ; online chuyển37 qua transfer chuẩn, offline canonicalize lúc đọc/enter-map; logout không ghi lại map hỏng. Mất đăng ký/thiếu map.json/nav.json cũng fallback. Client/bot sync registry/preflight; travel/training lọc map tắt. MapState.mapId đổi uint32 để giữ ID1000–999999 (test91001 bắt được lỗi uint16).
+- Map9101 Đồng cỏ thử nghiệm revision3 đã BẬT qua UI, build r3-bc3ba525; nguồn3584×3584/94world giữ nguyên. Chrome thật: vào9101 → Tắt → thông báo/chuyển Biện Kinh; Manager còn nhãn Đã tắt → bật lại nhận map. Ảnh /tmp/jx-map-enable-evidence/{creator-enabled,manager-enabled,returned-bien-kinh,grass-game}.jpg. HUD xác nhận chuyển map; screenshot scene game bị đen trong phiên thử nên không coi là bằng chứng render địa hình. Dùng server2568/client5174 và DB /tmp/jx-map-enable-demo, không thao tác DB người dùng2567.
+- GitNexus đã refresh; diff gate30file/82symbol/80flow riskCritical do đường tick/transfer/auth dùng chung. Đã đọc nguồn và hồi quy liên quan; đồ thị bị giới hạn nhánh/entry, không coi thiếu flow là không có tác động. File mới chưa tracked được kiểm nguồn/test trực tiếp.
+- Typecheck/build đạt (cảnh báo chunk lớn cũ). Publication/access3ca gồm build reuse/revision/CAS/collision, real Colyseus join/teleport/online/offline/mất đăng ký/thiếu tài nguyên đạt. Creator3/Manager4/Auto34/bots10/safe-zones4 =55ca hồi quy đạt. Bot team fixture thêm HTTP preflight mock. Native/mobile thật chưa kiểm. Tài liệu Creator/Manager/root/AGENTS cập nhật; cần restart server/build client khi cài code lần đầu, sau đó bật/tắt đọc động; remote phải triển khai cả asset/manifest.

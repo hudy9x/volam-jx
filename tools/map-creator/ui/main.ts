@@ -1,5 +1,6 @@
 import { dialogs } from '../../../apps/client/src/ui/kit/dialog.js';
 import { navigationMask, validateProject, CELL_W, CELL_H, type Project, type Asset, type WorldObject } from '../model.js';
+import type { CustomMap } from '../../../packages/shared/src/maps/registry.js';
 import './main.css';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -7,6 +8,22 @@ const input = (id: string) => $<HTMLInputElement>(id);
 const canvas = $<HTMLCanvasElement>('canvas'), ctx = canvas.getContext('2d')!;
 let project: Project | null = null, selected = '', chosenAsset = '', mode = 'select';
 let dirty = false, busy = false, zoom = 1, panX = 0, panY = 0;
+let publication: { map: CustomMap | null; revision: string } | null = null;
+let publicationConfirm: ((value: boolean) => void) | null = null;
+let publicationFocus: HTMLElement | null = null;
+dialogs.register('publication-confirm', { onClose: () => { $('publication-backdrop').hidden = true; const done = publicationConfirm; publicationConfirm = null; done?.(false); publicationFocus?.focus(); } });
+$('publication-confirm').addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const buttons = Array.from($('publication-confirm').querySelectorAll<HTMLButtonElement>('button'));
+  if (e.shiftKey && document.activeElement === buttons[0]) { e.preventDefault(); buttons[buttons.length - 1].focus(); }
+  else if (!e.shiftKey && document.activeElement === buttons[buttons.length - 1]) { e.preventDefault(); buttons[0].focus(); }
+});
+$('publication-no').onclick = () => dialogs.close('publication-confirm');
+$('publication-yes').onclick = () => { const done = publicationConfirm; publicationConfirm = null; dialogs.close('publication-confirm'); done?.(true); };
+function confirmPublication(text: string): Promise<boolean> {
+  publicationFocus = document.activeElement as HTMLElement; $('publication-message').textContent = text; $('publication-backdrop').hidden = false; dialogs.open('publication-confirm'); $('publication-no').focus();
+  return new Promise(resolve => { publicationConfirm = resolve; });
+}
 let history: string[] = [], future: string[] = [];
 const images = new Map<string, HTMLImageElement>();
 let mask: Uint8Array = new Uint8Array(0), painted = new Set<number>();
@@ -25,6 +42,11 @@ async function run(task: () => Promise<void>) {
 }
 function controls() {
   for (const id of ['save', 'export', 'reload', 'backup']) $<HTMLButtonElement>(id).disabled = !project || busy;
+  $<HTMLButtonElement>('toggle-map').disabled = !project || !publication || dirty || busy;
+  $('toggle-map').textContent = publication?.map?.enabled ? 'Tắt map trong game' : 'Bật map trong game';
+  $<HTMLSelectElement>('map-type').disabled = !project || busy || !!publication?.map?.enabled;
+  $('publication-state').textContent = !publication?.map ? 'Chưa đưa vào game' : `${publication.map.enabled ? 'Đã bật' : 'Đã tắt'} · Bản đã xuất ${publication.map.projectRevision}${project && publication.map.projectRevision !== project.revision ? ' · Project có bản lưu mới: tắt rồi bật để cập nhật' : ''}`;
+  $('publication-hint').textContent = dirty ? 'Lưu project trước khi bật/tắt map.' : 'Map bật xuất hiện trong Map Manager và Xa phu. Tắt map giữ dữ liệu, chuyển người chơi về Biện Kinh.';
   $<HTMLButtonElement>('new').disabled = busy;
   $<HTMLSelectElement>('projects').disabled = busy;
   $<HTMLFieldSetElement>('resources').disabled = !project || busy;
@@ -62,6 +84,8 @@ async function loadImages() {
 }
 async function openProject(id: number) {
   const p = await api<Project>(`/api/projects/${id}`);
+  publication = await api(`/api/projects/${id}/publication`);
+  input('map-type').value = publication?.map?.type ?? 'Field';
   project = p; selected = ''; chosenAsset = ''; history = []; future = []; images.clear(); dirty = false;
   await loadImages(); painted = new Set(p.blocked); mask = navigationMask(p); render(); fit();
   status(`Đã mở ${p.name}.`);
@@ -241,6 +265,16 @@ async function save() {
   dirty = false; await projectList(); controls(); status(`Đã lưu ${project.name} · bản ${project.revision}.`);
 }
 $('save').onclick = () => void run(save);
+$('toggle-map').onclick = async () => {
+  if (!project || !publication || busy || dirty) return;
+  const enabled = !publication.map?.enabled;
+  if (!await confirmPublication(enabled ? `Bật “${project.name}” trong game? Tool sẽ xuất bản đã lưu, kiểm điểm vào và đăng ký map.` : `Tắt “${project.name}”? Người chơi trong map sẽ được chuyển về Biện Kinh. Project và các bản xuất được giữ nguyên.`)) return;
+  void run(async () => {
+    status(enabled ? 'Đang xuất và kiểm tra map để bật trong game…' : 'Đang tắt map…');
+    publication = await api(`/api/projects/${project!.id}/publication`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled, projectRevision: project!.revision, revision: publication!.revision, type: input('map-type').value }) });
+    status(enabled ? 'Đã bật map. Map Manager sẽ nhận khi làm mới, người chơi có thể vào qua Xa phu.' : 'Đã tắt map. Server chặn vào map và chuyển người chơi về Biện Kinh. Dữ liệu được giữ nguyên.');
+  });
+};
 $('export').onclick = () => void run(async () => {
   await save(); status('Đang xuất ground, world và lưới đi lại…');
   const r = await api<{ build: string; preview: string }>(`/api/projects/${project!.id}/export`, { method: 'POST' });

@@ -1,3 +1,4 @@
+import { applyMapRegistry, type MapRegistry } from '@vltk/shared';
 import type { AuthResponse, CharacterSummary, Element, Gender, SpawnFile } from '@vltk/shared';
 import { storage } from '../platform/storage';
 
@@ -35,7 +36,10 @@ async function api<T>(path: string, body?: unknown, method = body ? 'POST' : 'GE
   return json as T;
 }
 
+export async function syncMapRegistry() { applyMapRegistry(await api<MapRegistry>('/api/maps')); }
+
 export const Api = {
+  enterMap: (charId: string) => api<{ mapId: number }>('/api/enter-map', { charId }),
   login: (username: string, password: string) => api<AuthResponse>('/api/login', { username, password }),
   register: (username: string, password: string) => api<AuthResponse>('/api/register', { username, password }),
   characters: () => api<CharacterSummary[]>('/api/characters'),

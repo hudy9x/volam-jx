@@ -1,3 +1,4 @@
+import { resolveCharacterMap } from '../mapRegistry.js';
 import { createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import type { Application, Request, Response, NextFunction } from 'express';
@@ -73,7 +74,7 @@ function lookOfRecord(c: CharacterRecord): CharacterSummary['look'] {
 }
 
 const summary = (c: CharacterRecord): CharacterSummary => ({
-  id: c.id, name: c.name, faction: c.faction, series: seriesOfRecord(c), gender: c.gender, level: c.level, mapId: c.mapId,
+  id: c.id, name: c.name, faction: c.faction, series: seriesOfRecord(c), gender: c.gender, level: c.level, mapId: resolveCharacterMap(c),
   look: lookOfRecord(c),
 });
 
@@ -113,6 +114,11 @@ export function registerAuthRoutes(app: Application): void {
     res.json({ token: issueToken(user.username), username: user.username } satisfies AuthResponse);
   });
 
+  app.post('/api/enter-map', requireAuth, (req: AuthedRequest, res) => {
+    const char = db.getCharacter(String(req.body?.charId));
+    if (!char || char.owner !== req.username) { res.status(403).json({ error: 'Không tìm thấy nhân vật.' }); return; }
+    res.json({ mapId: resolveCharacterMap(char) });
+  });
   app.get('/api/characters', requireAuth, (req: AuthedRequest, res) => {
     res.json(db.listCharacters(req.username!).map(summary));
   });

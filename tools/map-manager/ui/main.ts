@@ -5,7 +5,7 @@ import { SafeZonePen, type ZoneDocument } from './SafeZonePen.js';
 import './main.css';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const field = (id: string) => $<HTMLInputElement>(id);
-interface Town { id: number; name: string; size: { width: number; height: number }; entry: { x: number; y: number }; available: boolean; group: 'city' | 'training'; editable: boolean }
+interface Town { id: number; name: string; size: { width: number; height: number }; entry: { x: number; y: number }; available: boolean; enabled?: boolean; group: 'city' | 'training'; editable: boolean }
 interface Template { id: string; name: string; res: string; action: NpcPlacement['action']; dir: number }
 interface Look { res: string; label: string; available: boolean; directions: number; width: number; height: number; anchorX: number; anchorY: number }
 interface MapJson { regionSize: number; cols: number; rows: number; chunk: number; regions: string; chunks: string[] }
@@ -304,7 +304,7 @@ function renderMaps() {
       image.src = base + 'thumb.webp' + version;
       image.onerror = () => { image.onerror = () => { image.hidden = true; }; image.src = base + 'minimap.webp' + version; };
       const text = document.createElement('span'), name = document.createElement('strong'), hint = document.createElement('small');
-      name.textContent = m.name; hint.textContent = m.available ? `Map ${m.id}${m.editable ? '' : ' · Xem trước'}` : 'Chưa sinh tài nguyên';
+      name.textContent = m.name; hint.textContent = m.available ? `Map ${m.id}${m.enabled === false ? ' · Đã tắt' : ''}${m.editable ? '' : ' · Xem trước'}` : 'Chưa sinh tài nguyên';
       text.append(name, hint); b.append(image, text);
       b.onclick = async () => {
         if (busy || town?.id === m.id) return;
@@ -329,3 +329,11 @@ void run(async () => {
   looks.forEach(l => { const o = new Option(`${l.label}${l.available ? '' : ' · Thiếu hình'}`, l.res); $<HTMLSelectElement>('res').add(o); });
   status(towns.length ? 'Chọn bản đồ ở sidebar. Thành thị cho phép cài NPC; luyện công hiện chỉ xem trước.' : 'Chưa có bản đồ. Hãy sinh tài nguyên map trước.');
 });
+
+async function refreshMapList() {
+  const b = await api<{ maps: Town[]; versions: Record<string, string> }>('/api/bootstrap');
+  towns = b.maps; versions = b.versions; renderMaps();
+}
+$('refresh-maps').onclick = () => void run(refreshMapList);
+window.addEventListener('focus', () => { if (!busy) void refreshMapList().catch(() => {}); });
+setInterval(() => { if (!busy && !document.hidden) void refreshMapList().catch(() => {}); }, 10000);

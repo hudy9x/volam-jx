@@ -19,7 +19,7 @@ Dược Vương Cốc có 3 cọc gỗ để thử chiêu.
 
 Yêu cầu Node.js 22+.
 
-**Map Creator:** `npm run map:creator` → http://localhost:4569. Upload ground/world, kéo thả và chỉnh collider, lưu/mở project, xuất bộ map. Chạy độc lập game; chưa đăng ký map vào game. [Hướng dẫn](tools/map-creator/README.md).
+**Map Creator:** `npm run map:creator` → http://localhost:4569. Upload ground/world, kéo thả và chỉnh collider, lưu/mở project, xuất bộ map. Chạy độc lập game; Bật/Tắt map để đưa vào game/Map Manager, map tắt giữ dữ liệu và đưa người chơi về Biện Kinh. [Hướng dẫn](tools/map-creator/README.md).
 
 **Map Manager:** `npm run map:manager` → http://localhost:4570. Đặt NPC và dùng Pen khoanh vùng an toàn theo từng thành thị; Lưu ghi trực tiếp cấu hình nguồn game. [Hướng dẫn](tools/map-manager/README.md).
 

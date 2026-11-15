@@ -57,7 +57,7 @@ export const Ground = schema({
 export type Ground = SchemaType<typeof Ground>;
 
 export const MapState = schema({
-  mapId: t.uint16(),
+  mapId: t.uint32(),
   actors: t.map(Actor),
   ground: t.map(Ground),
 }, 'MapState');

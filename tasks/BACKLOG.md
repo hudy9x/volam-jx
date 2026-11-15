@@ -233,8 +233,9 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 
 | Trạng thái | Mã | Công việc | Ghi chú |
 |---|---|---|---|
-| ✅ | MC1 | Tool upload ground/world, sắp xếp/cấu hình world, lưu/mở lại và xuất bộ map | USER2026-11-15. `tools/map-creator`, localhost4569, `npm run map:creator`. Chỉnh anchor/scale/depth/collider, manual blockers/entry, undo/redo, revision conflict, upload chuẩn hóa. Xuất ground512/world/nav32×16/preview vào project, không publish game hoặc gộp spawn. Unit3ca + Chromium desktop/mobile/touch mô phỏng và API đạt; chưa native/điện thoại thật/che khuất trong game. Đăng ký map vào game và tool spawn riêng là bước sau, chưa triển khai. |
+| ✅ | MC1 | Tool upload ground/world, sắp xếp/cấu hình world, lưu/mở lại và xuất bộ map | USER2026-11-15. `tools/map-creator`, localhost4569, `npm run map:creator`. Chỉnh anchor/scale/depth/collider, manual blockers/entry, undo/redo, revision conflict, upload chuẩn hóa. Xuất ground512/world/nav32×16/preview vào project, không publish game hoặc gộp spawn. Unit3ca + Chromium desktop/mobile/touch mô phỏng và API đạt; chưa native/điện thoại thật/che khuất trong game. Đăng ký/Bật Tắt đã bổ sung ở MC3; tool spawn riêng chưa triển khai. |
 | ✅ | MC2 | Map Manager: đặt NPC thành thị và lưu thẳng cấu hình game | USER2026-11-15. tools/map-manager:4570, chọn/thêm/kéo/chỉnh NPC/name/action/res/dir, map ground+objects/nav/preview; atomic JSONsource/CAS, shared adapter giữ fallback. Unit3ca/typecheck/build và browser desktop/mobile đạt; quái/Boss Xanh để sau, chưa native/live-patch. |
+| ✅ | MC3 | Bật/Tắt map tự dựng và trả nhân vật về Biện Kinh | USER2026-11-15. Creator publish immutable build/manifest/registry, Manager nhận map động và giữ nhãn Đã tắt; server chặn vào/teleport, online/offline ở map tắt/mất đăng ký/thiếu tài nguyên về37. Unit + Colyseus thật3ca, hồi quy55ca, typecheck/build và Chrome đạt; chưa native/mobile thật. |
 
 
 ## Cài đặt máy macOS (2026-11-13)

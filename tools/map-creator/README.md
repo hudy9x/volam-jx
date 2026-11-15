@@ -26,7 +26,7 @@ Backend chỉ bind 127.0.0.1; không mở LAN. Giao diện responsive, canvas d�
 6. **Tô chặn / Xóa chặn**: sửa blocker địa hình. Cọ1 tác động1ô; tăng bán kính cọ để tô nhiều ô. Tô tay và collider tách biệt, di chuyển object không để lại collider cũ. Ground alpha cũng được xét khi xuất.
 7. **Điểm vào**: chọn chế độ rồi click map hoặc nhập tọa độ ở thuộc tính. Điểm phải nằm trên ground có thể đi.
 8. **Lưu project**: lưu ảnh/tham chiếu/bố cục lên ổ đĩa; mở từ danh sách hoặc tải lại tab rồi chọn project. Ctrl/Cmd+S để lưu. Có cảnh báo thay đổi chưa lưu và chống ghi đè từ tab khác bằng revision.
-9. **Xuất bộ map**: lưu project trước rồi sinh bản xuất mới, không ghi đè bản xuất cũ. Mở link preview để xem hình đã ghép. Chưa áp dụng vào game, chưa cấu hình quái/Boss/cổng/PK.
+9. **Xuất bộ map**: lưu project trước rồi sinh bản xuất mới, không ghi đè bản xuất cũ. Mở link preview để xem hình đã ghép. Đây là bản xuất xem trước, chưa tự bật trong game; không cấu hình quái/Boss/cổng.
 
 Thay ground khi đã đặt world hoặc tô chặn cần xác nhận: world đã đặt/vùng tô được xóa để tránh lệch tọa độ; thư viện ảnh còn giữ. Hoàn tác khôi phục bản trước trong phiên. World bị xóa có thể hoàn tác; không có chức năng xóa project/ảnh nguồn qua UI.
 
@@ -49,11 +49,21 @@ projects/<id>/
     minimap.webp / thumb.webp / preview.webp
 ```
 
-Ground và ảnh world nằm trong project, không sao chép vào `apps/client/public/assets`. Bộ xuất tuân thủ cấu trúc renderer hiện tại, nhưng **chưa có nút đăng ký/publish map tự dựng vào game**, chưa sửa catalog hoặc generator map gốc. Cần bước tích hợp đăng ký metadata và phân phối gói tài nguyên qua pipeline/manifest trước khi chơi. Không sửa tay catalog.gen.ts hoặc public/assets để nhập map.
+## Bật / Tắt map trong game
+
+Lưu project trước → chọn loại Luyện công / Thành thị / Hang động → **Bật map trong game** → Xác nhận. Tool kiểm nav và điểm vào có khoảng trống9px trong vùng đi lại chính, xuất hoặc dùng lại bản xuất khớp nguồn, đưa bộ tài nguyên vào `apps/client/public/assets/maps/<id>/<build>/` qua pipeline và cập nhật manifest. Sau khi hoàn tất, registry `packages/shared/src/maps/custom-maps.json` đăng ký metadata; không sửa catalog.gen.ts.
+
+Map bật xuất hiện trong Map Manager và danh sách Xa phu. Map thành thị dùng luật thành an toàn mặc định và cho cấu hình NPC/Pen trong Manager. Không tự sinh quái/Boss. Map luyện công/hang dùng luật chiến đấu hiện có.
+
+**Tắt map trong game** giữ project, ảnh nguồn và các bản xuất, đồng thời chặn vào map. Server phát hiện map tắt, mất đăng ký hoặc thiếu map.json/nav.json sẽ đưa người đang ở đó về **Biện Kinh (37)**; nhân vật offline lưu ở map đó cũng được sửa vị trí khi đăng nhập. Map đã đăng ký vẫn hiện trong Manager với nhãn **Đã tắt**. Bật lại không đổi bản xuất nếu nguồn chưa đổi. Muốn áp dụng chỉnh sửa mới: Lưu → Tắt → Bật lại. Không có live-patch địa hình.
+
+Registry nằm trong git, ảnh/bộ xuất bị gitignore: khi chuyển máy hoặc triển khai cần phân phối cả bộ tài nguyên/manifest tương ứng và sao lưu project. Cài phiên bản code hỗ trợ này cần restart server và build/tải lại client một lần; các lần bật/tắt sau được server đọc trong lúc chạy. Client đồng bộ danh sách khi vào map/mở Xa phu. Dev watcher có thể tải lại trang khi JSON nguồn đổi.
+
+`MAP_REGISTRY_FILE` đổi file registry dùng chung cho Creator/Manager/server. `MAP_CREATOR_MAPS_DIR` đổi nơi publish khi kiểm thử; server cần `MAPS_DIR` trỏ cùng bộ map. Không chạy hai tiến trình Creator cùng ghi một registry: khóa nằm trong tiến trình; revision chặn tab cũ ghi đè. Không sửa tay public/assets để nhập map.
 
 `objects[].x/y` là vị trí chân trong world pixels. `anchorX/Y`, collider được tính trước scale; `depthOffset` theo world pixels. Dùng chung hệ tọa độ với spawn quái/Boss Xanh ở bước sau. Không chứa quái, không tự sinh quái/Boss, không sửa tool Boss Hoàng Kim hiện tại. Tool spawn sau có thể đọc kích thước, entry, preview và nav của bản xuất.
 
-Giới hạn: tối đa300ảnh/5000world; collider ellipse, chưa xoay/lật sprite hay tách công trình thành các dải depth. Preview không có nhân vật chạy thử; chưa kiểm che khuất runtime game. Renderer hiện tại có phạm vi streaming riêng, sprite/công trình quá lớn cần phân mảnh khi tích hợp. Xuất chỉ kiểm điểm vào không bị chặn; chưa chứng minh mọi tuyến đường thông nhau. Runtime dùng thành phần đi lại lớn nhất, nên cần kiểm các vùng rời khi đưa map vào game. Thư viện upload không tự cắt cây khỏi ảnh cảnh, không tẩy nền caro hoặc tự suy ra collider.
+Giới hạn: tối đa300ảnh/5000world; collider ellipse, chưa xoay/lật sprite hay tách công trình thành các dải depth. Preview trong tool không có nhân vật chạy thử. Renderer hiện tại có phạm vi streaming riêng, sprite/công trình quá lớn cần phân mảnh khi tích hợp. Xuất chỉ kiểm điểm vào không bị chặn; chưa chứng minh mọi tuyến đường thông nhau. Runtime dùng thành phần đi lại lớn nhất, nên cần kiểm các vùng rời khi đưa map vào game. Thư viện upload không tự cắt cây khỏi ảnh cảnh, không tẩy nền caro hoặc tự suy ra collider.
 
 Giao diện tuân thủ docs/tools-ui-ux-guidelines.md, dùng lại Dialogs cho kéo/đóng/Esc/thứ tự cửa sổ với CSS token tool; không nạp Phaser hoặc skin game. Không có template vì mỗi project là một map chỉnh sửa trực tiếp. Lưu và xuất là hai thao tác riêng; xuất có lưu snapshot trước để đảm bảo dữ liệu ổ đĩa khớp bản xuất.
 
@@ -62,6 +72,7 @@ Giao diện tuân thủ docs/tools-ui-ux-guidelines.md, dùng lại Dialogs cho 
 ```sh
 npm run typecheck
 npm run test:map-creator
+npm run test:map-publication
 ```
 
-Tests kiểm roundtrip ảnh/project, revision conflict, path validation, collider không để lại blocker cũ, ground biên, alpha/entry và metadata world/nav. Browser smoke kiểm tạo/upload/đặt/kéo/cấu hình/undo/redo/tô/lưu/reload/xuất, dialog/Esc và responsive1440×1000/390×844. Chưa kiểm native/điện thoại thật hoặc chơi trong game.
+Tests kiểm roundtrip ảnh/project, revision conflict, path validation, collider không để lại blocker cũ, ground biên, alpha/entry và metadata world/nav. Browser smoke kiểm tạo/upload/đặt/kéo/cấu hình/undo/redo/tô/lưu/reload/xuất, dialog/Esc và responsive1440×1000/390×844. Kiểm thử bổ sung bật/tắt, giữ dữ liệu, conflict, dùng lại build và server Colyseus thật: join/teleport, tắt online, đăng nhập offline, mất đăng ký/tài nguyên đều về Biện Kinh. Chưa kiểm native/điện thoại thật.

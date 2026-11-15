@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "maps": {
+    "9101": {
+      "id": 9101,
+      "name": "Đồng cỏ thử nghiệm",
+      "type": "Field",
+      "region": "",
+      "size": {
+        "width": 3584,
+        "height": 3584
+      },
+      "entry": {
+        "x": 1792,
+        "y": 1792
+      },
+      "build": "r3-bc3ba525",
+      "projectRevision": 3,
+      "enabled": true
+    }
+  }
+}

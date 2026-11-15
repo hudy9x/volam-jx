@@ -38,6 +38,9 @@ export interface Portal {
 }
 
 export interface MapMeta {
+  /** Missing means enabled (original maps). Custom maps keep metadata while disabled. */
+  enabled?: boolean;
+  customBuild?: string;
   id: number;
   name: string;
   /** maplist.ini MapType (see MapCatalogEntry). */
