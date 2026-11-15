@@ -7,6 +7,7 @@ import sharp from 'sharp';
 import { MAPS, DEFAULT_TOWN_NPCS, setNavLoader, getGrid, nearestWalkable, canStandAt, type NavFile } from '../../packages/shared/src/index.js';
 import { NPC_ACTION_LABELS } from '../../packages/shared/src/npcs/placements.js';
 import { JX_SHEETS, NPC_SHEETS, JX_FOOT } from '../../apps/client/src/art/jx/data.gen.js';
+import { SafeZoneStore } from './SafeZoneStore.js';
 import { NpcConfigStore } from './ConfigStore.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url)), root = path.resolve(here, '../..');
@@ -27,6 +28,7 @@ const defaults = (id: number) => (DEFAULT_TOWN_NPCS[id] ?? []).map(n => {
   const m = MAPS[id], [x, y] = nearestWalkable(getGrid(id), m.raw.entry.x + n.dx, m.raw.entry.y + n.dy);
   return { id: n.id, name: n.name, action: n.action, res: n.res, dir: n.dir, x: Math.round(x), y: Math.round(y) };
 });
+const zoneStore = new SafeZoneStore(path.resolve(process.env.MAP_MANAGER_ZONES_CONFIG ?? path.join(root, 'packages/shared/src/maps/town-safe-zones.json')), MAPS);
 const store = new NpcConfigStore(configFile, MAPS, allowedRes, defaults, (id, x, y) => canStandAt(getGrid(id), x, y));
 const bundle = await build({ entryPoints: [path.join(here, 'ui/main.ts')], outdir: path.join(here, '.bundle'), bundle: true, write: false, platform: 'browser', format: 'esm', target: 'es2022', plugins: [{ name: 'tool-dialog-style', setup(b) { b.onLoad({ filter: /[/\\]ui[/\\]kit[/\\](dialog|tooltip)\.css$/ }, () => ({ contents: '', loader: 'css' })); } }] });
 const files = new Map(bundle.outputFiles.map(f => [`/${path.basename(f.path)}`, f.contents]));
@@ -52,6 +54,12 @@ const server = http.createServer(async (req, res) => {
       const maps = Object.values(MAPS).filter(m => ['City', 'Capital', 'Field', 'Cave', 'Country'].includes(m.type)).map(m => ({ id: m.id, name: m.name, size: m.raw.size, entry: m.raw.entry, group: ['City', 'Capital'].includes(m.type) ? 'city' : 'training', editable: ['City', 'Capital'].includes(m.type),
         available: fs.existsSync(path.join(assets, 'maps', String(m.id), 'nav.json')) && fs.existsSync(path.join(assets, 'maps', String(m.id), 'map.json')) }));
       json({ maps, templates, labels: NPC_ACTION_LABELS, versions: Object.fromEntries(maps.map(m => [m.id, manifest?.packs[`map/${m.id}`]?.v ?? ''])) }); return;
+    }
+    const zoneMatch = /^\/api\/maps\/(\d+)\/safe-zones$/.exec(u.pathname);
+    if (zoneMatch) {
+      const id = Number(zoneMatch[1]);
+      if (req.method === 'GET') { json(await zoneStore.read(id)); return; }
+      if (req.method === 'PUT') { const body = await jsonBody(req); json(await zoneStore.save(id, body.zones, body.revision)); return; }
     }
     const match = /^\/api\/maps\/(\d+)\/(npcs|snap)$/.exec(u.pathname);
     if (match) {

@@ -1,6 +1,7 @@
 import { dialogs } from '../../../apps/client/src/ui/kit/dialog.js';
 import { NPC_ACTION_LABELS, validatePlacements, type NpcPlacement } from '../../../packages/shared/src/npcs/placements.js';
 import type { MapMeta } from '../../../packages/shared/src/maps/types.js';
+import { SafeZonePen, type ZoneDocument } from './SafeZonePen.js';
 import './main.css';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const field = (id: string) => $<HTMLInputElement>(id);
@@ -16,6 +17,10 @@ let zoom = 1, panX = 0, panY = 0, meta: MapJson | null = null, nav: { columns: n
 let blocked = new Uint8Array(0), regions = new Uint8Array(0);
 const images = new Map<string, HTMLImageElement>(), pending = new Set<string>(), failed = new Set<string>(), chunks = new Map<string, Chunk>();
 let epoch = 0;
+let mode: 'npc' | 'zones' = 'npc';
+let mapView: 'mini' | 'detail' = 'mini';
+const pen = new SafeZonePen(() => { controls(); draw(); }, confirmDraft, (s, error) => status(s, error));
+const unsaved = () => dirty || pen.unsaved;
 const current = () => npcs.find(n => n.id === selected);
 let resolveConfirm: ((value: boolean) => void) | null = null;
 let returnFocus: HTMLElement | null = null;
@@ -52,8 +57,14 @@ function controls() {
   $<HTMLButtonElement>('reload').disabled = !town || busy;
   $<HTMLFieldSetElement>('add-fields').disabled = !town?.editable || busy;
   $<HTMLFieldSetElement>('edit-fields').disabled = !current() || busy;
+  $<HTMLSelectElement>('map-view').disabled = !town || busy;
+  $<HTMLButtonElement>('npc-detail').disabled = !current() || busy;
+  $('npc-panel').hidden = mode !== 'npc';
+  $('zones-panel').hidden = mode !== 'zones';
+  $<HTMLFieldSetElement>('zones-panel').disabled = !town?.editable || busy;
+  $('save').textContent = mode === 'zones' ? 'Lưu vùng an toàn' : 'Lưu NPC vào game';
   $('stage').style.pointerEvents = busy ? 'none' : '';
-  $('summary').textContent = town ? `${town.name} · ${town.editable ? `${npcs.length} NPC · ${dirty ? 'Chưa lưu' : 'Đã nạp bản lưu'}` : 'Luyện công · Xem trước'}` : 'Chưa chọn bản đồ';
+  $('summary').textContent = town ? `${town.name} · ${town.editable ? `${npcs.length} NPC · ${unsaved() ? 'Chưa lưu' : 'Đã nạp bản lưu'}` : 'Luyện công · Xem trước'}` : 'Chưa chọn bản đồ';
 }
 function loadImage(key: string, src: string): HTMLImageElement | null {
   if (images.has(key)) return images.get(key)!;
@@ -110,19 +121,37 @@ function change(edit: () => void) {
 async function openTown(id: number) {
   const t = towns.find(t => t.id === id); if (!t?.available) throw Error('Map này chưa có tài nguyên. Hãy sinh map trước.');
   const e = ++epoch;
-  const [data, map, navFile] = await Promise.all([
+  const [data, map, navFile, zoneDoc] = await Promise.all([
     t.editable ? api<{ npcs: NpcPlacement[]; revision: string }>(`/api/maps/${id}/npcs`) : Promise.resolve({ npcs: [] as NpcPlacement[], revision: '' }),
     api<MapJson>(`/assets/maps/${id}/map.json`),
     api<{ navigation: NonNullable<typeof nav> }>(`/assets/maps/${id}/nav.json`),
+    t.editable ? api<ZoneDocument>(`/api/maps/${id}/safe-zones`) : Promise.resolve({ zones: [], custom: false, revision: '' }),
   ]);
   if (e !== epoch) return;
   town = t; npcs = data.npcs; revision = data.revision; selected = npcs[0]?.id ?? ''; dirty = false;
   meta = map; nav = navFile.navigation; blocked = Uint8Array.from(atob(nav.blockedBase64), c => c.charCodeAt(0)); regions = Uint8Array.from(atob(meta.regions), c => c.charCodeAt(0));
+  pen.load({ type: t.editable ? 'City' : 'Field', raw: { size: t.size, entry: t.entry } }, zoneDoc);
   images.clear(); pending.clear(); failed.clear(); chunks.clear();
-  $('empty').hidden = true; renderList(); inspector(); center(); renderMaps(); controls(); status(t.editable ? `Đã mở ${t.name}. Chọn NPC rồi click hoặc kéo trên map để đặt vị trí.` : `Đã mở ${t.name} để xem trước. Cài spawn quái/Boss Xanh sẽ được bổ sung sau.`);
+  $('empty').hidden = true; renderList(); inspector(); mapView = 'mini'; field('map-view').value = mapView; fitMap(); renderMaps(); controls(); status(t.editable ? `Đã mở ${t.name}. Chọn NPC rồi click hoặc kéo trên map để đặt vị trí.` : `Đã mở ${t.name} để xem trước. Cài spawn quái/Boss Xanh sẽ được bổ sung sau.`);
 }
-function center() { if (!town) return; zoom = 1; panX = canvas.clientWidth / 2 - town.entry.x; panY = canvas.clientHeight / 2 - town.entry.y; draw(); }
-function zoomAt(factor: number, x: number, y: number) { const z = Math.min(4, Math.max(.008, zoom * factor)); panX = x - (x - panX) * z / zoom; panY = y - (y - panY) * z / zoom; zoom = z; draw(); }
+function fitScale() { return town ? Math.min((canvas.clientWidth - 24) / town.size.width, (canvas.clientHeight - 24) / town.size.height) : 1; }
+function fitMap() {
+  if (!town) return;
+  // Full-map overview always uses the lightweight minimap, never all ground/object chunks.
+  mapView = 'mini'; field('map-view').value = mapView;
+  zoom = fitScale(); panX = (canvas.clientWidth - town.size.width * zoom) / 2; panY = (canvas.clientHeight - town.size.height * zoom) / 2; draw();
+}
+function center() {
+  if (!town) return;
+  zoom = mapView === 'detail' ? 1 : Math.max(fitScale() * 8, zoom);
+  panX = canvas.clientWidth / 2 - town.entry.x * zoom; panY = canvas.clientHeight / 2 - town.entry.y * zoom; draw();
+}
+function npcDetail() {
+  const n = current(); if (!n) return;
+  mapView = 'detail'; field('map-view').value = mapView;
+  zoom = 1; panX = canvas.clientWidth / 2 - n.x; panY = canvas.clientHeight / 2 - n.y; draw();
+}
+function zoomAt(factor: number, x: number, y: number) { const z = Math.min(4, Math.max(Math.min(.008, fitScale() / 4), zoom * factor)); panX = x - (x - panX) * z / zoom; panY = y - (y - panY) * z / zoom; zoom = z; draw(); }
 function ensureChunk(key: string) {
   const cacheKey = 'chunk:' + key;
   if (chunks.has(key) || pending.has(cacheKey) || failed.has(cacheKey)) return;
@@ -132,13 +161,15 @@ function ensureChunk(key: string) {
 function draw() {
   const r = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
   if (canvas.width !== Math.round(r.width * dpr) || canvas.height !== Math.round(r.height * dpr)) { canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); }
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, r.width, r.height); $('zoom').textContent = `${Math.round(zoom * 100)}%`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, r.width, r.height); $('zoom').textContent = `${Math.round(zoom / (mapView === 'mini' ? fitScale() : 1) * 100)}%`;
+  $('zoom').title = mapView === 'mini' ? 'Minimap: 100% = vừa toàn map' : 'Map thật: 100% = ảnh gốc';
   if (!town || !meta) return;
   ctx.translate(panX, panY); ctx.scale(zoom, zoom);
   const mini = loadImage('minimap', url('minimap.webp')); if (mini) ctx.drawImage(mini, 0, 0, town.size.width, town.size.height);
   const x0 = Math.max(0, -panX / zoom), y0 = Math.max(0, -panY / zoom), x1 = Math.min(town.size.width, (r.width - panX) / zoom), y1 = Math.min(town.size.height, (r.height - panY) / zoom);
   const drawables: { depth: number; run: () => void }[] = [];
-  if (zoom >= .15) {
+  const detailed = mapView === 'detail' && zoom >= .15;
+  if (detailed) {
     for (let y = Math.max(0, Math.floor(y0 / 512)); y <= Math.min(meta.rows - 1, Math.floor(y1 / 512)); y++) for (let x = Math.max(0, Math.floor(x0 / 512)); x <= Math.min(meta.cols - 1, Math.floor(x1 / 512)); x++) {
       const i = y * meta.cols + x; if (!(regions[i >> 3] >> (i & 7) & 1)) continue;
       const key = `${x}_${y}`, img = loadImage('ground:' + key, url(`ground/${key}.webp`)); if (img) ctx.drawImage(img, x * 512, y * 512);
@@ -170,36 +201,53 @@ function draw() {
   for (const n of npcs) {
     const pick = n.id === selected; ctx.beginPath(); ctx.ellipse(n.x, n.y, (pick ? 9 : 6) / zoom, (pick ? 5 : 4) / zoom, 0, 0, Math.PI * 2);
     ctx.fillStyle = standable(n.x, n.y) ? (pick ? '#b9d8bf' : '#f0d88b') : '#f2ad9b'; ctx.fill(); ctx.lineWidth = 1.5 / zoom; ctx.strokeStyle = '#142318'; ctx.stroke();
+    if (mapView === 'mini' && !pick) continue;
     ctx.font = `${12 / zoom}px system-ui`; ctx.textAlign = 'center'; ctx.lineWidth = 3 / zoom; ctx.strokeStyle = '#101211'; ctx.fillStyle = '#e6e9e6';
-    const y = n.y - ((zoom >= .15 ? (looks.find(l => l.res === n.res)?.anchorY ?? 80) : 0) + 12 / zoom);
+    const y = n.y - ((detailed ? (looks.find(l => l.res === n.res)?.anchorY ?? 80) : 0) + 12 / zoom);
     ctx.strokeText(n.name, n.x, y); ctx.fillText(n.name, n.x, y);
   }
+  if (mode === 'zones') pen.draw(ctx, zoom);
 }
 function point(e: PointerEvent | WheelEvent) { const r = canvas.getBoundingClientRect(); return { x: Math.round((e.clientX - r.left - panX) / zoom), y: Math.round((e.clientY - r.top - panY) / zoom) }; }
-let drag: { id: number; pan: boolean; clientX: number; clientY: number; x: number; y: number; panX: number; panY: number; npc?: NpcPlacement } | null = null;
+let drag: { id: number; pan: boolean; clientX: number; clientY: number; x: number; y: number; panX: number; panY: number; npc?: NpcPlacement; zone?: boolean } | null = null;
 canvas.addEventListener('pointerdown', e => {
   if (!town || busy || drag) return; canvas.focus(); const p = point(e);
   const pan = field('pan').checked || e.button === 1;
+  if (mode === 'zones' && !pan && e.button === 0) {
+    if (!town.editable) return;
+    pen.down(p, zoom);
+    drag = { id: e.pointerId, pan: false, zone: true, clientX: e.clientX, clientY: e.clientY, x: p.x, y: p.y, panX, panY };
+    canvas.setPointerCapture(e.pointerId); e.preventDefault(); return;
+  }
   const hit = [...npcs].reverse().find(n => Math.hypot(n.x - p.x, n.y - p.y) * zoom < 18);
   if (!pan && e.button !== 0) return;
-  if (hit && !pan) { selected = hit.id; inspector(); renderList(); controls(); }
-  if (!pan && !hit && current()) change(() => { current()!.x = p.x; current()!.y = p.y; });
-  drag = { id: e.pointerId, pan, clientX: e.clientX, clientY: e.clientY, x: p.x, y: p.y, panX, panY, npc: pan ? undefined : hit };
+  if (mode === 'npc' && hit && !pan) { selected = hit.id; inspector(); renderList(); controls(); }
+  if (mode === 'npc' && !pan && !hit && current()) change(() => { current()!.x = p.x; current()!.y = p.y; });
+  drag = { id: e.pointerId, pan, clientX: e.clientX, clientY: e.clientY, x: p.x, y: p.y, panX, panY, npc: pan || mode !== 'npc' ? undefined : hit };
   canvas.setPointerCapture(e.pointerId); e.preventDefault(); draw();
 });
 canvas.addEventListener('pointermove', e => {
   const p = point(e); $('coords').textContent = `X: ${p.x} · Y: ${p.y}`;
+  if (mode === 'zones' && town?.editable) $('position').textContent = pen.describe(p);
   if (!drag || e.pointerId !== drag.id || !town) return;
   if (drag.pan) { panX = drag.panX + e.clientX - drag.clientX; panY = drag.panY + e.clientY - drag.clientY; }
+  else if (drag.zone) pen.move(p);
   else if (drag.npc) { drag.npc.x = Math.max(0, Math.min(town.size.width - 1, p.x)); drag.npc.y = Math.max(0, Math.min(town.size.height - 1, p.y)); dirty = true; field('x').value = String(drag.npc.x); field('y').value = String(drag.npc.y); positionStatus(); controls(); }
   draw();
 });
-function endDrag(e: PointerEvent) { if (drag?.id === e.pointerId) { drag = null; if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId); renderList(); } }
+function endDrag(e: PointerEvent) { if (drag?.id === e.pointerId) { if (drag.zone) pen.up(); drag = null; if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId); renderList(); } }
 canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
 canvas.addEventListener('wheel', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * .0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
 new ResizeObserver(draw).observe($('stage'));
+field('editor-mode').onchange = () => { mode = field('editor-mode').value as typeof mode; controls(); draw(); };
+field('map-view').onchange = () => {
+  mapView = field('map-view').value as typeof mapView;
+  if (mapView === 'mini') fitMap();
+  else { if (zoom < .15) zoomAt(1 / zoom, canvas.clientWidth / 2, canvas.clientHeight / 2); else draw(); }
+};
+$('npc-detail').onclick = npcDetail;
 $('center').onclick = center;
-$('fit').onclick = () => { if (!town) return; zoom = Math.min((canvas.clientWidth - 24) / town.size.width, (canvas.clientHeight - 24) / town.size.height); panX = (canvas.clientWidth - town.size.width * zoom) / 2; panY = (canvas.clientHeight - town.size.height * zoom) / 2; draw(); };
+$('fit').onclick = fitMap;
 $('plus').onclick = () => zoomAt(1.3, canvas.clientWidth / 2, canvas.clientHeight / 2);
 $('minus').onclick = () => zoomAt(1 / 1.3, canvas.clientWidth / 2, canvas.clientHeight / 2);
 field('blocked').onchange = draw; field('search').oninput = renderList;
@@ -227,12 +275,17 @@ $('add').onclick = () => change(() => {
 $('remove').onclick = async () => { const n = current(); if (n && await confirmDraft(`Xóa NPC “${n.name}” khỏi bản nháp của ${town!.name}? Chỉ ghi vào game khi bấm Lưu.`)) change(() => { npcs = npcs.filter(o => o.id !== n.id); selected = npcs[0]?.id ?? ''; }); };
 async function save() {
   if (!town?.editable) return;
+  if (mode === 'zones') {
+    const zones = pen.value();
+    const data = await api<ZoneDocument>(`/api/maps/${town.id}/safe-zones`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ zones, revision: pen.revision }) });
+    pen.saved(data); status('Đã ghi vùng an toàn vào mã nguồn. Khởi động lại server và tải lại client để nhận cấu hình mới; bản production cần build lại.'); return;
+  }
   const data = await api<{ npcs: NpcPlacement[]; revision: string }>(`/api/maps/${town.id}/npcs`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ npcs, revision }) });
   npcs = data.npcs; revision = data.revision; dirty = false; renderList(); inspector();
   status('Đã ghi cấu hình NPC vào mã nguồn game. Game dev có thể reload; bản game đã build cần build lại và tải lại client.');
 }
 $('save').onclick = () => void run(save);
-$('reload').onclick = async () => { if (town && (!dirty || await confirmDraft('Bỏ thay đổi chưa lưu và mở lại cấu hình đã lưu?'))) void run(() => openTown(town!.id)); };
+$('reload').onclick = async () => { if (town && (!unsaved() || await confirmDraft('Bỏ thay đổi NPC/vùng an toàn chưa lưu và mở lại cấu hình đã lưu?'))) void run(() => openTown(town!.id)); };
 function renderMaps() {
   const query = field('map-search').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase().trim();
   const visible = towns.filter(m => `${m.name} ${m.id}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase().includes(query));
@@ -255,7 +308,7 @@ function renderMaps() {
       text.append(name, hint); b.append(image, text);
       b.onclick = async () => {
         if (busy || town?.id === m.id) return;
-        if (dirty && !await confirmDraft('Bỏ bản nháp chưa lưu để chuyển bản đồ?')) return;
+        if (unsaved() && !await confirmDraft('Bỏ bản nháp chưa lưu để chuyển bản đồ?')) return;
         void run(() => openTown(m.id));
       };
       section.append(b);
@@ -265,7 +318,7 @@ function renderMaps() {
   if (!visible.length) list.textContent = 'Không tìm thấy bản đồ phù hợp.';
 }
 field('map-search').oninput = renderMaps;
-window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', e => { if (unsaved()) { e.preventDefault(); e.returnValue = ''; } });
 window.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); if (!busy) void run(save); } });
 void run(async () => {
   const [b, l] = await Promise.all([api<{ maps: Town[]; templates: Template[]; versions: Record<string, string> }>('/api/bootstrap'), api<Look[]>('/api/looks')]);

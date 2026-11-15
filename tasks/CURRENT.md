@@ -1,8 +1,29 @@
-## 2026-11-15 · Commit luật chiến đấu theo vùng an toàn
+## 2026-11-15 · Đã chia commit luật chiến đấu và giao diện pen/minimap
 
-- USER yêu cầu tách commit luật chiến đấu và giao diện tool. Commit này chứa shared polygon/validation/config, server cast/target/hit/regen, client targeting/Auto/dáng đứng và bot theo vị trí; giữ nguyên quyền dịch vụ NPC. Cấu hình USER đã lưu: map1 một vùng9điểm, map37 một vùng42điểm, đã kiểm hợp lệ.
-- Typecheck/build đạt; safe-zone4ca (3runtime/hìnhhọc +1store ở commit UI kế tiếp), NPC4/Auto34/effects20/bots10 đạt. Tách test store khỏi runtime để commit này không phụ thuộc backend editor chưa commit. Chưa kiểm trận PK thật trong scene.
-- Checkpoint trước commit8c7efc6; tiếp theo commit pen/minimap/backend lưu. Không push. Giữ cấu hình vị trí NPC USER đã sửa và ảnh .codex-attachments ngoài phạm vi hai commit.
+- USER yêu cầu commit phần mới, tách luật chiến đấu và giao diện tool. Luật đã commit `d9a7828` (`feat(combat): enforce town safe zones by world coordinates`): shared hình học/config, server/client/bot và3test core. Cấu hình USER lưu map1 (9điểm)/map37 (42điểm) đã validate và đi cùng commit luật.
+- HEAD (commit chứa checkpoint này): `feat(map-manager): add safe-zone pen and zoomable minimap` — UI pen/minimap/zoom/xemNPCthật, API+store atomic/CAS, test store riêng, scripts/README. Đây là commit thứ hai, phụ thuộc commit luật ngay trước; test core không import store của tool.
+- Typecheck/build đạt (cảnh báo chunk lớn hiện có); safe-zone4/NPC4/Auto34/effects20/bots10 =72test đạt. Các kiểm tra Chrome về pen/minimap/zoom/390×844 ở checkpoint trước vẫn áp dụng; lượt này chỉ chia commit/tách file test, không sửa gameplay hay giao diện.
+- GitNexus stagedgate core16file/52symbol/31flow Critical do luật combat dùng chung; đã đối chiếu đúng phạm vi và hồi quy. Gate all trướccommit bao gồm cả fileNPC USER sửa, không có nghĩa file đó được stage/commit. Không push.
+- Giữ ngoài hai commit: `packages/shared/src/npcs/town-placements.json` (vị trí NPC USER đã lưu) và `.codex-attachments/` (ảnh tham chiếu local). Không xóa/ghi lại dữ liệu này, không sinh asset/đụng DB. Không còn code pen/minimap chờ commit sau checkpoint này.
+
+## 2026-11-15 · Minimap làm nền chính, zoom và xem NPC thật (chưa commit)
+
+- USER yêu cầu preview zoomin/out, toàn map dùng minimap, chỉ xem khu NPC thật khi cần hướng. Đã sửa tools/map-manager UI: mởmap mặcđịnh mini/fit, nền mini/detail chọn rõ ràng; zoomwheel/+− giữmini ởmứcphónglớn; fitScale làm mốc100%mini, giới hạnthu nhỏ theo map; Toànmap quaymini, Vềđiểmvào zoomentry. XemNPCtrênmapthật focusđúngNPC/100%native, ground+object chỉtảiởdetail/khuvựcnhìnthấy. Nềnmini chỉhiệntênNPCchọn tránhchồngchữ.
+- Typecheck đạt. Chrome thật4570: mặcđịnh toànBiệnKinh, +12lần→2330%mini, −đạt; nútNPCdetail→resdetail/zoom100%/tọađộNPC20238,13118, đãxemhình thật. Penmini vẽ4điểm/khépđạt, zoom+/− giữnguyên tọađộ; discard quaMởlạibảnlưu giữsourcemaps:{}. 390×844 width375≤390, zoom130%đạt; ảnh /tmp/jx-minimap-evidence/{minimap-pen,mobile}.jpg, desktopđãxem, chưathiếtbịtouch/native thật.
+- GitNexusimpact draw/inspector có nhiều symbol trùng; openTownLOW2callers. Thayđổi chỉcamera/renderUI, giữnguồnNPC/vùng vàgameplayđãlàmtrước. HEAD8c7efc6 khớp checkpoint; khôngcommit/push/asset/DB. Bản4570/tabminimap/Pen khôngnháp sẵnUSER dùng. README/AGENTS cậpnhật.
+
+## 2026-11-15 · Pen vùng an toàn thành thị đã triển khai (chưa commit phần mới)
+
+- USER yêu cầu commit hiện trạng trước rồi triển khai pen. Đã chia 4305c35 MapCreator; 62cce60 MapManager/NPC8hướng; 8c7efc6 nghiên cứu/tracking, không push. Ảnh .codex-attachments giữ local ngoài commit.
+- Map Manager4570 thêm Công cụ Pen: vẽ click/chạm, khép/click điểm đầu, lùi/hủy nét, chọn/đổi tên vùng, kéo đỉnh/click cạnh thêm điểm/chọn điểm nhậpXY/xóa, nhiều polygon/tô lớp phủ, reset toàn map có xác nhận và Lưu riêng. Bản nháp NPC tách vùng; chuyểnmap/reload cảnh báo cả hai. Atomic store/CAS theo map, kiểm hình học trước ghi, mapluyệncông bị chặn. Không cho lưu vùng rỗng mở PK cả thành; reset null xóa override về fullsafe.
+- Shared safe-zones.ts + town-safe-zones.json; trong polygon/biên chặn cast chủ động/PK/hit cả hai phía, ngoài giữ luật PK hiện có. Server command/queuedcast/castNow/targeting/hit kiểm tọa độ, regen theo vùng; clienttarget/Auto/bot/dáng đứng chạy theo vị trí. Hàoquang/bịđộng giữ cũ, trạngthái vẫn chạy hạn nhưng không gây sát thương khi một phía an toàn. Không đổi quyền NPC/ID/action/buy/stash/KNB hoặc spawn. Cấu hình cần restartserver/reloadclient/buildproduction, khônglivepatch.
+- Typecheck/build đạt(cảnhbáochunkcũ); safe-zone4ca gồm biên/vùnglõm/nhiềuvùng/cạnhthẳng/CAS/reset + cast/PK/hit ngoài–trong thật đạt. Auto34/effects20/NPC4/bots10 đạt. API400vùngrỗng/stale/field và403origin, filekhôngđổi. Graph impact commandCastLOW, targeting/updatePlayer/applyHit/castNow/regenHIGH do dùng chung; đã báo trước và kiểm hồi quy. Một số UI/update UID UNKNOWN, xác minh trực tiếp source/caller, không coi graph rỗng là an toàn.
+- Chrome thật4580/file/tmp: vẽ4điểm, khép, kéođỉnh, đổi tên qua input, save/reopen giữ đúng; lùi/hủy nét và Hủy chuyểnmap giữnháp đạt. 390×844 khôngtrànngang; ảnh /tmp/jx-pen-evidence/{desktop,mobile}.jpg, desktop/mobile đã xem. Bản cuối4570 đã thử clickcạnh thêmđiểm4→5 vàxóađiểm5→4, sauđódiscard khôngghi source. Nguồn NPC/zone thực maps:{} khôngđổi; bản4570 đã mởBiệnKinh/Pen khôngnháp đểUSER dùng. Vùngdemo chỉ ở/tmp, không tự áp ranhthành. Chưa kiểm native/mobilethật hoặc giaochiến trong scene với polygon tùy chỉnh. Luật shared dùng cả3nền tảng.
+- HEAD8c7efc6, phần pen/gameplay mới chưacommit theo thứ tự USER yêu cầu commit hiện trạng trước; README/rootAGENTS/research có ghi nguồn và cách dùng. Final graph gate bao gồm file mới theo intent-to-add; do chạm combat dùng chung, riskCritical/31flows ở lượt đầu, đã kiểm nguồn và các test liên quan. CLI hiển thị danh sách rút gọn, không coi là đồ thị đầy đủ. Không đụng DB hay sinhasset ở lượt này.
+
+## 2026-11-15 · Triển khai pen vùng an toàn theo USER
+
+- Đã chia commit hiện tại: 4305c35 MapCreator; 62cce60 MapManager/NPC8hướng; 8c7efc6 nghiên cứu/tracking. Không push, ảnh tham chiếu .codex-attachments giữ local. USER đã duyệt triển khai khoanh vùng bằng pen, đang thực hiện; chưa có vùng thật áp dụng.
 
 ## 2026-11-15 · Commit Map Manager theo USER
 

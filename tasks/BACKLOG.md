@@ -323,4 +323,8 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 
 - MC2 nghiên cứu2026-11-15: vùng an toàn nội thành/chiến đấu ngoại thành ở docs/research/town-safe-zones-study.md; chỉ study, chưa duyệt triển khai.
 
-- MC2: USER đã duyệt và commit luật vùng an toàn; giao diện pen/minimap được tách commit kế tiếp.
+- MC2 cập nhật2026-11-15: USER duyệt pen; đã triển khai polygon/đỉnh/lưu/reset và luật chiến đấu theo vị trí dùng chung server/client/bot. 4ca safe-zone + Auto34/effects20/NPC4/bots10/typecheck/build đạt; Chrome vẽ/lưu/mở lại và390×844 đạt. Nguồn maps:{} chờ USER tự khoanh thành, chưa kiểm gameplay scene với polygon thật.
+
+- MC2 cập nhật2026-11-15: minimap mặc định toàn map, wheel/+− zoom giữ minimap; nút xem NPC thật tại chỗ, pen dùng chung tọa độ. Typecheck/Chrome2330%/390×844 đạt, chưa commit.
+
+- MC2 commit2026-11-15: luật vùng an toàn `d9a7828`; pen/minimap/API lưu/teststore tách commit `feat(map-manager): add safe-zone pen and zoomable minimap`. Code hoàn tất,72test/typecheck/build đạt; vị trí NPC USER sửa giữ ngoài phạm vi.

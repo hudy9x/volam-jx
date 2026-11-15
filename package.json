@@ -22,7 +22,7 @@
     "map:creator": "node --import tsx tools/map-creator/server.ts",
     "test:map-creator": "node --import tsx --test tests/map-creator.test.ts",
     "map:manager": "node --import tsx tools/map-manager/server.ts",
-    "test:safe-zones": "node --import tsx --test tests/safe-zones.test.ts",
+    "test:safe-zones": "node --import tsx --test tests/safe-zones.test.ts tests/safe-zone-store.test.ts",
     "test:map-manager": "node --import tsx --test tests/map-manager.test.ts"
   },
   "devDependencies": {
