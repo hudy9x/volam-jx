@@ -28,7 +28,7 @@
 | Bản đồ | Tải vùng đất trong khung nhìn + 384 px, vật thể + 900 px; gỡ khi ra ngoài 1400 / 2000 px; tối đa 6 ảnh song song (`MapView.ts:28–31`) | **Tốt.** Chỉ thiếu ưu tiên theo hướng đi và hình tạm |
 | Vào bản đồ | `WorldScene.create` chờ `map.ready()` (đất + vật thể trong 1 khung nhìn) + `nav.json` rồi mới `build()` | Tốt. Chưa tải trước nhân vật mình / quái |
 | Nhân vật, quái | `JxSprite.request` (`PaperDoll.ts:56`) xin **9 động tác cùng lúc** (`PREFETCH`: stand, idle, run, townRun, attack1, attack2, magic, wound, die) cho mọi lớp + bóng | Một người chơi ≈ 9 × (≤ 11 lớp + bóng) ≈ **tới ~100 sheet**; nhiều hơn cần |
-| Phạm vi | `ActorView` vẽ **mọi actor server gửi**, không xét có trong màn hình không; server gửi mọi actor của bản đồ (chưa có HT5) | Bản đồ nhiều quái: tải sheet cho cả quái ở đầu kia bản đồ |
+| Phạm vi | `ActorView` (USER2026-11-15) chỉ dựng sprite/plate trong bounds camera + margin, ngoài khung vẫn cập nhật tọa độ/clock; server vẫn gửi mọi actor bản đồ (chưa có HT5) | Ngoài khung không gọi render/requestSheets; sheet đã tải vẫn chưa có LRU |
 | Giải phóng | Chỉ `MapView` gọi `textures.remove`. Sheet nhân vật / quái / hiệu ứng / icon **không bao giờ gỡ**, kể cả khi đổi bản đồ (Phaser `TextureManager` là toàn cục, sống qua `scene.restart`) | **Vấn đề lớn nhất cho mobile** |
 | Hàng đợi | Hai bộ tải độc lập: `MapView.image` (6 song song) và Phaser `scene.load` (mặc định của Phaser, FIFO) cạnh tranh nhau | Không có ưu tiên, không hủy |
 | Lưu đệm | Dev: middleware Vite trả `Cache-Control: no-cache` (`vite.config.ts`). Bản build: chưa có nơi phục vụ asset (server Colyseus không phục vụ file tĩnh), URL không có phiên bản | Chưa có chiến lược |

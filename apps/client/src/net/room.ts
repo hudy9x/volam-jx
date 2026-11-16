@@ -10,7 +10,7 @@ import { inventory } from '../state/inventory';
 import { stash } from '../state/stash';
 import { progress } from '../state/progress';
 import { skillbar } from '../state/skillbar';
-import { SERVER_URL, currentToken } from './api';
+import { SERVER_URL, currentToken, Api, syncMapRegistry } from './api';
 
 // WebSocket side: one Colyseus room per map. Messages about the own character go into state/; the world scene
 // listens to the rest (fx, notices, transfer) itself.
@@ -18,6 +18,8 @@ import { SERVER_URL, currentToken } from './api';
 const colyseus = new Client(SERVER_URL);
 
 export async function joinMap(mapId: number, charId: string): Promise<Room> {
+  await syncMapRegistry();
+  mapId = (await Api.enterMap(charId)).mapId;
   const room = await colyseus.joinOrCreate(MAP_ROOM, { mapId, charId, token: currentToken() });
   beginCharacterAuto(charId, value => room.send(C2S.autoConfig, value));
   room.onMessage(S2C.autoConfig, (msg: CharacterAuto) => receiveCharacterAuto(msg));

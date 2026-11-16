@@ -1,0 +1,51 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import net from 'node:net';
+import { spawn, type ChildProcess } from 'node:child_process';
+import { once } from 'node:events';
+import sharp from 'sharp';
+import { Client } from '@colyseus/sdk';
+import { MAP_ROOM, C2S, S2C } from '../packages/shared/src/protocol.js';
+import { ProjectStore } from '../tools/map-creator/Store.js';
+import { PublicationStore } from '../tools/map-creator/PublicationStore.js';
+const delay=(ms:number)=>new Promise(r=>setTimeout(r,ms));
+async function until(check:()=>boolean|Promise<boolean>, timeout=12000){const end=Date.now()+timeout;while(Date.now()<end){if(await check())return;await delay(40);}throw Error('Timed out waiting for map transition');}
+test('real server: enabled entry, live disabled/deleted evacuation, rejected entry and offline fallback to Biện Kinh', {timeout:45000},async()=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'jx-map-access-')), maps=path.join(root,'maps'), registry=path.join(root,'registry.json'), dbFile=path.join(root,'db.json');
+ const original=path.resolve('apps/client/public/assets/maps/37');await fs.access(path.join(original,'nav.json'));
+ await fs.mkdir(maps);await fs.symlink(original,path.join(maps,'37'),'dir');
+ const store=new ProjectStore(path.join(root,'projects'));let p=await store.create(91001,'Access test');
+ p.ground=await store.upload(p.id,await sharp({create:{width:128,height:64,channels:4,background:'#478934'}}).png().toBuffer(),'ground');p.width=128;p.height=64;p.entry={x:64,y:32};p=await store.save(p.id,p);
+ const pub=new PublicationStore(store,registry,maps);let state=await pub.set(p.id,true,p.revision,(await pub.status(p.id)).revision);
+ const free=net.createServer();free.listen(0,'127.0.0.1');await once(free,'listening');const port=(free.address() as net.AddressInfo).port;await new Promise<void>(r=>free.close(()=>r()));
+ const base=`http://127.0.0.1:${port}`;let child:ChildProcess|undefined,logs='',token='',room:any;
+ const start=async()=>{child=spawn(process.execPath,['--import','tsx','apps/server/src/index.ts'],{cwd:process.cwd(),env:{...process.env,PORT:String(port),DB_PATH:dbFile,MAPS_DIR:maps,SPAWNS_DIR:path.join(root,'spawns'),MAP_REGISTRY_FILE:registry,AUTH_SECRET:'map-access-test-only'},stdio:['ignore','pipe','pipe']});child.stdout!.on('data',b=>logs+=String(b));child.stderr!.on('data',b=>logs+=String(b));await until(async()=>{try{return(await fetch(base+'/api/health')).ok;}catch{return false;}});};
+ const stop=async()=>{if(child&&child.exitCode===null){const exited=once(child,'exit');child.kill('SIGTERM');await exited;}};
+ const req=async(url:string,body?:unknown)=>{const r=await fetch(base+url,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:body?JSON.stringify(body):undefined});const value=await r.json();assert.ok(r.ok,JSON.stringify(value));return value;};
+ let char:any;const client=new Client(base);
+ const join=async(id:number)=>{room=await client.joinOrCreate(MAP_ROOM,{mapId:id,token,charId:char.id});room.onMessage('*',()=>{});await until(()=>!!room.state?.actors?.has(room.sessionId));assert.equal(room.state.mapId,id);};
+ const transfer=async(id:number,action:()=>Promise<unknown>|void)=>{const received=new Promise<number>(r=>room.onMessage(S2C.transfer,(m:any)=>r(m.mapId)));await action();assert.equal(await Promise.race([received,delay(8000).then(()=>{throw Error('No transfer');})]),id);await room.leave();room=null;};
+ try{
+  await start();token=(await req('/api/register',{username:'map_access',password:'test-pass-123'})).token;
+  char=await req('/api/characters',{name:'MapAccess',series:'kim',gender:'male'});await join(37);
+  await transfer(p.id,()=>room.send(C2S.teleport,{mapId:p.id}));assert.equal((await req('/api/enter-map',{charId:char.id})).mapId,p.id);await join(p.id);
+  await transfer(37,async()=>{state=await pub.set(p.id,false,p.revision,state.revision);});await join(37);
+  await assert.rejects(client.joinOrCreate(MAP_ROOM,{mapId:p.id,token,charId:char.id}));
+  await room.leave();room=null;await stop();
+  const offline=JSON.parse(await fs.readFile(dbFile,'utf8'));offline.characters[char.id].mapId=p.id;offline.characters[char.id].x=64;offline.characters[char.id].y=32;await fs.writeFile(dbFile,JSON.stringify(offline));
+  await start();assert.equal((await req('/api/characters'))[0].mapId,37);assert.equal((await req('/api/enter-map',{charId:char.id})).mapId,37);await join(37);
+  state=await pub.set(p.id,true,p.revision,state.revision);await transfer(p.id,()=>room.send(C2S.teleport,{mapId:p.id}));await join(p.id);
+  await transfer(37,async()=>{const cfg=JSON.parse(await fs.readFile(registry,'utf8'));delete cfg.maps[String(p.id)];await fs.writeFile(registry+'.tmp',JSON.stringify(cfg));await fs.rename(registry+'.tmp',registry);});await join(37);
+  assert.equal((await req('/api/enter-map',{charId:char.id})).mapId,37);
+  state=await pub.set(p.id,true,p.revision,(await pub.status(p.id)).revision);
+  await transfer(p.id,()=>room.send(C2S.teleport,{mapId:p.id}));await join(p.id);
+  const activeFolder=path.join(maps,String(p.id),state.map!.build);
+  await transfer(37,()=>fs.rename(activeFolder,activeFolder+'.missing'));await join(37);
+  assert.equal((await req('/api/maps')).maps[String(p.id)].enabled,false);
+  await fs.rename(activeFolder+'.missing',activeFolder);
+  await fs.access(path.join(maps,String(p.id),state.map!.build,'ground','0_0.webp'));
+ }catch(e){throw new Error(`${(e as Error).message}\nServer log:\n${logs.slice(-5000)}`);}finally{if(room)await room.leave().catch(()=>{});await stop();await fs.rm(root,{recursive:true,force:true});}
+});

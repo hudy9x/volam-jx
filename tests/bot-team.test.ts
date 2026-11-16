@@ -31,7 +31,15 @@ test('non-leader/full/dead cannot invite, pending invitations reserve available 
   assert.ok(new TeamInviter().next(0,{...self,team:'t'},actors,team()));
 });
 test('BotClient connects modes to real protocol handlers and team invitations work with chat/sell off',async()=>{
-  for(const mode of ['invite','accept','off','no-grind'] as const){
+  const originalFetch=globalThis.fetch;
+  globalThis.fetch=(async (url: string | URL | Request, init?: RequestInit)=>{
+    if(String(url).endsWith('/api/maps')) return new Response(JSON.stringify({version:1,maps:{}}));
+    assert.ok(String(url).endsWith('/api/enter-map'));
+    assert.equal((init?.headers as Record<string,string>).Authorization,'Bearer test');
+    assert.deepEqual(JSON.parse(String(init?.body)),{charId:'test'});
+    return new Response(JSON.stringify({mapId:37}));
+  }) as typeof fetch;
+  try { for(const mode of ['invite','accept','off','no-grind'] as const){
     const sc=normalizeBotScenario({activities:{grind:mode!=='no-grind',chat:false,sell:false,autoInviteTeam:mode==='invite'||mode==='no-grind',autoAcceptTeam:mode==='accept'}});
     const run:RunStats={orders:0,dropped:0,deaths:0,rejoins:0,transfers:0,errors:0,lastError:''};
     const bot=new BotClient({username:'test',token:'test',charId:'test',mapId:37},sc,()=>0,run);
@@ -45,5 +53,5 @@ test('BotClient connects modes to real protocol handlers and team invitations wo
     else assert.equal(sent.length,0);
     bot.stopped=true;handlers.get(S2C.teamInvite)!({from:'other'});bot.updateSocial(60000);
     assert.equal(sent.length,mode==='invite'||mode==='accept'?1:0);
-  }
+  } } finally { globalThis.fetch=originalFetch; }
 });

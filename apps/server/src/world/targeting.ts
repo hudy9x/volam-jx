@@ -1,4 +1,4 @@
-import { canAttack, clearSegment, isoDistance, type Camp, type CombatantInfo } from '@vltk/shared';
+import { combatPairRules, canAttack, clearSegment, isoDistance, type Camp, type CombatantInfo } from '@vltk/shared';
 import type { Sim } from './entity.js';
 import type { World } from './World.js';
 
@@ -21,7 +21,7 @@ export function friendly(w: World, a: Sim, b: Sim): boolean {
 
 export function attackable(w: World, attacker: Sim, target: Sim): boolean {
   if (attacker.def?.dummy) return false;
-  return canAttack(info(attacker), info(target), w.rules, w.now);
+  return canAttack(info(attacker), info(target), combatPairRules(w.meta, attacker.a, target.a, w.rules), w.now);
 }
 
 /** Closest Sim `sim` may hit within `radius` of x,y that also passes `ok`. */

@@ -1,7 +1,6 @@
+import { mapAvailable, refreshMapRegistry, resolveCharacterMap } from '../mapRegistry.js';
 import { DEFAULT_AUTO, normalizeAuto, normalizeBotTemplate, type CharacterAuto, type TradePostMsg } from '@vltk/shared';
 import { buyKnb, marketOnline, marketOffline, marketPost, marketBuy } from '../world/market.js';
-import fs from 'node:fs';
-import path from 'node:path';
 import { Room, ServerError, type Client } from 'colyseus';
 import {
   bestTrainingMap, trainingMaps, type TrainingMap, type TrainMsg, type TeamOrderMsg, type SuggestMsg, type TokenMsg,
@@ -27,7 +26,7 @@ import { applySuggestion, addPotential, expNext, gainExp, joinFaction, raiseSkil
 import { pickup } from '../world/systems/drops.js';
 import { World } from '../world/World.js';
 import { MapState } from './schema.js';
-import { MAPS_DIR, PERF, devTools } from '../env.js';
+import { PERF, devTools } from '../env.js';
 
 interface JoinOptions { mapId: number; token: string; charId: string }
 interface AuthData { username: string; charId: string }
@@ -36,8 +35,7 @@ interface AuthData { username: string; charId: string }
 /** charId -> roomId for every character currently in the world (one session per character). */
 const online = new Map<string, string>();
 /** Bãi luyện công (maps/training.ts) of the maps this machine has (map art + grid), computed once. */
-let trainingCache: TrainingMap[] | null = null;
-export const trainingList = (): TrainingMap[] => trainingCache ??= trainingMaps(id => fs.existsSync(path.join(MAPS_DIR, String(id), 'nav.json')));
+export const trainingList = (): TrainingMap[] => { refreshMapRegistry(); return trainingMaps(id => mapAvailable(id)); };
 
 /** Whether a character is in the game on some map (bot dev API: reset / delete only offline bots). */
 export const isOnline = (charId: string): boolean => online.has(charId);
@@ -64,7 +62,8 @@ export class MapRoom extends Room<{ state: MapState }> {
 
   onCreate(options: JoinOptions): void {
     const mapId = Number(options.mapId);
-    if (!MAPS[mapId]) throw new ServerError(400, `Unknown map ${options.mapId}`);
+    refreshMapRegistry(true);
+    if (!mapAvailable(mapId, true)) throw new ServerError(400, `Unknown map ${options.mapId}`);
     this.state = new MapState();
     this.state.mapId = mapId;
     this.world = new World(mapId, this.state.actors, {
@@ -278,7 +277,8 @@ export class MapRoom extends Room<{ state: MapState }> {
     this.onMessage(C2S.teleport, (client, msg: TeleportMsg) => {
       const sim = this.simOf(client);
       const mapId = Number(msg?.mapId);
-      if (!sim || !MAPS[mapId] || mapId === this.state.mapId) return;
+      if (!sim || mapId === this.state.mapId) return;
+      if (!mapAvailable(mapId, true)) { this.notify(sim, 'Map đã tắt hoặc không còn tồn tại.'); return; }
       if (sim.dead) { this.notify(sim, 'Đang trọng thương, không thể đi xa.'); return; }
       // Map art + grid are generated per machine (npm run gen:maps); refuse maps that are not there yet.
       try { getGrid(mapId); } catch { this.notify(sim, `Bản đồ ${MAPS[mapId].name} chưa được tạo trên máy chủ.`); return; }
@@ -315,6 +315,8 @@ export class MapRoom extends Room<{ state: MapState }> {
     if (!username) throw new ServerError(401, 'Phiên đăng nhập không hợp lệ');
     const char = db.getCharacter(String(options.charId));
     if (!char || char.owner !== username) throw new ServerError(403, 'Không tìm thấy nhân vật');
+    if (!mapAvailable(this.state.mapId, true) || this.world.meta.customBuild !== MAPS[this.state.mapId]?.customBuild) throw new ServerError(403, 'Map đã tắt hoặc được thay bằng bản mới.');
+    resolveCharacterMap(char);
     if (char.mapId !== this.state.mapId) throw new ServerError(409, 'Nhân vật không ở bản đồ này');
     if (online.has(char.id)) throw new ServerError(409, 'Nhân vật đang ở trong game');
     return { username, charId: char.id };
@@ -397,7 +399,18 @@ export class MapRoom extends Room<{ state: MapState }> {
     db.flush();
   }
 
+  private unavailable = false;
   private tick(dt: number): void {
+    refreshMapRegistry();
+    if (!mapAvailable(this.state.mapId) || this.world.meta.customBuild !== MAPS[this.state.mapId]?.customBuild) {
+      if (!this.unavailable) { this.unavailable = true; void this.lock(); }
+      const entry = MAPS[TOWN_MAP_ID].raw.entry;
+      for (const sim of this.world.sims.values()) if (sim.kind === 'player') {
+        this.notify(sim, 'Map đã tắt hoặc không còn tồn tại. Đang chuyển về Biện Kinh.');
+        this.transfer(sim, TOWN_MAP_ID, entry.x, entry.y);
+      }
+      return;
+    }
     const t0 = performance.now();
     this.world.update(dt);
     const events = this.world.takeEvents();
@@ -435,6 +448,7 @@ export class MapRoom extends Room<{ state: MapState }> {
   }
 
   private saveCharacter(sim: Sim, at = { mapId: this.state.mapId, x: sim.a.x, y: sim.a.y }): void {
+    if (!mapAvailable(at.mapId)) at = { mapId: TOWN_MAP_ID, ...MAPS[TOWN_MAP_ID].raw.entry };
     if (sim.charId) {
       db.updateCharacter(sim.charId, {
         ...at, gender: sim.a.gender as never, horse: sim.a.horse || null, mounted: sim.a.mounted, bag: sim.bag?.slice(),
@@ -450,6 +464,7 @@ export class MapRoom extends Room<{ state: MapState }> {
 
   /** Move a player to another map: persist the destination, drop them here, tell the client to rejoin. */
   private transfer(sim: Sim, mapId: number, x: number, y: number): void {
+    if (!mapAvailable(mapId, true)) { this.notify(sim, 'Map đích đã tắt hoặc không còn tồn tại.'); return; }
     const client = this.clients.find(c => c.sessionId === sim.sessionId);
     this.saveCharacter(sim, { mapId, x, y });
     marketOffline(sim);

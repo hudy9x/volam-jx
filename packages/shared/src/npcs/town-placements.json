@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "maps": {
+    "1": [
+      {
+        "id": "npc-thoren",
+        "name": "Thợ rèn",
+        "res": "passerby004_4",
+        "action": "shop",
+        "x": 14869,
+        "y": 9165,
+        "dir": 0
+      },
+      {
+        "id": "npc-duocdiem",
+        "name": "Chủ dược điếm",
+        "res": "passerby007",
+        "action": "drug",
+        "x": 13111,
+        "y": 9285,
+        "dir": 0
+      },
+      {
+        "id": "npc-kytran",
+        "name": "Bách Bảo Lão Nhân",
+        "res": "passerby023",
+        "action": "kytran",
+        "x": 14287,
+        "y": 9022,
+        "dir": 0
+      },
+      {
+        "id": "npc-xaphu",
+        "name": "Xa phu",
+        "res": "passerby040_4",
+        "action": "travel",
+        "x": 11983,
+        "y": 9831,
+        "dir": 0
+      },
+      {
+        "id": "npc-banngua",
+        "name": "Bán ngựa",
+        "res": "passerby037_4",
+        "action": "horse",
+        "x": 13868,
+        "y": 8948,
+        "dir": 0
+      },
+      {
+        "id": "npc-ruong",
+        "name": "Rương chứa đồ",
+        "res": "passerby198",
+        "action": "stash",
+        "x": 14101,
+        "y": 8798,
+        "dir": 4
+      },
+      {
+        "id": "npc-278e7704-50d7-412d-9759-223bb102b0f2",
+        "name": "Thợ rèn",
+        "res": "passerby004_4",
+        "action": "shop",
+        "x": 12889,
+        "y": 9924,
+        "dir": 0
+      },
+      {
+        "id": "npc-a46438ac-22ea-419c-a06f-db4a6c822c54",
+        "name": "Chủ dược điếm",
+        "res": "passerby007",
+        "action": "drug",
+        "x": 14447,
+        "y": 9116,
+        "dir": 0
+      },
+      {
+        "id": "npc-d5dd2e1c-c850-4f0d-8814-5ee73e246d90",
+        "name": "Xa phu",
+        "res": "passerby040_4",
+        "action": "travel",
+        "x": 15671,
+        "y": 10326,
+        "dir": 0
+      },
+      {
+        "id": "npc-32cdc4a3-fbf2-4190-b053-48330249d7a0",
+        "name": "Xa phu",
+        "res": "passerby040_4",
+        "action": "travel",
+        "x": 15857,
+        "y": 8648,
+        "dir": 0
+      },
+      {
+        "id": "npc-08910caa-e7fa-4790-9ff9-bfe1f56620c4",
+        "name": "Xa phu",
+        "res": "passerby040_4",
+        "action": "travel",
+        "x": 12776,
+        "y": 7619,
+        "dir": 0
+      }
+    ],
+    "37": [
+      {
+        "id": "npc-thoren",
+        "name": "Thợ rèn",
+        "res": "passerby004_4",
+        "action": "shop",
+        "x": 20082,
+        "y": 13219,
+        "dir": 0
+      },
+      {
+        "id": "npc-duocdiem",
+        "name": "Chủ dược điếm",
+        "res": "passerby007",
+        "action": "drug",
+        "x": 22049,
+        "y": 13103,
+        "dir": 0
+      },
+      {
+        "id": "npc-kytran",
+        "name": "Bách Bảo Lão Nhân",
+        "res": "passerby023",
+        "action": "kytran",
+        "x": 22329,
+        "y": 13259,
+        "dir": 0
+      },
+      {
+        "id": "npc-xaphu",
+        "name": "Xa phu",
+        "res": "passerby040_4",
+        "action": "travel",
+        "x": 19275,
+        "y": 13636,
+        "dir": 0
+      },
+      {
+        "id": "npc-banngua",
+        "name": "Bán ngựa",
+        "res": "passerby037_4",
+        "action": "horse",
+        "x": 21105,
+        "y": 12454,
+        "dir": 0
+      },
+      {
+        "id": "npc-ruong",
+        "name": "Rương chứa đồ",
+        "res": "passerby198",
+        "action": "stash",
+        "x": 20215,
+        "y": 13002,
+        "dir": 0
+      }
+    ]
+  }
+}

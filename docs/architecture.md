@@ -85,9 +85,9 @@ game/             Phaser
   index.ts        tạo game, startWorld / stopWorld, addScene (dev)
   ports.ts        HỢP ĐỒNG với giao diện: WorldUi (cảnh cần gì từ giao diện), WorldActions (lệnh giao diện gửi), WindowId
   WorldScene.ts   bản đồ đang chơi: actor, hiệu ứng, chuột / phím → lệnh server, cấp dữ liệu cho WorldUi
-  actors/         ActorView (vẽ + tên + máu trên đầu) · PaperDoll · sheets (nạp texture) · npcs (NPC thành actor)
+  actors/         ActorView (culling theo bounds; ngoài khung vẫn chạy đồng hồ, ẩn sprite/tên/máu/decor) · PaperDoll · sheets (nạp texture) · npcs (NPC thành actor)
   fx/             Effects (fx từ server, số sát thương) · SkillFx · StateDecor (hình trạng thái trên người) · controlEffects (cấu hình/hàm thuần hình khống chế) · fx.gen.ts
-  map/            MapView (bản đồ gốc theo vùng)
+  map/            MapView (streaming theo vùng; culling ground/object độc lập với vùng lưu giữ)
   audio/          Audio · fxSounds · sounds.gen.ts
 ui/               giao diện HTML (bố cục desktop)
   kit/            theme.css · dialog.ts (+css: mọi cửa sổ) · tooltip.ts (+css) · dom.ts · slot.ts · settingInputs.ts

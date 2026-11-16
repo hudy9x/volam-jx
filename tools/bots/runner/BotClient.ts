@@ -1,6 +1,6 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillCost,
+  applyMapRegistry, combatRulesAt, BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillCost,
   tuningOf, weaponOk, weaponTypeOf, autoAuraSkill,
   type AutoSettings, type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type InventoryMsg, type Item,
   type SkillDef, type SkillsMsg, type StatsMsg, type TransferMsg, type TeamMsg,
@@ -87,6 +87,12 @@ export class BotClient {
   async connect(): Promise<void> {
     if (this.stopped) return;
     try {
+      const endpoint = this.sc.server.replace(/^ws/, 'http').replace(/\/$/, '');
+      const registry = await fetch(`${endpoint}/api/maps`); if (!registry.ok) throw Error('Không tải được danh sách map.');
+      applyMapRegistry(await registry.json());
+      const enter = await fetch(`${endpoint}/api/enter-map`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.login.token}` }, body: JSON.stringify({ charId: this.login.charId }) });
+      if (!enter.ok) throw Error('Không xác định được map vào game.');
+      this.mapId = (await enter.json() as { mapId: number }).mapId;
       const room = await this.client.joinOrCreate(MAP_ROOM, { mapId: this.mapId, token: this.login.token, charId: this.login.charId });
       if (this.stopped) { await room.leave(true); return; }
       this.wire(room);
@@ -219,7 +225,7 @@ export class BotClient {
     return (this.room?.state as any)?.actors?.get(this.room!.sessionId);
   }
 
-  safe(): boolean { return !!MAPS[this.mapId]?.safe; }
+  safe(): boolean { const map = MAPS[this.mapId], me = this.me(); return !!map && (me ? combatRulesAt(map, me).safe : map.safe); }
 
   /** Dead for at least `after` ms: revive (in town when on another map — the server moves us). */
   private diedAt = 0;

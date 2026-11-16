@@ -13,7 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   ASSET_MANIFEST, PLAIN_PACKS, packDirs, type AssetManifest, type AssetPack,
-} from '../../../../packages/shared/src/assets.ts';
+} from '../../../../packages/shared/src/assets.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const ASSETS_DIR = path.resolve(HERE, '../../public/assets');

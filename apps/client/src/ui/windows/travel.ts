@@ -1,4 +1,5 @@
-import { MAPS, MAP_TYPE_NAMES, mapLevelBand, type MapMeta } from '@vltk/shared';
+import { syncMapRegistry } from '../../net/api';
+import { isMapEnabled, MAPS, MAP_TYPE_NAMES, mapLevelBand, type MapMeta } from '@vltk/shared';
 import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
 import type { HudContext } from '../hud/context';
@@ -27,7 +28,7 @@ export class TravelWindow {
       const level = p?.progress.level ?? 0;
       if (level === this.level) return;
       this.level = level;
-      if (dialogs.isOpen(ID)) this.render();
+      if (dialogs.isOpen(ID)) { this.render(); void syncMapRegistry().then(() => { if (dialogs.isOpen(ID)) this.render(); }).catch(e => this.ctx.notice((e as Error).message)); }
     }, false);
     dialogs.register(ID);
     $<HTMLInputElement>('travel-search').addEventListener('input', e => {
@@ -38,7 +39,7 @@ export class TravelWindow {
 
   toggle(open?: boolean): void {
     dialogs.toggle(ID, open);
-    if (dialogs.isOpen(ID)) this.render();
+    if (dialogs.isOpen(ID)) { this.render(); void syncMapRegistry().then(() => { if (dialogs.isOpen(ID)) this.render(); }).catch(e => this.ctx.notice((e as Error).message)); }
   }
 
   /** The map we are on ("Đang ở đây"). */
@@ -49,7 +50,7 @@ export class TravelWindow {
 
   private render(): void {
     const level = progress.get()?.progress.level ?? this.ctx.self()?.level ?? 0;
-    const all = Object.values(MAPS).sort((a, b) => Number(b.safe) - Number(a.safe)
+    const all = Object.values(MAPS).filter(m => isMapEnabled(m.id)).sort((a, b) => Number(b.safe) - Number(a.safe)
       || (mapLevelBand(a.id)?.[0] ?? Infinity) - (mapLevelBand(b.id)?.[0] ?? Infinity)
       || (mapLevelBand(a.id)?.[1] ?? Infinity) - (mapLevelBand(b.id)?.[1] ?? Infinity)
       || a.name.localeCompare(b.name, 'vi'));

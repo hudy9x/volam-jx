@@ -11,7 +11,7 @@ export interface TrainingMap { mapId: number; name: string; lo: number; hi: numb
 export function trainingMaps(available: (mapId: number) => boolean = () => true): TrainingMap[] {
   const out: TrainingMap[] = [];
   for (const m of Object.values(MAPS)) {
-    if (m.safe || !available(m.id)) continue;
+    if (m.enabled === false || m.safe || !available(m.id)) continue;
     const file = spawnsOf(m.id);
     const levels = (file?.zones ?? []).filter(z => !z.boss).flatMap(z => z.monsters.map(([, lv]) => lv));
     if (levels.length < 3) continue;

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "maps": {
+    "37": [
+      {
+        "id": "portal-cb6c98aa-014c-475b-88d2-f03c2ff143d1",
+        "label": "Tới Lâm Du Quan",
+        "x": 30853,
+        "y": 5116,
+        "radius": 40,
+        "toMap": 319,
+        "toX": 8208,
+        "toY": 7432
+      }
+    ]
+  }
+}

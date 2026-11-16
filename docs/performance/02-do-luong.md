@@ -328,3 +328,180 @@ không lấy bố cục/tỷ lệ chữ trong ảnh làm thiết kế được U
 - Đã tắt browser/server thử. Không thay DB thật/asset sinh, không commit/push. Harness/ảnh đầy đủ tạm `/tmp/jx-viewport*`;
   bằng chứng đã dẫn nằm trong repo. GitNexus đã kiểm impact phạm vi rộng và kiểm thay đổi graph; không đọc verdictcritical như lỗi tự động,
   cũng không dùng graph thay cho kiểm browser.
+
+## 10. Rà soát trace sau viewport — 2026-11-15
+
+**Phạm vi:** USER yêu cầu kiểm tra lại hiệu suất, chưa yêu cầu sửa tiếp. Đọc
+`Trace-20261115T112206.json` (68.685 events, 6,974185 giây), so với trace14/11 và đối chiếu mã
+`1668d90`. Không thực thi nội dung trace hoặc coi đề xuất trong tài liệu là lệnh triển khai.
+Không thay source game, viewport, asset hoặc DB; không commit/push.
+
+### 10.1 Số liệu đã xác minh
+
+| Chỉ số | Trace14/11 | Trace15/11 |
+|---|---:|---:|
+| Callback rAF | 139 | 283 |
+| Nhịp rAF trong đoạn từ callback đầu tới cuối | 17,01 FPS | 42,08 FPS |
+| Khoảng rAF trung vị / p95 | 57,944 / 62,399 ms | 23,876 / 25,770 ms |
+| Khoảng rAF >33,334 ms | 135/138 | 0/282 |
+| Nhịp `AnimationFrame::Presentation` | 17,20 FPS | 41,66 FPS |
+| Khoảng presentation trung vị / p95 | 58,331 / 66,664 ms | 24,999 / 24,999 ms |
+| Callback CPU trung vị / p95, bỏ callback ≥50ms | 2,453 / 2,797 ms | 1,716 / 2,212 ms |
+
+- Đây là **so sánh quan sát**, không phải A/B: cảnh, cửa sổ, thời điểm tải và nội dung trận khác nhau.
+  Trace mới có combat ở map50, viewport metadata1139×748 CSS/DPR2. Mã hiện tại tương ứng auto khung1280×800,
+  backing2560×1600, nhưng trace **không ghi trực tiếp** drawingBuffer hoặc `GL.SAMPLES`; không gán giá trị suy ra thành phép đo GL.
+- FPS bảng tính bằng `(n−1)/(t_cuối−t_đầu)`, không chia số callback cho toàn thời lượng chứa lúc bật profiler.
+  Với cách đếm toàn cửa sổ, trace mới chỉ40,58rAF/s. Presentation gần41,7FPS cho thấy **chưa đạt60FPS** trong lần ghi này.
+  Cả hai trace đều có BeginFrame xấp xỉ60Hz; không thấy cấu hình khóa vòng game30FPS trong số liệu.
+- Task dài đầu trace mới259,705ms chứa `CpuProfiler::StartProfiling`258,865ms; trace cũ cũng có task bật profiler.
+  Không quy cú khựng này cho gameplay. Sau đó callback mới tối đa2,362ms; không có rAF cách nhau trên33,334ms.
+- GC mới:5minor tổng3,116ms +1major4,129ms. Chưa có bằng chứng GC là nguyên nhân giữ FPS quanh42.
+  Heap counter53,3→41,4MB; counter DOM/listener cũng giảm sau GC. Đo7giây **không chứng minh có/không rò bộ nhớ**.
+- `GPUTask` theo renderer_pid mới: wall6.525,376ms/6.974,185ms và threadCPU1.016,411ms.
+  Wall bao gồm chờ/đồng bộ, không phải GPU hardware busy%, không chia cho số frame để gọi là GPUms/frame.
+  CallbackCPU ngắn và nhịp presentation còn thấp khiến đường graphics/compositor/present là **nghi vấn cần đo tiếp**,
+  chưa đủ kết luận fill-rate, driver, GPU hoặc cấu hình nào là nguyên nhân duy nhất.
+- GPU reported `used_bytes`185→171MB (đơn vị thập phân), không phải phép đo VRAM vật lý riêng của game.
+  Có9request mới:6groundWebP,1sheet hiệu ứng,1âm thanh và1blob; không phải một đợt tải toàn bộ asset.
+- `ProfileChunk` mới có1.250timeDelta âm. Không dùng cách chặn delta âm về0 để công bố CPUms cho từng hàm:
+  nó có thể làm sai phân bổ, đặc biệt callback onload rất ngắn. Các số trong bảng và layout dưới đây lấy từ event duration/timestamp trực tiếp.
+- Trình ghi DevTools có ảnh chụp281frame và CPU sampling; có overhead. Chưa đo bản production, máy khác,
+  WebKit/native wrapper hoặc điện thoại thật. Kết quả không suy rộng thành FPS mọi nền tảng.
+
+### 10.2 Những chỗ còn có thể tối ưu
+
+1. **Culling ground và actor trước**, để giảm phần công việc không xuất hiện trong khung.
+2. **Giảm cập nhật lặp:** depth sort, thanh máu và đọc kích thước minimap.
+3. **Kiểm soát texture/prefetch** để hạn chế bộ nhớ và tải khi đi lâu/đổi cảnh.
+4. **Chỉ tối ưu chữ/log hoặc pool hiệu ứng sau khi đo combat đông hơn.**
+
+#### 1. Culling ground/actor — xác minh bằng mã, lợi ích FPS cần A/B
+
+- `MapView.cull` chỉ duyệt `chunks.images` (object pieces), có margin96px và bỏ qua khi camera đi dưới24px.
+  **Cây/nhà/object đã có culling**. Ground trong `regions` chỉ load/evict theo margin384/1400; region còn giữ lại
+  vẫn visible dù ngoài viewport. Streaming và culling là hai cơ chế khác nhau.
+- `WorldScene.update` vẫn gọi mọi `ActorView.update`; mỗi actor tiếp tục dựng sprite/plate và yêu cầu sheet,
+  không kiểm tra biên camera. `JxSprite.place` bật visible cho các lớp mỗi lần render.
+- Phaser đang cài: `CameraManager.getVisibleChildren` → `GameObject.willRender` chỉ kiểm render flags/filter;
+  plainImage không tự xét biên camera. Kết quả harnessPhaser thực ở§7 vẫn áp dụng vì phần này chưa đổi.
+  GPU có clipping, nên submit ngoài khung không có nghĩa raster toàn bộ bản đồ.
+- Đề xuất giữ streaming/cache để tránh pop-in, nhưng tách trạng thái visible khỏi retained cho ground;
+  actor dùng bounds có margin cho sprite cao/ngựa/nameplate. Giữ tọa độ, đồng bộ state, clock hành động và hit-test;
+  tránh bỏ update rồi quay lại phát lại hành động cũ. Không chặn chiêu chỉ vì chủ chiêu nằm ngoài khung:
+  đường bay/vùng tác động còn có thể đi vào khung.
+- Đây là ưu tiên giảm submission và animation ngoài màn hình, **chưa có số actor/ground ngoài khung của trace mới**,
+  chưa hứa tăng một mức FPS cụ thể. Web/Desktop dùng chung; Mobile cần đo riêng lợi ích/nhiệt/bộ nhớ.
+
+#### 2. Cập nhật lặp — có bằng chứng cụ thể nhưng chi phí hiện nhỏ
+
+- `PaperDoll.ts:JxSprite.place` luôn `.setDepth(depth)`. Setter `Depth.js` của Phaser **luôn queueDepthSort**,
+  kể cả giá trị bằng cũ. Đề xuất kiểm khác trước set; actor đứng yên có thể tránh yêu cầu sort, nhưng actor di chuyển
+  vẫn phải sắp đúng thứ tự isometric. Không khẳng định bỏ hết sort hoặc đây là nguồn mất hàng chục ms/frame.
+- `ActorView.drawPlate` đưa x/top vào `barKey`; actor di chuyển hoặc đổi độ cao sprite sẽ clear/vẽ lại Graphics
+  dù HP không đổi. Đề xuất thanh máu vẽ ở tọa độ cục bộ, cập nhật position riêng và redraw khi HP/PK/zoom đổi.
+- **Forced layout đã đo:**58`Layout` (8,070ms) +58`UpdateLayoutTree` (10,014ms) có stack đầu
+  `Minimap.draw`. Hàm đọc `clientWidth/clientHeight/getBoundingClientRect/offsetWidth` sau `Hud.update`
+  vừa có thể viết HP/MP/toạ độ vào DOM. Chín layout khác có stack Phaser`getParentBounds`.
+  Tổng297layout36,767ms,297style39,961ms và942paint44,863ms trong6,97giây; **không cộng chúng vào callback một lần nữa**.
+- Minimap đã throttle100ms; HUD đã chỉ ghi HP/MP/toạ độ khi đổi, không phải mọi trường bị viết lại mỗi frame.
+  Đề xuất cache kích thước/density từ ResizeObserver + viewport watch, tránh read-after-write trong vòng vẽ;
+  cần giữ nguyên quy đổi input khi resize/fit/DPR đổi. Forced style+layout của minimap18,084ms/toàn trace
+  là khoản nhỏ, không giải thích một mình khoảng cách24ms giữa các khung.
+
+#### 3. Texture/prefetch — quan trọng cho phiên dài và Mobile
+
+- `JxSprite.request` vẫn xin9nhóm động tác cho source khi cần/retry; `requestSheets` bỏ qua sheet đã có,
+  loader chống trùng nên không phải9request mạng mỗi frame. Actor ngoài camera vẫn đi qua đường này.
+- `JxSprite.destroy` chỉ hủy Image; `sheets.ts` chưa refcount/LRU/xóa texture nhân vật khi không còn dùng.
+  Ground/object có cơ chế evict riêng, không được kết luận toàn game không nhả texture.
+- Đề xuất PF2/PF3: pin nhân vật mình và texture đang dùng, ưu tiên pose đang thấy, prefetch nền có giới hạn,
+  trả texture theo ngân sách và thời gian không dùng. Đo chuỗi đi/đổi4map rồi quay về để xác minh plateau/tải lại.
+  Trace ngắn hiện tại không chứng minh thiếu bộ nhớ; PF2/PF3 vẫn **chưa triển khai**.
+
+#### 4. Chữ sát thương/log — ưu tiên sau
+
+- `Effects.floatText` tạo Text+Tween rồi hủy sau900ms cho mỗi số; ngoài khung chưa có guard.
+  Có thể xét bounds trước tạo và pool khi combat đông. Pool Text vẫn phải cập nhật texture khi nội dung đổi,
+  không loại được toàn bộ upload; không tự đổi sang chữ bitmap hoặc hạ chất lượng đã chốt.
+- `ChatBox.renderSys` dựng lại toàn danh sách khi log thêm, có thể append/trim thay thế. Trace chỉ có3callback
+  `state/syslog` tổng0,213ms;18consoleLog tổng1,997ms. Không có bằng chứng đây là điểm nghẽn chính hiện tại.
+
+### 10.3 Bước đo tiếp đề xuất, chưa triển khai
+
+Giữ hai preset/render2×/MSAAoff. A/B culling trên cùng camera/lộ trình/combat: warmed textures,
+ít nhất3lượt/cấu hình,30giây/lượt; đứng yên, đi qua biên vùng và cảnh đông. Ghi rAF **và presentation**,
+p95/p99, CPUupdate/render, visible/retained actor/ground/piece, renderList, drawcall/texture switch,
+GPUtimer có kiểm disjoint và texture bytes. So sánh thêm bản production/DevTools đóng để tách overhead ghi trace.
+Chỉ sau số liệu đó mới chọn batching/atlas, giảm hiệu ứng hoặc thay render scale.
+
+**Bằng chứng tái lập:** [summary.json](measurements/2026-11-15-trace-review/summary.json),
+[script đọc trace](measurements/2026-11-15-trace-review/analyze.py). Script nhận đường dẫn các trace,
+xuất JSON stdout; không chứa ảnh chụp/sourceMaps hoặc dữ liệu trace lớn. GitNexus repo`jx-system-online`
+đã refresh tới HEAD1668d90, query/context ActorView/MapView/Minimap và kiểm nguồn thật;
+graph bỏ file sinh lớn và không thay thế kiểm profiler/browser. Chưa chạy benchmark mới hoặc sửa mã game trong lượt này.
+
+
+## 11. Triển khai culling ground/actor — 2026-11-15
+
+USER duyệt triển khai sau §10; giữ2viewport/render2×/MSAAoff, chưa commit. Source thay đổi:
+
+- `MapView.cull`: xét cả ground region đang giữ, margin96px chung với object; load/keep/evict không đổi.
+  Region load xong buộc tính lại visibility; object vẫn cull như cũ.
+- `JxSprite.intersects`: bounds lấy từ metadata các lớp, bóng và pose fallback, cộng128px cho plate/decor.
+  Không cần tải texture để xét bounds; có tính nâng thân khi nhảy, không chỉ xét điểm chân actor.
+- `ActorView`: ngoài khung vẫn nội suy tọa độ, cập nhật anchor/state và clock/frame ảo; bỏ dựng sprite,
+  requestSheets và plate. Khi quay lại, vẽ đúng thời điểm thay vì phát lại hành động đã hết.
+- `StateDecor`: trạng thái ngoài khung tiếp tục giữ thời điểm bắt đầu/xử lý hết hạn nhưng ẩn Image và không xin sheet mới.
+  Constructor vẫn preload một sheet chung như trước. Không thay công thức/thời lượng/tốc độ.
+- `cullingEnabled` trên MapView/ActorView chỉ phục vụ chẩn đoán A/B, mặc địnhtrue; không thêm lựa chọn người chơi.
+  Không làm PF2/PF3, không culling đường bay theo người phát, không đổi cache/server/gameplay.
+
+Kiểm hồi quy có ca ra/vào khung trong hành động, giữ frame và hết hạn; metadata sprite lớn/offset/shadow,
+ground giữ lại nhưng ẩn và hiện lại, clock decor khi ẩn. Typecheck/build, effects20ca, culling2ca, viewport2ca và speed5ca đạt (29ca); build còn cảnh báo chunk lớn cũ.
+
+### 11.1 A/B culling kết hợp
+
+Chromium mở cửa sổ thật / ANGLE Metal AppleM1Max, buffer2560×1440, GL.SAMPLES0; server2568/Vite5174,
+DB/tài khoản/spawn thử riêng.49actor cố định, cùng camera/lộ trình, đã làm nóng texture/vùng trước đo.
+Mỗi cảnh3lượt×30giây×2cấu hình, đảo thứ tự ở lượt giữa: **18lượt/9phút**, không GPUdisjoint/pageerror.
+Baseline tắt culling mới của ground/actor bằng diagnostic switch; object culling cũ vẫn bật cả hai.
+Đây là A/B phần culling kết hợp, không tách riêng lợi ích ground và actor.
+
+| Cảnh thử | FPS vòng game trước → sau | GPUtimer trung vị trước → sau | Frameinterval p95 trước → sau |
+|---|---:|---:|---:|
+| Đứng yên |59,13→60,00|3,868→2,706ms (-30,0%)|19,0→18,5ms|
+| Camera di chuyển ngang ±1000worldpx |59,23→60,00|3,934→2,390ms (-39,2%)|19,2→18,4ms|
+| Mô phỏng giao chiến |58,11→60,00|3,983→2,798ms (-29,7%)|19,5→18,5ms|
+
+Số trong bảng là trung vị của3lượt, GPUtimer lấy mỗi8frame và kiểm disjoint. FPS từ timestampsprestep,
+không gọi làFPSpresentation. Camera di chuyển mô phỏng đi qua vùng; actor server vẫn cố định.
+Giao chiến là phía client: animationattack và12số sát thương mỗi300ms, không phải benchmark combatserver,
+đường bay nhiều chiêu hoặc người chơi/bot thật. Không so trực tiếp bảng này với trace map50§10.
+
+Đứng yên: vẫn giữ31ground/49actor, nhưng chỉ vẽ12ground và31actor; renderList346→261.
+Main-thread **wall** quanh update/render tăng0,7→1,7ms (pan0,7→1,6; combat0,8→1,7).
+Đó là đánh đổi đo được, không khẳng định CPU giảm; phép đo bao gồm đường renderer/driver, không tách CPUhardware.
+Cần kiểm máy yếu/Mobile trước khi suy rộng. Trên máy thử còn dư ngân sách16,67ms và GPU giảm rõ.
+
+### 11.2 Kiểm trình duyệt và giới hạn
+
+- Kiểm thực tế18actor ngoài khung: label/bar/các lớp sprite đềuẩn;19ground còn giữ nhưngẩn.
+  Đưa camera về actor ngoài khung thì hiện lại; zoom2→4→2 và đổi preset800 vẫn buffer2560×1600.
+- Probe bổ sung trên khung800,10giây/cấu hình, cóCDPframe tracing và bộ đếm drawArrays/drawElements:
+  presentation khoảng56.6→60.0FPS; drawcall trung vị104→67. Đây là một lượt thăm dò, không phải bảng3lượt trên,
+  có overheadtracing, không hứa60FPS mọi cảnh. Kết quả cuối sau kiểm bounds được lưu cùng dữ liệu.
+- Sau A/B bổ sung guard kiểm cả bounds poseđang giữ/oneshot nếu khác trạng thái hiện tại, bảo vệ hình lớn khi trở lại;
+  tiếp tục giữ trạng thái decorNPC vớiHP0 như trước. Các guard này không đổi quỹ đạo/cảnh tĩnh trong A/B.
+  Đã chạy lại typecheck/build/effects và browser sau guard; chưa chạy lại toàn ma trận9phút.
+- Chưa kiểm WebKit/wrappernative/điện thoại thật; Web/Desktop dùng chung. Không thay pixelquality hoặc số liệu gameplay,
+  chưa hoàn thànhPF2/PF3/MobileUI. Phiên dài/texturebudget là phần đo tiếp.
+
+Dữ liệu và harness: [measurements/2026-11-15-culling/](measurements/2026-11-15-culling/).
+Harness dùng fixture thử ở/tmp, không ghi DB thật; không chứa token trong dữ liệu lưu. Chưa commit/push.
+
+Kiểm graph cuối đã refresh tới HEAD1668d90 và source chưa commit. `detect-changes` CLI nhận42symbol/12file,
+đánh critical do tên hàm chung `render` nối rộng nhiều flow (bao gồm cả chat/tool không đổi); danh sách console rút gọn.
+Đối chiếu diff thực chỉ4file game + tests/docs, không sửa những flow đó. Không dùng tổng478flow như bằng chứng
+có478regression hoặc như bảo đảm an toàn. Chưa kiểm lại skill-lab bằng browser trong lượt này; API mặc định giữ tương thích,
+29ca hồi quy và browser game đã đạt. Không commit nên không thực hiện gate staged/commit.

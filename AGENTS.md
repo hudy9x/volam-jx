@@ -41,8 +41,7 @@ thử cho trình duyệt desktop (chuột + bàn phím).
 - **Trả lời bằng tiếng Việt.**
 - Người dùng hay **xem hướng đi trước khi viết code** ("đừng sửa gì vội"). Chỉ sửa/triển khai sau khi được đồng ý rõ ràng.
   Khi câu hỏi là điều tra/thảo luận thì trả lời, không tự ý sửa code.
-- **Không `git commit` / `push` nếu không được yêu cầu.** Nhánh làm việc: `feature/skill-system`. Repo được tạo lại 2026-11-12
-  (commit mốc `9558ad7`) sau khi chuyển thư mục; lịch sử cũ (đến `3bd96bd`) đã mất, không có nhánh `main`, không có remote.
+- **Không `git commit` / `push` nếu không được yêu cầu.** Nhánh tích hợp là `main` (USER2026-11-16), remote `origin` = `git@github.com:hudy9x/volam-jx`. USER đã yêu cầu gộp `codex/viewport-culling` và đẩy `main`; các lần commit/push tiếp theo vẫn cần được yêu cầu. Repo được tạo lại2026-11-12 (mốc `9558ad7`) sau khi chuyển thư mục; ghi chú không có main/remote trước đây là trạng thái lịch sử, không còn áp dụng.
 - Việc cần kiểm tra thì kiểm tra bằng dữ liệu gốc, không đoán. Phân biệt rõ điều **đã xác minh** với **suy luận**.
 
 ## 3. Lệnh
@@ -119,6 +118,12 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 8. Dữ liệu tài khoản ở `apps/server/data/db.json` (bị `.gitignore`); xóa file để reset.
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
+
+- **Vùng an toàn thành thị (USER 2026-11-15):** Pen trong Map Manager, nguồn `packages/shared/src/maps/town-safe-zones.json`; map chưa cấu hình giữ an toàn toàn map. Trong polygon/biên cấm cast chủ động và sát thương cả hai phía; ngoài vùng giữ luật PK, không tự bật mode PK. Giữ hào quang ô tay/bị động, hiệu ứng vẫn hết hạn nhưng không gây sát thương trong vùng. Quyền dịch vụ NPC tách khỏi luật chiến đấu; không tự đổi ID/action hoặc sinh quái. Lưu cần restart server/reload client, production build lại; không live-patch. Kiểm `npm run test:safe-zones`.
+
+- **Map Manager (USER 2026-11-15):** tool riêng `tools/map-manager`, `npm run map:manager` → localhost4570. Ưu tiên NPC thành thị trước, quái/Boss Xanh làm sau. Lưu ghi trực tiếp `packages/shared/src/npcs/town-placements.json`; shared `towns.ts` dùng adapter tọa độ tuyệt đối→offset để game nhận cấu hình. Giữ NPC mặc định ở map chưa chỉnh và Dược Vương Cốc; không sửa *.gen.ts. Watcher dev có thể reload, bản production cần build/tải lại; chưa live-patch scene. Preview mặc định minimap vừa toàn map, zoom không tự đổi sang ground; dùng Xem NPC trên map thật để kiểm hướng tại chỗ. Điểm chuyển map dùng `packages/shared/src/maps/map-portals.json`, adapter MapMeta.portals giữ mặc định37↔140 khi chưa override; tool đặt/kéo/chọn đích và điểm đến, lưu riêng/CAS/nav hai đầu, không tự tạo chiều về. Lưu cần restart server/reload client/build production, không live-patch room. Icon/tooltip dùng chung tools/ui/actions.ts. Hướng dẫn tools/map-manager/README.md.
+
+- **Map Creator (USER 2026-11-15):** tool độc lập `tools/map-creator`, `npm run map:creator` → localhost4569. USER upload ground/world rồi sắp xếp/cài đặt world và lưu project. Quái/Boss Xanh cấu hình bằng tool spawn riêng sau, không gộp nghiệp vụ spawn vào editor địa hình. Nguồn ảnh/project ở `tools/map-creator/projects` (gitignore); xuất bộ map vào project. Bật/Tắt publish qua PublicationStore và manifest, registry riêng `packages/shared/src/maps/custom-maps.json`, build bất biến ở assets/maps/id/build. Map bật vào game/hiện Manager; map tắt giữ dữ liệu/hiện nhãn quản trị, chặn join/teleport. Server đọc registry lúc chạy; người online/offline ở map tắt/mất đăng ký/thiếu map.json hoặc nav.json về Biện Kinh37. Cài code mới cần restart/build client; registry và bộ asset phải phân phối cùng nhau. Preview Chơi thử dùng sprite gốc/nhân vật ghép lớp/quái đứng và nav bản nháp trong tool, không đăng nhập/spawn server/ghi spawn; dừng giữ bản nháp và camera. Hướng dẫn `tools/map-creator/README.md`; không tự chép vào public/assets hoặc sửa catalog.gen.ts bằng tay.
 
 - **Viewport game + HUD/input (USER 2026-11-15):** `platform/viewport.ts` là nguồn duy nhất của2preset/renderScale2/layout fit;
   `game/index.ts` đặt canvas và MSAA, `game/display.ts` dùng world units cho chữ/thanh máu và resolution2, camera=2×zoom100/150/200.

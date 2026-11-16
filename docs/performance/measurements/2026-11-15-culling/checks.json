@@ -1,0 +1,14 @@
+{
+  "checks": {
+    "offscreenActors": 18,
+    "hiddenRegions": 19,
+    "reentry": true,
+    "zoom": true,
+    "preset800": true,
+    "buffer": [
+      2560,
+      1600
+    ]
+  },
+  "errors": []
+}

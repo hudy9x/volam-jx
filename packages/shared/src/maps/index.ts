@@ -1,3 +1,6 @@
+import { configuredPortals } from './portals.js';
+import customSource from './custom-maps.json';
+import { customMapMeta, validateMapRegistry, type MapRegistry } from './registry.js';
 import { decodeGrid, nearestWalkable } from './nav/grid.js';
 import type { GridDefinition, NavigationGrid } from './nav/types.js';
 import { MAP_CATALOG } from './catalog.gen.js';
@@ -46,6 +49,9 @@ const EXTRA: Record<number, Partial<MapMeta>> = {
   },
 };
 
+export const DEFAULT_MAP_PORTALS = Object.fromEntries(Object.entries(EXTRA).map(([id, m]) => [id, (m.portals ?? []).map(p => ({ ...p }))]));
+export * from './portals.js';
+
 /**
  * Every map rendered from the original client (apps/client/tools/gen-maps.ts → catalog.gen.ts). Maps are drawn
  * from assets/maps/<id>/ and walked on the grid in its nav.json (loadNav). Towns are safe; elsewhere PK is allowed.
@@ -54,17 +60,34 @@ export const MAPS: Record<number, MapMeta> = Object.fromEntries(MAP_CATALOG.map(
   const town = TOWN_TYPES.has(m.type);
   const meta: MapMeta = {
     id: m.id, name: m.name, type: m.type, region: m.region ?? '', assets: `assets/maps/${m.id}`,
-    safe: town, pvp: !town, portals: [], raw: { size: m.size, entry: m.entry },
-    ...EXTRA[m.id],
+    safe: town, pvp: !town, raw: { size: m.size, entry: m.entry },
+    ...EXTRA[m.id], portals: configuredPortals(m.id, EXTRA[m.id]?.portals ?? []),
   };
   return [m.id, meta];
 }));
+
+/** Runtime registry shared by the game and admin tools. Generated catalog stays untouched. */
+const originalIds = new Set(MAP_CATALOG.map(m => m.id));
+export function applyMapRegistry(value: unknown): void {
+  validateMapRegistry(value, originalIds);
+  const registry = value as MapRegistry;
+  for (const id of Object.keys(MAPS).map(Number)) if (!originalIds.has(id) && !registry.maps[String(id)]) { delete MAPS[id]; clearMapNavigation(id); }
+  for (const m of Object.values(registry.maps)) {
+    if (MAPS[m.id]?.customBuild !== m.build) clearMapNavigation(m.id);
+    MAPS[m.id] = { ...customMapMeta(m), portals: configuredPortals(m.id, []) };
+  }
+}
+export const isMapEnabled = (id: number) => !!MAPS[id] && MAPS[id].enabled !== false;
+export const mapAssetSuffix = (id: number) => `${id}${MAPS[id]?.customBuild ? '/' + MAPS[id].customBuild : ''}`;
+export * from './registry.js';
 
 // ======================= navigation grids (loaded on demand) =======================
 
 let navLoader: ((mapId: number) => GridDefinition | null) | null = null;
 const navDefs = new Map<number, GridDefinition>();
 const grids = new Map<number, NavigationGrid>();
+export function clearMapNavigation(id: number): void { navDefs.delete(id); grids.delete(id); }
+applyMapRegistry(customSource);
 
 /** Where grids come from: the server reads assets/maps/<id>/nav.json from disk. */
 export function setNavLoader(loader: (mapId: number) => GridDefinition | null): void {
