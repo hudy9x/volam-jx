@@ -1,6 +1,6 @@
 # Quản lý Boss Hoàng Kim
 
-Chạy `npm run boss`, mở http://localhost:4567. Tool độc lập với game, không dùng Vite/HMR hay nạp Phaser. Dừng bằng Ctrl+C; đóng tab không dừng server tool. Không có tác vụ nền tạo Boss trong tool: game server quản lý việc xuất hiện.
+Mở trong Map Manager bằng `npm run map:manager` → http://localhost:4570/boss/ (cùng server, không cần chạy tool Boss riêng). Vẫn có thể chạy `npm run boss`, mở http://localhost:4567. Tool độc lập với game, không dùng Vite/HMR hay nạp Phaser. Dừng bằng Ctrl+C; đóng tab không dừng server tool. Không có tác vụ nền tạo Boss trong tool: game server quản lý việc xuất hiện.
 
 ## Thao tác
 
@@ -22,3 +22,5 @@ Game dev có thể tự reload do watcher khi file mã nguồn thay đổi; thao
 - Dialog bundle lại `apps/client/src/ui/kit/dialog.ts` bằng esbuild khi khởi động tool; sửa adapter dialog cần khởi động lại tool, không ảnh hưởng HMR game.
 
 Giao diện theo [guideline chung](../../docs/tools-ui-ux-guidelines.md), hỗ trợ trình duyệt desktop và viewport cảm ứng. Desktop app có thể mở địa chỉ local trong trình duyệt; chưa đóng gói app riêng. Điện thoại thật không truy cập được server chỉ nghe loopback trên máy tính; không có bản native mobile và không tự mở LAN.
+
+- `BOSS_CONFIG_DIR`: thư mục config.json/config.ts riêng khi kiểm thử, mặc định nguồn shared. Trang trong Manager dùng chung nav/registry map, kể cả map tự dựng; không nhân đôi loader hoặc cấu hình. Không mở nhiều phiên cùng lưu cấu hình Boss.

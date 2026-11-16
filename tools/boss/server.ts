@@ -4,6 +4,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  mapAssetSuffix,
   assetPath,
   packOf,
   BOSS_FACTIONS,
@@ -34,8 +35,9 @@ const REPO_ROOT = path.resolve(HERE, '../..');
 const PUBLIC_DIR = path.join(HERE, 'public');
 const CLIENT_ASSETS_DIR = path.join(REPO_ROOT, 'apps/client/public/assets');
 const MAPS_DIR = path.join(CLIENT_ASSETS_DIR, 'maps');
-const CONFIG_JSON_PATH = path.join(REPO_ROOT, 'packages/shared/src/bosses/config.json');
-const CONFIG_TS_PATH = path.join(REPO_ROOT, 'packages/shared/src/bosses/config.ts');
+const configDirectory = path.resolve(process.env.BOSS_CONFIG_DIR ?? path.join(REPO_ROOT, 'packages/shared/src/bosses'));
+const CONFIG_JSON_PATH = path.join(configDirectory, 'config.json');
+const CONFIG_TS_PATH = path.join(configDirectory, 'config.ts');
 
 const manifestFile = path.join(CLIENT_ASSETS_DIR, 'manifest.json');
 let assetManifest: { packs: Record<string, { v: string }> } | null = null;
@@ -51,8 +53,9 @@ const PORT = Number(process.env.BOSS_PORT) || 4567;
 const GAME_SERVER_URL = process.env.GAME_SERVER_URL || 'http://localhost:2567';
 
 // Đăng ký bộ đọc nav.json để snap tọa độ click trên minimap vào đúng ô đi được
-setNavLoader(mapId => {
-  const file = path.join(MAPS_DIR, String(mapId), 'nav.json');
+const standalone = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (standalone) setNavLoader(mapId => {
+  const file = path.join(MAPS_DIR, mapAssetSuffix(mapId), 'nav.json');
   return fs.existsSync(file) ? (JSON.parse(fs.readFileSync(file, 'utf8')) as NavFile).navigation : null;
 });
 
@@ -156,7 +159,7 @@ function buildBootstrap() {
 
   // 3. Danh sách bản đồ có minimap.webp
   const availableMaps = Object.values(MAPS)
-    .filter(m => fs.existsSync(path.join(MAPS_DIR, String(m.id), 'minimap.webp')))
+    .filter(m => fs.existsSync(path.join(MAPS_DIR, mapAssetSuffix(m.id), 'minimap.webp')))
     .map(m => {
       const band = mapLevelBand(m.id) ?? null;
       return {
@@ -217,7 +220,7 @@ function serveStaticFile(res: http.ServerResponse, filePath: string): void {
   fs.createReadStream(filePath).pipe(res);
 }
 
-const server = http.createServer(async (req, res) => {
+export async function handleBossRequest(req: http.IncomingMessage, res: http.ServerResponse, mounted = false): Promise<void> {
   const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
   const pathname = decodeURIComponent(url.pathname);
 
@@ -245,7 +248,8 @@ const server = http.createServer(async (req, res) => {
       const [sx, sy] = snapToMap(mapId, rawX, rawY);
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ x: Math.round(sx), y: Math.round(sy), walkable }));
-    } catch {
+    } catch (error) {
+      console.error('[boss-tool] Không đọc được vị trí:', error);
       res.writeHead(422, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ error: 'Chưa kiểm tra được vùng đi lại của bản đồ. Hãy chọn bản đồ khác hoặc sinh lại dữ liệu bản đồ.' }));
     }
@@ -323,7 +327,7 @@ const server = http.createServer(async (req, res) => {
   if (pathname.startsWith('/assets/')) {
     const rel = pathname.slice('/assets/'.length);
     const safePath = path.resolve(CLIENT_ASSETS_DIR, rel);
-    if (!safePath.startsWith(CLIENT_ASSETS_DIR)) {
+    if (!safePath.startsWith(CLIENT_ASSETS_DIR + path.sep)) {
       res.writeHead(403);
       res.end();
       return;
@@ -334,16 +338,20 @@ const server = http.createServer(async (req, res) => {
 
   // Static: từ tools/boss/public/*
   const reqFile = pathname === '/' ? 'index.html' : pathname.slice(1);
+  if (reqFile === 'index.html' && mounted) {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    res.end(fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8').replace('data-manager-nav hidden', 'data-manager-nav').replace('</body>', '<script src="/__tool-reload.js"></script></body>')); return;
+  }
   const safePublicPath = path.resolve(PUBLIC_DIR, reqFile);
-  if (!safePublicPath.startsWith(PUBLIC_DIR)) {
+  if (!safePublicPath.startsWith(PUBLIC_DIR + path.sep)) {
     res.writeHead(403);
     res.end();
     return;
   }
   serveStaticFile(res, safePublicPath);
-});
+}
 
-server.listen(PORT, '127.0.0.1', () => {
+if (standalone) http.createServer(handleBossRequest).listen(PORT, '127.0.0.1', () => {
   console.log(`\n=============================================================`);
   console.log(`  ⚔️  Công cụ Quản trị Boss Hoàng Kim VLTK 1`);
   console.log(`  🌐 Mở trình duyệt: http://localhost:${PORT}`);

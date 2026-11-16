@@ -1,4 +1,4 @@
-import { setupToolDialog } from '/dialogs.js';
+import { setupToolDialog } from './dialogs.js';
 // Công cụ Quản trị Boss Hoàng Kim VLTK 1 (tools/boss/public/app.js)
 
 // Skill hints support hover, keyboard focus and touch.
@@ -92,7 +92,7 @@ async function init() {
     input.required = !['inp-add-minute'].includes(input.id);
     input.addEventListener('input', () => input.setCustomValidity(''));
   }
-  const res = await fetch('/api/bootstrap');
+  const res = await fetch('api/bootstrap');
   if (!res.ok) throw new Error('Không tải được cấu hình. Hãy thử tải lại trang.');
   bootstrap = await res.json();
   originalSnapshot = JSON.stringify(bootstrap.config);
@@ -459,7 +459,7 @@ function renderBossSections() {
           </th>
           <td>
             <div class="boss-sprite-box">
-              <img src="/bosses/${b.sprite}.png" alt="${b.name}" loading="lazy" />
+              <img src="bosses/${b.sprite}.png" alt="${b.name}" loading="lazy" />
             </div>
           </td>
           <td>
@@ -788,7 +788,7 @@ function bindMapDialogEvents() {
     $('btn-apply-map').disabled = true;
     // Gọi API snap vào ô đi được gần nhất
     try {
-      const res = await fetch(`/api/snap?mapId=${tempMapId}&x=${rawX}&y=${rawY}`);
+      const res = await fetch(`api/snap?mapId=${tempMapId}&x=${rawX}&y=${rawY}`);
       if (!res.ok) throw new Error('Không xác định được vị trí.');
       const snapped = await res.json();
       if (request !== mapRequest || tempMapId !== requestedMap) return;
@@ -828,7 +828,7 @@ function bindMapDialogEvents() {
     mapPending = true;
     $('btn-apply-map').disabled = true;
     try {
-      const res = await fetch(`/api/snap?mapId=${selectedMap}&x=${tempMapX}&y=${tempMapY}`);
+      const res = await fetch(`api/snap?mapId=${selectedMap}&x=${tempMapX}&y=${tempMapY}`);
       const point = await res.json();
       if (!res.ok || !Number.isFinite(point.x) || !Number.isFinite(point.y)) throw new Error('Vị trí không hợp lệ.');
       if (request !== mapRequest || selectedMap !== tempMapId || !boss) return;
@@ -897,7 +897,7 @@ function renderMapPickerList() {
       if (m) {
         // Mặc định lấy điểm vào bản đồ và snap vào ô đi được
         try {
-          const res = await fetch(`/api/snap?mapId=${newMapId}&x=${m.entry.x}&y=${m.entry.y}`);
+          const res = await fetch(`api/snap?mapId=${newMapId}&x=${m.entry.x}&y=${m.entry.y}`);
           if (!res.ok) throw new Error('Không tải được vị trí.');
           const snapped = await res.json();
           if (request !== mapRequest) return;
@@ -1076,7 +1076,7 @@ async function saveConfig() {
   // Keep the editable draft stable while the request is in flight.
   document.querySelector('main').inert = true;
   try {
-    const res = await fetch('/api/config', { method:'PUT', headers:{'Content-Type':'application/json'}, body:payload });
+    const res = await fetch('api/config', { method:'PUT', headers:{'Content-Type':'application/json'}, body:payload });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Không thể lưu thiết lập.');
     originalSnapshot = payload;
@@ -1097,7 +1097,7 @@ async function applyConfig() {
   document.querySelector('main').inert = true;
   $('save-status').textContent = 'Đang áp dụng bản đã lưu vào game…';
   try {
-    const res = await fetch('/api/apply', { method:'POST' });
+    const res = await fetch('api/apply', { method:'POST' });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Game chưa nhận cấu hình.');
     applying = false;

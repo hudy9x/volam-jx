@@ -1,6 +1,6 @@
-# Map Manager · NPC thành thị
+# Map Manager · Bản đồ, quái và Boss
 
-Tool độc lập ở `tools/map-manager`, tách khỏi Map Creator và tool Boss Hoàng Kim. Cấu hình NPC/vùng an toàn thành thị và điểm chuyển map; chưa làm spawn quái/Boss Xanh.
+Tool độc lập ở `tools/map-manager`, tách khỏi Map Creator. Cấu hình NPC/vùng an toàn thành thị, điểm chuyển map, khu sinh quái/Boss Xanh; trang **Boss Hoàng Kim** dùng lại công cụ hiện có trên cùng server.
 
 ## Chạy
 
@@ -8,14 +8,14 @@ Tool độc lập ở `tools/map-manager`, tách khỏi Map Creator và tool Bos
 npm run map:manager
 ```
 
-Mở **http://localhost:4570**. Chỉ bind127.0.0.1, không mở LAN, không nạp Phaser hoặc HMR của game. Ctrl+C để dừng; đóng tab không dừng server tool. Khởi động lại tool khi sửa source tool.
+Mở **http://localhost:4570**. Chỉ bind127.0.0.1, không mở LAN, không nạp Phaser hoặc HMR của game; có cơ chế tự reload riêng của tool. Ctrl+C để dừng; đóng tab không dừng server tool. Mã tool thay đổi sẽ tự khởi động lại server và tải lại trang.
 
 - `MAP_MANAGER_PORT`: cổng, mặc định4570.
 - `MAP_MANAGER_CONFIG`: file cấu hình đích; mặc định `packages/shared/src/npcs/town-placements.json`. Khi kiểm thử dùng đường dẫn riêng trong /tmp, không sửa cấu hình thật.
 
 ## Cài NPC
 
-1. Chọn map ở **sidebar Bản đồ**, có tên và ảnh preview, chia hai nhóm **Thành thị / Luyện công**. Có tìm theo tên (không dấu) hoặc ID, đánh dấu map đang chọn và trạng thái thiếu tài nguyên. Có các map gốc đã sinh cùng map tự dựng đã đăng ký từ Map Creator, gồm hang động và Dược Vương Cốc. Thành thị cho chỉnh NPC; luyện công hiện chỉ xem trước, khóa Thêm/Lưu NPC. Bấm Làm mới danh sách map để nhận map mới; tool cũng làm mới khi focus tab và mỗi10giây khi tab hiển thị, giữ bản nháp. Map tắt vẫn có preview và nhãn Đã tắt để quản trị, người chơi không vào được.
+1. Chọn map ở **sidebar Bản đồ**, có tên và ảnh preview, chia hai nhóm **Thành thị / Luyện công**. Có tìm theo tên (không dấu) hoặc ID, đánh dấu map đang chọn và trạng thái thiếu tài nguyên. Có các map gốc đã sinh cùng map tự dựng đã đăng ký từ Map Creator, gồm hang động và Dược Vương Cốc. Thành thị cho chỉnh NPC; luyện công khóa Thêm/Lưu NPC; dùng công cụ Quái / Boss Xanh hoặc Điểm chuyển map. Bấm Làm mới danh sách map để nhận map mới; tool cũng làm mới khi focus tab và mỗi10giây khi tab hiển thị, giữ bản nháp. Map tắt vẫn có preview và nhãn Đã tắt để quản trị, người chơi không vào được.
 2. Chọn NPC ở danh sách hoặc click chấm dưới chân trên map. Có tìm theo tên/chức năng. Mặc định mở minimap vừa toàn bộ map; dùng cuộn hoặc nút +/− để zoom và Kéo khung/chuột giữa để di chuyển. Minimap vẫn giữ tọa độ thật cho NPC và pen, không tự chuyển sang ground thật khi phóng lớn.
 3. Click map để đặt NPC đang chọn, hoặc kéo chấm NPC. Có nhập X/Y, đổi tên/hướng và chọn hình NPC dịch vụ. Thợ rèn, Xa phu, Bán ngựa mặc định dùng bản đứng 8 hướng gốc SHXT; các hình cũ cố định vẫn có trong danh sách để giữ tương thích. Hướng dùng tên la bàn (S/SW/W/NW/N/NE/E/SE), preview cập nhật ngay. Hình 1 hướng khóa lựa chọn hướng; Rương chứa đồ chỉ có 2 hình hướng thật. Thợ rèn bản 8 hướng đứng riêng, không kèm bàn/lò rèn. Đổi hình/hướng không đổi trường Chức năng, ID hoặc vị trí NPC.
 4. Chức năng gồm Thợ rèn, Hiệu thuốc, Kỳ Trân Các, Xa phu, Bán ngựa, Rương chứa đồ. Thêm NPC từ bộ chọn rồi đặt vị trí. ID instance được tool tạo, không cần nhớ mã. Chưa thêm chức năng nhiệm vụ/đối thoại tùy ý ngoài6dịch vụ game hiện có.
@@ -46,7 +46,7 @@ Dùng minimap/map.json/nav hiện có qua API để xem tổng thể và chỉnh
 
 UI theo docs/tools-ui-ux-guidelines.md; dialog dùng primitive Dialogs và CSS token tool, không skin game. Có loading/empty/error, input/hit area cảm ứng và bố cục1cột màn hẹp. Desktop/Web dùng trình duyệt; chưa đóng gói native và chưa kiểm điện thoại thật. Server loopback trên máy tính không tự truy cập được từ điện thoại; không mở LAN ngoài yêu cầu.
 
-Bản đầu chưa có chọn mọi sprite NPC trong client gốc, NPC quest, import map mới, spawn quái/Boss Xanh hoặc áp dụng trực tiếp vào scene đang chạy. Các chức năng đó không được mô phỏng bằng nút giả.
+Bản đầu chưa có chọn mọi sprite NPC trong client gốc, NPC quest, import map mới, áp dụng NPC trực tiếp vào scene đang chạy. Các chức năng đó không được mô phỏng bằng nút giả.
 
 ## Kiểm tra
 
@@ -91,7 +91,7 @@ Toolbar dùng icon + tooltip có mô tả/phím tắt, công cụ đang chọn c
 
 | Phím | Thao tác |
 |---|---|
-| V / B / T | NPC / Pen vùng an toàn / Điểm chuyển map |
+| V / B / T / M | NPC / Pen vùng an toàn / Điểm chuyển map / Quái và Boss Xanh |
 | H / giữ Space + kéo | Bật kéo khung / kéo tạm thời |
 | Z | Chuyển Minimap / Map thật (Realistic) |
 | 0 / + / − | Vừa toàn map / zoom vào / zoom ra |
@@ -114,3 +114,38 @@ Bản nháp điểm chuyển tách NPC/pen; đổi công cụ giữ nháp, chuy�
 Kiểm `npm run test:map-portals`: lưu/mở lại, ID/đích, giữ map khác/default, danh sách rỗng, stale revision, tọa độ/đích/bán kính sai, vị trí bị chặn/cả hai đầu, đích tắt và production checkPortals chỉ kích hoạt ở vị trí mới. Hồi quy Manager/NPC, safe-zones, map-publication, Creator/Preview; typecheck/build. Browser thử file/tmp, không lưu thử vào source thật. Native/thiết bị touch thật chưa kiểm.
 
 Nền bản đồ là switch **Minimap / Map thật**, luôn nằm ngoài cùng bên phải toolbar; **Z** đổi nền, Space/Enter khi focus switch cũng hoạt động. Chỉ nhóm công cụ bên trái cuộn trên màn hẹp. **Vùng chặn** là nút tùy chọn bật/tắt có aria-pressed và màu chọn, không còn checkbox. Đổi nền/lớp phủ chỉ đổi cách xem, không sửa dữ liệu hoặc làm mất bản nháp. Bấm Toàn map quay về Minimap; Xem NPC thật tự bật switch Map thật.
+
+
+## Quái / Boss Xanh · Bấm map để đặt điểm (USER2026-11-16)
+
+Chọn map → công cụ **Quái / Boss Xanh (M)** → bấm vùng trống trên map để tạo điểm ngay. Bấm điểm cũ để chọn; kéo chấm để di chuyển. Không còn nút Thêm khu, bộ chọn Manual/Auto hay ô nhập tọa độ. Bảng bên phải bỏ danh sách khu, hướng dẫn dài, tọa độ và nút Đặt lại theo USER; chọn điểm trực tiếp trên map.
+
+Mỗi điểm mới mặc định **5 con**, kể cả Boss Xanh; bán kính **220px**, hồi sinh **30giây**. Loại thường/Xanh và các loại quái lấy theo điểm đang chọn để đặt tiếp; số lượng/bán kính/hồi sinh của điểm mới luôn lấy mặc định trên. Mỗi điểm chỉnh chung count/radius/respawn cho toàn bộ pool quái của nó. Chọn nhiều loại quái, mỗi loại có cấp riêng; server chọn ngẫu nhiên một loại cho mỗi slot, số lượng là tổng cho điểm, không phải từng loại. Một map có nhiều điểm/pool khác nhau.
+
+Bên phải có tìm quái và các thẻ ảnh gốc theo sprite game. Bấm thẻ → **Thêm loại quái**; Bỏ loại không để pool rỗng. Chưa có điểm thì bấm map để tạo điểm đầu rồi chọn loài. Ảnh lấy frame đứng qua API whitelistID/sharp/cache, không sao chép hoặc chỉnh public/assets. Ảnh thiếu vẫn giữ tên để chọn.
+
+Khu Auto cũ thiếu XY được giữ nguyên, không tự thay đổi khi mở map. Không còn bộ chọn/Đặt lại khu Auto cũ trong UI; dữ liệu cũ vẫn được giữ khi lưu. Không tạo thêm khu Auto mới trong UI này. Các fixed/note/legacygold cũ được giữ; Hoàng Kim vẫn ở trang riêng.
+
+Lưu riêng `packages/shared/spawns/<id>.json`, atomic/CAS, luôn auto:false để generator không ghi đè (cờ này khác cách đặt vị trí). Count1–60, radius0–3000, hồi sinh1–3600giây; giới hạn5000slot/map. Nav/bounds kiểm backend. Đổi công cụ giữ nháp; chuyểnmap/rời trang cảnh báo nháp; khởi động lại server game sau lưu, không livepatch room. MAP_MANAGER_SPAWNS_DIR đổi thư mục đích khi thử; không chạy hai tiến trình cùng ghi nguồn.
+
+Đã kiểm browser tạo2điểm, BossXanh5con/điểm, nhiều loài bằng thẻảnh, lưu vào/tmp; viewport390 không trànbody, chưa native/touch thật. `test:map-manager` kiểm store/runtime/API; typecheck/build theo lệnh trên.
+
+## Trang Boss Hoàng Kim
+
+Bấm **Boss Hoàng Kim** → `http://localhost:4570/boss/`. Cùng một lệnh `npm run map:manager`, không cần mở thêm `npm run boss`. Giao diện, bộ chọn vật phẩm/vị trí, lịch xuất hiện, lưu và áp dụng dùng lại `tools/boss` (không nhân bản cấu hình).
+
+**Lưu thiết lập** vẫn ghi nguồn `packages/shared/src/bosses/config.{json,ts}`; **Áp dụng vào game** vẫn là bước riêng gửi bản đã lưu tới server dev theo `GAME_SERVER_URL`. Lưu có thể kích hoạt watcher game như trước. Đổi trang khi còn bản nháp sẽ được trình duyệt cảnh báo. Công cụ cũ `npm run boss` vẫn chạy độc lập tại4567, dùng cùng nguồn; tránh mở hai bản cùng chỉnh cấu hình Boss.
+
+`BOSS_CONFIG_DIR` đổi thư mục config.json/config.ts khi kiểm thử; không đổi nguồn runtime của game. `GAME_SERVER_URL` đổi server dev đích; không bấm Áp dụng khi thử trên dữ liệu thật nếu chưa định áp dụng.
+
+Kiểm `npm run test:map-manager`: store/CAS/validation/bảo toàn dữ liệu, tạo slot bằng spawner thật từ bản lưu Auto/Manual/Xanh và API tích hợp Boss/snap trên cùng tiến trình. Test API cô lập toàn bộ file đích trong thư mục tạm; nếu chưa có asset map, phần nav thực được bỏ qua. Browser đã kiểm1440×1000/390×844, lưu/mở lại, chuyển mode, kéo điểm và bản nháp, trang Boss/ảnh/lưu/dialog map tự dựng; chưa kiểm spawn trong phiên WS hoặc native/touch thật.
+
+Xóa điểm sinh đang chọn bằng **Delete hoặc Backspace** khi không nhập liệu/không mở dialog. Xóa ngay trong bản nháp, bỏ chọn sau xóa và không lặp khi giữ phím; chỉ tác động nguồn khi Lưu. Không còn nút Xóa khu sinh quái. Nút Bỏ loại quái trong pool vẫn giữ vì là thao tác khác.
+
+## Tự reload khi sửa code (USER2026-11-16)
+
+`npm run map:manager` chạy trình giám sát riêng: kiểm thay đổi mỗi500ms trong tools/map-manager, tools/boss, tools/ui và UI primitives ở apps/client/src/ui/kit; chỉ theo dõi ts/js/css/html. Thêm/xóa/sửa file sẽ restart server tool và bundle lại; trang Manager và /boss/ kiểm phiên bản mỗi1giây và tự reload khi server sẵn sàng. Không theo dõi public/assets, ảnhBoss, game source khác, DB hoặc file cấu hình đã lưu; không nối HMR game.
+
+Bản nháp chưa lưu hoặc dialog/drag/tác vụ đang chạy ở Manager sẽ trì hoãn reload và hiện thông báo; lưu/bỏ nháp/đóng dialog xong mới reload. Trang Boss trì hoãn khi có bản nháp dirty. Nếu code lỗi, sửa lại để supervisor thử restart; Ctrl+C dừng cả supervisor và server con. Cần chạy lại lệnh một lần để chuyển từ tiến trình cũ sang cơ chế mới. Có thể chạy server.ts trực tiếp để kiểm thử không watcher.
+
+Đã kiểm sửa file tool làm đổi instance/version, trangBoss có reloadclient, typecheck và9testManager đạt. Chưa kiểm lại tự reload bằng browser thật lượt này.

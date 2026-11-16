@@ -1,4 +1,6 @@
 import http from 'node:http';
+import { randomUUID } from 'node:crypto';
+import { reloadClient } from './reload.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +11,9 @@ import { NPC_ACTION_LABELS } from '../../packages/shared/src/npcs/placements.js'
 import { JX_SHEETS, NPC_SHEETS, JX_FOOT } from '../../apps/client/src/art/jx/data.gen.js';
 import { SafeZoneStore } from './SafeZoneStore.js';
 import { PortalStore } from './PortalStore.js';
+import { MONSTERS, bossTierOf } from '../../packages/shared/src/index.js';
+import { SpawnStore } from './SpawnStore.js';
+import { handleBossRequest } from '../boss/server.js';
 import { NpcConfigStore } from './ConfigStore.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url)), root = path.resolve(here, '../..');
@@ -37,16 +42,18 @@ const defaults = (id: number) => (DEFAULT_TOWN_NPCS[id] ?? []).map(n => {
 });
 const zoneStore = new SafeZoneStore(path.resolve(process.env.MAP_MANAGER_ZONES_CONFIG ?? path.join(root, 'packages/shared/src/maps/town-safe-zones.json')), MAPS);
 const portalStore = new PortalStore(path.resolve(process.env.MAP_MANAGER_PORTALS_CONFIG ?? path.join(root, 'packages/shared/src/maps/map-portals.json')), MAPS, DEFAULT_MAP_PORTALS, (id, x, y) => canStandAt(getGrid(id), x, y));
+const spawnStore = new SpawnStore(path.resolve(process.env.MAP_MANAGER_SPAWNS_DIR ?? path.join(root, 'packages/shared/spawns')), MAPS, id => !!MONSTERS[id], (id, x, y) => canStandAt(getGrid(id), x, y));
 const store = new NpcConfigStore(configFile, MAPS, allowedRes, defaults, (id, x, y) => canStandAt(getGrid(id), x, y));
 const bundle = await build({ entryPoints: [path.join(here, 'ui/main.ts')], outdir: path.join(here, '.bundle'), bundle: true, write: false, platform: 'browser', format: 'esm', target: 'es2022', plugins: [{ name: 'tool-dialog-style', setup(b) { b.onLoad({ filter: /[/\\]ui[/\\]kit[/\\](dialog|tooltip)\.css$/ }, () => ({ contents: '', loader: 'css' })); } }] });
 const files = new Map(bundle.outputFiles.map(f => [`/${path.basename(f.path)}`, f.contents]));
-const page = fs.readFileSync(path.join(here, 'ui/index.html'));
+const instanceVersion = randomUUID();
+const page = fs.readFileSync(path.join(here, 'ui/index.html'), 'utf8').replace('</body>', '<script src="/__tool-reload.js"></script></body>');
 let manifest: { packs: Record<string, { v: string }> } | null = null;
 try { manifest = JSON.parse(fs.readFileSync(path.join(assets, 'manifest.json'), 'utf8')); } catch { /* Unversioned dev assets still work. */ }
 const imageCache = new Map<string, Buffer>();
 async function jsonBody(req: http.IncomingMessage) {
   const chunks: Buffer[] = []; let bytes = 0;
-  for await (const chunk of req) { bytes += chunk.length; if (bytes > 128 * 1024) throw Error('Cấu hình quá lớn.'); chunks.push(chunk); }
+  for await (const chunk of req) { bytes += chunk.length; if (bytes > 1024 * 1024) throw Error('Cấu hình quá lớn.'); chunks.push(chunk); }
   return JSON.parse(Buffer.concat(chunks).toString());
 }
 const server = http.createServer(async (req, res) => {
@@ -57,13 +64,30 @@ const server = http.createServer(async (req, res) => {
     if (!['GET', 'HEAD'].includes(req.method ?? '') && req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) { json({ error: 'Nguồn yêu cầu không hợp lệ.' }, 403); return; }
     refreshRegistry();
     const u = new URL(req.url ?? '/', `http://${req.headers.host}`);
+    if (u.pathname === '/__tool-version') { res.end(instanceVersion); return; }
+    if (u.pathname === '/__tool-reload.js') { res.setHeader('Content-Type', 'text/javascript'); res.end(reloadClient); return; }
+    if (u.pathname === '/boss') { res.writeHead(302, { Location: '/boss/' }); res.end(); return; }
+    if (u.pathname.startsWith('/boss/')) {
+      req.url = u.pathname.slice(5) + u.search;
+      await handleBossRequest(req, res, true); return;
+    }
+    const spawnMatch = /^\/api\/maps\/(\d+)\/spawns$/.exec(u.pathname);
+    if (spawnMatch) {
+      const id = Number(spawnMatch[1]);
+      if (!MAPS[id]) throw Error('Không có bản đồ này.');
+      if (req.method === 'GET') { json(await spawnStore.read(id)); return; }
+      if (req.method === 'PUT') {
+        if (!fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(id), 'nav.json')) || !fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(id), 'map.json'))) throw Error('Map thiếu tài nguyên.');
+        const b = await jsonBody(req); json(await spawnStore.save(id, b.file, b.revision)); return;
+      }
+    }
     if (req.method === 'GET' && u.pathname === '/') { res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.end(page); return; }
     if (req.method === 'GET' && files.has(u.pathname)) { res.setHeader('Content-Type', u.pathname.endsWith('.css') ? 'text/css' : 'text/javascript'); res.end(files.get(u.pathname)); return; }
     if (req.method === 'GET' && u.pathname === '/api/bootstrap') {
       try { manifest = JSON.parse(fs.readFileSync(path.join(assets, 'manifest.json'), 'utf8')); } catch { /* keep existing versions */ }
       const maps = Object.values(MAPS).filter(m => ['City', 'Capital', 'Field', 'Cave', 'Country'].includes(m.type)).map(m => ({ id: m.id, name: m.name, size: m.raw.size, entry: m.raw.entry, enabled: m.enabled !== false, group: ['City', 'Capital'].includes(m.type) ? 'city' : 'training', editable: ['City', 'Capital'].includes(m.type),
         available: fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(m.id), 'nav.json')) && fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(m.id), 'map.json')) }));
-      json({ maps, templates, labels: NPC_ACTION_LABELS, versions: Object.fromEntries(maps.map(m => [m.id, manifest?.packs[`map/${m.id}`]?.v ?? ''])) }); return;
+      json({ monsters: Object.values(MONSTERS).filter(m => bossTierOf(m.boss) < 2 && !m.dummy).map(m => ({ id: m.id, name: m.name, level: m.level })), maps, templates, labels: NPC_ACTION_LABELS, versions: Object.fromEntries(maps.map(m => [m.id, manifest?.packs[`map/${m.id}`]?.v ?? ''])) }); return;
     }
     const portalMatch = /^\/api\/maps\/(\d+)\/(portals|portal-entry)$/.exec(u.pathname);
     if (portalMatch) {
@@ -92,6 +116,15 @@ const server = http.createServer(async (req, res) => {
         const b = await jsonBody(req); if (!Number.isFinite(b.x) || !Number.isFinite(b.y) || b.x < 0 || b.y < 0 || b.x >= meta.raw.size.width || b.y >= meta.raw.size.height) throw Error('Điểm nằm ngoài map.');
         const [x, y] = nearestWalkable(getGrid(id), b.x, b.y); json({ x: Math.round(x), y: Math.round(y), moved: x !== b.x || y !== b.y }); return;
       }
+    }
+    if (req.method === 'GET' && u.pathname === '/api/monster-image') {
+      const monster = MONSTERS[Number(u.searchParams.get('id'))];
+      if (!monster) throw Error('Không có loại quái này.');
+      const sheet = NPC_SHEETS[monster.sprite]?.stand ?? NPC_SHEETS[monster.sprite]?.idle;
+      if (!sheet) throw Error('Chưa có hình quái.');
+      const key = `monster:${monster.id}`;
+      if (!imageCache.has(key)) { const [width, height] = JX_SHEETS[sheet]; imageCache.set(key, await sharp(path.join(assets, `${sheet}.webp`)).extract({ left: 0, top: 0, width, height }).trim().resize(64, 64, { fit: 'inside', withoutEnlargement: true }).png().toBuffer()); }
+      res.setHeader('Content-Type', 'image/png'); res.end(imageCache.get(key)); return;
     }
     if (req.method === 'GET' && u.pathname === '/api/npc-image') {
       const npc = u.searchParams.get('res') ?? '', dir = Number(u.searchParams.get('dir') ?? 0);

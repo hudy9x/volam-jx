@@ -1546,3 +1546,34 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - USER duyệt kiểm tra/merge tất cả vào main và push origin. Đã commit cấu hình USER `b8f6f95` (37→319 Lâm Du Quan); tích hợp toàn bộ nhánh codex/viewport-culling vào main bằng merge commit riêng, giữ lịch sử từng tính năng. Main cũ1668d90 là tổ tiên, không xung đột, không squash/rebase/reset hoặc xóa nhánh.
 - Cây mã sau merge khớp nhánh nguồn; chỉ thêm checkpoint và sửa AGENTS về main/origin hiện tại.110test/typecheck/build đã đạt trước merge, không đổi logic sau kiểm. Sourceđiểm37→319 đã validate/nav hai đầu; DB/assets/userNPC/vùng an toàn giữ nguyên. Cảnh báo build chỉ chunk lớn hiện có.
 - Đích giao nộp origin/main; USER đã ủy quyền push, dùng push thường không force và đối chiếu SHA remote sau push. Nhánh làm việc từ đây là main; không còn tính năng Map Creator/Manager dở dang. Native/touch thật chưa kiểm ở các lượt tool. Log /tmp/jx-main-merge-*.log.
+
+## 2026-11-16 · Map Manager: sinh quái Manual/Auto, Boss Xanh và trang Hoàng Kim (chưa commit)
+
+- USER yêu cầu triển khai điểm spawn quái Manual/Auto (mặc định khu mới Auto), Boss Xanh và gom tool Boss Hoàng Kim thành page riêng. HEAD1055fac main; giữ nguyên nghiên cứu sát thương/kháng và tracking đồng thời của phiên khác. Không commit/push.
+- SpawnEditor ở công cụ M: nhiều khu, Auto thiếu XY/camps, Manual click/kéo/nhậpXY, loại thường/Xanh, pool nhiều quái/cấp riêng, count/radius/respawn, thêm/xóa có confirm. Giữ nháp khi đổi công cụ, cảnh báo chuyển map/reload/rời trang; Lưu chỉ active mode. File cũ giữ nguyên cách đặt; không tự chuyển các điểm cũ sang Auto hoặc tự sinh quái lúc mở tool.
+- SpawnStore/API ghi atomic/CAS packages/shared/spawns/<id>.json, auto:false bảo vệ generator (khác mode Auto), nav/clearance/bounds/integer/camps/tổng5000 kiểm backend; giữ note/fixed/legacy gold và map khác. Nguồn runtime hiện có nhận trực tiếp sau restart server; không sửa spawner/combat/shared formulas/asset/DB và không hot-patch room.
+- /boss/ dùng lại handler/UI tools/boss cùng tiến trình/cổng4570, relative API/static và nguồnconfig/Lưu/Áp dụng cũ. Thêm package type module để dùng cùng instance shared/nav với Manager; nếu thiếu sẽ lỗi snap (đã tái hiện và xác minh sửa). Map tự dựng có trong picker và snap được. npm run boss:4567 vẫn tương thích (thử riêng4582); không chạy thêm tiến trình4567 khi mở Manager.
+- 9test Manager gồm4spawn/store/runtime +4NPC +1HTTPintegrated đạt;8test portal/zone/publication/preview hồi quy đạt. Runtime tạo13slot thật (3cụm×4quái ID0 +1ManualXanh), bảo toàn cấp/toạđộ/hồi sinh; HTTPsameserver/snap/nav/Origin/stale/save côlập. Typecheck/build/diffcheck đạt; warning chunk lớn cũ.
+- Browser1440×1000/390×844: Auto/save/reopen, Manual/Xanh/kéo1792→2071,1890/save, đổiAuto2cụm, cancelxóa/chuyểnmap, giữnháp; Boss44/ảnh/lưutemp/dialog/chọnmap9101/snap/xácnhận và quaylại Manager đạt. Body375≤390. Ảnh /tmp/jx-spawn-ui/evidence/{desktop,mobile}.jpg đã xem; chưa native/touch thật/WSscene. Thử source riêng MAP_MANAGER_SPAWNS_DIR và BOSS_CONFIG_DIR trong/tmp, giữ nguyên sourcegame/NPC/zone/portal/registry/project/DB/assets; dừng tool thử4580/4582 khi kết thúc.
+- GitNexus refresh tớiHEAD; impact Manager controls/draw/list MEDIUM, load/save/mode LOW; classSpawnStore/Editor trực tiếp Manager LOW. HandlerHTTP UNKNOWN đã đọc cả route/entrypoint và kiểm tích hợp (không coi0caller là an toàn). Finalgate15file/49symbol/31flowCritical do helper/UIBoss dùngchung; đối chiếu diff chỉtools/docs/scripts, file mới kiểm trực tiếp/test, không coi giới hạn graph hoặc projectionCLI15symbol/10flow là toàn bộ. Không có shared gameplay đổi. Tài liệu README/AGENTS cập nhật; cần restart Map Manager đang chạy để nhận bundle mới.
+
+## 2026-11-16 · Đổi UX sinh quái sang bấm map theo USER (chưa commit)
+
+- Bấm công cụM rồi bấm vùng trống tạo điểm ngay; bấm điểm cũ chọn/kéo. Bỏ Thêm khu/ManualAuto/ôXY; tọa độ readonly khi chọn. Điểm mới5con kểcảBossXanh, radius220/respawn30. Mỗi điểm có pool nhiều loại/cấp riêng; pickerảnh/tìmkiếm +ảnhcác loại đang có, APIảnh whitelistMonster/framegốc/cache. Giữ Auto cũ, chọn Đặt lại rồi bấm map để chuyển thành điểm; không tự đổi dữ liệu cũ.
+- Typecheck và9testManager đạt; browser tạo2điểm/saveTMP/Xanh5con/ảnh3loạisói nạp đúng, thêm loại thứ2; body375≤390. Ảnh/tmp/jx-click-spawn-picker.jpg đã xem. Không thử native/touchthật; không sửa gameplay/DB/assets/cấu hình thật/commit/push. HEAD1055fac; giữ nghiên cứu/đềxuấtkháng đồngthời. Restart MapManager để nhận bundle.
+
+## 2026-11-16 · Gọn bảng sinh quái và phím xóa theo USER
+
+- Bỏ selector khu/hướng dẫn trong ảnh/tọa độ/nút Đặt lại/nút Xóa khu. Chọn điểm bằng map; Delete/Backspace xóa ngay bản nháp rồi bỏ chọn, chống keyrepeat; guard typing/dialog/busy/drag giữ nguyên. Không xóa loại quái trong pool bằng shortcut này. Khu Auto cũ vẫn giữ dữ liệu, không còn bộ chọn để chuyển vị trí trong UI.
+- Typecheck và9testManager đạt, diffcheck đạt. Chưa kiểm browser lại lượt nhỏ này; không commit/push hoặc đổi cấu hình spawn thật. Giữ các thay đổi đồng thời và HEAD1055fac.
+
+## 2026-11-16 · Map Manager tự reload mã tool theo USER
+
+- map:manager chạy dev.ts supervisor polling500ms, watch whitelist toolManager/Boss/toolsUI/kit ts/js/css/html; không quét assets/DB/game/config. Code đổi restart child/bundle, endpoint instanceUUID + clientpoll1s tựreload Manager và /boss/; giữ nháp bằng trìhoãn dirty/busy/drag/dialog Manager, dirtyBoss. CtrlC dừng cả supervisor/child; lỗicode có thể sửa để tự chạy lại.
+- Kiểm tiến trình thật cổng4580: thêm fileprobe → instance đổi/restart thànhcông, BossHTML córeloadclient; đãxóa probe/dừngtestprocess. Typecheck9testManager/diffcheck đạt; chưa browserreload thật. Không commit/push, giữ thayđổi đồngthời/HEAD1055fac. Cần USER chạy lại map:manager một lần để bật supervisor.
+
+## 2026-11-16 · Commit Map Manager/Boss theo USER
+
+- USER yêu cầu commit toàn bộ phần Map Manager/Boss của cuộc chat: spawn editor/cấu hình/ảnhchọnquái/DelBackspace, gom HoàngKim và tựreload riêng tool. Commit feat(map-manager): add monster spawn editor and integrated boss tools (SHA xem git log); nền1055fac main. Không push.
+- Typecheck9testManager và kiểm supervisor thật đạt; build đạt ở lượt triển khai, chỉ warningchunk cũ. Browser các lượt trước kiểm click2điểm/Xanh5con/ảnh/lưuTMP/1440–390; chưa browserreload thật/native/touchthật. Không thay cấuhình thật/DB/assets/gameplay.
+- Chỉ stage tracking liênquan Manager; giữ riêng2tài liệu nghiêncứu khángBoss/PvP và checkpoint của phiênkhác, không gộp vào commit này.

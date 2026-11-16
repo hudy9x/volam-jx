@@ -237,6 +237,7 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 | ✅ | MC2 | Map Manager: đặt NPC thành thị và lưu thẳng cấu hình game | USER2026-11-15. tools/map-manager:4570, chọn/thêm/kéo/chỉnh NPC/name/action/res/dir, map ground+objects/nav/preview; atomic JSONsource/CAS, shared adapter giữ fallback. Unit3ca/typecheck/build và browser desktop/mobile đạt; quái/Boss Xanh để sau, chưa native/live-patch. |
 | ✅ | MC3 | Bật/Tắt map tự dựng và trả nhân vật về Biện Kinh | USER2026-11-15. Creator publish immutable build/manifest/registry, Manager nhận map động và giữ nhãn Đã tắt; server chặn vào/teleport, online/offline ở map tắt/mất đăng ký/thiếu tài nguyên về37. Unit + Colyseus thật3ca, hồi quy55ca, typecheck/build và Chrome đạt; chưa native/mobile thật. |
 | ✅ | MC4 | Map Manager: icon/shortcut và đặt điểm chuyển map | USER2026-11-16. Source map-portals.json + adapter giữ37↔140, PortalEditor click/drag/XY/đích/canonicalentry, nav2đầu/CAS/atomic, giữ nháp; icon dùng chungCreator. Portal3+NPC4+zone4+publication3+Creator5=19ca/typecheck/build/browser đạt, chưa native/touch thật; cần restart/reload/build game, không livepatch, chưa commit. |
+| ✅ | MC5 | Map Manager: khu sinh quái Manual/Auto, Boss Xanh và gom trang Hoàng Kim | USER2026-11-16. Khu mới Auto, giữ file cũ; SpawnStore/source/CAS/nav, editorM/pool/cấp/count/radius/respawn. /boss/ tái sử dụng tool cùng process, giữ Lưu/Áp dụng;9testManager+8hồi quy/typecheck/build/browser1440/390 đạt. Restart server để nhậnspawn; chưa native/touch thật/WSscene, chưacommit. |
 
 
 ## Cài đặt máy macOS (2026-11-13)
@@ -349,3 +350,11 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 - MC4 cấu hìnhUSER2026-11-16: lưu điểm37→319 Lâm Du Quan, validate/nav hai đầu đạt; commit cùngcheckpoint trước merge main theo USER. Full110test/typecheck/build đạt.
 
 - Tích hợp2026-11-16 theoUSER: toàn bộMC/culling/safe-zones/NPC/preview/publish/portals và cấuhìnhUSER b8f6f95 gộp vào main, giao nộp origin/main;110test/typecheck/build đạt.
+
+
+
+- MC5 UX2026-11-16 theoUSER: bấmmaptạođiểm5con/Xanh, bỏAdd/XY/ManualAuto, chọnloàiquáicóảnh/poolnhiềuloài;9test/typecheck/browser đạt, chưacommit.
+
+- MC5 USER2026-11-16: bỏ thông tin/nút theoảnh và nútxóa; Del/Backspace xóa điểm bảnnháp, guard nhập/dialog/keyrepeat. Typecheck9test đạt; chưacommit.
+
+- MC5 USER2026-11-16: tựrestart/reload Manager/Boss khi mãtool đổi, watch riêng khônggame/assets, trìhoãn dirty; processcheck/typecheck9test đạt.

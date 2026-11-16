@@ -1322,3 +1322,5 @@ dialog::backdrop {
  .tool-page .minimap-pane {flex-shrink:0}
  .tool-page .dlg-foot > .muted {flex:1 1 100%; min-width:0; overflow-wrap:anywhere}
 }
+
+.tool-page [data-manager-nav][hidden] { display: none; }
