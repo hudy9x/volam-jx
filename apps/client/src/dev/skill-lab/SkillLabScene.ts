@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  SPEED, HORSE_IDS, PLAYER_SPEED, resolveSpeed, stepToward, trackBasePercent, type SpeedConfiguration,
+  skillActionMs, SPEED, HORSE_IDS, PLAYER_SPEED, resolveSpeed, stepToward, trackBasePercent, type SpeedConfiguration,
   FACTIONS, FACTION_IDS, ITEM_LIST, SKILL_CATEGORY_NAMES, SkillEngine, getSkill, isCastable, learnTiers, lookOfOutfit,
   JUMP, SkillStyle, isExternal, TRIGGER_NAMES, castRange, direction8, isoDistance, maxLevelOf, skillCategory, skillRange, starterEquipment, stateDurationMs, stateLines,
   jumpMs, tierOf, triggersOf, weaponName,
@@ -300,8 +300,10 @@ export class SkillLabScene extends Phaser.Scene {
     const dx = aim.x - c.a.x, dy = aim.y - c.a.y;
     c.a.dir = this.caster.state.dir = direction8(dx, dy);
     if (!this.engine.ready(c, s.id)) return;
-    const duration = resolveSpeed('attack', this.attackPercent, this.speedConfig).cycleMs;
+    const duration = skillActionMs(s, resolveSpeed('attack', this.attackPercent, this.speedConfig).cycleMs, !!((this.caster.state.ctl ?? 0) & 2));
     const pose = this.engine.cast(c, s.id, target === this.caster ? undefined : target?.c, aim, duration);
+    if (pose.rejected) { this.caster.state.name = pose.note ?? 'Không thể thi triển'; return; }
+    this.caster.state.hp = c.hp;
     this.castCount++;
     this.poseUntil = this.time.now + pose.ms;
     this.caster.state.actionMs = pose.ms;

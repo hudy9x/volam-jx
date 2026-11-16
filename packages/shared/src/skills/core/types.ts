@@ -171,8 +171,12 @@ export interface LearnTier {
 export interface SkillTuning {
   /** Damage multiplier. */
   damage?: number;
-  /** Nội lực cost multiplier. */
+  /** Per-cast resource cost multiplier. */
   cost?: number;
+  /** Fixed action duration; absent uses the actor's attack/cast speed. */
+  timing?: { cycleMs: number; affectedByCold: boolean };
+  /** Resource override, independent of the ambiguous original costType enum. */
+  resourceCost?: { resource: 'hp' | 'mp'; minRemainingHpRatio: number; minRemainingHp: number };
   /** Extra cooldown in ms (on top of TimePerCast). */
   cooldownMs?: number;
   /** Turn the skill off with a reason shown to players. */

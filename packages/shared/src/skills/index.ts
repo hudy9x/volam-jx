@@ -2,6 +2,7 @@
 // apps/client/tools/gen-skills.ts) and the engine that runs them for any owner.
 import { registerMissiles, registerPack } from './core/registry.js';
 import { MISSILES } from './common/missiles.gen.js';
+import { validateCastingTuning } from './core/casting.js';
 import { common } from './common/index.js';
 import { monsters } from './monsters/index.js';
 import { shaolin } from './factions/shaolin/index.js';
@@ -21,6 +22,8 @@ for (const pack of [shaolin, tianwang, tangmen, wudu, emei, cuiyan, gaibang, tia
   registerPack(pack);
 }
 
+for (const pack of [tianwang]) validateCastingTuning(Object.keys(pack.tuning ?? {}).map(Number));
+
 export * from './core/types.js';
 export * from './core/formula.js';
 export * from './core/events.js';
@@ -34,3 +37,5 @@ export * from './core/tuning.js';
 export * from './engine/types.js';
 export * from './engine/SkillEngine.js';
 export * from './engine/ai.js';
+
+export * from './core/casting.js';

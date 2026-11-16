@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import type { Room } from '@colyseus/sdk';
 import { Callbacks, CloseCode } from '@colyseus/sdk';
 import {
-  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, skillCost, equipError, TOWN_MAP_ID, pvpAllowed, type Camp,
+  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, skillCategory, skillResourceCost, canPaySkillCost, equipError, TOWN_MAP_ID, pvpAllowed, type Camp,
   C2S, FACTIONS, ITEMS, MAPS, NPC_LINES, S2C, TOWN_NPCS, hasNav, registerNav,
   type FxEvent, type MapMeta, type NavFile, type NoticeMsg, type TownNpc, type TransferMsg,
 } from '@vltk/shared';
@@ -372,11 +372,12 @@ export class WorldScene extends Phaser.Scene {
         const s = getSkill(skill);
         return !!s && skillbar.levelOf(skill) > 0 && skillbar.usable(skill) && !(s.noHorse && this.self?.state.mounted);
       },
-      cost: skill => { const s = getSkill(skill); return s ? skillCost(s, Math.max(1, skillbar.levelOf(skill))) : 0; },
+      resourceCost: skill => { const s = getSkill(skill); return s ? skillResourceCost(s, Math.max(1, skillbar.levelOf(skill))) : undefined; },
+      cost: skill => { const s = getSkill(skill); const c = s && skillResourceCost(s, Math.max(1, skillbar.levelOf(skill))); return c?.resource === 'mp' ? c.amount : 0; },
       ready: skill => {
         const s = getSkill(skill);
         if (!s || !skillbar.usable(skill) || !skillbar.offCooldown(skill)) return false;
-        return (this.self?.state.mp ?? 0) >= skillCost(s, Math.max(1, skillbar.levelOf(skill)));
+        return !!this.self && canPaySkillCost(skillResourceCost(s, Math.max(1, skillbar.levelOf(skill))), this.self.state);
       },
       range: skill => { const s = getSkill(skill); return s ? castRange(s, Math.max(1, skillbar.levelOf(skill))) : 0; },
       melee: skill => { const s = getSkill(skill); return !!s && isMelee(s); },

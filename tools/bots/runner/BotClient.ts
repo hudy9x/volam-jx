@@ -1,6 +1,6 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  applyMapRegistry, combatRulesAt, BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillCost,
+  applyMapRegistry, combatRulesAt, BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillResourceCost, canPaySkillCost,
   tuningOf, weaponOk, weaponTypeOf, autoAuraSkill, autoBuffSkills, isoDistance,
   type AutoSettings, type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type InventoryMsg, type Item,
   type SkillDef, type SkillsMsg, type StatsMsg, type TransferMsg, type TeamMsg,
@@ -283,7 +283,8 @@ export class BotClient {
   ready(id: number, now = performance.now()): boolean {
     const s = getSkill(id);
     if (!s || !this.usable(id) || now < (this.cooldowns.get(id) ?? 0)) return false;
-    return (this.me()?.mp ?? 0) >= skillCost(s, Math.max(1, this.levelOf(id)));
+    const me = this.me();
+    return !!me && canPaySkillCost(skillResourceCost(s, Math.max(1, this.levelOf(id))), me);
   }
 
   range(id: number): number { const s = getSkill(id); return s ? castRange(s, Math.max(1, this.levelOf(id))) : 0; }
@@ -352,7 +353,8 @@ export class BotClient {
       },
       usable: id => this.usable(id),
       ready: id => this.ready(id),
-      cost: id => { const s = getSkill(id); return s ? skillCost(s, Math.max(1, this.levelOf(id))) : 0; },
+      resourceCost: id => { const s = getSkill(id); return s ? skillResourceCost(s, Math.max(1, this.levelOf(id))) : undefined; },
+      cost: id => { const s = getSkill(id); const c = s && skillResourceCost(s, Math.max(1, this.levelOf(id))); return c?.resource === 'mp' ? c.amount : 0; },
       range: id => this.range(id),
       melee: id => { const s = getSkill(id); return !!s && isMelee(s); },
       cast: (skill, target, x, y, lock, reach) => this.cast(skill, target?.id, x, y, lock, reach),

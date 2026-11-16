@@ -1,3 +1,35 @@
+## 2026-11-16 · Triển khai Thiên Vương nhịp riêng và tiêu hao sinh lực theo USER
+
+- USER duyệt phương án Thiên Vương nhịp riêng và tiêu hao sinh lực, giữ nguyên tốc độ hiện tại và ngưỡng dự trữ 25% HP. Đã commit `feat(skills): implement Tianwang custom cadence and life cost`.
+- Cấu hình duy nhất tại `packages/shared/src/skills/factions/tianwang/tuning.ts`: 3 nhóm nhịp fixed (500ms, 400ms, 2000/7ms), 18 chiêu tiêu hao HP với ngưỡng dự trữ 25% maxHp.
+- Kết quả benchmark 10s: 34 lần cast, 170 hit (đủ 5 hit/combo), tiêu hao 2210 HP, 99.790 damage (khoảng 300ms/cast ở 20 tick/s).
+- 19 test chuyên biệt tại `tests/tianwang-casting.test.ts` đạt 100%. Giữ 4 file mẫu bot đã xóa và các thay đổi locked-attack ngoài commit.
+
+## 2026-11-16 · Điều tra độ trễ bật Auto và giữ đích click (chưa triển khai)
+
+- USER yêu cầu kiểm tra khả thi, chưa duyệt sửa mã. HEAD91731b7 khớp checkpoint; giữ tracking và4mẫu bot đang xóa sẵn. Không commit/push/restart/ghi DB/assets.
+- AutoPlay.pause đặt pausedUntil=now+3000 kể cả Auto tắt; start không reset pausedUntil. Harness /tmp/jx-auto-investigate.ts: pause1000→start→update1100/2000/3900 không cast;4050 mới cast; fresh start1100 cast ngay. TICK150ms, buff trước attack, relock2000ms là các nguồn chờ khác; chưa đo phiên thực tế USER nên không quy toàn bộ3–4s cho một nhánh.
+- WorldScene click trái quái gửi lock:true; applyHitEffects xóa pending khi hurt/stun; updatePlayer chỉ tiếp tục khi pending tồn tại, attackTarget còn nhưng không dựng lại lệnh. 9control-effects tests đạt, xác nhận hủy lệnh/ngắt chiêu; sát thương thuần không mặc định xóa pending. commandMove xóa pending/attackTarget trước kiểm khóa hành động.
+- Hướng chờ duyệt: start bỏ pause cũ, đánh sớm/không để buff hoặc retry làm trễ vô ích; tách ý định đánh click khỏi lệnh thi triển, giữ qua hurt/stun/buff, hết khóa tiếp tục đúng đích, click chạy hủy ngay. Giữ công thức khống chế/cooldown và kiểm đích chết/mất/không hợp lệ, không dùng attackTarget như ý định click vì chỉ xác nhận khi chiêu bắt đầu.
+- GitNexus CLI list xác định volam-jx index8115d8a chậm HEAD; không dùng graph cũ làm bằng chứng, đối chiếu nguồn trực tiếp. Chưa WS/browser/native/mobile; logic đề xuất dùng chung3nền tảng, touch cần nối sự kiện sau. Không tick BACKLOG triển khai vì chỉ điều tra.
+
+## 2026-11-16 · Đối chiếu Thiên Vương: volamidle, web và tiêu hao sinh lực
+
+- USER mở rộng nghiên cứu web + /Users/hudy/ws/volamidle.pages.dev/src, bổ sung xuất chiêu Thiên Vương dùng sinh lực; vẫn không triển khai. jx HEAD91731b7; volamidle HEAD7f8aa64. Graph vltk-web chậm1commit (metadata2026-11-10), query/context chưa đủ hàm legacy nên xác minh nguồn và chạy runtime thật, không reindex/sửa repo tham chiếu.
+- volamidle skills-01.js h4 dòng434–460 có nhịp riêng; attributes-02.js dòng46/68 dùng cadence?o7(cadence):aspdP, tức bỏ tốc đánh trang bị/ChiếnÝ cho các chiêu có bảng. 150 map1058→322/1059→323/1060→325 (ghi đúng mapping hiện có, không khẳng định đúng nhánh vũkhí SHXT). o7=n*18/(n*d+1); 322=3,323=5.625,325=3.6; qua bảng tốc chung trần300%/70FPS/20frame đều285.714ms. Đây là nhịp thực thi volamidle, không đồng nhất rawRate với số lần tung nguyên combo trên SHXT. Ngoại lệ40 không có h4, rawRate vẫn theo aspdP, cd27ticks.
+- Chạy adapter runtime.withProgression +F2 tại cấp20, đổi aspdP1→3:11chiêu thuộc bảng/150 giữ rawRate,40 đổi1→3. Không chạy trận hoặc xác minh native Web/Desktop/Mobile.
+- volamidle i4 nhận cost===2, ji/o4 kiểm/trừ life, chừa25%HP; F2cost chia sốhit với h4. Tuy nhiên Rustonline Skill/catalog thiếu costLife ở attacks, movement.rs110–112 vẫn kiểm/trừ mp: không tuyên bố online đã đồng nhất. SHXT các chiêu29–37/40/41/42/322–325/1058–1060 có SkillCostType2; không áp cả phái vì708/724cost0. Template cũ MANA|LIFE|STAMINA|MONEY không tự đủ chứng minh enum runtime.
+- jx hiện SkillEngine.check/cast dòng129/146 kiểm/trừ mp mọi chiêu người chơi; describe COST_KIND index2 ghi Thể lực. Cần ghi nhận lệch tiêu hao ThiênVương, chưa sửa. Tốc hiện dùng attackTiming chung, chưa bảngcadence ThiênVương như volamidle.
+- Web nguồn chính: https://ctc.vnggames.com/bai-viet/cam-nang.tinh-nang-dac-sac/lien-dau.html ghi kỹ năng ThiênVương hao sinh lực; https://jx1.efun.vn/b/thap-dai-mon-phai/thien-vuong mô tả Thương đánh nhiều phát nhanh (nhánhEfun, không thay SHXT); bảngCTC2023 https://ctc.vnggames.com/tin-tuc/tinh-nang/can-bang-mon-phai-nam-2023-vltk-cong-thanh-chien.html ThiênVương đểdấu–, không suy thành miễn tốcđánh. Chưa thấy tài liệu chính thức chứng minh mọichiêu ThiênVương bỏ qua tốcđánh. Không dùng tài liệu Mobile/MAX/KiếmThế làm chuẩn SHXT.
+- Điều chỉnh nhận định lượttrước: việc ChiếnÝ cộng attackspeed_v không chứng minh chỉsố được dùng cho mọichiêu; volamidle cung cấp phảnvídụ rõ. Chỉ nghiên cứu/tracking, không code/config/DB/asset/gen/commit/push; không tick mục triển khai BACKLOG.
+
+## 2026-11-16 · Điều tra tốc đánh Thiên Vương từ SHXT (không triển khai)
+
+- USER yêu cầu kiểm nguồn VLTK-SHXT về nhận định Thiên Vương không chịu tốc đánh; không triển khai. HEAD91731b7 khớp checkpoint; giữ4filemẫu bot đã xóa ngoài commit.
+- Đọc nguồn thật Client_VLTK_SHXT: tianwang.lua dòng232 có attackspeed_v của Thiên Vương Chiến Ý (cấp1=5,cấp30=65); skills.txt các chiêu chính IsPhysical=1, TimePerCast=0, ngoại lệ Đoạn Hồn40=27 cả đi bộ/ngựa. Thương90 id323 có ChildSkillNum5/MslsGenerateData3; Thương150 id1060 cũng5/3. Đây là cấu hình, chưa chứng minh cách engine áp tốc vào chuỗi.
+- GitNexus query tại Client_VLTK_SHXT chỉ có file,0flow; metadata index2026-11-02 không có commit đối chiếu. Kiểm trực tiếp Lua/bảng để lấy bằng chứng. Thư mục không có nguồn engine C/C++; không kết luận dứt khoát ngoại lệ tốc đánh hoặc suy công thức từ tài liệu nghiên cứu cũ. Các bảng breakpoint cũ không được dùng làm bằng chứng engine.
+- Chỉ cập nhật tracking; không sửa code/công thức/config/asset/DB, không chạy game/gen/test, không commit/push. Không thêm/tick mục triển khai BACKLOG vì chưa có việc được duyệt hoặc hoàn tất.
+
 ## 2026-11-16 · Commit Auto bot, tổ đội và xóa template theo USER
 
 - USER yêu cầu commit toàn bộ phần sửa trong cuộc chat, chưa push. Commit chứa checkpoint này: `fix(bots): repair auto combat, team invites and template deletion`, nền `8115d8a` main. Bao gồm mã,15test mới, hướng dẫn và tracking của Auto/buff/bot cũ/tổ đội/xóa mẫu.

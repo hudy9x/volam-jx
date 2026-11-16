@@ -6,7 +6,8 @@ import {
 } from '../core/category.js';
 import { eventSkill, type SkillEventKind } from '../core/events.js';
 import { attr, attr1 } from '../core/formula.js';
-import { castAnim, cellRadius, isCastable, skillCost, weaponName, weaponOk } from '../core/info.js';
+import { castAnim, cellRadius, isCastable, weaponName, weaponOk } from '../core/info.js';
+import { canPaySkillCost, skillActionMs, skillResourceCost } from '../core/casting.js';
 import { getMissile, getSkill, tuningOf } from '../core/registry.js';
 import { AURA_PULSE_MS, AURA_STATE_MS, CELL, DAMAGE_SCALE, MAX_EVENT_DEPTH, MIN_CAST_MS } from '../core/tuning.js';
 import {
@@ -68,7 +69,7 @@ export function levelOf(c: Combatant, id: number): number | undefined {
 }
 
 /** What a cast did to the caster: pose, how long it locks them, and a line for the player (auras on/off). */
-export interface CastResult { anim: 'attack' | 'attack2' | 'cast' | 'jump'; ms: number; note?: string }
+export interface CastResult { anim: 'attack' | 'attack2' | 'cast' | 'jump'; ms: number; note?: string; rejected?: boolean }
 
 const TAU = Math.PI * 2;
 /** Melee MisslesForm 11 (Đoạn Hồn Thích): the caster lunges at the target. */
@@ -119,7 +120,12 @@ export class SkillEngine {
       if (!weaponOk(s, c.weaponType)) return `Cần vũ khí: ${weaponName(s.weapon!)}.`;
       if (s.noHorse && c.a.mounted) return 'Không thể dùng khi đang cưỡi ngựa.';
     }
-    if (c.kind === 'player' && skillCost(s, level) > c.mp) return 'Không đủ nội lực.'; // monsters cast for free
+    if (c.kind === 'player') {
+      const cost = skillResourceCost(s, level);
+      if (!canPaySkillCost(cost, { hp: c.hp, mp: c.mp, maxHp: c.a.maxHp })) {
+        return cost.resource === 'hp' ? 'Không đủ sinh lực dự trữ để thi triển.' : 'Không đủ nội lực.';
+      }
+    } // monsters cast for free
     return null;
   }
 
@@ -128,22 +134,28 @@ export class SkillEngine {
   }
 
   /**
-   * Cast `id` (already checked, in range). Spends Nội lực, starts the cooldown and runs the skill: missiles /
+   * Cast `id` (already checked, in range). Spends the resolved resource once, starts the cooldown and runs the skill: missiles /
    * melee hits, a bùa lợi on yourself (and allies), an aura switched on or off, a jump (Khinh công) or a blink
    * (Mê Ảnh Tung).
    */
-  cast(c: Combatant, id: number, target: Combatant | undefined, aim: Point, actionMs = resolveSpeed('attack', SPEED.basePercent).cycleMs): CastResult {
+  cast(c: Combatant, id: number, target: Combatant | undefined, aim: Point, actionMs?: number): CastResult {
+    const error = c.dead ? 'Đang trọng thương.' : this.check(c, id);
+    if (error || !this.ready(c, id)) return { anim: 'cast', ms: 0, rejected: true, note: error ?? 'Kỹ năng chưa hồi phục.' };
     const s = getSkill(id)!;
-    const level = levelOf(c, id) ?? 1;
+    const level = levelOf(c, id)!;
     const now = this.port.now();
-    if (c.kind === 'player') c.mp -= skillCost(s, level);
+    if (c.kind === 'player') {
+      const cost = skillResourceCost(s, level);
+      if (cost.resource === 'hp') c.hp -= cost.amount;
+      else c.mp -= cost.amount;
+    }
     const minTime = attr1(s, c.a.mounted ? 'skill_mintimepercastonhorse_v' : 'skill_mintimepercast_v', level);
     const cd = Math.max(s.cooldown ?? 0, minTime) * JX_TICK_MS + (tuningOf(id).cooldownMs ?? 0);
     if (cd > 0) c.cooldowns.set(id, now + cd);
     const to = target ? { x: target.a.x, y: target.a.y } : aim;
     this.port.emit({ t: 'cast', id: c.id, skill: id, x: Math.round(c.a.x), y: Math.round(c.a.y) });
     const anim = castAnim(s, c.a.mounted);
-    const pose = Math.max(1, actionMs);
+    const pose = Math.max(1, actionMs ?? skillActionMs(s, resolveSpeed('attack', SPEED.basePercent).cycleMs));
 
     if (s.style === SkillStyle.State && s.aura) {
       if (this.auras.get(c.id)?.s.id === id) {

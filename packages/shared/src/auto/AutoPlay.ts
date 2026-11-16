@@ -4,7 +4,7 @@ import { isoDistance } from '../geometry.js';
 import type { Point } from '../maps/nav/types.js';
 import { KIND_SLOTS, QUALITY, SHOP_ITEMS, itemDef, potionMs, potionTotal, type Item, type ItemDef, type PotionStat } from '../items/index.js';
 import { MONSTERS } from '../monsters/index.js';
-import { getSkill, isCastable, skillCategory } from '../skills/index.js';
+import { getSkill, isCastable, skillCategory, canPaySkillCost, type SkillResourceCost } from '../skills/index.js';
 import { CLOSE_REACH, approachDistance, type AutoSettings } from './settings.js';
 import { autoAuraSkill, autoBuffSkills } from './buffs.js';
 
@@ -65,7 +65,9 @@ export interface AutoHost {
   usable(skill: number): boolean;
   /** Off cooldown and enough Nội lực for it. */
   ready(skill: number): boolean;
-  /** Nội lực one use costs (at the learned level). */
+  /** Resource-aware hosts; legacy hosts expose only MP cost below. */
+  resourceCost?(skill: number): SkillResourceCost | undefined;
+  /** Nội lực one use costs (zero for HP skills). */
   cost(skill: number): number;
   /** How far the skill reaches at its level (shared castRange), and whether it is a close-combat one. */
   range(skill: number): number;
@@ -431,6 +433,9 @@ export class AutoPlay {
   /** Lock the target with the main skill, or (rotation, including bosses) the next ready attack skill of the bar. */
   private attack(now: number, target: AutoActor, opts: Settings): void {
     let skill = this.mainSkill();
+    const cost = this.host.resourceCost?.(skill), self = this.host.self();
+    // Wait for recovery rather than evade a life-cost reserve with free basic attacks.
+    if (cost?.resource === 'hp' && self && !canPaySkillCost(cost, self.state)) return;
     if (opts.autoRotate) {
       const list = this.attackSkills().filter(id => this.host.ready(id));
       if (list.length > 1 && (target.id !== this.target || now - this.lockedAt > ROTATE_MS)) {

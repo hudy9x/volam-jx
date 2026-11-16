@@ -7,7 +7,6 @@ import {
   clearSegment,
   getGoldenBossConfig,
   getSkill,
-  isExternal,
   isWalkable,
   isoDistance,
   nearestWalkable,
@@ -35,10 +34,10 @@ const CORPSE_SECONDS = 2;
 /** Start a skill now (players and monsters alike): the engine fires it, the caster holds the pose. */
 export function castNow(w: World, sim: Sim, skillId: number, target: Sim | undefined, aim: Point): void {
   if (combatRulesAt(w.meta, sim.a, w.rules).safe) return;
-  const s = getSkill(skillId);
-  const timing = castTiming(w, sim, !!s && isExternal(s, levelOf(sim, skillId) ?? 1));
+  const timing = castTiming(w, sim, skillId);
   const pose = w.engine.cast(sim, skillId, target, aim, timing.cycleMs);
   if (pose.note && sim.kind === 'player') w.hooks.notify(sim, pose.note);
+  if (pose.rejected) return;
   sim.castUntil = w.now + pose.ms;
   sim.lastAttackAt = w.now;
   playOnce(w, sim, pose.anim, pose.ms / 1000);

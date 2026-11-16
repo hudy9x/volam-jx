@@ -3,8 +3,9 @@
 // how a skill plays.
 import { eventFromLevel, eventSkill, shownEvents } from './events.js';
 import { attr } from './formula.js';
-import { skillCost, skillRange } from './info.js';
-import { getSkill } from './registry.js';
+import { skillRange } from './info.js';
+import { skillActionMs, skillResourceCost } from './casting.js';
+import { getSkill, tuningOf } from './registry.js';
 import type { SkillDef } from './types.js';
 import { huashanSkillInfo } from '../factions/huashan/routes.js';
 import { skillCategory, SKILL_CATEGORY_NAMES } from './category.js';
@@ -143,8 +144,10 @@ function levelBlock(s: SkillDef, level: number, depth = 0): TipLine[] {
   const series = attr(s, 'seriesdamage_p', level);
   if (series && series[0]) out.push(line(`Ngũ hành tương khắc: ${series[0]}%`));
   if (depth === 0) {
-    const cost = skillCost(s, level);
-    if (cost) out.push(line(`Tiêu hao ${(COST_KIND[s.costType ?? 0] ?? 'Nội lực').toLowerCase()}: ${cost}`));
+    const cost = skillResourceCost(s, level);
+    if (cost.amount) out.push(line(`Tiêu hao ${cost.resource === 'hp' ? 'sinh lực' : 'nội lực'}: ${cost.amount}`));
+    if (tuningOf(s.id).timing) out.push(line(`Nhịp xuất chiêu riêng: ${Math.round(skillActionMs(s, 0))} ms (không phụ thuộc tốc độ đánh)`));
+    if (cost.resource === 'hp' && cost.minRemainingHpRatio > 0) out.push(line(`Sau thi triển cần còn ít nhất ${cost.minRemainingHpRatio * 100}% sinh lực tối đa.`));
     const range = skillRange(s, level);
     if (range) out.push(line(`Phạm vi hiệu quả: ${range}`));
   }

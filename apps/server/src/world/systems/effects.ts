@@ -1,5 +1,5 @@
 import {
-  applyBossResistance, attackTiming, mergeBag, mergePoison, monsterCombat, moveFactor, passiveBag, skillBonuses, stateBag,
+  getSkill, isExternal, levelOf, skillActionMs, applyBossResistance, attackTiming, mergeBag, mergePoison, monsterCombat, moveFactor, passiveBag, skillBonuses, stateBag,
   type CombatStats, type HitEffects, type PoisonRun,
 } from '@vltk/shared';
 import type { Sim } from '../entity.js';
@@ -47,7 +47,11 @@ export function refreshMoveScale(w: World, sim: Sim): void {
 }
 
 /** Snapshot the resolved attack phase at the start of the action. */
-export const castTiming = (w: World, sim: Sim, external: boolean) => attackTiming(combatOf(sim).bag, external, slowed(w, sim));
+export function castTiming(w: World, sim: Sim, skillId: number) {
+  const s = getSkill(skillId), cold = slowed(w, sim);
+  const timing = attackTiming(combatOf(sim).bag, !!s && isExternal(s, levelOf(sim, skillId) ?? 1), cold);
+  return s ? { ...timing, cycleMs: skillActionMs(s, timing.cycleMs, cold) } : timing;
+}
 
 /** Put a landed hit's effects on `target`. */
 export function applyHitEffects(w: World, attacker: Sim, target: Sim, fx: HitEffects): void {
