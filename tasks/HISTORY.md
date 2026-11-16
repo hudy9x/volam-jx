@@ -1,3 +1,10 @@
+## 2026-11-16 · Triển khai Auto phản ứng nhanh và giữ mục tiêu click tay theo USER
+
+- USER duyệt phương án xử lý độ trễ bật Auto và giữ mục tiêu click tay khi bị khống chế. Commit `feat(auto): speed up auto start and restore clicked targets after control`.
+- `AutoPlay.ts`: `start()` xóa thời gian nghỉ cũ (`pausedUntil = 0`), client kích hoạt `update()` ngay lập tức trong frame bật; ưu tiên đòn đánh đầu tiên vào quái trước khi buff.
+- `commands.ts`, `entity.ts`, `players.ts`, `combat.ts`: Thêm `Sim.lockedAttack` lưu ý định click tay của người chơi; khi dính `hurt`/`stun`, `pending` bị hủy nhưng `lockedAttack` giữ lại; hết khống chế server tự động dựng lại `pending` để tiếp tục tấn công. Click chạy xóa ngay; quái chết/mất tích/vào safe zone tự động hủy.
+- 55 test `npm run test:auto` (bao gồm 12 test mới trong `tests/locked-attack.test.ts` và 9 test mới trong `tests/auto-behavior.test.ts`) đạt 100%. Giữ 4 file mẫu bot đã xóa ngoài commit.
+
 ## 2026-11-16 · Triển khai Thiên Vương nhịp riêng và tiêu hao sinh lực theo USER
 
 - USER duyệt triển khai phương án nhịp xuất chiêu riêng và tiêu hao sinh lực của Thiên Vương, giữ nguyên chu kỳ combo và ngưỡng dự trữ 25% HP. Commit `feat(skills): implement Tianwang custom cadence and life cost`.

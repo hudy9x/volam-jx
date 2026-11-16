@@ -99,6 +99,21 @@ WS thật trên2568, DB riêng `/tmp/jx-auto-focus/db.json`: runner Auto đánh 
 - Nhất Khí Tam Thanh178 và Thiên Thanh Địa Trọc173 có chỉ số luôn được tính từ `passiveBag`. Server gửi riêng `Actor.passiveFx`; client vẽ cùng bộ StateDecor và hình gốc, giữ tỉ lệ1:1. Không đưa vào ActiveStates, không cộng hai lần hoặc tạo buff hết hạn giả. Người xung quanh cũng nhận được hình ảnh; chết thì ẩn theo đường vẽ có sẵn.
 - Khi kỹ năng về0/bỏ học thì danh sách hình ảnh tự cập nhật; không gửi lại mảng khi không đổi. Không sửa file sinh hoặc asset bằng tay.
 
+## Phản ứng bật Auto và giữ mục tiêu click tay — USER 2026-11-16
+
+- **Auto phản ứng ngay lập tức:** Khi người chơi bật Auto (`start()`), thời gian nghỉ của thao tác tay trước đó được xóa sạch (`pausedUntil = 0`). Client kích hoạt `update()` ngay lập tức trong cùng frame mà không cần chờ tick sau. Đòn đánh đầu tiên được ưu tiên khóa và thi triển vào quái trước (`first offensive lock`), sau đó mới tiếp tục duy trì các buff/curse bằng cờ trạng thái `waitForApplied`, tránh tình trạng đứng buff rườm rà làm trễ nhịp tấn công.
+- **Giữ mục tiêu click tay (`Sim.lockedAttack`):**
+  - Khi người chơi click chuột trái vào quái, client gửi `C2S.cast` có cờ `lock: true`. Server lưu riêng ý định này vào `sim.lockedAttack`, tách biệt với hành động `pending` đang thi triển.
+  - Khi bị khống chế (**co giật `hurt`** hoặc **choáng `stun`**), server xóa động tác tức thời `pending = null`, nhưng vẫn giữ nguyên `sim.lockedAttack`.
+  - Ngay khi nhân vật thoát khỏi trạng thái khống chế (hoặc sau khi hoàn tất một chiêu buff phụ trợ), nếu không có `pending` mà vẫn còn `lockedAttack`, server **tự động dựng lại `sim.pending`** để nhân vật tiếp tục lao vào đánh mục tiêu đã chọn ban đầu mà không cần client gửi lại lệnh.
+  - **Hủy / Chuyển mục tiêu:**
+    - Click di chuyển (`commandMove`): xóa ngay lập tức `sim.lockedAttack = undefined; sim.pending = null; sim.a.attackTarget = '';`.
+    - Click quái khác: chuyển `lockedAttack` sang con quái mới.
+    - Quái chết, biến mất khỏi bản đồ, hoặc vào vùng an toàn (safe zone): server tự động hủy `lockedAttack`.
+    - Nhân vật chết hoặc hồi sinh (`kill`, `revive`): tự động hủy `lockedAttack`.
+- Logic này chạy trên server và client dùng chung cho cả 3 nền tảng Web, Desktop và Mobile.
+
+
 ### Kiểm chứng lượt này
 
 - `test:auto`22ca:11phái với thanh phím trống, Thúy Yên100/109 không713, aura712/fallback/stop, sẵn sàng và trạng thái đang có, buff ngắn/hồi sinh/chống spam, migration cũ→bật và lựa chọn tắt mới, bot opt-out, passiveFX không nhân chỉ số.

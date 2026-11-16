@@ -4,7 +4,7 @@ import { isoDistance } from '../geometry.js';
 import type { Point } from '../maps/nav/types.js';
 import { KIND_SLOTS, QUALITY, SHOP_ITEMS, itemDef, potionMs, potionTotal, type Item, type ItemDef, type PotionStat } from '../items/index.js';
 import { MONSTERS } from '../monsters/index.js';
-import { getSkill, isCastable, skillCategory, canPaySkillCost, type SkillResourceCost } from '../skills/index.js';
+import { getSkill, isCastable, skillCategory, canPaySkillCost, skillHpReserve, type SkillResourceCost } from '../skills/index.js';
 import { CLOSE_REACH, approachDistance, type AutoSettings } from './settings.js';
 import { autoAuraSkill, autoBuffSkills } from './buffs.js';
 
@@ -32,6 +32,7 @@ export interface AutoActorState {
   /** Target of the latest attack actually started by the server (not a queued approach). */
   attackTarget?: string;
   anim?: string;
+  actionMs?: number;
   ctl?: number;
 }
 
@@ -63,7 +64,7 @@ export interface AutoHost {
   skillAt(slot: 'left' | number): number | null;
   /** The worn weapon can use that skill and it is learned. */
   usable(skill: number): boolean;
-  /** Off cooldown and enough Nội lực for it. */
+  /** Off cooldown and enough of the skill resource (including HP reserve). */
   ready(skill: number): boolean;
   /** Resource-aware hosts; legacy hosts expose only MP cost below. */
   resourceCost?(skill: number): SkillResourceCost | undefined;
@@ -94,8 +95,8 @@ export interface AutoHost {
   stop(why: string): void;
 }
 
-const TICK_MS = 150;
-/** Re-send the lock this often while the target lives (the server drops it on errors, e.g. no Nội lực). */
+const TICK_MS = 50;
+/** Recovery heartbeat for an unreceived / rejected order; server-held intent resumes without waiting for it. */
 const RELOCK_MS = 2000;
 /** With rotation: next skill of the bar this often. */
 const ROTATE_MS = 1200;
@@ -168,6 +169,8 @@ export class AutoPlay {
   private anchor: Point | null = null;
   /** Selected enemy, independent of the last cast/lock interrupted by buffs or curses. */
   private focus: string | null = null;
+  /** Explicit mouse selection wins over automatic priority until released or gone. */
+  private manualFocus: string | null = null;
   /** Latched only after a server-confirmed attack against the selected target. */
   private engaged: string | null = null;
   private requestedTargets = new Set<string>();
@@ -179,6 +182,8 @@ export class AutoPlay {
   private rotateIdx = 0;
   private nextTick = 0;
   private lastBuff = -Infinity;
+  /** Do not overwrite a queued buff / curse before the server has applied it. */
+  private utility: { skill: number; target?: string; until: number } | null = null;
   private buffTried = new Map<number, number>();
   private curseTried = new Map<string, number>();
   private lastReturn = -Infinity;
@@ -209,6 +214,7 @@ export class AutoPlay {
   start(): void {
     const self = this.host.self();
     this.running = true;
+    this.pausedUntil = 0;
     // Started before the own character is known (new map): the spot is taken on the first update.
     this.anchor = self ? { x: self.x, y: self.y } : null;
     this.target = null;
@@ -221,6 +227,7 @@ export class AutoPlay {
     this.lastWalk = -Infinity;
     this.buffTried.clear();
     this.lastBuff = -Infinity;
+    this.utility = null;
     this.pickTried.clear();
     this.bans.clear();
     this.picking = null;
@@ -239,11 +246,15 @@ export class AutoPlay {
     this.requestedTargets.clear();
     this.lootAfterKill = false;
     this.picking = null;
+    this.utility = null;
   }
 
   /** The player clicked / cast by hand: let them, then carry on. */
-  pause(now: number): void {
+  pause(now: number, targetId?: string | null): void {
+    // undefined: a temporary skill / pickup; null: explicit movement releases the enemy.
+    if (targetId !== undefined) this.manualFocus = targetId;
     this.pausedUntil = now + MANUAL_PAUSE_MS;
+    this.utility = null;
     this.target = null;
     this.focus = null;
     this.engaged = null;
@@ -252,7 +263,11 @@ export class AutoPlay {
   }
 
   update(now: number, opts: Settings): void {
-    if (!this.running || now < this.nextTick) return;
+    if (!this.running) {
+      if (this.manualFocus && (this.host.self()?.state.hp ?? 0) <= 0) this.manualFocus = null;
+      return;
+    }
+    if (now < this.nextTick) return;
     this.nextTick = now + TICK_MS;
     const self = this.host.self();
     if (!self) return;
@@ -263,9 +278,11 @@ export class AutoPlay {
       if (!this.diedAt) {
         this.diedAt = now;
         this.focus = this.engaged = this.target = null;
+        this.manualFocus = null;
         this.requestedTargets.clear();
         this.buffTried.clear();
         this.lastBuff = -Infinity;
+        this.utility = null;
       }
       if (now - this.diedAt > REVIVE_AFTER_MS && now >= this.nextTravel) { this.nextTravel = now + TRAVEL_GAP_MS; this.host.respawn(); }
       return;
@@ -282,8 +299,11 @@ export class AutoPlay {
       if (opts.autoMap && now >= this.nextTravel) { this.nextTravel = now + TRAVEL_GAP_MS; this.host.train(true); return; }
     }
     const main = this.mainSkill();
-    this.drink(now, self, 'hp', opts.autoHp, opts);
-    this.drink(now, self, 'mp', opts.autoMp, opts, this.costOf(main));
+    const resource = this.host.resourceCost?.(main);
+    const hpNeed = resource?.resource === 'hp' && opts.autoHp > 0
+      ? skillHpReserve(resource, self.state.maxHp) + resource.amount : 0;
+    this.drink(now, self, 'hp', opts.autoHp, opts, 0, hpNeed);
+    this.drink(now, self, 'mp', opts.autoMp, opts, resource?.resource === 'hp' ? 0 : this.costOf(main));
     if (now < this.pausedUntil) return;
     if (this.host.prepareCombat?.(now)) return;
     if ((opts.autoJunk || opts.autoSellBlue) && now - this.lastJunk > JUNK_GAP_MS) { this.lastJunk = now; this.sellJunk(opts); }
@@ -291,7 +311,7 @@ export class AutoPlay {
     const acknowledged = self.state.attackTarget;
     if (!this.engaged && acknowledged && this.requestedTargets.has(acknowledged)) {
       const confirmed = this.find(acknowledged);
-      if (confirmed && this.candidate(confirmed, opts, now)) {
+      if (confirmed && (confirmed.id === this.manualFocus || this.candidate(confirmed, opts, now))) {
         // The acknowledgement may arrive after choosing another travel destination. The real fight wins.
         this.focus = this.engaged = acknowledged;
         this.requestedTargets.clear();
@@ -309,12 +329,14 @@ export class AutoPlay {
     this.lootAfterKill = false;
     if (this.focus !== (target?.id ?? null)) this.engaged = null;
     this.focus = target?.id ?? null;
-    if (opts.autoBuff && this.buff(now, self, learned)) return;
+    if (this.waitForUtility(now, self)) return;
+    // Start the offensive action first; buffs must not replace an unconfirmed approach / first strike.
+    if (opts.autoBuff && (!target || this.engaged) && this.buff(now, self, learned)) return;
     if (target) {
       if (opts.autoSeek) this.anchor = { x: target.x, y: target.y };
       if (this.stuck(now, self, target, opts)) return;
       if (isoDistance(self.x, self.y, target.x, target.y) > WALK_BEYOND) { this.walkTo(now, target); return; }
-      if (opts.autoCurse && this.curse(now, self, target)) return;
+      if (opts.autoCurse && this.engaged && this.curse(now, self, target)) return;
       this.attack(now, target, opts);
       return;
     }
@@ -368,11 +390,11 @@ export class AutoPlay {
    * one has finished pumping (or the bar is under half of `pct`). The smallest potion that fills what is missing, else the
    * biggest. None left: back to town for more (autoBuyPotion + autoMap).
    */
-  private drink(now: number, self: AutoActor, stat: PotionStat, pct: number, opts: Settings, need = 0): void {
+  private drink(now: number, self: AutoActor, stat: PotionStat, pct: number, opts: Settings, need = 0, minimum = 0): void {
     const cur = stat === 'hp' ? self.state.hp : self.state.mp;
     const max = stat === 'hp' ? self.state.maxHp : self.state.maxMp;
     const p = this.potion[stat];
-    const low = (pct && cur * 100 < max * pct) || (need > 0 && cur < need * 2);
+    const low = (pct && cur * 100 < max * pct) || (need > 0 && cur < need * 2) || cur < minimum;
     if (!low || max <= 0) return;
     const rush = cur * 100 < max * pct / 2 && now - p.at >= POTION_RUSH_GAP_MS;
     if (now < p.until && !rush) return;
@@ -401,6 +423,22 @@ export class AutoPlay {
   }
 
   // ======================= skills =======================
+
+  private waitForUtility(now: number, self: AutoActor): boolean {
+    const pending = this.utility;
+    if (!pending) return false;
+    const actor = pending.target ? this.find(pending.target) : self;
+    const skill = getSkill(pending.skill);
+    const active = new Set(actor?.state.states ?? []);
+    const applied = [pending.skill, skill?.events?.start, skill?.child].some(id => id !== undefined && active.has(id));
+    if (!actor || actor.state.hp <= 0 || applied || now >= pending.until) { this.utility = null; return false; }
+    return true;
+  }
+
+  private waitForApplied(now: number, self: AutoActor, skill: number, target?: string): void {
+    // Allow the current action to finish and the queued utility to reach its release frame, including slow poses.
+    this.utility = { skill, target, until: now + Math.max(3000, 2 * (self.state.actionMs ?? 0) + 1000) };
+  }
 
   private mainSkill(): number {
     const s = this.host.skillAt('left') ?? BASIC_ATTACK;
@@ -489,7 +527,7 @@ export class AutoPlay {
     }
     if (now - this.moved.at <= STALL_MS || now - Math.max(this.pursuit.at, this.pausedUntil) <= STALL_MS) return false;
 
-    if (this.engaged !== target.id) {
+    if (this.engaged !== target.id && this.manualFocus !== target.id) {
       this.ban(now, target.id);
       this.focus = this.engaged = null;
     }
@@ -531,6 +569,7 @@ export class AutoPlay {
       this.lastBuff = now;
       this.target = null;
       this.pursuit.at = now; this.moved.at = now;
+      this.waitForApplied(now, self, s.id);
       this.host.cast(s.id, undefined, self.x, self.y, false);
       return true;
     }
@@ -555,6 +594,7 @@ export class AutoPlay {
       if (now - (this.curseTried.get(k) ?? -Infinity) < CURSE_RETRY_MS) continue;
       this.curseTried.set(k, now);
       if (this.curseTried.size > 200) this.curseTried.clear();
+      this.waitForApplied(now, self, s.id, target.id);
       this.host.cast(s.id, target, target.x, target.y, false);
       this.pursuit.at = now; this.moved.at = now;
       this.target = null;
@@ -583,6 +623,11 @@ export class AutoPlay {
       this.focus = this.engaged = null;
       this.requestedTargets.clear();
       this.focusPriority = opts.autoPriority;
+    }
+    if (this.manualFocus) {
+      const manual = this.find(this.manualFocus);
+      if (manual && !manual.isSelf && manual.state.kind === 'monster' && manual.state.hp > 0) return manual;
+      this.manualFocus = null;
     }
     const anchor = this.anchor!;
     let cur = this.focus ? this.find(this.focus) : undefined;

@@ -1,4 +1,5 @@
-import { combatRulesAt, HORSES, getSkill, maxLevelOf, type PkMode } from '@vltk/shared';
+import { combatRulesAt, HORSES, getSkill, levelOf, maxLevelOf, skillCategory, type PkMode } from '@vltk/shared';
+import { attackable } from './targeting.js';
 import type { Sim } from './entity.js';
 import { refreshStats } from './progress.js';
 import { setPath, updateSpeed } from './systems/movement.js';
@@ -11,6 +12,9 @@ import type { World } from './World.js';
 export function commandMove(w: World, sim: Sim, x: number, y: number): void {
   if (sim.dead || !Number.isFinite(x) || !Number.isFinite(y)) return;
   sim.pending = null;
+  sim.lockedAttack = undefined;
+  sim.pickup = undefined;
+  sim.path = [];
   sim.a.attackTarget = '';
   if (w.now < sim.castUntil) return; // finish the current pose first
   setPath(w, sim, { x, y });
@@ -25,9 +29,19 @@ export function commandCast(w: World, sim: Sim, skillId: number, targetId: strin
     return;
   }
   if (combatRulesAt(w.meta, sim.a, w.rules).safe) { w.hooks.notify(sim, 'Trong thành không thể động võ.'); return; }
+  const pending = { skill: skillId, targetId, x, y, repathAt: 0, lock: lock && !!targetId, reach: targetId ? reach : undefined };
+  const skill = getSkill(skillId);
+  const target = targetId ? w.sims.get(targetId) : undefined;
+  if (pending.lock && skill && skillCategory(skill) === 'attack' && (levelOf(sim, skillId) ?? 0) > 0 && target && attackable(w, sim, target)) {
+    sim.lockedAttack = { ...pending };
+    sim.pickup = undefined;
+    // Replace the old enemy even when the new skill must wait for mana / equipment.
+    sim.pending = null;
+    sim.path = [];
+  }
   const err = w.engine.check(sim, skillId);
   if (err) { w.hooks.notify(sim, err); return; }
-  sim.pending = { skill: skillId, targetId, x, y, repathAt: 0, lock: lock && !!targetId, reach: targetId ? reach : undefined };
+  sim.pending = pending;
 }
 
 /**

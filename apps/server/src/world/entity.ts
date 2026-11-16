@@ -37,6 +37,8 @@ export interface Sim {
   dead: boolean;
   path: Point[];
   pending: PendingCast | null;
+  /** Persistent offensive intent, separate from the action interrupted by control or temporary skills. */
+  lockedAttack?: PendingCast;
   /** Skill pose: no moving / casting until then. */
   castUntil: number;
   /** Learned skills (id -> level); monsters: their MonsterDef skills. */

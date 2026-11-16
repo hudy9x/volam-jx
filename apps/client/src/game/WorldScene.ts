@@ -212,12 +212,13 @@ export class WorldScene extends Phaser.Scene {
         skill = !skillbar.isAuraSlot(other) ? skillbar.skillAt(other) ?? BASIC_SKILL : BASIC_SKILL;
       }
       if (skill === null) { this.ui.notice(`Ô này chưa có chiêu: mở Kỹ năng (${KEYS.skills.label}) và kéo chiêu vào.`); return; }
-      this.auto?.pause(this.time.now);
+      const offensive = getSkill(skill);
+      this.auto?.pause(this.time.now, lock && target && offensive && skillCategory(offensive) === 'attack' ? target.id : undefined);
       this.room.send(C2S.cast, { skill, targetId: target?.id, x: Math.round(wx), y: Math.round(wy), lock: lock && !!target });
     };
     const move = (wx: number, wy: number) => {
       this.lastMoveSent = this.time.now;
-      this.auto?.pause(this.time.now);
+      this.auto?.pause(this.time.now, null);
       this.room.send(C2S.move, { x: Math.round(wx), y: Math.round(wy) });
     };
 
@@ -401,7 +402,10 @@ export class WorldScene extends Phaser.Scene {
       stop: why => this.ui.setAuto(false, why),
     });
     this.auto = auto;
-    this.ui.onAuto = on => (on ? auto.start() : auto.stop());
+    this.ui.onAuto = on => {
+      if (on) { auto.start(); auto.update(this.time.now, settings.get()); }
+      else auto.stop();
+    };
     // Auto stays on across maps (bãi luyện công, town round, revive — like jx-web-main): carry on on the new map.
     if (this.ui.auto) auto.start();
     this.cleanups.push(() => { if (this.ui.onAuto) this.ui.onAuto = null; this.auto = null; });

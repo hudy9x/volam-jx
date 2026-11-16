@@ -36,8 +36,6 @@ export interface PlayerRecord {
   series?: Element; progress?: Partial<Progress>; progressVersion?: number; skillExp?: Record<string, number>;
 }
 
-/** A locked target this far away (logic px) is given up. */
-const LOCK_GIVE_UP = 1600;
 /** A locked target with a `reach` (auto-fight) may step this far out of it before we walk after it again (no stutter). */
 const REACH_SLACK = 40;
 
@@ -94,6 +92,8 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
 export function revive(w: World, sim: Sim, x: number, y: number): void {
   const [sx, sy] = nearestWalkable(w.grid, x, y);
   sim.dead = false;
+  sim.lockedAttack = undefined;
+  sim.pending = null;
   sim.a.attackTarget = '';
   sim.hp = sim.a.maxHp;
   sim.mp = sim.a.maxMp;
@@ -126,13 +126,22 @@ export function regen(w: World, sim: Sim, dt: number): void {
 
 export function updatePlayer(w: World, sim: Sim, dt: number): void {
   maintainBotBuffs(w, sim);
-  if (combatRulesAt(w.meta, sim.a, w.rules).safe) { sim.pending = null; sim.a.attackTarget = ''; }
+  if (combatRulesAt(w.meta, sim.a, w.rules).safe) { sim.pending = null; sim.lockedAttack = undefined; sim.a.attackTarget = ''; }
+  if (sim.lockedAttack) {
+    const target = w.sims.get(sim.lockedAttack.targetId!);
+    if (!target || !attackable(w, sim, target)) {
+      if (sim.pending?.lock && sim.pending.targetId === sim.lockedAttack.targetId) { sim.pending = null; sim.path = []; }
+      sim.lockedAttack = undefined;
+      sim.a.attackTarget = '';
+    }
+  }
   if (sim.slotAura) holdSlotAura(w, sim, sim.slotAura);
   if (w.now < sim.castUntil) return;
+  if (!sim.pending && !sim.pickup && sim.lockedAttack) sim.pending = { ...sim.lockedAttack, repathAt: 0 };
   if (sim.pending) processPending(w, sim);
   if (w.now < sim.castUntil) return;
   followPath(sim, dt);
-  if (combatRulesAt(w.meta, sim.a, w.rules).safe) { sim.pending = null; sim.a.attackTarget = ''; }
+  if (combatRulesAt(w.meta, sim.a, w.rules).safe) { sim.pending = null; sim.lockedAttack = undefined; sim.a.attackTarget = ''; }
   if (sim.path.length) checkPortals(w, sim);
 }
 
@@ -167,7 +176,6 @@ function processPending(w: World, sim: Sim): void {
   } else if (p.targetId) {
     target = w.sims.get(p.targetId);
     if (!target || !attackable(w, sim, target)) { sim.pending = null; return; }
-    if (p.lock && isoDistance(sim.a.x, sim.a.y, target.a.x, target.a.y) > LOCK_GIVE_UP) { sim.pending = null; return; }
   } else if (s.style === SkillStyle.Melee) {
     target = nearestHostile(w, sim, p.x, p.y, 120);
     if (!target) { sim.pending = null; return; }
@@ -189,6 +197,8 @@ function processPending(w: World, sim: Sim): void {
     return;
   }
   const err = w.engine.check(sim, p.skill);
+  // A locked attack waits silently for resources / equipment; the click already reported the initial error.
+  if (err && p.lock && sim.lockedAttack?.targetId === p.targetId && sim.lockedAttack?.skill === p.skill) { sim.path = []; return; }
   sim.pending = null;
   if (err) { w.hooks.notify(sim, err); return; }
   sim.path = [];
@@ -197,4 +207,5 @@ function processPending(w: World, sim: Sim): void {
   castNow(w, sim, p.skill, target === sim ? undefined : target, aim);
   // Locked target: queue the same attack again (it waits for the pose / cooldown, and stops once the target is gone).
   if (p.lock && target && target !== sim && !target.dead) sim.pending = { ...p, repathAt: 0, engaged: true };
+  if (sim.pending?.lock && category === 'attack') sim.lockedAttack = { ...sim.pending };
 }

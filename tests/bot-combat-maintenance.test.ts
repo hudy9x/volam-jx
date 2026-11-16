@@ -64,6 +64,7 @@ test('mounted-compatible combat stays mounted; town, death and social-only activ
 test('an unmounted upkeep field can request dismount without an enemy only when auto buff is enabled', () => {
   const r = rig('huashan', { 1: 1, 1376: 20 });
   r.sc.auto.autoBuff = true; (r.bot.room!.state as any).actors.delete('enemy');
+  (r.bot as any).actorCache.at = -1; // room-state removal must be visible to this synchronous fixture
   r.sent.length = 0; r.bot.behavior.update(1000);
   assert.ok(r.sent.some(x => x.type === C2S.mount));
   r.self.mounted = false; r.bot.behavior.update(2000);

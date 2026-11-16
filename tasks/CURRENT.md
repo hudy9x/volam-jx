@@ -5,15 +5,13 @@
 - Kết quả benchmark 10s: 34 lần cast, 170 hit (đủ 5 hit/combo), tiêu hao 2210 HP, 99.790 damage (khoảng 300ms/cast ở 20 tick/s).
 - 19 test chuyên biệt tại `tests/tianwang-casting.test.ts` đạt 100%. Giữ 4 file mẫu bot đã xóa và các thay đổi locked-attack ngoài commit.
 
-## 2026-11-16 · Điều tra độ trễ bật Auto và giữ đích click (chưa triển khai)
+## 2026-11-16 · Triển khai Auto phản ứng nhanh và giữ mục tiêu click tay theo USER
 
-- USER yêu cầu kiểm tra khả thi, chưa duyệt sửa mã. HEAD91731b7 khớp checkpoint; giữ tracking và4mẫu bot đang xóa sẵn. Không commit/push/restart/ghi DB/assets.
-- AutoPlay.pause đặt pausedUntil=now+3000 kể cả Auto tắt; start không reset pausedUntil. Harness /tmp/jx-auto-investigate.ts: pause1000→start→update1100/2000/3900 không cast;4050 mới cast; fresh start1100 cast ngay. TICK150ms, buff trước attack, relock2000ms là các nguồn chờ khác; chưa đo phiên thực tế USER nên không quy toàn bộ3–4s cho một nhánh.
-- WorldScene click trái quái gửi lock:true; applyHitEffects xóa pending khi hurt/stun; updatePlayer chỉ tiếp tục khi pending tồn tại, attackTarget còn nhưng không dựng lại lệnh. 9control-effects tests đạt, xác nhận hủy lệnh/ngắt chiêu; sát thương thuần không mặc định xóa pending. commandMove xóa pending/attackTarget trước kiểm khóa hành động.
-- Hướng chờ duyệt: start bỏ pause cũ, đánh sớm/không để buff hoặc retry làm trễ vô ích; tách ý định đánh click khỏi lệnh thi triển, giữ qua hurt/stun/buff, hết khóa tiếp tục đúng đích, click chạy hủy ngay. Giữ công thức khống chế/cooldown và kiểm đích chết/mất/không hợp lệ, không dùng attackTarget như ý định click vì chỉ xác nhận khi chiêu bắt đầu.
-- GitNexus CLI list xác định volam-jx index8115d8a chậm HEAD; không dùng graph cũ làm bằng chứng, đối chiếu nguồn trực tiếp. Chưa WS/browser/native/mobile; logic đề xuất dùng chung3nền tảng, touch cần nối sự kiện sau. Không tick BACKLOG triển khai vì chỉ điều tra.
+- USER duyệt phương án xử lý độ trễ bật Auto và giữ mục tiêu click tay khi bị khống chế. Commit `feat(auto): speed up auto start and restore clicked targets after control`.
+- `AutoPlay.ts`: `start()` xóa thời gian nghỉ cũ (`pausedUntil = 0`), client kích hoạt `update()` ngay lập tức trong frame bật; ưu tiên đòn đánh đầu tiên vào quái trước khi buff.
+- `commands.ts`, `entity.ts`, `players.ts`, `combat.ts`: Thêm `Sim.lockedAttack` lưu ý định click tay của người chơi; khi dính `hurt`/`stun`, `pending` bị hủy nhưng `lockedAttack` giữ lại; hết khống chế server tự động dựng lại `pending` để tiếp tục tấn công. Click chạy xóa ngay; quái chết/mất tích/vào safe zone tự động hủy.
+- 55 test `npm run test:auto` (bao gồm 12 test mới trong `tests/locked-attack.test.ts` và 9 test mới trong `tests/auto-behavior.test.ts`) đạt 100%. Giữ 4 file mẫu bot đã xóa ngoài commit.
 
-## 2026-11-16 · Đối chiếu Thiên Vương: volamidle, web và tiêu hao sinh lực
 
 - USER mở rộng nghiên cứu web + /Users/hudy/ws/volamidle.pages.dev/src, bổ sung xuất chiêu Thiên Vương dùng sinh lực; vẫn không triển khai. jx HEAD91731b7; volamidle HEAD7f8aa64. Graph vltk-web chậm1commit (metadata2026-11-10), query/context chưa đủ hàm legacy nên xác minh nguồn và chạy runtime thật, không reindex/sửa repo tham chiếu.
 - volamidle skills-01.js h4 dòng434–460 có nhịp riêng; attributes-02.js dòng46/68 dùng cadence?o7(cadence):aspdP, tức bỏ tốc đánh trang bị/ChiếnÝ cho các chiêu có bảng. 150 map1058→322/1059→323/1060→325 (ghi đúng mapping hiện có, không khẳng định đúng nhánh vũkhí SHXT). o7=n*18/(n*d+1); 322=3,323=5.625,325=3.6; qua bảng tốc chung trần300%/70FPS/20frame đều285.714ms. Đây là nhịp thực thi volamidle, không đồng nhất rawRate với số lần tung nguyên combo trên SHXT. Ngoại lệ40 không có h4, rawRate vẫn theo aspdP, cd27ticks.

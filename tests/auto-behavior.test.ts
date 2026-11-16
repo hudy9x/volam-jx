@@ -94,6 +94,8 @@ test('buff and curse replace the server cast but preserve selected enemy and res
     r.slots.push(skill.id);r.actors.push({...gold,id:'closer-gold',x:1,state:{...gold.state}});
     const opts={...r.opts,autoBuff:category==='buff',autoCurse:category==='debuff'};
     r.auto.update(1250,opts);assert.equal((r.auto as unknown as {focus:string}).focus,'gold');
+    // The real server applies the utility before Auto may replace its queued order.
+    (category==='buff'?r.self:gold).state.states=[skill.id];
     r.auto.update(1500,opts);assert.equal((r.auto as unknown as {target:string}).target,'gold');
   }
 });
@@ -281,4 +283,96 @@ test('a delayed server acknowledgement beats a newer travel choice', () => {
   r.auto.update(1250,r.opts);assert.equal((r.auto as any).focus,'road');
   r.self.state.attackTarget='gold';r.auto.update(1500,r.opts);
   assert.equal((r.auto as any).focus,'gold');assert.equal((r.auto as any).engaged,'gold');
+});
+
+test('explicit start discards a previous manual pause and attacks on its first update', () => {
+  const r = rig(); r.auto.pause(1000); r.auto.start(); r.auto.update(1001, r.opts);
+  assert.equal(r.casts.length, 1);
+  r.auto.stop(); r.auto.pause(2000); r.auto.start(); r.auto.update(2001, r.opts);
+  assert.equal(r.casts.length, 2);
+});
+
+test('a new target is detected within one server tick', () => {
+  const r = rig(); const enemies = r.actors.splice(0); r.auto.start(); r.auto.update(1000, r.opts);
+  r.actors.push(...enemies); r.auto.update(1050, r.opts);
+  assert.equal(r.casts.length, 1);
+});
+
+test('first offensive lock precedes missing buffs and curses, then both still run', () => {
+  const r = rig(); r.slots.push(41); // Thiên Vương curse, alongside learned self buffs
+  r.host.learnedSkills = () => [33, 42]; r.host.usable = r.host.ready = () => true;
+  const log: {id:number; target?:string}[] = [];
+  r.host.cast = (id, target) => {
+    log.push({id, target:target?.id});
+    if (target && skillCategory(getSkill(id)!) === 'attack') r.self.state.attackTarget = target.id;
+    if (skillCategory(getSkill(id)!) === 'buff') r.self.state.states = [...(r.self.state.states ?? []), id];
+  };
+  const opts = {...r.opts, autoBuff:true, autoCurse:true};
+  r.auto.start(); r.auto.update(1000,opts);
+  assert.equal(skillCategory(getSkill(log[0].id)!), 'attack');
+  assert.equal(log[0].target, 'gold');
+  for(let now=1050;now<=4000;now+=50) r.auto.update(now,opts);
+  assert.ok(log.some(c=>c.id===33)); assert.ok(log.some(c=>c.id===42));
+  assert.ok(log.some(c=>c.id===41), 'curse is maintained after the initial attack');
+});
+
+test('manual monster focus wins over Auto priorities until a movement releases it', () => {
+  const r = rig(); r.auto.start(); r.auto.update(1000,r.opts);
+  r.auto.pause(1100, 'normal'); // explicit click, even though a gold boss is nearby
+  r.self.state.attackTarget = 'normal';
+  r.auto.update(4200,r.opts);
+  assert.equal((r.auto as any).focus,'normal');
+  r.self.state.anim='hurt'; r.auto.update(8000,r.opts);
+  assert.equal((r.auto as any).focus,'normal');
+  r.auto.pause(8100,null); r.self.state.attackTarget=''; r.auto.update(11200,r.opts);
+  assert.equal((r.auto as any).focus,'gold');
+});
+
+test('manual focus survives a buff, range policy and lack of damage but ends with the enemy', () => {
+  const r=rig(); r.auto.start(); r.auto.pause(1000,'normal');
+  r.auto.pause(1100); // another skill temporarily occupies the queue
+  r.actors[0].x=2000;
+  r.auto.update(4200,{...r.opts,autoSeek:false,autoRadius:200});
+  assert.equal((r.auto as any).focus,'normal');
+  r.auto.update(16000,r.opts); assert.equal((r.auto as any).focus,'normal');
+  r.actors[0].state.hp=0;r.auto.update(16100,r.opts);
+  assert.equal((r.auto as any).focus,'gold');
+});
+
+test('toggling Auto preserves an explicit click selection; only walking releases it', () => {
+  const r=rig();r.auto.pause(1000,'normal');r.auto.start();r.auto.update(1001,r.opts);
+  assert.equal((r.auto as any).focus,'normal');
+  r.auto.stop();r.auto.start();r.auto.update(1051,r.opts);
+  assert.equal((r.auto as any).focus,'normal');
+  r.auto.pause(1100,null);r.auto.start();r.auto.update(1101,r.opts);
+  assert.equal((r.auto as any).focus,'gold');
+});
+
+test('death releases a manual selection even while Auto is off', () => {
+  const r=rig();r.auto.pause(1000,'normal');r.self.state.hp=0;r.auto.update(1100,r.opts);
+  r.self.state.hp=100;r.auto.start();r.auto.update(1200,r.opts);
+  assert.equal((r.auto as any).focus,'gold');
+});
+
+test('an unacknowledged queued buff is not overwritten by the next attack or another buff', () => {
+  const r=rig();r.host.learnedSkills=()=>[15,273];r.host.usable=r.host.ready=()=>true;
+  const opts={...r.opts,autoBuff:true};r.auto.start();r.auto.update(1000,opts);
+  r.auto.update(1050,opts);assert.equal(r.casts.at(-1),15);
+  const sent=r.casts.length;
+  for(let now=1100;now<2000;now+=50)r.auto.update(now,opts);
+  assert.equal(r.casts.length,sent,'wait for the server to finish the current attack and apply the buff');
+  assert.equal((r.auto as any).focus,'gold');
+  r.self.state.states=[15];r.auto.update(2000,opts);assert.equal(r.casts.at(-1),273);
+  r.self.state.states=[15,273];r.auto.update(2050,opts);
+  assert.equal(skillCategory(getSkill(r.casts.at(-1)!)!),'attack');
+});
+
+test('a rejected utility times out without forgetting the enemy, and a manual command cancels the wait', () => {
+  const r=rig();r.host.learnedSkills=()=>[15];r.host.usable=r.host.ready=()=>true;
+  const opts={...r.opts,autoBuff:true};r.auto.start();r.auto.update(1000,opts);r.auto.update(1050,opts);
+  r.auto.update(4000,opts);assert.equal(r.casts.at(-1),15);
+  r.auto.update(4050,opts);assert.equal(skillCategory(getSkill(r.casts.at(-1)!)!),'attack');
+  const t=rig();t.host.learnedSkills=()=>[15];t.host.usable=t.host.ready=()=>true;t.auto.start();t.auto.update(1000,opts);t.auto.update(1050,opts);
+  t.auto.pause(1100,null);t.auto.start();t.auto.update(1101,opts);
+  assert.equal(skillCategory(getSkill(t.casts.at(-1)!)!),'attack');
 });
