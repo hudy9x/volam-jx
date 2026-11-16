@@ -1,3 +1,24 @@
+## 2026-11-16 · Commit dữ liệu/API điểm chuyển map
+
+- USER yêu cầu commit sau khi đổi switch nền và nút tùy chọn. Chia phần Manager thành2commit để bảo trì: dữ liệu/API điểm chuyển trước; UI/editor/switch và icon dùng chung ngay sau. Commit này gồm shared map-portals/config adapter/default37↔140, PortalStore/API và3test +script.
+- Portal3/NPC4/zones4/publication3/Creator5=19test đã đạt; typecheck/build đạt. Không sửa source NPC/zone/registry/project/assets/DB; config điểm chuyển nguồn khởi tạo maps:{}, giữ điểm thật mặc định.
+- UI đã kiểm IAB: switch Minimap/Mapthật ngoài cùng bên phải, Z hai chiều/Space, nhập chữz không đổi nền; nút Vùng chặn aria-pressed. Desktop/mobilebody390 và switch cách mép10px; ảnh /tmp/jx-manager-switch-evidence/{desktop,mobile}.jpg. Giao diện sẽ đi commit riêng ngay sau, không push.
+
+## 2026-11-16 · Map Manager icon/phím tắt và điểm chuyển map (chưa commit)
+
+- Creator đã chia commit `a8cde42` UI/UX và `64bee57` Chơi thử theo USER, không push. Sau đó USER duyệt action Manager theo Creator và đặt/di chuyển điểm tới map khác; đã hoàn tất, phần Manager mới chưa commit.
+- Toolbar icon/tooltip/shortcut V NPC/B Pen/T chuyển map/H pan/Space tạm/0,+−/CtrlCmdS/Delete/?; trợ giúp Tab/Esc/trả focus, guard input/dialog/drag. Lưu ngắn gọn theo công cụ, pen/NPC action giữ nguyên. Icon dùng chung tools/ui/actions.ts, Creator re-export giữ contract.
+- Nguồn `packages/shared/src/maps/map-portals.json` version1/maps:{}; adapter configuredPortals áp vào MapMeta (cả custom registry), giữ DEFAULT_MAP_PORTALS37↔140 nếu thiếu override, clone không để snap runtime sửa nguồn; [] là bỏ hết điểm rõ ràng. Không sửa cataloggen. Manager PortalEditor: chọn/drag/click/nhậpXY/name/radius8–256, chọn map đích/điểm đến hoặc canonicalentry, thêm/xóa có confirm. Không tự sinh chiều về. PortalStore nav hai đầu+clearance9/largestcomponent, destination enabled, atomic/CAS theo map và giữ map khác. Source map tắt vẫn quản trị được; target tắt từ chối save.
+- Bản nháp NPC/pen/portal độc lập, đổi mode giữ nháp, đổi map/reload/đóngtrang cảnh báo đủ. Lưu chỉ active mode; không đổi serviceNPC/PK/spawn. Portal runtime đi qua checkPortals/transfer đang có, cần restartserver/reloadclient/buildproduction, không hot-patch room. Chưa tự chuyển vị trí thật37→140; sourcefile maps:{} giữ nguyên defaults.
+- Browser IAB1440×1000: mởportal37to140, click đặt20388,13168 → lưu file/tmp → reload giữ ID/toMap140/toX5280/toY9600; drag→20508 rồi discard, chọn9101 tựđến1792,1792/tênmặcđịnhđổi, thêm/xóa/Hủy chuyểnmap/giữ nháp, V/B/T/helpTab/Esc đạt. API400đíchsai/403origin; sourceNPC/zone/DB/registry/assets không đổi. Test dùng MAP_MANAGER_PORTALS_CONFIG=/tmp/jx-manager-portals-test.json trên4580, không lưu thử source.
+- Mobile390×844 form/toolbar kiểm ảnh: body390, toolbar cuộn nội bộ; document.scrollWidth695 do môi trường có lớp chú thích ngoàibody, không coi phép đo root là đạt. Form vừa viewport, không cắtinput. Native/touch thật chưa kiểm. Ảnh /tmp/jx-manager-portals-evidence/{desktop,mobile}.jpg đã xem.
+- Typecheck/build đạt(cảnh báo chunk cũ). Portal3 (store/default/CAS/empty/nav/invalid +production trigger vị trí mới), NPC4/safe-zone4/publication3/Creator+Preview5 =19ca đạt. GitNexus refresh và finalgate13file/46symbol/26flow Critical do sharedMAPS/metadata chung, checkPortalsimpactLOW3; đã rà source +19ca liên quan, file mới chưatracked kiểm trực tiếp/tests. Không coi graph thiếuflow là không có tác động. Tooltest4580 đã dừng, serverUSER giữ nguyên. Không commit/push phần Manager.
+
+## 2026-11-16 · Đã chia commit Creator; triển khai Map Manager theo USER
+
+- Đã commit UI/UX `a8cde42`, Chơi thử `64bee57`; typecheck/5test và staged gates đạt, không push, working tree sạch trước yêu cầu tiếp theo.
+- USER duyệt chỉnh action Manager theo Creator và công cụ đặt/di chuyển điểm chuyển map. Đang triển khai nguồn JSON riêng, giữ mặc định37→140 và140→37 khi chưa cấu hình, vị trí kéo/click/tọa độ, map đích/điểm đến, nav validation/CAS. Không tự đặt lại điểm thật củaUSER; config nguồn ban đầu rỗng.
+
 ## 2026-11-16 · Commit Chơi thử Map Creator
 
 - USER yêu cầu chia commit, đã hoàn tất UI/UX ở `a8cde42` (feat(map-creator): streamline editor layout and controls). Commit tiếp theo feat(map-creator): preview maps with game characters and monsters chỉ thêm Chơi thử: API whitelist sprite, metadata player/quái, renderer/animation/depth, nav/A*/camera và khoá chỉnh sửa trong phiên thử; README/AGENTS/script +2test riêng.
@@ -508,7 +529,7 @@ Server dev của người dùng (nếu đang chạy từ đường dẫn cũ) ph
 | Event và nhiệm vụ | SK | 0 | 1 | 10 | 0 | SK1 đang nghiên cứu SHXT, cao cấp trước; thiếu script điều phối/điểm/thưởng; chưa có gameplay |
 | Hạ tầng | HT | 2 | 1 | 7 | 0 | HT1 đóng gói Desktop / Mobile |
 | Hiệu năng tải (cache) | PF | 3 | 1 | 5 | 2 | **Cache còn dở:** PF6 server thật phục vụ asset (⏸ chờ chọn nginx / Caddy / CDN), PF7 Desktop / Mobile (⏸ chờ HT1), PF8 đo + kiểm chứng đủ (sau PF1), PF9 việc nhỏ (CSS chưa `?v=`); PF1 có trace/A/B, chưa overlay/đo tải đầy đủ; PF10viewport/HUD/input đã xong2026-11-15; PF2–PF3/culling chưa làm |
-| Map Creator/Manager | MC | 3 | 0 | 0 | 0 | MC1–MC3 xong: editor/NPC/Pen/minimap/Bật Tắt; spawn riêng chưa làm |
+| Map Creator/Manager | MC | 4 | 0 | 0 | 0 | MC1–MC4 xong: editor/NPC/Pen/minimap/Bật Tắt/preview/điểm chuyển; spawn riêng chưa làm |
 | Bot + hiệu năng server | BT | 5 | 1 | 5 | 0 | **Phần 1 bot xong** (vòng 35, `/?bots` + `npm run bots -- <kịch bản>`); Phần 2 đo đếm: BT1 số đo → BT9 kịch bản đo → BT5 baseline → BT6 sửa nghẽn |
 
 Người dùng hỏi **"thống kê công việc"**: in bảng trên (đếm lại từ `BACKLOG.md`) + liệt kê mọi mục 🟡 / ⬜ / ⏸ đáng chú ý, **luôn có

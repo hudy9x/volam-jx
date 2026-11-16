@@ -1,3 +1,4 @@
+import { configuredPortals } from './portals.js';
 import customSource from './custom-maps.json';
 import { customMapMeta, validateMapRegistry, type MapRegistry } from './registry.js';
 import { decodeGrid, nearestWalkable } from './nav/grid.js';
@@ -48,6 +49,9 @@ const EXTRA: Record<number, Partial<MapMeta>> = {
   },
 };
 
+export const DEFAULT_MAP_PORTALS = Object.fromEntries(Object.entries(EXTRA).map(([id, m]) => [id, (m.portals ?? []).map(p => ({ ...p }))]));
+export * from './portals.js';
+
 /**
  * Every map rendered from the original client (apps/client/tools/gen-maps.ts → catalog.gen.ts). Maps are drawn
  * from assets/maps/<id>/ and walked on the grid in its nav.json (loadNav). Towns are safe; elsewhere PK is allowed.
@@ -56,8 +60,8 @@ export const MAPS: Record<number, MapMeta> = Object.fromEntries(MAP_CATALOG.map(
   const town = TOWN_TYPES.has(m.type);
   const meta: MapMeta = {
     id: m.id, name: m.name, type: m.type, region: m.region ?? '', assets: `assets/maps/${m.id}`,
-    safe: town, pvp: !town, portals: [], raw: { size: m.size, entry: m.entry },
-    ...EXTRA[m.id],
+    safe: town, pvp: !town, raw: { size: m.size, entry: m.entry },
+    ...EXTRA[m.id], portals: configuredPortals(m.id, EXTRA[m.id]?.portals ?? []),
   };
   return [m.id, meta];
 }));
@@ -70,7 +74,7 @@ export function applyMapRegistry(value: unknown): void {
   for (const id of Object.keys(MAPS).map(Number)) if (!originalIds.has(id) && !registry.maps[String(id)]) { delete MAPS[id]; clearMapNavigation(id); }
   for (const m of Object.values(registry.maps)) {
     if (MAPS[m.id]?.customBuild !== m.build) clearMapNavigation(m.id);
-    MAPS[m.id] = customMapMeta(m);
+    MAPS[m.id] = { ...customMapMeta(m), portals: configuredPortals(m.id, []) };
   }
 }
 export const isMapEnabled = (id: number) => !!MAPS[id] && MAPS[id].enabled !== false;

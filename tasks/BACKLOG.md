@@ -236,6 +236,7 @@ giả lập người chơi (chạy được cả trên server dev `:2567` + `db.
 | ✅ | MC1 | Tool upload ground/world, sắp xếp/cấu hình world, lưu/mở lại và xuất bộ map | USER2026-11-15. `tools/map-creator`, localhost4569, `npm run map:creator`. Chỉnh anchor/scale/depth/collider, manual blockers/entry, undo/redo, revision conflict, upload chuẩn hóa. Xuất ground512/world/nav32×16/preview vào project, không publish game hoặc gộp spawn. Unit3ca + Chromium desktop/mobile/touch mô phỏng và API đạt; chưa native/điện thoại thật/che khuất trong game. Đăng ký/Bật Tắt đã bổ sung ở MC3; tool spawn riêng chưa triển khai. |
 | ✅ | MC2 | Map Manager: đặt NPC thành thị và lưu thẳng cấu hình game | USER2026-11-15. tools/map-manager:4570, chọn/thêm/kéo/chỉnh NPC/name/action/res/dir, map ground+objects/nav/preview; atomic JSONsource/CAS, shared adapter giữ fallback. Unit3ca/typecheck/build và browser desktop/mobile đạt; quái/Boss Xanh để sau, chưa native/live-patch. |
 | ✅ | MC3 | Bật/Tắt map tự dựng và trả nhân vật về Biện Kinh | USER2026-11-15. Creator publish immutable build/manifest/registry, Manager nhận map động và giữ nhãn Đã tắt; server chặn vào/teleport, online/offline ở map tắt/mất đăng ký/thiếu tài nguyên về37. Unit + Colyseus thật3ca, hồi quy55ca, typecheck/build và Chrome đạt; chưa native/mobile thật. |
+| ✅ | MC4 | Map Manager: icon/shortcut và đặt điểm chuyển map | USER2026-11-16. Source map-portals.json + adapter giữ37↔140, PortalEditor click/drag/XY/đích/canonicalentry, nav2đầu/CAS/atomic, giữ nháp; icon dùng chungCreator. Portal3+NPC4+zone4+publication3+Creator5=19ca/typecheck/build/browser đạt, chưa native/touch thật; cần restart/reload/build game, không livepatch, chưa commit. |
 
 
 ## Cài đặt máy macOS (2026-11-13)
@@ -340,3 +341,5 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 - MC1 commit UI/UX2026-11-16: header/toolbar gọn, tài nguyên phải, icon/tooltip/shortcut/dialog/chấm trạng thái; commit độc lập, Chơi thử tách sau.
 
 - MC1 commit2026-11-16: UI/UX `a8cde42`, Chơi thử tách commit feat(map-creator): preview maps with game characters and monsters. Cả2xong, typecheck/5test đạt; không push.
+
+- MC4 commit2026-11-16: tách dữ liệu/API/validation/3test điểm chuyển với UI icon/PortalEditor/switch Z/nút tùy chọn. USER đã duyệt commit, không push.

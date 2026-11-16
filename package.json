@@ -25,7 +25,8 @@
     "test:map-publication": "node --import tsx --test tests/map-publication.test.ts tests/map-access.test.ts",
     "test:safe-zones": "node --import tsx --test tests/safe-zones.test.ts tests/safe-zone-store.test.ts",
     "test:map-manager": "node --import tsx --test tests/map-manager.test.ts",
-    "test:map-preview": "node --import tsx --test tests/map-preview.test.ts"
+    "test:map-preview": "node --import tsx --test tests/map-preview.test.ts",
+    "test:map-portals": "node --import tsx --test tests/map-portals.test.ts"
   },
   "devDependencies": {
     "concurrently": "^10.0.7",
