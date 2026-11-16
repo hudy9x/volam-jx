@@ -1,3 +1,9 @@
+## 2026-11-16 · Commit giao diện Map Manager và switch nền
+
+- USER yêu cầu commit khi xong. Đã commit `c261353` feat(maps): configure portal placements and destinations cho cấu hình/runtime/API/store/3test. Commit giao diện tiếp theo feat(map-manager): add portal editor and compact view controls gồm editor đặt/kéo điểm, icon/tooltip/shortcut dùng chungCreator, switch nền ngoài cùng bên phải và nút option Vùng chặn.
+- Switch aria-checked Mapthật, Z đổihai chiều/Spacekhi focus hoạtđộng, nhậpchữz trongsearch không đổi nền; nút Vùngchặn aria-pressed. Chỉ nhóm tác vụ bên trái cuộn, switch giữ cạnhphải10px desktop/mobile; body390 khôngtràn. Không thay đổi coordinate/nháp do đổi nền/lớp phủ; Toànmap vẫn vềminimap, XemNPCthật bậtMapthật. Ảnh /tmp/jx-manager-switch-evidence/{desktop,mobile}.jpg đã xem.
+- Typecheck/build đạt(cảnh báo chunk cũ),19test liên quan trước đó đạt; mới chỉ sửaUI sau các test ấy. Coregate10file/63symbol/26flowCritical doMAPS chung đã đốichiếu source và tests; không coi graph giới hạn là đầyđủ. Không push, không đổi điểm thật/mapsourceNPC/zone/DB/assets. Sau commit này không còn code Manager chờ commit; restart tool để nhận bundle mới. Tooltest4580 dừng sau kiểm; server USER giữ nguyên.
+
 ## 2026-11-16 · Commit dữ liệu/API điểm chuyển map
 
 - USER yêu cầu commit sau khi đổi switch nền và nút tùy chọn. Chia phần Manager thành2commit để bảo trì: dữ liệu/API điểm chuyển trước; UI/editor/switch và icon dùng chung ngay sau. Commit này gồm shared map-portals/config adapter/default37↔140, PortalStore/API và3test +script.

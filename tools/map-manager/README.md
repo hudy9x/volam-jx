@@ -1,6 +1,6 @@
 # Map Manager · NPC thành thị
 
-Tool độc lập ở `tools/map-manager`, tách khỏi Map Creator và tool Boss Hoàng Kim. Bản đầu chỉ cấu hình NPC trong thành thị; chưa làm spawn quái/Boss Xanh.
+Tool độc lập ở `tools/map-manager`, tách khỏi Map Creator và tool Boss Hoàng Kim. Cấu hình NPC/vùng an toàn thành thị và điểm chuyển map; chưa làm spawn quái/Boss Xanh.
 
 ## Chạy
 
@@ -84,3 +84,33 @@ Kiểm thử: `npm run test:safe-zones` kiểm hình học/biên/vùng lõm/nhi�
 - Đã kiểm Chrome: zoom minimap100→2330% vẫn ở mini, +/− hoạt động; mở NPC thật đúng vị trí và100%; vẽ/khép vùng ngay trên minimap, tọa độ4điểm giữ nguyên sauzoom; bỏ nháp không ghi nguồn. 390×844 không tràn ngang, nút zoom hoạt động; chưa kiểm điện thoại/native thật.
 
 Map tự dựng dùng chung `packages/shared/src/maps/custom-maps.json`; `MAP_REGISTRY_FILE` cho phép đổi file khi thử. Bật/Tắt thực hiện ở Map Creator, không đổi dữ liệu NPC/vùng an toàn đã lưu.
+
+## Icon, tooltip và phím tắt
+
+Toolbar dùng icon + tooltip có mô tả/phím tắt, công cụ đang chọn có hướng dẫn thường trực. Nút Lưu có chữ và chỉ lưu công cụ đang chọn. Icon dùng chung với Map Creator từ `tools/ui/actions.ts`, không thêm thư viện hoặc font. Dialog giữ Tab/Esc/trả focus; phím công cụ bỏ qua ô nhập liệu/dialog/busy và khi đang kéo.
+
+| Phím | Thao tác |
+|---|---|
+| V / B / T | NPC / Pen vùng an toàn / Điểm chuyển map |
+| H / giữ Space + kéo | Bật kéo khung / kéo tạm thời |
+| Z | Chuyển Minimap / Map thật (Realistic) |
+| 0 / + / − | Vừa toàn map / zoom vào / zoom ra |
+| Ctrl/Cmd+S | Lưu cấu hình công cụ đang chọn |
+| Delete | Xóa NPC hoặc điểm chuyển đang chọn, có xác nhận |
+| ? / F1 | Bảng phím tắt |
+
+## Điểm chuyển map
+
+1. Chọn map ở sidebar → icon **Điểm chuyển map (T)**. Dùng được cho thành thị và bãi luyện công/hang động đã có tài nguyên, kể cả map tự dựng.
+2. Chọn **Dược Vương Cốc** trên Biện Kinh để di chuyển lối đi hiện có. Bấm một vị trí mới trên minimap/map thật hoặc kéo hình thoi; có nhập X/Y chính xác. Zoom và kéo khung không đổi tọa độ. Phần đầu giữ mặc định cũ: Biện Kinh37→Dược Vương Cốc140 và chiều về140→37.
+3. **Thêm điểm** để tạo lối đi khác. Chọn map đích theo tên; công cụ tự lấy điểm vào đi được. Có thể nhập Điểm đến X/Y riêng hoặc bấm **Dùng điểm vào**. Điểm đặt phải ở vùng đi lại chính, cả hai đầu có clearance9px và map đích đang mở/đủ tài nguyên. Bán kính kích hoạt8–256pixel theo khoảng cách isometric; mặc định40. Đổi đích giữ tên tự đặt, chỉ cập nhật tên còn ở dạng mặc định.
+4. **Lưu điểm chuyển** ghi riêng `packages/shared/src/maps/map-portals.json`. Thay đổi không sửa NPC/vùng an toàn và không tạo lối quay về tự động. Muốn hai chiều, chỉnh map bên kia riêng. **Xóa điểm** có xác nhận; danh sách rỗng lưu rõ là bỏ hết lối đi của map đó. Không thay mặc định nếu map chưa có cấu hình.
+5. Khởi động lại server, tải lại client; production build lại. Đây là nguồn được import khi khởi động, không live-patch room. Runtime dùng chính `MapMeta.portals` và hook transfer đang có; map tắt/mất tài nguyên vẫn bị chặn theo luật truy cập map. Không thêm quái/spawn hoặc đổi luật PK/NPC.
+
+Bản nháp điểm chuyển tách NPC/pen; đổi công cụ giữ nháp, chuyển map/Mở bản lưu/đóng trang cảnh báo mọi nháp chưa lưu. Bản lưu giữ ID của điểm cũ nên chỉ di chuyển điểm không đổi đích hoặc chức năng. Đặt điểm đến xa lối quay về để tránh bước vào bán kính chuyển tiếp ngay sau khi tới nơi; tránh đặt nhiều lối chồng nhau.
+
+`MAP_MANAGER_PORTALS_CONFIG` đổi file đích khi thử, ví dụ `/tmp/jx-manager-portals-test.json`; chỉ tool đọc file thử, runtime game vẫn dùng nguồn mặc định. Lưu atomic/CAS theo map, giữ map khác; chỉ chạy một tiến trình ghi cùng file (khóa trong tiến trình). Registry map và cấu hình điểm chuyển là hai nguồn khác nhau.
+
+Kiểm `npm run test:map-portals`: lưu/mở lại, ID/đích, giữ map khác/default, danh sách rỗng, stale revision, tọa độ/đích/bán kính sai, vị trí bị chặn/cả hai đầu, đích tắt và production checkPortals chỉ kích hoạt ở vị trí mới. Hồi quy Manager/NPC, safe-zones, map-publication, Creator/Preview; typecheck/build. Browser thử file/tmp, không lưu thử vào source thật. Native/thiết bị touch thật chưa kiểm.
+
+Nền bản đồ là switch **Minimap / Map thật**, luôn nằm ngoài cùng bên phải toolbar; **Z** đổi nền, Space/Enter khi focus switch cũng hoạt động. Chỉ nhóm công cụ bên trái cuộn trên màn hẹp. **Vùng chặn** là nút tùy chọn bật/tắt có aria-pressed và màu chọn, không còn checkbox. Đổi nền/lớp phủ chỉ đổi cách xem, không sửa dữ liệu hoặc làm mất bản nháp. Bấm Toàn map quay về Minimap; Xem NPC thật tự bật switch Map thật.

@@ -343,3 +343,5 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 - MC1 commit2026-11-16: UI/UX `a8cde42`, Chơi thử tách commit feat(map-creator): preview maps with game characters and monsters. Cả2xong, typecheck/5test đạt; không push.
 
 - MC4 commit2026-11-16: tách dữ liệu/API/validation/3test điểm chuyển với UI icon/PortalEditor/switch Z/nút tùy chọn. USER đã duyệt commit, không push.
+
+- MC4 đã commit2026-11-16: core/API `c261353`; UI đi commit feat(map-manager): add portal editor and compact view controls. Switch phải/Z, Vùngchặn button option, portal editor và icons/shared helper hoàn tất; không push.
