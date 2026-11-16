@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "title": "Săn + Bán đồ HKMP",
+  "title": "Săn boss + bán đồ + tự nhận tổ đội",
   "activities": {
     "grind": true,
     "chat": false,
-    "sell": true,
+    "sell": false,
     "autoAcceptTeam": true,
     "autoInviteTeam": false
   },
@@ -13,18 +13,7 @@
   "bots": {
     "prefix": "botfixed",
     "count": 0,
-    "usernames": [
-      "botfixed_001",
-      "botfixed_002",
-      "botfixed_003",
-      "botfixed_004",
-      "botfixed_005",
-      "botfixed_006",
-      "botfixed_007",
-      "botfixed_008",
-      "botfixed_009",
-      "botfixed_010"
-    ]
+    "usernames": []
   },
   "joinPerSecond": 3,
   "duration": 0,
@@ -59,23 +48,24 @@
     "autoBuff": true,
     "autoReturn": true,
     "autoSeek": true,
-    "autoPickup": true,
+    "autoPickup": false,
     "autoPriority": "boss",
-    "autoRotate": true,
+    "autoRotate": false,
     "autoCurse": true,
-    "autoMap": true,
+    "autoMap": false,
     "autoRevive": true,
     "autoBuyPotion": true,
     "autoJunk": true,
     "autoMoney": true,
     "autoSellBlue": true,
-    "autoKeepValuable": false,
+    "autoKeepValuable": true,
     "autoLoot": "magic",
     "autoHp": 50,
     "autoMp": 18,
     "autoReachPct": 60,
     "autoMeleeClose": true
   },
+  "buffVersion": 1,
   "human": {
     "tickMs": 150,
     "reactionMs": [

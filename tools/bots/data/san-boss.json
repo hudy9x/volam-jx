@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "title": "Sắn boss xanh, boss Hoàng kim",
+  "title": "Săn boss",
   "activities": {
     "grind": true,
     "chat": false,
@@ -13,18 +13,7 @@
   "bots": {
     "prefix": "botfixed",
     "count": 0,
-    "usernames": [
-      "botfixed_001",
-      "botfixed_002",
-      "botfixed_003",
-      "botfixed_004",
-      "botfixed_005",
-      "botfixed_006",
-      "botfixed_007",
-      "botfixed_008",
-      "botfixed_009",
-      "botfixed_010"
-    ]
+    "usernames": []
   },
   "joinPerSecond": 3,
   "duration": 0,
@@ -63,7 +52,7 @@
     "autoPriority": "boss",
     "autoRotate": false,
     "autoCurse": true,
-    "autoMap": true,
+    "autoMap": false,
     "autoRevive": true,
     "autoBuyPotion": true,
     "autoJunk": true,
@@ -76,6 +65,7 @@
     "autoReachPct": 60,
     "autoMeleeClose": true
   },
+  "buffVersion": 1,
   "human": {
     "tickMs": 150,
     "reactionMs": [

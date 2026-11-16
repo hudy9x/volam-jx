@@ -1,0 +1,56 @@
+{
+ "users": {},
+ "characters": {
+  "test_bot_char_confinement": {
+   "id": "test_bot_char_confinement",
+   "owner": "test_bot_owner",
+   "name": "TestBot",
+   "faction": "shaolin",
+   "gender": "male",
+   "level": 125,
+   "mapId": 140,
+   "x": 1000,
+   "y": 1000,
+   "bot": {
+    "template": "test_tpl",
+    "level": 125,
+    "faction": "shaolin",
+    "pending": false,
+    "setup": {
+     "prefix": "botfixed",
+     "password": "pass",
+     "faction": "shaolin",
+     "gender": "male",
+     "level": [
+      110,
+      150
+     ],
+     "potential": "suggest",
+     "skills": "suggest",
+     "tiers": true,
+     "autoBuff": true,
+     "gear": "gold",
+     "ring": false,
+     "horse": "random",
+     "money": 10000,
+     "hpPotion": "potion-2-5",
+     "hpCount": 20,
+     "mpPotion": "potion-2-5",
+     "mpCount": 20,
+     "map": {
+      "mode": "training",
+      "maps": [
+       2,
+       19
+      ],
+      "radius": 200
+     }
+    }
+   }
+  }
+ },
+ "chat": {
+  "nextId": 1,
+  "lines": []
+ }
+}
