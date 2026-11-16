@@ -1,0 +1,34 @@
+{
+  "title": "Săn boss Thiên nhẫn",
+  "prefix": "botfixed",
+  "password": "botpass",
+  "faction": "all",
+  "gender": "mix",
+  "level": [
+    110,
+    150
+  ],
+  "potential": "suggest",
+  "skills": "suggest",
+  "tiers": true,
+  "autoBuff": true,
+  "gear": "green",
+  "ring": false,
+  "horse": "random",
+  "money": 1000000,
+  "hpPotion": "potion-2-5",
+  "hpCount": 50,
+  "mpPotion": "potion-2-5",
+  "mpCount": 50,
+  "map": {
+    "mode": "both",
+    "maps": [
+      319,
+      7,
+      50,
+      14,
+      5
+    ],
+    "radius": 200
+  }
+}

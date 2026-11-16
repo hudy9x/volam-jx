@@ -408,9 +408,9 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
         "gold-84",
         "gold-85"
       ],
-      "mapId": 27,
-      "x": 528,
-      "y": 1272
+      "mapId": 26,
+      "x": 3035,
+      "y": 570
     },
     {
       "id": 522,
@@ -442,9 +442,9 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
         "gold-89",
         "gold-90"
       ],
-      "mapId": 28,
-      "x": 1040,
-      "y": 872
+      "mapId": 320,
+      "x": 9297,
+      "y": 16085
     },
     {
       "id": 521,
