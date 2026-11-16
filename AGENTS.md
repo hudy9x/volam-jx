@@ -119,6 +119,8 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
 
+- **Băng di chuyển cố định (USER2026-11-16):** `formulas/effects/tuning.ts EFFECTS.coldMovement` =60isođơnvị/s,4FPSchuẩn8frame,2giây/vòng,sải120; chung người/quái/BossXanh/HoàngKim/kểcảcưỡingựa. Bỏ nhân tốc gốc/bonus/distanceScale/AI trong nhánhbăng; giữ giảmthờigian/trần77 và tốcđánh/cast cũ. Client dùng helpercoldMovement, không nhâncoldLoopRate thêm cho vòngchạy. Server giữtọađộlẻ khi băng để giảm sai số làmtròn mạng. Xem docs/formulas/effects.md§3; quyết định này thay đềxuất băng75px/s trướcđây.
+
 - **Vùng an toàn thành thị (USER 2026-11-15):** Pen trong Map Manager, nguồn `packages/shared/src/maps/town-safe-zones.json`; map chưa cấu hình giữ an toàn toàn map. Trong polygon/biên cấm cast chủ động và sát thương cả hai phía; ngoài vùng giữ luật PK, không tự bật mode PK. Giữ hào quang ô tay/bị động, hiệu ứng vẫn hết hạn nhưng không gây sát thương trong vùng. Quyền dịch vụ NPC tách khỏi luật chiến đấu; không tự đổi ID/action hoặc sinh quái. Lưu cần restart server/reload client, production build lại; không live-patch. Kiểm `npm run test:safe-zones`.
 
 - **Map Manager tự reload (USER2026-11-16):** npm run map:manager chạy supervisor riêng/watch mã toolManager/Boss/toolsUI/kit, restart và reload tab; trì hoãn khi có nháp. Đây là ngoại lệ được USER duyệt với luật tool không auto reload cũ; vẫn không nối HMR/game hoặc theo dõi assets/DB/config.

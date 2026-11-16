@@ -66,25 +66,27 @@ Ví dụ (thử): Kim Chung Tráo cấp 20 → kháng vật lý +50, băng +45, 
 | Hiệu ứng | Công thức | Nguồn |
 |---|---|---|
 | **Choáng** | xác suất `stun_p` P1 % (+ `do_stun_p` người đánh − `anti_do_stun_p` mục tiêu); thời gian **×2 (USER thử 2026-11-15, `EFFECTS.stunDurationMultiplier`)** × P2 frame × (1 + `anti_stuntimereduce_p`/100) × (1 − `stuntimereduce_p`/100, giảm tối đa 95); **không choáng chồng** khi đang choáng | DATA tham số · SRC luật · CHỌN trần 95 |
-| **Chậm** | mọi phần **băng** > 0 làm chậm: thời gian = `colddamage_v` P2 frame (chiêu không có P2: **27 frame = 1,5 s**, CHỌN) × (1 + `coldenhance_p`/100) × (1 − `freezetimereduce_p`/100, giảm tối đa **77**); trong lúc chậm tổng % tốc chạy/tốc đánh/tốc ra chiêu × **0,5**, rồi mới chọn mốc FPS (không khẳng định vận tốc thực giảm đúng một nửa) | DATA (P2 chỉ có ở bẫy Đường Môn; trần 77 `FreezeTimeReduceMax`) · INFERRED (50 %) |
+| **Chậm** | mọi phần **băng** > 0 làm chậm: thời gian = `colddamage_v` P2 frame (chiêu không có P2: **27 frame = 1,5 s**, CHỌN) × (1 + `coldenhance_p`/100) × (1 − `freezetimereduce_p`/100, giảm tối đa **77**); di chuyển cố định **60 đơn vị isometric/giây**, nhịp **4 FPS chuẩn8frame = 2giây/vòng** cho cả cưỡi ngựa; tốc đánh/ra chiêu vẫn nhân tổng%×0,5 trước chọn mốc | DATA (P2 chỉ có ở bẫy Đường Môn; trần 77 `FreezeTimeReduceMax`) · INFERRED (50 %) |
 | **Độc** | mỗi nhịp `poisondamage_v` P1 (sau kháng độc) − `poisondamagereduce_v`; chu kỳ P3 frame; tổng P2 frame × (1 − `poisontimereduce_p`/100, tối đa 95). Trúng thêm: **gộp** — cộng sát thương mỗi nhịp (trần người chơi **600**, quái 123456), lấy thời gian dài hơn, chu kỳ ngắn hơn | DATA (trần `PlayerPoisonDamageMax`) · SRC (gộp, đơn giản hóa) |
 | **Co giật** | xác suất `DoHurt` % của chiêu (`skill_dohurt` ghi đè); thời gian = khung bị thương (người 12, quái 10) × (100 − phục hồi %)/100; phục hồi ≥ 100 % → không co giật (710 quái `HitRecover 100`) | DATA · INFERRED (≥ 100) |
 
 - Choáng / co giật khóa hành động (`castUntil`); chậm qua `moveScale` và thời gian ra chiêu; độc là sát thương theo nhịp (ghi cho người đầu độc).
 - Client: chữ nổi "Chậm" / "Trúng độc", choáng dùng vòng sáng Status50 trên đầu (sự kiện `ctl`), `Actor.ctl` (1 choáng, 2 chậm, 4 độc).
 - Biểu hiện (USER 2026-11-15): băng nhuộm vàng thân, độc nhuộm xanh lá (độc ưu tiên màu khi có cả hai), không nhuộm bóng. Choáng giữ đúng tư thế/frame/hướng đang vẽ, loại thời gian đứng im khỏi đồng hồ hoạt ảnh khi hết choáng; chết vẫn phát ngay và bỏ màu. Áp dụng chung người chơi/quái/boss.
-- Băng giảm FPS đứng chờ theo `CONTROL_VISUALS.coldLoopRate=0.5`; USER yêu cầu thử nhịp chân thấp hơn nên hoạt ảnh chạy bị băng nhân thêm `CONTROL_VISUALS.coldLoopRate` trên nhịp server (2026-11-15), chỉ phần vẽ. Đợt chỉnh FPS không giảm thêm vận tốc thật ngoài công thức chậm server đã có. Đánh dùng thời lượng server đã tính chậm. Tốc đánh vẫn chụp thời lượng lúc bắt đầu chiêu theo cơ chế hiện tại.
+- Băng giữ nhịp đứng chờ ×0,5. Vòng chạy dùng `coldMovement().cycleMs = 2000`, không nhân thêm `coldLoopRate`; sprite8/12/16frame vẫn cùng2giây/vòng, lần lượt4/6/8ảnh mỗi giây. Tốc đánh vẫn chụp thời lượng khi bắt đầu chiêu.
 - Co giật ngắt động tác đang thi triển, xóa đường đi/lệnh chờ và hủy lần phát chiêu chính chưa tung; không xóa đạn đã bay, phần hiệu ứng đã phát hoặc hào quang. Không ghi đè choáng đang có. Giữ nguyên công thức xác suất/thời gian/phục hồi/giảm thời gian, không hoàn nội lực hoặc hồi chiêu.
 - Kiểm tra hồi quy: `npm run test:effects`, `npm run test:speed`.
 - **Không** dùng cách của jx-web-main (choáng 0,8 s cố định, chậm 75 %·D/(D+200), độc 40 % đòn) — người dùng xác nhận sai.
 
-## 3. Đề xuất chưa triển khai — băng tốc độ cố định
+## 3. Băng di chuyển cố định — đã triển khai theo USER2026-11-16
 
-USER muốn khi bị băng, tốc chạy thật và nhịp bước dùng giá trị cố định, hết hiệu ứng thì phục hồi. Hướng này đang thảo luận;
-**75 px/giây và 4 FPS chỉ là đề xuất, chưa được duyệt và chưa có trong mã**. Không nhầm với hệ số chậm đang chạy.
-Khi triển khai sau khi duyệt, cần chốt cách áp dụng cho ngựa/quái, người vốn đang chậm hơn mức cố định và phạm vi ảnh hưởng
-tốc đánh. Server/client phải đọc cùng cấu hình và bỏ hệ số nhịp vẽ bổ sung để tránh áp dụng hai lần.
-Khi hết băng hoặc chết/hồi sinh, tính lại từ trang bị/bùa hiện có; không phục hồi snapshot cũ nếu chúng đã đổi giữa chừng.
+Nguồn duy nhất: `EFFECTS.coldMovement` tại `formulas/effects/tuning.ts`; helper `formulas/effects/cold.ts coldMovement()` trả vận tốc60, FPSchuẩn4, chu kỳ2000ms, sải120. Áp cho nhân vật/quái/boss và cưỡi ngựa, không phụ thuộc tốc gốc, bonus, distanceScale hoặc hệ sốAI đi lang thang. Đối tượng vốn chậm hơn60 vẫn dùng60 khi được phép di chuyển; chết/choáng/khinh công hoặc đối tượng bất động không bị ép đi.
+
+Server followPath giữ tọa độ lẻ nội bộ trong lúc băng, chỉ làm tròn tọa độ mạng để không cộng dồn sai số tốc theo hướng. Reset phần lẻ khi ra khỏi băng hoặc vị trí bị chuyển từ bên ngoài. Client dựa cờbăng server đồng bộ và helper shared để chạy chu kỳ2giây, giữ pha khi đổi tốc; không thay asset hoặc presetrender.
+
+Giảm thời gian băng, trần77, tăng thời gian băng của người đánh giữ nguyên; băng mới gia hạn theo luật hiện có. Hết băng dùng tốc từ trang bị/bùa hiện tại, không phục hồi snapshot. Tốc đánh/cast giữ công thức cũ. Đề xuất75px/s trước đây không áp dụng.
+
+Kiểm tra bổ sung `tests/fixed-cold-movement.test.ts` và renderer tests: cùng600isođơnvị/10giây qua288tổhợp và chu kỳ2giây; kiểm thời gian40/80%, gia hạn/hếtbăng, đổi bonus, khóađứng/chết/jump, đếnđích/teleport. Chưa kiểm native/touch hoặc hình chiến đấu quaWebSocket thật trong lượt này.
 
 ## 4. Còn thiếu
 

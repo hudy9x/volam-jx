@@ -1,4 +1,4 @@
-import { PLAYER_SPEED, SPEED, clearSegment, direction8, findPath, isWalkable, isoDistance, stepToward, type Point } from '@vltk/shared';
+import { coldMovement, PLAYER_SPEED, SPEED, clearSegment, direction8, findPath, isWalkable, isoDistance, stepToward, type Point } from '@vltk/shared';
 import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
 
@@ -22,11 +22,14 @@ export function setPath(w: World, sim: Sim, dest: Point, force = false): void {
 }
 
 export function followPath(sim: Sim, dt: number, speedScale = 1): void {
-  // Share the same rate with observers; AI wandering can add its own speedScale.
+  const cold = !!(sim.a.ctl & 2);
+  if (!cold) sim.coldPosition = undefined;
+  // Share the same rate with observers; cold ignores AI and equipment multipliers.
   sim.a.moveScale = speedScale * (sim.moveScale ?? 1);
-  if (!sim.path.length) return;
-  let budget = sim.speed * SPEED.run.distanceScale * sim.a.moveScale * dt; // items / bùa / chậm (systems/effects.ts)
-  let x = sim.a.x, y = sim.a.y;
+  if (!sim.path.length || (cold && (sim.dead || sim.jump || (sim.a.ctl & 1) || sim.speed <= 0))) { sim.coldPosition = undefined; return; }
+  let budget = (cold ? coldMovement().velocity : sim.speed * SPEED.run.distanceScale * sim.a.moveScale) * dt; // items / bùa / chậm (systems/effects.ts)
+  const precise = cold && sim.coldPosition?.syncedX === sim.a.x && sim.coldPosition?.syncedY === sim.a.y ? sim.coldPosition : undefined;
+  let x = precise?.x ?? sim.a.x, y = precise?.y ?? sim.a.y;
   const startX = x, startY = y;
   while (budget > 0 && sim.path.length) {
     const wp = sim.path[0];
@@ -39,6 +42,7 @@ export function followPath(sim: Sim, dt: number, speedScale = 1): void {
   if (x !== startX || y !== startY) face(sim, x - startX, y - startY);
   sim.a.x = Math.round(x);
   sim.a.y = Math.round(y);
+  if (cold) sim.coldPosition = { x, y, syncedX: sim.a.x, syncedY: sim.a.y };
 }
 
 export function face(sim: Sim, dx: number, dy: number): void {

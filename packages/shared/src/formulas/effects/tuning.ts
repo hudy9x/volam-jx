@@ -11,7 +11,9 @@ export const EFFECTS = {
   /** Slow time when colddamage_v has no P2 (every Nga My / Thúy Yên / Thiếu Lâm cold skill): not in the data — CHỌN 1.5 s. */
   defaultSlowFrames: 27,
   /** Speed while slowed: the engine runs a slowed character every other frame (INFERRED, not verifiable) → 50 %. */
-  slowFactor: 0.5,
+  slowFactor: 0.5, // Attack/cast only; movement uses coldMovement below.
+  /** USER 2026-11-16: all moving actors, including mounted players. */
+  coldMovement: { velocity: 60, fps: 4, referenceFrames: 8 },
   /** Highest poison damage per tick on a player / a monster after stacking (DATA [ServerConfig] PlayerPoisonDamageMax / NpcPoisonDamageMax). */
   playerPoisonTickMax: 600,
   npcPoisonTickMax: 123456,

@@ -620,3 +620,7 @@ USER yêu cầu tinh chỉnh chuyên sâu hệ thống tốc độ chạy:
    - `npm run test:speed`: 5/5 tests pass.
    - `npm run typecheck`: 0 lỗi.
    - `npm run build`: hoàn tất.
+
+## 15. Băng cố định theo USER2026-11-16
+
+Khi bị băng, di chuyển dùng60isođơnvị/giây và chu kỳ2giây (4FPSchuẩn8frame), sải120. Cấu hình duy nhất trong EFFECTS.coldMovement, không sửa bảng SPEED bình thường. Ghi chú bảng mốc chậm chạy ở các phần cũ là lịch sử; runtime bỏ qua nó trong nhánhdi chuyển bịbăng. Chỉ tốc đánh/cast tiếp tục nhân tổng%×0,5 trước chọn mốc. Client không nhân thêm coldLoopRate vào vòngchạy. Xem docs/formulas/effects.md§3.

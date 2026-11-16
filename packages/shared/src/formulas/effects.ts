@@ -23,3 +23,5 @@ export function hitEffects(s: SkillDef, level: number, attacker: CombatStats, ta
     hurtMs: hurtDurationMs(s, level, ab, target, rng),
   };
 }
+
+export { coldMovement } from './effects/cold.js';

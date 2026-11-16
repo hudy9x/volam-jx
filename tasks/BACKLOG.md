@@ -363,3 +363,7 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 
 - ✅ KhángBoss2026-11-16:43hồsơSHXT, Xanh50/trần95 vàtoolTheoSHXT/Tựcàiđặt đãtriểnkhai;22test/typecheck/build/API/browserđạt,chưacommit. Khángdư/trầnPvP95 vẫnchưa triểnkhai;chưaWS/native/mobilelượtnày.
 - ✅ Commit khángBoss/tool theo USER2026-11-16: `feat(combat): add boss resistance profiles and editor controls`;22test/typecheck/build đạt, không push.
+
+- 🟡 Băng cố định2026-11-16: phươngán60iso/s +4FPSchuẩn/2giây/sải120 đã ghi nghiêncứu; chưa duyệt triểnkhai.
+- ✅ Băng cố địnhUSER2026-11-16:60iso/s,4FPSchuẩn/2giây,sải120 chungngười/quái/boss/ngựa;36test/typecheck/build đạt,chưacommit;chưabrowserWS/native.
+- ✅ Commit riêng băng60iso/s,4FPSchuẩn theo USER2026-11-16; giữ bot/team ngoài commit, chưa push.

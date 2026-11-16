@@ -1612,3 +1612,28 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - USER yêu cầu commit phần đã triển khai. Commit chứa checkpoint này: `feat(combat): add boss resistance profiles and editor controls`, nền ef330c1 trên main; không push.
 - Bao gồm generator/dữ liệu43NPC SHXT, hồ sơ Xanh50/trần95, runtime và tool TheoSHXT/Tự cài đặt, kiểm tra dữ liệu,4test boss và tài liệu nghiên cứu/công thức/README. Không đổi configBoss thật/DB/assets hoặc luật kháng dư/trầnPvP.
 -22test/typecheck/build đã đạt ở lượt triển khai; kiểm diff và staged graph trước commit. Chưa kiểm trận hai tài khoảnWS hoặc native/mobile thật. Giữ rõ giới hạn trong checkpoint triển khai bên dưới.
+
+## 2026-11-16 · Tra cứu băng làm chậm FPS (không sửa mã)
+
+- Đọc effects.md/speed.md và đối chiếu mã: tổng % chạy/đánh/cast nhân0,5 trước chọn mốc, không khóa FPS cố định; chạy100/180/260% tương ứng8/16/24FPS chuẩn, bịbăng5/6/10. Client nhân thêm coldLoopRate0,5 cho vòng đứng/chạy, không nhân thêm vận tốc hoặc oneshot. Áp dụng chung người/quái/boss; spriteFPS phụ thuộc số ảnh thực. Băng4FPS/75pxs vẫn chỉ là đề xuất cũ, chưa triểnkhai.
+- HEAD e349beb; giữ thay đổi bot/team đang có của phiên khác. Chỉ tra cứu và kiểm số từ resolver, không sửa gameplay/commit/push.
+
+## 2026-11-16 · Đề xuất băng cố định và đồng bộ bước chân (chưa triển khai)
+
+- USER muốn vận tốc/FPS băng cố định chung người/quái/boss, chỉ đề xuất. Đọc effects/speed và kiểm movement/ActorView: đề xuất60isođơnvị/s,4FPS chuẩn8frame,2giây/vòng,sải120; phươngán75 cần sải150. Cốđịnh chu kỳ, FPSảnh thực tùy sốframe, không đánhđồng4FPSchuẩn với4ảnh/s mọi sheet.
+- Nhánhbăng server bỏ nhân speed riêng/distanceScale/AI/bonusngựa; client bỏ nhân0,5 phụ cho vòngchạy. Giữ tốcđánh/cast theo cơchế cũ, thời gian/khángbăng không đổi. Tốc thường<60 sẽ tăng lên60 theo yêu cầu tuyệtđối; min chỉlàphươngánkhác. Giữ khóađứng/chết/choáng và tínhlại khihếtbăng.
+- Chi tiết docs/research/fixed-cold-movement-proposal-2026-11-16.md. Chưa sửa mã/config/runtime, chưa test gameplay mới/commit/push; giữ thayđổi bot/team đồngthời. Chung3nềntảng, cần kiểm sprite thật trước khẳngđịnh chốngtrượt.
+
+## 2026-11-16 · Băng cố định60 và4FPS chuẩn theo USER (chưa commit)
+
+- USER duyệt chung người/quái/boss/cưỡingựa, giữ giảmthờigian/testkỹ/chưacommit. HEADe349beb; giữ thayđổi bot/team đồngthời. Không commit/push, không sửa DB/assets hoặc serverUSER.
+- EFFECTS.coldMovement +helpershared:60iso/s,4FPSchuẩn8frame=2giây/vòng/sải120. followPath dùng vận tốc tuyệtđối bỏspeed riêng/distanceScale/AI/bonus khi cócờbăng; tọađộlẻ nộibộ tránh cộngdồn làmtròn, reset khi teleport/hếtbăng. Khóa chết/choáng/jump/bấtđộng giữưu tiên.
+- ActorView dùngcùng chu kỳ2giây cho4loạiactor vàmounted, bỏnhâncoldLoopRate0,5 vào vòngchạy; idle vẫnnhịpriêng. Tốcđánh/cast vàcoldDurationMs/trần77 giữnguyên. Hếtbăng cậpnhật theo baghiệntại, khôngsnapshot.
+-36test đạt gồm4fixedcold (288tổhợpvậntốc/10giây +thờigian/khóa/teleport) vàrenderer/effects/speed/boss/safezones. Typecheck/build đạt (warningchunkcũ); log/tmp/jx-fixed-cold-*.log. Renderer classproduction+hìnhgiảlập, chưa browser sprite thật/WSscene/native/touch, khôngkhẳngđịnh đãkiểmchântrênmọisprite.
+- AGENTS/effects/speed cậpnhật trạngthái đãtriểnkhai, proposal cũ giữlịch sử. Graph followPath/ActorViewHIGH đãđốichiếu callers playerAI/monsterAI; finalrefresh/detectchanges bao gồmthayđổi đồngthời cầnphânbiệt, không coi graphbịgiớihạn làđầyđủ.
+
+## 2026-11-16 · Commit băng cố định theo USER
+
+- USER yêu cầu commit riêng băng60iso/s và4FPSchuẩn, chưa push. Commit chứa checkpoint này: `feat(effects): synchronize fixed cold movement and gait`, nền e349beb main.
+- Chỉ gồm công thức/tuning băng, di chuyển có tọa độ lẻ, ActorView, kiểm thử và tài liệu liên quan. Giữ riêng thay đổi bot/tổ đội/xóa mẫu trong working tree.
+-36test/typecheck/build đạt ở lượt triển khai; staged diff/graph kiểm trước commit. Chưa browser sprite thật/WS/native. Không đổi thời gian băng/trần77, tốc đánh hoặc PvP.

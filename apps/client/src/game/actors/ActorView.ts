@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  CAMP_COLORS, SPEED, resolveSpeed, type Camp, jumpHeight,
+  coldMovement, CAMP_COLORS, SPEED, resolveSpeed, type Camp, jumpHeight,
   attackSpeedPct, castSpeedPct, speedPoints, totalSpeedPercents, attrOf,
 } from '@vltk/shared';
 import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
@@ -262,7 +262,8 @@ export class ActorView {
     // Integrate each interval so changing speed never rescales the elapsed history (which skips frames).
     // Only the running gait follows movement; standing and one-shot actions keep their own clocks.
     const running = loop === 'run' || loop === 'townRun';
-    const cycleMs = s.runMs ?? resolveSpeed('run', SPEED.basePercent).cycleMs / Math.max(0.001, s.moveScale ?? 1);
+    const cold = s.hp > 0 && !!((s.ctl ?? 0) & 2);
+    const cycleMs = cold ? coldMovement().cycleMs : s.runMs ?? resolveSpeed('run', SPEED.basePercent).cycleMs / Math.max(0.001, s.moveScale ?? 1);
     if (this.isSelf) {
       if (running) {
         const p = progress.get();
@@ -300,9 +301,9 @@ export class ActorView {
         this.runTrace = null;
       }
     }
-    // Cold uses a deliberately slower visual gait; world movement still follows the server.
+    // Cold running uses the shared fixed cycle with no additional visual slowdown.
     // Attack duration remains snapshotted by the server.
-    this.loopFrame += Math.max(0, now - this.loopAt) / (running ? cycleMs : FRAME_MS) * control.loopRate;
+    this.loopFrame += Math.max(0, now - this.loopAt) / (running ? cycleMs : FRAME_MS) * (running && cold ? 1 : control.loopRate);
     this.loopAt = now;
     return render(this.x, this.y, this.y, loop, s.dir & 7, n => Math.floor(running ? this.loopFrame * n : this.loopFrame) % n);
   }

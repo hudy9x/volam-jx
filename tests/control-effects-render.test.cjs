@@ -9,7 +9,7 @@ let sprites=[];
 class Sprite{height=80;intersects(){return this.inView!==false}framesOf(){return 10}render(x,y,d,key,dir,frame){this.frame=frame(10);this.action=key;this.dir=dir;this.visible=true;return true}hide(){this.visible=false}destroy(){this.destroyed=true}constructor(){sprites.push(this)}}
 const visualSource=fs.readFileSync('apps/client/src/game/fx/controlEffects.ts','utf8');
 const visuals=vm.runInNewContext(transformSync(visualSource,{loader:'ts',format:'cjs'}).code+';module.exports',{module:{exports:{}},exports:{}});
-const ActorView=load('apps/client/src/game/actors/ActorView.ts','ActorView',{makeLook:()=>({}),lookKey:()=> 'look',hasNpc:()=>true,JxSprite:Sprite,StateDecor:class{update(){}destroy(){}},ui:x=>x,uiPx:x=>x,textResolution:()=>2,zoomPlate:()=>({textScale:1,gapY:2,barBossW:40,barW:30,barH:3,zoom:1}),controlAppearance:visuals.controlAppearance,CAMP_COLORS:{new:'#fff'},resolveSpeed:()=>({cycleMs:800}),SPEED:{basePercent:100},FRAME_MS:1000/18,console});
+const ActorView=load('apps/client/src/game/actors/ActorView.ts','ActorView',{makeLook:()=>({}),lookKey:()=> 'look',hasNpc:()=>true,JxSprite:Sprite,StateDecor:class{update(){}destroy(){}},ui:x=>x,uiPx:x=>x,textResolution:()=>2,zoomPlate:()=>({textScale:1,gapY:2,barBossW:40,barW:30,barH:3,zoom:1}),coldMovement:require('../packages/shared/src/formulas/effects/cold.ts').coldMovement,controlAppearance:visuals.controlAppearance,CAMP_COLORS:{new:'#fff'},resolveSpeed:()=>({cycleMs:800}),SPEED:{basePercent:100},FRAME_MS:1000/18,console});
 
 for(const [kind,boss] of [['player',0],['monster',0],['monster',1],['monster',2]]){
  test(`${kind}/${boss}: control colours, exact frozen frame, thaw and death`,()=>{
@@ -30,13 +30,16 @@ for(const [kind,boss] of [['player',0],['monster',0],['monster',1],['monster',2]
   state.ctl=1;tick(1600);state.hp=0;state.anim='die';state.animSeq++;tick(1600);tick(1900);
   assert.equal(view.jx.frame,5,'death plays despite stun');assert.equal(view.jx.tint,0xffffff);
  });
- test(`${kind}/${boss}: cold slows idle FPS and halves the already slowed running gait`,()=>{
+ test(`${kind}/${boss}: cold keeps idle slowdown and runs one fixed cycle without an extra half-rate`,()=>{
   const scene={time:{now:0},add:{zone:object,text:object,graphics:object}};
   const state={kind,boss,hp:100,maxHp:100,anim:'idle',animSeq:0,dir:0,x:0,y:0,name:'test',level:1,sprite:'npc',ctl:0,moveScale:1};
   const view=new ActorView(scene,'test',state,false,false);
   function interval(t,ctl,anim,scale=1){state.ctl=ctl;state.anim=anim;state.moveScale=scale;view.loopKey=null;scene.time.now=t;view.update(0);scene.time.now=t+200;view.update(.2);return view.loopFrame;}
   assert.equal(interval(0,0,'idle'),2*interval(300,2,'idle'));
-  assert.equal(interval(600,0,'run'),4*interval(900,2,'run',.5));
+  for (const scale of [.1,.5,1,3]) {
+    state.mounted = scale > 1;
+    assert.equal(interval(900,2,'run',scale),.1, '200ms is exactly one tenth of a cold gait cycle');
+  }
  });
 }
 

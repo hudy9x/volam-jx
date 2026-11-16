@@ -60,6 +60,8 @@ export interface Sim {
   effects?: Effects;
   /** Movement factor: fastwalkrun_p of items / bùa, slows (systems/effects.ts refreshMoveScale). */
   moveScale?: number;
+  /** Fractional cold position retained behind integer network coordinates. */
+  coldPosition?: { x: number; y: number; syncedX: number; syncedY: number };
   /** Khinh công in flight (systems/jump.ts): from, to, start time, length (ms). No damage taken meanwhile. */
   jump?: { fx: number; fy: number; tx: number; ty: number; start: number; ms: number };
   // players

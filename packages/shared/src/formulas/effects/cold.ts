@@ -12,3 +12,10 @@ export function coldDurationMs(s: SkillDef, level: number, ab: AttrBag, tb: Attr
     * ((100 - Math.min(EFFECTS.freezeReduceMax, attrOf(tb, 'freezetimereduce_p'))) / 100);
   return Math.round(frames * FRAME_MS);
 }
+
+/** Authoritative cold movement: one 120-unit stride every two seconds. */
+export function coldMovement() {
+  const { velocity, fps, referenceFrames } = EFFECTS.coldMovement;
+  const cycleMs = referenceFrames * 1000 / fps;
+  return { velocity, fps, cycleMs, stride: velocity * cycleMs / 1000 };
+}
