@@ -338,3 +338,5 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 - MC1 đính chính2026-11-15: trạng thái dùng chấm tròn đặc, giữ nháy đỏ/xanh; không dùng đường nhịp tim.
 
 - MC1 commit UI/UX2026-11-16: header/toolbar gọn, tài nguyên phải, icon/tooltip/shortcut/dialog/chấm trạng thái; commit độc lập, Chơi thử tách sau.
+
+- MC1 commit2026-11-16: UI/UX `a8cde42`, Chơi thử tách commit feat(map-creator): preview maps with game characters and monsters. Cả2xong, typecheck/5test đạt; không push.

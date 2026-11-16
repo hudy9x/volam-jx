@@ -2,6 +2,7 @@ import { dialogs } from '../../../apps/client/src/ui/kit/dialog.js';
 import { navigationMask, validateProject, CELL_W, CELL_H, type Project, type Asset, type WorldObject } from '../model.js';
 import type { CustomMap } from '../../../packages/shared/src/maps/registry.js';
 import './main.css';
+import { MapPreview } from './Preview.js';
 import { tools, labelAction } from './actions.js';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -9,6 +10,8 @@ const input = (id: string) => $<HTMLInputElement>(id);
 const canvas = $<HTMLCanvasElement>('canvas'), ctx = canvas.getContext('2d')!;
 let project: Project | null = null, selected = '', chosenAsset = '', mode = 'select';
 let dirty = false, busy = false, zoom = 1, panX = 0, panY = 0;
+let play: MapPreview | null = null, previewFrame = 0;
+let editCamera = { zoom: 1, panX: 0, panY: 0 };
 let publication: { map: CustomMap | null; revision: string } | null = null;
 let publicationConfirm: ((value: boolean) => void) | null = null;
 let publicationFocus: HTMLElement | null = null;
@@ -43,28 +46,35 @@ async function run(task: () => Promise<void>) {
   finally { busy = false; controls(); }
 }
 function controls() {
-  for (const id of ['save', 'export', 'reload', 'backup']) $<HTMLButtonElement>(id).disabled = !project || busy;
-  $<HTMLButtonElement>('toggle-map').disabled = !project || !publication || dirty || busy;
+  for (const id of ['save', 'export', 'reload', 'backup']) $<HTMLButtonElement>(id).disabled = !project || busy || !!play;
+  $<HTMLButtonElement>('toggle-map').disabled = !project || !publication || dirty || busy || !!play;
   const enabled = !!publication?.map?.enabled;
   $('toggle-map').classList.toggle('is-map-open', enabled);
   labelAction($('toggle-map'), 'pulse', enabled ? 'Đóng map' : 'Mở map', enabled ? 'Ngừng cho vào map; người chơi được về Biện Kinh. Giữ thiết kế.' : 'Đưa bản đã lưu vào game và Map Manager.');
-  $<HTMLSelectElement>('map-type').disabled = !project || busy || enabled;
+  $<HTMLSelectElement>('map-type').disabled = !project || busy || enabled || !!play;
   $('publication-state').textContent = !publication?.map ? 'Chưa mở' : `${enabled ? 'Đang mở' : 'Đã đóng'} · Thiết kế bản ${publication.map.projectRevision}`;
   $('publication-state').classList.toggle('is-open', enabled);
   $('publication-hint').textContent = !project ? 'Chọn map để thiết lập.' : dirty ? 'Có thay đổi chưa lưu. Lưu thiết kế trước khi mở hoặc đóng map.' : project && publication?.map && publication.map.projectRevision !== project.revision ? 'Có thiết kế mới. Đóng rồi mở map để áp dụng bản đã lưu.' : enabled ? 'Người chơi vào được qua Xa phu. Đóng map sẽ đưa họ về Biện Kinh.' : 'Mở map để người chơi vào được. Lưu thiết kế không tự mở map.';
-  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-mode]')) b.disabled = !project?.ground || busy;
-  $('brush-control').hidden = mode !== 'block' && mode !== 'erase';
-  $<HTMLButtonElement>('new').disabled = busy;
-  input('map-name').disabled = !project || busy;
-  $<HTMLButtonElement>('map-settings').disabled = !project || busy;
-  $<HTMLSelectElement>('projects').disabled = busy;
-  $<HTMLFieldSetElement>('resources').disabled = !project || busy;
-  $<HTMLFieldSetElement>('map-fields').disabled = !project || busy;
-  $<HTMLFieldSetElement>('object-fields').disabled = !selectedObject() || busy;
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-mode]')) b.disabled = !project?.ground || busy || !!play;
+  $('brush-control').hidden = !!play || mode !== 'block' && mode !== 'erase';
+  $<HTMLButtonElement>('new').disabled = busy || !!play;
+  input('map-name').disabled = !project || busy || !!play;
+  $<HTMLButtonElement>('map-settings').disabled = !project || busy || !!play;
+  $<HTMLButtonElement>('try-map').disabled = !project?.ground || busy;
+  labelAction($('try-map'), play ? 'disable' : 'enable', play ? 'Dừng thử' : 'Chơi thử', 'Nhân vật và quái dùng hình gốc, không lưu spawn.');
+  $('preview-home').hidden = $('preview-zoom').hidden = !play;
+  $('try-map').setAttribute('aria-pressed', String(!!play));
+  document.querySelector<HTMLElement>('.tool-context')!.hidden = !!play;
+  document.querySelector<HTMLElement>('.editor>.hint')!.hidden = !!play;
+  input('grid').disabled = input('collision').disabled = !!play;
+  $<HTMLSelectElement>('projects').disabled = busy || !!play;
+  $<HTMLFieldSetElement>('resources').disabled = !project || busy || !!play;
+  $<HTMLFieldSetElement>('map-fields').disabled = !project || busy || !!play;
+  $<HTMLFieldSetElement>('object-fields').disabled = !selectedObject() || busy || !!play;
   $('stage').style.pointerEvents = busy ? 'none' : '';
   $('state').textContent = project ? `#${project.id} · ${dirty ? 'Chưa lưu' : `Đã lưu · bản ${project.revision}`}${busy ? ' · Đang xử lý…' : ''}` : 'Chưa mở map';
-  $<HTMLButtonElement>('undo').disabled = !history.length || busy;
-  $<HTMLButtonElement>('redo').disabled = !future.length || busy;
+  $<HTMLButtonElement>('undo').disabled = !history.length || busy || !!play;
+  $<HTMLButtonElement>('redo').disabled = !future.length || busy || !!play;
 }
 function checkpoint() { if (!project) return; history.push(JSON.stringify(project)); if (history.length > 50) history.shift(); future = []; }
 function changed() {
@@ -77,7 +87,7 @@ function setMode(next: string) {
   document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
   const tool = tools.find(t => t.mode === mode)!;
   $('active-tool').textContent = `${tool.label} · ${tool.key}`; $('tool-hint').textContent = tool.hint;
-  $('brush-control').hidden = mode !== 'block' && mode !== 'erase';
+  $('brush-control').hidden = !!play || mode !== 'block' && mode !== 'erase';
   canvas.style.cursor = mode === 'pan' ? 'grab' : mode === 'select' ? 'default' : 'crosshair';
 }
 async function projectList() {
@@ -166,30 +176,29 @@ function draw() {
   ctx.translate(panX, panY); ctx.scale(zoom, zoom);
   ctx.fillStyle = '#202621'; ctx.fillRect(0, 0, project.width, project.height);
   if (project.ground && images.has(project.ground.id)) ctx.drawImage(images.get(project.ground.id)!, 0, 0);
-  const ordered = [...project.objects].sort((a, b) => a.y + a.depthOffset - b.y - b.depthOffset);
-  for (const o of ordered) {
-    const image = images.get(o.asset); if (!image) continue;
-    ctx.drawImage(image, o.x - o.anchorX * o.scale, o.y - o.anchorY * o.scale, image.width * o.scale, image.height * o.scale);
-  }
+  const layers = project.objects.map(o => ({ depth: o.y + o.depthOffset, draw: () => { const image = images.get(o.asset); if (image) ctx.drawImage(image, o.x - o.anchorX * o.scale, o.y - o.anchorY * o.scale, image.width * o.scale, image.height * o.scale); } }));
+  for (const actor of play?.actors ?? []) layers.push({ depth: actor.y, draw: () => play!.draw(ctx, actor, zoom) });
+  for (const layer of layers.sort((a, b) => a.depth - b.depth)) layer.draw();
   const cols = project.width / CELL_W;
-  if (input('collision').checked) {
+  if (!play && input('collision').checked) {
     ctx.fillStyle = 'rgba(242,100,80,.32)';
     for (let i = 0; i < mask.length; i++) if (mask[i]) ctx.fillRect(i % cols * CELL_W, Math.floor(i / cols) * CELL_H, CELL_W, CELL_H);
   }
-  if (input('grid').checked) {
+  if (!play && input('grid').checked) {
     const stepX = zoom < .2 ? 512 : zoom < .5 ? 128 : CELL_W, stepY = zoom < .2 ? 512 : zoom < .5 ? 64 : CELL_H;
     ctx.beginPath(); ctx.strokeStyle = '#b9d8bf40'; ctx.lineWidth = 1 / zoom;
     for (let x = 0; x <= project.width; x += stepX) { ctx.moveTo(x, 0); ctx.lineTo(x, project.height); }
     for (let y = 0; y <= project.height; y += stepY) { ctx.moveTo(0, y); ctx.lineTo(project.width, y); } ctx.stroke();
   }
   const o = selectedObject();
-  if (o) {
+  if (o && !play) {
     const a = project.assets.find(a => a.id === o.asset)!;
     ctx.strokeStyle = '#b9d8bf'; ctx.lineWidth = 2 / zoom;
     ctx.strokeRect(o.x - o.anchorX * o.scale, o.y - o.anchorY * o.scale, a.width * o.scale, a.height * o.scale);
     ctx.beginPath(); ctx.moveTo(o.x - 8 / zoom, o.y); ctx.lineTo(o.x + 8 / zoom, o.y); ctx.moveTo(o.x, o.y - 8 / zoom); ctx.lineTo(o.x, o.y + 8 / zoom); ctx.stroke();
     if (o.collider.enabled) { const c = o.collider; ctx.beginPath(); ctx.ellipse(o.x + c.ox * o.scale, o.y + c.oy * o.scale, c.rx * o.scale, c.ry * o.scale, 0, 0, Math.PI * 2); ctx.strokeStyle = '#f2ad9b'; ctx.stroke(); }
   }
+  if (play) return;
   const e = project.entry;
   ctx.beginPath(); ctx.arc(e.x, e.y, 6 / zoom, 0, Math.PI * 2); ctx.fillStyle = '#b9d8bf'; ctx.fill(); ctx.strokeStyle = '#142318'; ctx.lineWidth = 2 / zoom; ctx.stroke();
   ctx.font = `${12 / zoom}px system-ui`; ctx.fillStyle = '#e6e9e6'; ctx.fillText('Điểm vào', e.x + 10 / zoom, e.y - 8 / zoom);
@@ -211,6 +220,7 @@ canvas.addEventListener('pointerdown', e => {
   if (e.button === 1 || mode === 'pan' || spacePan) {
     e.preventDefault(); drag = { pointer: e.pointerId, x: e.clientX, y: e.clientY, panX, panY, ox: 0, oy: 0, type: 'pan' };
   } else if (e.button === 0 && inside) {
+    if (play) { e.preventDefault(); if (!play.move(p)) status('Vị trí bị chặn hoặc không có đường đi.', true); return; }
     if (mode === 'place') {
       const a = project.assets.find(a => a.id === chosenAsset);
       if (!a) { status('Chọn một ảnh vật thể trong thư viện trước.', true); return; }
@@ -248,7 +258,7 @@ canvas.addEventListener('pointermove', e => {
 function endDrag(e: PointerEvent) { if (drag?.pointer === e.pointerId) { drag = null; if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId); render(); } }
 canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
 canvas.addEventListener('wheel', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * .0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
-new ResizeObserver(() => draw()).observe($('stage'));
+new ResizeObserver(() => { if (play) centerPlayer(); draw(); }).observe($('stage'));
 document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(b => b.onclick = () => setMode(b.dataset.mode!));
 $('fit').onclick = fit;
 $('zoom-in').onclick = () => zoomAt(1.25, canvas.clientWidth / 2, canvas.clientHeight / 2);
@@ -348,6 +358,13 @@ let spacePan = false;
 const dialogOpen = () => !!document.querySelector('.dlg:not(.hidden)');
 window.addEventListener('keydown', e => {
   if (dialogOpen() || e.isComposing) return;
+  if (play) {
+    if (e.key === 'Escape') { e.preventDefault(); stopPreview(); }
+    if ((e.ctrlKey || e.metaKey) && ['s', 'z', 'd'].includes(e.key.toLowerCase())) e.preventDefault();
+    if (e.key === '+' || e.key === '=') $('zoom-in').click();
+    if (e.key === '-') $('zoom-out').click();
+    return;
+  }
   const target = e.target as HTMLElement;
   const typing = !!target.closest('input,textarea,select,[contenteditable="true"]');
   const mod = e.ctrlKey || e.metaKey, key = e.key.toLowerCase();
@@ -411,6 +428,27 @@ $('map-settings-dialog').addEventListener('keydown', e => {
   if (e.shiftKey && document.activeElement === els[0]) { e.preventDefault(); els.at(-1)!.focus(); }
   else if (!e.shiftKey && document.activeElement === els.at(-1)) { e.preventDefault(); els[0].focus(); }
 });
+function centerPlayer() { if (!play) return; panX = canvas.clientWidth / 2 - play.actors[0].x * zoom; panY = canvas.clientHeight / 2 - play.actors[0].y * zoom; }
+function stopPreview() {
+  cancelAnimationFrame(previewFrame); play = null; ({ zoom, panX, panY } = editCamera); controls(); setMode(mode); draw();
+  $('preview-hint').textContent = 'Thử tỷ lệ với nhân vật và quái thật.'; status('Đã dừng chơi thử. Thiết kế giữ nguyên.');
+}
+$('try-map').onclick = () => {
+  if (play) { stopPreview(); return; }
+  void run(async () => {
+    if (!project?.ground) return;
+    status('Đang tải nhân vật và quái thật…');
+    const next = new MapPreview(); await next.load(project, images.get(project.ground.id)!);
+    editCamera = { zoom, panX, panY }; play = next; zoom = 1; centerPlayer();
+    $('preview-hint').textContent = 'Bấm map để đi · Cuộn để zoom · Esc dừng · Không chiến đấu, không lưu spawn.';
+    canvas.style.cursor = 'crosshair'; status(`Đang thử: nhân vật + ${play.actors.length - 1} quái. Hình gốc 1:1, dùng chung tỷ lệ với cây/đất.`);
+    let last = performance.now();
+    const frame = (now: number) => { if (!play) return; const dt = Math.min(.05, Math.max(0, (now - last) / 1000)); last = now; if (!document.hidden) { play.tick(dt); if (play.actors[0].moving) centerPlayer(); draw(); $('coords').textContent = `Nhân vật X: ${Math.round(play.actors[0].x)} · Y: ${Math.round(play.actors[0].y)}`; } previewFrame = requestAnimationFrame(frame); };
+    previewFrame = requestAnimationFrame(frame);
+  });
+};
+$('preview-home').onclick = () => { if (play && project) { play.home(project.entry); centerPlayer(); draw(); } };
+$('preview-zoom').onclick = () => { zoom = 1; centerPlayer(); draw(); };
 let helpFocus: HTMLElement | null = null;
 dialogs.register('shortcuts-dialog', { onClose: () => helpFocus?.focus() });
 $('shortcut-help').onclick = () => { helpFocus = document.activeElement as HTMLElement; dialogs.open('shortcuts-dialog'); $('close-shortcuts').focus(); };

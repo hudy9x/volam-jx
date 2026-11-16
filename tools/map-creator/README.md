@@ -63,7 +63,7 @@ Registry nằm trong git, ảnh/bộ xuất bị gitignore: khi chuyển máy ho
 
 `objects[].x/y` là vị trí chân trong world pixels. `anchorX/Y`, collider được tính trước scale; `depthOffset` theo world pixels. Dùng chung hệ tọa độ với spawn quái/Boss Xanh ở bước sau. Không chứa quái, không tự sinh quái/Boss, không sửa tool Boss Hoàng Kim hiện tại. Tool spawn sau có thể đọc kích thước, entry, preview và nav của bản xuất.
 
-Giới hạn: tối đa300ảnh/5000world; collider ellipse, chưa xoay/lật sprite hay tách công trình thành các dải depth. Preview trong tool không có nhân vật chạy thử. Renderer hiện tại có phạm vi streaming riêng, sprite/công trình quá lớn cần phân mảnh khi tích hợp. Xuất chỉ kiểm điểm vào không bị chặn; chưa chứng minh mọi tuyến đường thông nhau. Runtime dùng thành phần đi lại lớn nhất, nên cần kiểm các vùng rời khi đưa map vào game. Thư viện upload không tự cắt cây khỏi ảnh cảnh, không tẩy nền caro hoặc tự suy ra collider.
+Giới hạn: tối đa300ảnh/5000world; collider ellipse, chưa xoay/lật sprite hay tách công trình thành các dải depth. Có Chơi thử bản nháp với nhân vật và quái bằng sprite gốc; không mô phỏng chiến đấu. Renderer hiện tại có phạm vi streaming riêng, sprite/công trình quá lớn cần phân mảnh khi tích hợp. Xuất chỉ kiểm điểm vào không bị chặn; chưa chứng minh mọi tuyến đường thông nhau. Runtime dùng thành phần đi lại lớn nhất, nên cần kiểm các vùng rời khi đưa map vào game. Thư viện upload không tự cắt cây khỏi ảnh cảnh, không tẩy nền caro hoặc tự suy ra collider.
 
 Giao diện tuân thủ docs/tools-ui-ux-guidelines.md, dùng lại Dialogs cho kéo/đóng/Esc/thứ tự cửa sổ với CSS token tool; không nạp Phaser hoặc skin game. Không có template vì mỗi project là một map chỉnh sửa trực tiếp. Lưu và xuất là hai thao tác riêng; xuất có lưu snapshot trước để đảm bảo dữ liệu ổ đĩa khớp bản xuất.
 
@@ -101,10 +101,15 @@ Phím công cụ không chạy lúc nhập liệu, kéo vật thể, gửi yêu 
 
 Kiểm UX2026-11-15: Chrome và trình duyệt trong app, desktop1440×1000/mobile390×844 không tràn ngang; thử V/I/H/B/E/P, cỡ cọ, nhân bản/hoàn tác94→95→94, tooltip focus, guard nhập liệu/dialog, Tab/Esc/khôi phục focus, Hủy/Bỏ thay đổi. Dialog xác nhận trong tool thay cho confirm của trình duyệt. Test chỉ sửa nháp, mở lại bản lưu; project9101 revision3/94vật thể và trạng thái map đang mở không đổi. Chưa kiểm thiết bị touch/native thật.
 
-## Bố cục gọn
+## Bố cục gọn và Chơi thử
 
 - Khối chọn map, **Tên map**, loại map và trạng thái trong game được gộp chung. Tên map sửa ngay trong khối này; **icon Thuộc tính map** mở điểm vào X/Y. Vẫn cần Lưu thiết kế để ghi thay đổi.
 - Toolbar một hàng: công cụ chỉnh bên trái, undo/redo/zoom/lớp phủ/phím trợ giúp bên phải. Màn hẹp cuộn riêng thanh này, không kéo rộng cả trang. Tài nguyên nằm bên phải canvas trên desktop; màn hẹp nằm dưới canvas.
+- **Chơi thử** ngay trên canvas: dùng bản nháp hiện tại, không cần lưu hoặc mở map trong game. Tải sprite WebP gốc qua metadata sinh sẵn: nhân vật nam mặc định ghép nhiều lớp + bóng, tối đa3quái thật có sẵn (hiện Đông Bắc hổ/Hoa Nam hổ/Bạch Hổ). Không vẽ hình thay thế khi thiếu tài nguyên; thông báo lỗi và hướng dẫn sinh ảnh.
+- Bấm/chạm lên map để đi. Dùng nav từ nền alpha + vùng chặn tay + collider trong bản nháp, thành phần đi lại chính, clearance9px và A* dùng chung game. Nếu entry bị chặn, điểm thử được căn về nơi đi được. Tốc/chu kỳ chạy lấy resolver SPEED dùng chung, không cân chỉnh lại game.
+- Nhân vật/quái và cây/đá dùng cùng world pixels, cùng zoom, cùng điểm chân; xếp lớp theo Y. Quái đứng có hoạt ảnh, nhân vật chạy/đứng và đổi hướng khi đi. Camera theo người khi di chuyển, nút **Về điểm vào** đặt lại nhóm thử, **Ảnh gốc1:1** đưa zoom về100%. Đây là tỷ lệ ảnh gốc, không thay preset/camera/renderScale của client game.
+- **Esc / Dừng thử** trả về góc nhìn chỉnh sửa; giữ nguyên bản nháp và lịch sử. Trong lúc thử khóa chỉnh sửa/lưu/mở đóng map, tránh thao tác nhầm. Preview không đăng nhập, không cần game server, không nối Colyseus; không spawn quái thật lên server, không chiến đấu, không lưu actor/điểm spawn vào project. Tool spawn riêng vẫn làm sau.
+- Kiểm `npm run test:map-preview` (metadata/lớp/tỷ lệ/whitelist/missing assets), `test:map-creator`, typecheck/build. Browser1440×1000/390×844: toolbar cùng một hàng, không tràn ngang trang; thuộc tính icon/Esc, sprite/che khuất, click đi1792,1792→1904,1880, về entry, dừng khôi phục zoom và bản nháp chưa lưu đạt. Source9101revision3/94objects/enabled không đổi. Chưa kiểm native hoặc thiết bị cảm ứng thật.
 
 Nút Mở/Đóng map: icon pulse xanh khi chưa mở/đã đóng; map đang mở dùng pulse đỏ nhấp nháy cạnh Đóng map theo USER2026-11-15 (ngoại lệ animation trạng thái được yêu cầu, chỉ icon). Tôn trọng prefers-reduced-motion bằng icon đỏ đứng yên. Chữ vẫn phân biệt trạng thái, không phụ thuộc màu. “Thiết kế bản N” là revision bản lưu, không phải level map; bản trong game có thể cũ hơn bản đã lưu.
 

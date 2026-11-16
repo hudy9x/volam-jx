@@ -1506,3 +1506,9 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - USER yêu cầu chia commit UI/UX và Chơi thử. Commit này chỉ gồm bố cục header/toolbar/tài nguyên phải, icon/tooltip/phím tắt, Lưu thiết kế vs Mở/Đóng map, dialog thuộc tính/xác nhận, chấm tròn đỏ nháy/xanh và README. Chơi thử được giữ ngoài commit này để commit riêng ngay sau.
 - Đã dựng cây staged riêng ở /tmp/jx-creator-commit-split/ui-tree: tsc tool và bundle cùng plugin CSS của server đạt; không phụ thuộc Preview.ts/PreviewAssets/API mới. GitNexus staged5file/53symbol LOW; không coi0flow là không ảnh hưởng. Các kiểm tra browser desktop/mobile/focus từ lượt triển khai vẫn áp dụng; không đổi hành vi khi chia commit.
 - HEAD nền751fb47; không push. Nguồn9101/registry/assets/NPC/vùng an toàn/DB giữ nguyên; không khởi động/dừng server USER.
+
+## 2026-11-16 · Commit Chơi thử Map Creator
+
+- USER yêu cầu chia commit, đã hoàn tất UI/UX ở `a8cde42` (feat(map-creator): streamline editor layout and controls). Commit tiếp theo feat(map-creator): preview maps with game characters and monsters chỉ thêm Chơi thử: API whitelist sprite, metadata player/quái, renderer/animation/depth, nav/A*/camera và khoá chỉnh sửa trong phiên thử; README/AGENTS/script +2test riêng.
+- Typecheck toàn repo và5test Creator/Preview đều đạt ở /tmp/jx-creator-commit-split/{final-typecheck,final-tests}.log. UI-only tsc/bundle/DOM refs đã kiểm trước commit đầu; final source không thay đổi trong lúc chia commit. Build và browser desktop/mobile/đi lại/Esc/giữ nháp từ các checkpoint trước vẫn áp dụng, không chạy lại server USER. Không sửa project9101/registry/assets/DB/NPC/zone hay luật game.
+- Không push. Cả phần UI/UX và Chơi thử đã được chia vào2commit; không còn code Creator chờ commit. Cần restart Map Creator để nhận bản đã commit. Native/touch thật chưa kiểm.

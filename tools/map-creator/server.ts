@@ -6,6 +6,7 @@ import { build } from 'esbuild';
 import { ProjectStore } from './Store.js';
 import { PublicationStore } from './PublicationStore.js';
 import { updateManifest, ASSETS_DIR } from '../../apps/client/tools/jx/manifest.js';
+import { previewAssets } from './PreviewAssets.js';
 import { exportMap } from './export.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -16,6 +17,7 @@ const bundle = await build({ entryPoints: [path.join(here, 'ui/main.ts')], bundl
 const files = new Map(bundle.outputFiles.map(f => [`/${path.basename(f.path)}`, f.contents]));
 const page = await fs.readFile(path.join(here, 'ui/index.html'));
 const exporting = new Set<number>();
+let previewData: ReturnType<typeof previewAssets> | undefined;
 async function body(req: http.IncomingMessage, limit: number): Promise<Buffer> {
   const chunks: Buffer[] = []; let length = 0;
   for await (const chunk of req) { length += chunk.length; if (length > limit) throw Error('Dữ liệu vượt giới hạn upload.'); chunks.push(chunk); }
@@ -32,6 +34,13 @@ const server = http.createServer(async (req, res) => {
     if (!['GET', 'HEAD'].includes(req.method ?? '') && req.headers.origin && req.headers.origin !== `http://${host}`) { json({ error: 'Nguồn yêu cầu không hợp lệ.' }, 403); return; }
     if (req.method === 'GET' && u.pathname === '/') { res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.end(page); return; }
     if (req.method === 'GET' && files.has(u.pathname)) { res.setHeader('Content-Type', u.pathname.endsWith('.css') ? 'text/css' : 'text/javascript'); res.end(files.get(u.pathname)); return; }
+    if (req.method === 'GET' && (u.pathname === '/api/preview' || /^\/api\/preview\/sheet\/\d+$/.test(u.pathname))) {
+      previewData ??= previewAssets(ASSETS_DIR);
+      if (u.pathname === '/api/preview') { json(previewData.data); return; }
+      const file = previewData.files[Number(u.pathname.split('/').pop())];
+      if (!file) { json({ error: 'Không có hình chơi thử.' }, 404); return; }
+      res.setHeader('Content-Type', 'image/webp'); res.end(await fs.readFile(file)); return;
+    }
     if (u.pathname === '/api/projects') {
       if (req.method === 'GET') { json(await store.list()); return; }
       if (req.method === 'POST') { const b = JSON.parse((await body(req, 4096)).toString()); json(await store.create(b.id, b.name)); return; }
