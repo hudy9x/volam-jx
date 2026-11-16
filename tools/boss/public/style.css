@@ -1324,3 +1324,8 @@ dialog::backdrop {
 }
 
 .tool-page [data-manager-nav][hidden] { display: none; }
+
+.boss-resistance { min-width: 210px; max-width: 340px; }
+.resistance-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.resistance-fields input { width:100%; box-sizing:border-box; }
+.boss-resistance select { width:100%; }

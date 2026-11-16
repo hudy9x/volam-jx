@@ -1,5 +1,5 @@
 import {
-  attackTiming, mergeBag, mergePoison, monsterCombat, moveFactor, passiveBag, skillBonuses, stateBag,
+  applyBossResistance, attackTiming, mergeBag, mergePoison, monsterCombat, moveFactor, passiveBag, skillBonuses, stateBag,
   type CombatStats, type HitEffects, type PoisonRun,
 } from '@vltk/shared';
 import type { Sim } from '../entity.js';
@@ -29,6 +29,7 @@ export function refreshMonsterCombat(sim: Sim): void {
   const def = sim.def!;
   const bag = mergeBag(passiveBag(sim.skills, -1), stateBag(sim.states, -1));
   sim.combat = monsterCombat(sim.a.level, def.element, Math.round(def.resist * 100), def.hitRecover ?? 0, bag, skillBonuses(sim.skills));
+  if (sim.a.boss > 0) applyBossResistance(sim.combat, sim.a.boss, def.id, sim.a.level, def.resistance);
 }
 
 /** Combat stats of any Sim (fallback for Sims made before their stats: a level-1 monster). */

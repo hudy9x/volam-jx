@@ -34,7 +34,10 @@ export interface GoldenBossGlobalSettings {
 }
 
 /** Cấu hình chi tiết cho từng Boss Hoàng Kim. */
+export type BossResistance = { mode: 'shxt' } | { mode: 'custom'; values: Record<'phys' | 'cold' | 'fire' | 'light' | 'poison', number>; caps: Record<'phys' | 'cold' | 'fire' | 'light' | 'poison', number> };
+
 export interface GoldenBossEntry {
+  resistance?: BossResistance;
   /** ID NPC gốc trong npcs.txt (hoặc ID riêng của Boss). */
   id: number;
   /** Tên hiển thị của Boss Hoàng Kim. */

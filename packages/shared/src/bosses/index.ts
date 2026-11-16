@@ -11,6 +11,8 @@ import {
 } from './types.js';
 
 export * from './types.js';
+export * from '../formulas/boss-resistance.js';
+import { validateBossResistance } from '../formulas/boss-resistance.js';
 export { GOLDEN_BOSS_CONFIG } from './config.js';
 
 let currentConfig: GoldenBossConfig = GOLDEN_BOSS_CONFIG;
@@ -195,6 +197,8 @@ export function validateGoldenBossConfig(raw: unknown): string | null {
 
   for (const b of cfg.bosses) {
     if (!b || typeof b !== 'object') return 'Mục Boss không hợp lệ.';
+    const resistanceError = validateBossResistance(b.resistance);
+    if (resistanceError) return resistanceError;
     if (!Number.isInteger(b.id) || b.id <= 0) return `ID Boss không hợp lệ: ${b.id}`;
     if (seenBossIds.has(b.id)) return `Trùng ID Boss: #${b.id}`;
     seenBossIds.add(b.id);

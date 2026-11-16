@@ -1,3 +1,23 @@
+## 2026-11-16 · Commit kháng riêng Boss và tool theo USER
+
+- USER yêu cầu commit phần đã triển khai. Commit chứa checkpoint này: `feat(combat): add boss resistance profiles and editor controls`, nền ef330c1 trên main; không push.
+- Bao gồm generator/dữ liệu43NPC SHXT, hồ sơ Xanh50/trần95, runtime và tool TheoSHXT/Tự cài đặt, kiểm tra dữ liệu,4test boss và tài liệu nghiên cứu/công thức/README. Không đổi configBoss thật/DB/assets hoặc luật kháng dư/trầnPvP.
+-22test/typecheck/build đã đạt ở lượt triển khai; kiểm diff và staged graph trước commit. Chưa kiểm trận hai tài khoảnWS hoặc native/mobile thật. Giữ rõ giới hạn trong checkpoint triển khai bên dưới.
+
+## 2026-11-16 · Triển khai kháng riêng Boss và cấu hình tool (chưa commit)
+
+- USER duyệt kháng riêng BossXanh/HoàngKim và tool, yêu cầu test kỹ/chưa commit. Nền HEAD ef330c1 main (phiên Manager đã commit riêng); giữ nghiên cứu/tracking có sẵn. Không commit/push, không sửa configBoss thật/DB/assets/serverUSER.
+- Generator gen-boss-resists.ts đọc PAK thắng SHXT, xác minh Linear/makeboss, sinh43profile năm cặp A/B và trần95 vào resistance-data.json. Công thức shared boss-resistance.ts tính theo cấp; NPC10031 giữ25/trần75 có nhãn thiếu nguồn. Xanh theo Actor.boss của instance dùng50x5/trần95 từ tuning; refresh bùa không mutateDef/quái thường.
+- Tool Kháng trong mỗi dòng: TheoSHXT readonly/theocấp; Tựcàiđặt năm kháng cốđịnh −1000..1000, trần0..95 trongNângcao; chuyểnchếđộ/đổicấp giữdetailsđangmở. UIpreview dùngbundle modulecôngthứcshared quaresistance.js, schema/APIvalidate/persist vàMonsterDef/runtimerefresh nhận cấu hình. Lưu/Ápdụng giữhai bước.
+- Không đổi thứtự kẹp kháng/ngũhành/PvP0,5; raw243 vẫn bịkẹp theo luậtcũ trướcđòn. Khángdư vàtrầncuốiPvP95 trongproposal chưatriểnkhai, ngoài scope USERduyệtlượt này.
+-22test đạt (4boss +effects/speed/safezones/ManagerHTTP),typecheck/build đạt; warningchunkcũ. APIthật4585/tmp:browser lưukháng180,GETđọclại,PUTcap96 bị400 vàgiữbảnlưu; bundlepreview endpoint/import kiểmđạt. BrowserIAB đãxemSHXT150/100/150/162/50,chuyểntựđặt/lưu180;ảnh /tmp/jx-boss-resistance-ui.png. Chưa testhaiaccountWS trậnthật hoặcnative/mobileviewport tronglượt này. Log /tmp/jx-resist-*.log; không coi môphỏnglượttrước làtestluậtmới.
+- READMEtool/docsdamage cậpnhật; cầnrestartgameserver vàreloadtool đểnhậnmãmới. Finalgraph refresh/detect-changes đối chiếu helper/caller sinhquái/bùa/skilllab; không coi projectionCLIgiớihạn làtoànbộảnhhưởng.
+
+## 2026-11-16 · Thảo luận kháng trong tool Hoàng Kim (chưa triển khai)
+
+- USER hỏi có cần thêm cấu hình kháng vào tool. Đề xuất mặc định Theo SHXT, xem năm kháng gốc theo cấp/trần; Tự cài đặt mở năm kháng cố định và trần nâng cao. Đổi cấp cập nhật preview ở chế độ SHXT; không nhầm kháng gốc với kháng cuối từng đòn. Kháng gốc được vượt95.
+- Đã đọc guideline tools/AGENTS/README Boss; cần schema/API/runtime cùng hỗ trợ, không chỉ input UI. Chưa sửa code/config; ghi bổ sung vào docs/research/boss-resistance-pvp-proposal-2026-11-16.md. Giữ nguyên staging công việc Manager/Boss của phiên khác, không commit/push.
+
 ## 2026-11-16 · Commit Map Manager/Boss theo USER
 
 - USER yêu cầu commit toàn bộ phần Map Manager/Boss của cuộc chat: spawn editor/cấu hình/ảnhchọnquái/DelBackspace, gom HoàngKim và tựreload riêng tool. Commit feat(map-manager): add monster spawn editor and integrated boss tools (SHA xem git log); nền1055fac main. Không push.
@@ -19,6 +39,13 @@
 - Bấm công cụM rồi bấm vùng trống tạo điểm ngay; bấm điểm cũ chọn/kéo. Bỏ Thêm khu/ManualAuto/ôXY; tọa độ readonly khi chọn. Điểm mới5con kểcảBossXanh, radius220/respawn30. Mỗi điểm có pool nhiều loại/cấp riêng; pickerảnh/tìmkiếm +ảnhcác loại đang có, APIảnh whitelistMonster/framegốc/cache. Giữ Auto cũ, chọn Đặt lại rồi bấm map để chuyển thành điểm; không tự đổi dữ liệu cũ.
 - Typecheck và9testManager đạt; browser tạo2điểm/saveTMP/Xanh5con/ảnh3loạisói nạp đúng, thêm loại thứ2; body375≤390. Ảnh/tmp/jx-click-spawn-picker.jpg đã xem. Không thử native/touchthật; không sửa gameplay/DB/assets/cấu hình thật/commit/push. HEAD1055fac; giữ nghiên cứu/đềxuấtkháng đồngthời. Restart MapManager để nhận bundle.
 
+## 2026-11-16 · Đề xuất kháng Boss và trần/ngũ hành PvP (chưa triển khai)
+
+- USER yêu cầu đề xuất áp kháng riêng BossXanh/HoàngKim theo SHXT và rà PvP, chưa sửa code. HEAD1055fac; giữ nguyên công việc MapManager/Boss đồng thời, không commit/push.
+- Tra resolver PAK thắng: makeboss→property→lib xác minh kháng A|B=floor(A×cấp+B),43/44boss có đủ5kháng/trần95;10031 tự tạo thiếu nguồn. Bảng44con và nguồn/hash ở docs/research/boss-resistance-pvp-proposal-2026-11-16.md; bổ sung báo cáo điều tra cũ. Không chạy engineSHXT.
+- Đề xuất: HoàngKim lấy từngID/cấp; Xanh profile50x5/trầnthựcdụng95 dựa mẫuLãnhtụ (cácháp/ánhxạ làCHỌN). PvP giữRraw đểbù giảm/xuyên trước trầnthường75, rồi±seriesdamage vàtrầncuối95/sàn−75; giữPK0,5. Khángdư khôngbù hệsốkhắc nằmsautrần. Chưa coi thứtự này đãxácminh engineSHXT; lưu rõ rủiroMộc→Kim125→25 trênphầngốc1000 khiR50/S50.
+- Chỉ tài liệu/tracking; không code/config/runtime/DB/assets/UI. MẫuXanh100/50/kếthừatầngchiêu/HP/PVPscale chưađềnghịđổi. Kiểm số học độc lập và dữliệuPAK, chưa cótest của luật mới;32ca trước vẫn làluật hiện tại. Chung3nềntảng, chưanative.
+
 ## 2026-11-16 · Map Manager: sinh quái Manual/Auto, Boss Xanh và trang Hoàng Kim (chưa commit)
 
 - USER yêu cầu triển khai điểm spawn quái Manual/Auto (mặc định khu mới Auto), Boss Xanh và gom tool Boss Hoàng Kim thành page riêng. HEAD1055fac main; giữ nguyên nghiên cứu sát thương/kháng và tracking đồng thời của phiên khác. Không commit/push.
@@ -28,6 +55,14 @@
 - 9test Manager gồm4spawn/store/runtime +4NPC +1HTTPintegrated đạt;8test portal/zone/publication/preview hồi quy đạt. Runtime tạo13slot thật (3cụm×4quái ID0 +1ManualXanh), bảo toàn cấp/toạđộ/hồi sinh; HTTPsameserver/snap/nav/Origin/stale/save côlập. Typecheck/build/diffcheck đạt; warning chunk lớn cũ.
 - Browser1440×1000/390×844: Auto/save/reopen, Manual/Xanh/kéo1792→2071,1890/save, đổiAuto2cụm, cancelxóa/chuyểnmap, giữnháp; Boss44/ảnh/lưutemp/dialog/chọnmap9101/snap/xácnhận và quaylại Manager đạt. Body375≤390. Ảnh /tmp/jx-spawn-ui/evidence/{desktop,mobile}.jpg đã xem; chưa native/touch thật/WSscene. Thử source riêng MAP_MANAGER_SPAWNS_DIR và BOSS_CONFIG_DIR trong/tmp, giữ nguyên sourcegame/NPC/zone/portal/registry/project/DB/assets; dừng tool thử4580/4582 khi kết thúc.
 - GitNexus refresh tớiHEAD; impact Manager controls/draw/list MEDIUM, load/save/mode LOW; classSpawnStore/Editor trực tiếp Manager LOW. HandlerHTTP UNKNOWN đã đọc cả route/entrypoint và kiểm tích hợp (không coi0caller là an toàn). Finalgate15file/49symbol/31flowCritical do helper/UIBoss dùngchung; đối chiếu diff chỉtools/docs/scripts, file mới kiểm trực tiếp/test, không coi giới hạn graph hoặc projectionCLI15symbol/10flow là toàn bộ. Không có shared gameplay đổi. Tài liệu README/AGENTS cập nhật; cần restart Map Manager đang chạy để nhận bundle mới.
+
+## 2026-11-16 · Điều tra sát thương Boss/PvP và đối chiếu SHXT (chưa sửa)
+
+- USER yêu cầu điều tra kháng/ngũ hành khi đánh BossXanh/HoàngKim/người chơi và test Kim→Mộc, Mộc→Kim, Mộc→Thủy; bổ sung đối chiếu Client_VLTK_SHXT. HEAD1055fac main khớp checkpoint; giữ thay đổi tool đồng thời, không gameplay/DB/assets/commit/push.
+- 32ca harness:22strike/formula/HP +10cast/timer/missile/collision/applyHit. Kháng và ngũhành có tác dụng; cast skill58 với kháng đều50: Mộc→Kim232máu/4hit, Mộc→Thủy460, Mộc→Thổ924; skill19 Kim→Mộc562/2hit. Độc kiểm nhịp riêng. Fixture bộnhớ dùng engine/server thật, không WS/browser/tài khoảnUSER.
+- BossXanh giữ def.resist quái gốc (thường5%), NPCcatalog cờboss20%, HoàngKim25%, đều chung5loại; tier chỉ nhânHP/EXP, không có giảmdamage riêng. Tầng1113 thiếu seriesdamage nên không đổi theo hệ khi kháng bằng nhau; chưa kết luận lỗiSHXT. Kháng/trần NPC và template SHXT chưa được generator nhập.
+- SHXT có script seriesdamage và bảng5kháng/template, không có sourceengine server trong cây để chốt hệsốBoss/PvP. pkrate rate20 chưa rõ ýnghĩa, không coi là20%/chia20. Chi tiết docs/research/combat-resistance-audit-2026-11-16.md; harness/results /tmp/jx-damage-audit*.
+- Chưa sửa; chờUSER quyết định nếu muốn nhập/cân bằngkhángBoss, rà trần/khángdư hoặc ngũhành tầngchiêu. Không có mục backlog triển khai hoàn tất. ChungWeb/Desktop/Mobile, chưa native/UI.
 
 ## 2026-11-16 · Tích hợp toàn bộ vào main và xuất bản origin/main
 

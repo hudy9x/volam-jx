@@ -94,3 +94,9 @@ Thiếu Lâm cấp 20 (Sức mạnh 35, côn) đánh quái cấp 15 (Né 65): Ki
   mục tiêu chết. Cộng hai nguồn và trần 50 % (`STEAL.maxPct`) là CHỌN (không có mã engine).
 - Hóa giải (`block_rate`), khiên điểm (`dynamicmagicshield_v`, `staticmagicshield_p`), họ `_yan_`: chưa áp (nghĩa chưa rõ hoặc chưa làm).
 - Kháng quái: một giá trị chung cho 5 loại (CHỌN) tới khi nhập kháng từng quái (GP10).
+
+## Kháng Boss riêng (2026-11-16)
+
+Boss Xanh theo tier của instance: năm kháng gốc50, trần95 (CHỌN dựa mẫu Lãnh tụ SHXT). Boss Hoàng Kim dùng43hồ sơ NPC PAK/makeboss, mỗi loại `floor(A×cấp+B)`, trần theo nguồn; NPC tự tạo10031 tạm25/trần75. Tool cho phép override năm giá trị cố định và trần. Bùa/bị động vẫn cộng vào hồ sơ mỗi lần refresh, không mutate MonsterDef của quái thường. Công thức ở `formulas/boss-resistance.ts`, núm Xanh ở `formulas/tuning.ts BLUE_BOSS_RESISTANCE`.
+
+Lượt này giữ nguyên thứ tự kẹp kháng và ngũ hành/PvP đang có: kháng trước đòn bị kẹp trong trần rồi effectiveResist xử lý như cũ. Đề xuất giữ kháng dư và trần cuốiPvP95 chưa triển khai. Giá trị gốc243 không đồng nghĩa kháng thực dụng243.

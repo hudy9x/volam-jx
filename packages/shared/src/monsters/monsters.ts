@@ -19,6 +19,7 @@ export interface MonsterDef {
   /** Base (ngoại công) damage the skills scale from. */
   damage: [number, number];
   resist: number;
+  resistance?: import('../bosses/types.js').BossResistance;
   speed: number;
   /** [skill id, level] — any skill of any pack. */
   skills: [number, number][];
@@ -61,7 +62,7 @@ export function goldenBossFromEntry(b: GoldenBossEntry): MonsterDef {
   const lv = Math.max(1, b.level || 90);
   return {
     id: b.id, name: b.name, sprite: b.sprite, level: lv, element: b.element,
-    hp: monsterHp(lv, 2), damage: monsterDamage(lv), resist: 0.25,
+    hp: monsterHp(lv, 2), damage: monsterDamage(lv), resist: 0.25, resistance: b.resistance,
     speed: 210,
     skills: b.skills.map(([sid, slv]) => [sid, slv]),
     skillScale: b.skills.map(([, slv]) => [Math.max(1, Math.round(slv * 0.4)), 0.1]),

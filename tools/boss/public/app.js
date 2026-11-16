@@ -1,3 +1,4 @@
+import { bossResistance } from './resistance.js';
 import { setupToolDialog } from './dialogs.js';
 // Công cụ Quản trị Boss Hoàng Kim VLTK 1 (tools/boss/public/app.js)
 
@@ -382,11 +383,20 @@ function getMapById(id) {
   return bootstrap.maps.find(m => m.id === id);
 }
 
+const resistanceKinds = [['phys','Vật lý'],['cold','Băng'],['fire','Hỏa'],['light','Lôi'],['poison','Độc']];
+function resistancePreview(b) {
+  return bossResistance(b.id, b.level, b.resistance);
+}
+function renderResistance(b) {
+  const p=resistancePreview(b), custom=b.resistance?.mode==='custom';
+  return `<details class="boss-resistance"><summary>Kháng</summary><label>Chế độ kháng<select data-res-mode="${b.id}"><option value="shxt" ${!custom?'selected':''}>Theo dữ liệu SHXT</option><option value="custom" ${custom?'selected':''}>Tự cài đặt</option></select></label><p class="muted">${custom?'Kháng cố định, không tăng theo cấp.':bootstrap.resistanceSources[b.id]?'Kháng gốc theo cấp, trước bùa và xuyên kháng.':'Chưa có dữ liệu SHXT; tạm dùng kháng 25.'}</p><div class="resistance-fields">${resistanceKinds.map(([k,n])=>`<label>${n}<input aria-label="Kháng ${n} của ${b.name}" type="number" min="-1000" max="1000" step="1" data-res-value="${b.id}:${k}" value="${p.values[k]}" ${custom?'':'readonly'}></label>`).join('')}</div><details><summary>Nâng cao: trần kháng</summary><div class="resistance-fields">${resistanceKinds.map(([k,n])=>`<label>${n}<input aria-label="Trần ${n} của ${b.name}" type="number" min="0" max="95" step="1" data-res-cap="${b.id}:${k}" value="${p.caps[k]}" ${custom?'':'readonly'}></label>`).join('')}</div></details></details>`;
+}
 function renderBossSections() {
   const query = $('inp-search').value.trim().toLowerCase();
   const tierFilter = $('sel-tier').value;
   const goldMap = getGoldItemMap();
   const container = $('faction-sections');
+  const openResistance = new Set([...container.querySelectorAll('[data-boss-row] .boss-resistance[open]')].map(el => el.closest('[data-boss-row]').dataset.bossRow));
 
   const factionsToShow = activeFactionFilter === 'all'
     ? bootstrap.factions
@@ -464,6 +474,7 @@ function renderBossSections() {
           </td>
           <td>
             <small class="muted">ID #${b.id}</small>
+            ${renderResistance(b)}
             <label class="inline-field" style="margin-top:4px;">
               <span class="muted">Cấp:</span>
               <input type="number" data-boss-level="${b.id}" value="${b.level}" min="1" max="200" aria-label="Cấp của ${b.name}" style="width:80px;" />
@@ -537,6 +548,15 @@ function renderBossSections() {
     ? htmlBlocks.join('')
     : '<p class="muted" style="text-align:center;padding:30px;">Không tìm thấy Boss Hoàng Kim nào khớp bộ lọc.</p>';
 
+  for (const el of container.querySelectorAll('[data-boss-row] .boss-resistance')) el.open = openResistance.has(el.closest('[data-boss-row]').dataset.bossRow);
+  for (const input of container.querySelectorAll('[data-res-mode], [data-res-value], [data-res-cap]')) input.addEventListener('change', () => {
+    const mode=input.dataset.resMode;
+    const [id,k]=(mode??input.dataset.resValue??input.dataset.resCap).split(':');
+    const b=state.bosses.find(x=>x.id===Number(id));
+    if (!b || !input.reportValidity()) return;
+    if(mode) {const p=resistancePreview(b); b.resistance=input.value==='custom'?{mode:'custom',...p}:{mode:'shxt'};markDirty();renderBossSections();}
+    else if(b.resistance?.mode==='custom') {b.resistance[input.dataset.resValue?'values':'caps'][k]=Number(input.value);markDirty();}
+  });
   // Gắn sự kiện trên bảng
   for (const chk of container.querySelectorAll('[data-toggle-boss]')) {
     chk.addEventListener('change', () => {
@@ -559,6 +579,7 @@ function renderBossSections() {
         if (!inp.reportValidity()) return;
         boss.level = Number(inp.value);
         markDirty();
+        renderBossSections();
       }
     });
   }

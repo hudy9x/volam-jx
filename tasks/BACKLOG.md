@@ -351,10 +351,15 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 
 - Tích hợp2026-11-16 theoUSER: toàn bộMC/culling/safe-zones/NPC/preview/publish/portals và cấuhìnhUSER b8f6f95 gộp vào main, giao nộp origin/main;110test/typecheck/build đạt.
 
+- Nghiên cứu2026-11-16: kháng/ngũhànhBoss/PvP đã kiểm32ca; nhập kháng/templateSHXT, trần/khángdư và kếthừa tầngchiêu chưa triểnkhai/chưaduyệt. Xem docs/research/combat-resistance-audit-2026-11-16.md; không tick hoàn tất gameplay.
 
+- 🟡 Nghiên cứu2026-11-16: đã đề xuất43khángHoàngKim theoPAK/Lua, hồsơXanh50/trần95(CHỌN), ràkhángdư/PvP75→ngũhành→95. Chỉ phươngán, chưaduyệt code; chi tiết docs/research/boss-resistance-pvp-proposal-2026-11-16.md.
 
 - MC5 UX2026-11-16 theoUSER: bấmmaptạođiểm5con/Xanh, bỏAdd/XY/ManualAuto, chọnloàiquáicóảnh/poolnhiềuloài;9test/typecheck/browser đạt, chưacommit.
 
 - MC5 USER2026-11-16: bỏ thông tin/nút theoảnh và nútxóa; Del/Backspace xóa điểm bảnnháp, guard nhập/dialog/keyrepeat. Typecheck9test đạt; chưacommit.
 
 - MC5 USER2026-11-16: tựrestart/reload Manager/Boss khi mãtool đổi, watch riêng khônggame/assets, trìhoãn dirty; processcheck/typecheck9test đạt.
+
+- ✅ KhángBoss2026-11-16:43hồsơSHXT, Xanh50/trần95 vàtoolTheoSHXT/Tựcàiđặt đãtriểnkhai;22test/typecheck/build/API/browserđạt,chưacommit. Khángdư/trầnPvP95 vẫnchưa triểnkhai;chưaWS/native/mobilelượtnày.
+- ✅ Commit khángBoss/tool theo USER2026-11-16: `feat(combat): add boss resistance profiles and editor controls`;22test/typecheck/build đạt, không push.

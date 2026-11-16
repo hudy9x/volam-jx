@@ -4,7 +4,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  mapAssetSuffix,
+  SHXT_BOSS_RESISTANCE, mapAssetSuffix,
   assetPath,
   packOf,
   BOSS_FACTIONS,
@@ -47,6 +47,7 @@ function assetUrl(input: string): string {
   return `/assets/${rel}${version ? `?v=${encodeURIComponent(version)}` : ''}`;
 }
 const dialogBundle = buildSync({ entryPoints: [path.join(PUBLIC_DIR, 'dialogs.js')], bundle: true, write: false, format: 'esm', loader: { '.css': 'empty' } });
+const resistanceBundle = buildSync({ entryPoints: [path.join(REPO_ROOT, 'packages/shared/src/formulas/boss-resistance.ts')], bundle: true, write: false, format: 'esm' });
 let applying = false;
 
 const PORT = Number(process.env.BOSS_PORT) || 4567;
@@ -185,6 +186,7 @@ function buildBootstrap() {
 
   return {
     config,
+    resistanceSources: SHXT_BOSS_RESISTANCE,
     factions: BOSS_FACTIONS.map(f => ({
       ...f,
       elementLabel: ELEMENT_NAMES[f.element],
@@ -223,6 +225,11 @@ function serveStaticFile(res: http.ServerResponse, filePath: string): void {
 export async function handleBossRequest(req: http.IncomingMessage, res: http.ServerResponse, mounted = false): Promise<void> {
   const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
   const pathname = decodeURIComponent(url.pathname);
+
+  if (req.method === 'GET' && pathname === '/resistance.js') {
+    res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store' });
+    res.end(resistanceBundle.outputFiles[0].text); return;
+  }
 
   // API: GET /api/bootstrap
   if (req.method === 'GET' && pathname === '/api/bootstrap') {

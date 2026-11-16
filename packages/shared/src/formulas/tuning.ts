@@ -194,3 +194,6 @@ export const HIDDEN_LINES = {
 
 /** CHỌN: cấu hình giá rao bot; xem docs/rao-ban.md. */
 export { default as MARKET_PRICING } from './data/market-pricing.json';
+
+/** CHỌN: SHXT Lãnh tụ template values applied as replacement to spawned blue instances. */
+export const BLUE_BOSS_RESISTANCE = { base: 50, cap: 95 } as const;

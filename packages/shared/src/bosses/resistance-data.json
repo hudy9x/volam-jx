@@ -1,0 +1,1335 @@
+{
+  "511": {
+    "coefficients": {
+      "phys": [
+        0,
+        60
+      ],
+      "cold": [
+        0,
+        60
+      ],
+      "fire": [
+        0,
+        60
+      ],
+      "light": [
+        0,
+        75
+      ],
+      "poison": [
+        0,
+        60
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "512": {
+    "coefficients": {
+      "phys": [
+        1.5,
+        -75
+      ],
+      "cold": [
+        1,
+        -50
+      ],
+      "fire": [
+        1.5,
+        -75
+      ],
+      "light": [
+        1.4,
+        -48
+      ],
+      "poison": [
+        1,
+        -100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "513": {
+    "coefficients": {
+      "phys": [
+        0,
+        60
+      ],
+      "cold": [
+        0,
+        75
+      ],
+      "fire": [
+        0,
+        60
+      ],
+      "light": [
+        0,
+        60
+      ],
+      "poison": [
+        0,
+        75
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "514": {
+    "coefficients": {
+      "phys": [
+        1.5,
+        -75
+      ],
+      "cold": [
+        1,
+        -50
+      ],
+      "fire": [
+        1.5,
+        -75
+      ],
+      "light": [
+        1.4,
+        -48
+      ],
+      "poison": [
+        1,
+        -100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "515": {
+    "coefficients": {
+      "phys": [
+        1.5,
+        -75
+      ],
+      "cold": [
+        1,
+        -50
+      ],
+      "fire": [
+        1.5,
+        -75
+      ],
+      "light": [
+        1.4,
+        -48
+      ],
+      "poison": [
+        1,
+        -100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "516": {
+    "coefficients": {
+      "phys": [
+        1.5,
+        -75
+      ],
+      "cold": [
+        1,
+        -50
+      ],
+      "fire": [
+        1.5,
+        -75
+      ],
+      "light": [
+        1.4,
+        -48
+      ],
+      "poison": [
+        1,
+        -100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "517": {
+    "coefficients": {
+      "phys": [
+        1.5,
+        -75
+      ],
+      "cold": [
+        1,
+        -50
+      ],
+      "fire": [
+        1.5,
+        -75
+      ],
+      "light": [
+        1.4,
+        -48
+      ],
+      "poison": [
+        1,
+        -100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "518": {
+    "coefficients": {
+      "phys": [
+        1.5,
+        -75
+      ],
+      "cold": [
+        1,
+        -50
+      ],
+      "fire": [
+        1.5,
+        -75
+      ],
+      "light": [
+        1.4,
+        -48
+      ],
+      "poison": [
+        1,
+        -100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "519": {
+    "coefficients": {
+      "phys": [
+        1.5,
+        -75
+      ],
+      "cold": [
+        1,
+        -50
+      ],
+      "fire": [
+        1.5,
+        -75
+      ],
+      "light": [
+        1.4,
+        -48
+      ],
+      "poison": [
+        1,
+        -100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "520": {
+    "coefficients": {
+      "phys": [
+        1.5,
+        -75
+      ],
+      "cold": [
+        1,
+        -50
+      ],
+      "fire": [
+        1.5,
+        -75
+      ],
+      "light": [
+        1.4,
+        -48
+      ],
+      "poison": [
+        1,
+        -100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "521": {
+    "coefficients": {
+      "phys": [
+        1.5,
+        -75
+      ],
+      "cold": [
+        1,
+        -50
+      ],
+      "fire": [
+        1.5,
+        -75
+      ],
+      "light": [
+        1.4,
+        -48
+      ],
+      "poison": [
+        1,
+        -100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "522": {
+    "coefficients": {
+      "phys": [
+        1.5,
+        -75
+      ],
+      "cold": [
+        1,
+        -50
+      ],
+      "fire": [
+        1.5,
+        -75
+      ],
+      "light": [
+        1.4,
+        -48
+      ],
+      "poison": [
+        1,
+        -100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "523": {
+    "coefficients": {
+      "phys": [
+        0,
+        60
+      ],
+      "cold": [
+        0,
+        60
+      ],
+      "fire": [
+        0,
+        75
+      ],
+      "light": [
+        0,
+        60
+      ],
+      "poison": [
+        0,
+        75
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "562": {
+    "coefficients": {
+      "phys": [
+        0,
+        60
+      ],
+      "cold": [
+        0,
+        75
+      ],
+      "fire": [
+        0,
+        50
+      ],
+      "light": [
+        0,
+        65
+      ],
+      "poison": [
+        0,
+        50
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "563": {
+    "coefficients": {
+      "phys": [
+        0,
+        75
+      ],
+      "cold": [
+        0,
+        40
+      ],
+      "fire": [
+        0,
+        60
+      ],
+      "light": [
+        0,
+        50
+      ],
+      "poison": [
+        0,
+        60
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "564": {
+    "coefficients": {
+      "phys": [
+        0,
+        75
+      ],
+      "cold": [
+        0,
+        50
+      ],
+      "fire": [
+        0,
+        65
+      ],
+      "light": [
+        0,
+        60
+      ],
+      "poison": [
+        0,
+        65
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "565": {
+    "coefficients": {
+      "phys": [
+        0,
+        75
+      ],
+      "cold": [
+        0,
+        60
+      ],
+      "fire": [
+        0,
+        70
+      ],
+      "light": [
+        0,
+        65
+      ],
+      "poison": [
+        0,
+        65
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "566": {
+    "coefficients": {
+      "phys": [
+        0,
+        75
+      ],
+      "cold": [
+        0,
+        60
+      ],
+      "fire": [
+        0,
+        65
+      ],
+      "light": [
+        0,
+        60
+      ],
+      "poison": [
+        0,
+        80
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "567": {
+    "coefficients": {
+      "phys": [
+        0,
+        60
+      ],
+      "cold": [
+        0,
+        65
+      ],
+      "fire": [
+        0,
+        50
+      ],
+      "light": [
+        0,
+        50
+      ],
+      "poison": [
+        0,
+        60
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "568": {
+    "coefficients": {
+      "phys": [
+        0,
+        60
+      ],
+      "cold": [
+        0,
+        65
+      ],
+      "fire": [
+        0,
+        75
+      ],
+      "light": [
+        0,
+        50
+      ],
+      "poison": [
+        0,
+        60
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "582": {
+    "coefficients": {
+      "phys": [
+        0,
+        30
+      ],
+      "cold": [
+        0,
+        75
+      ],
+      "fire": [
+        0,
+        75
+      ],
+      "light": [
+        0,
+        75
+      ],
+      "poison": [
+        0,
+        95
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "583": {
+    "coefficients": {
+      "phys": [
+        0,
+        65
+      ],
+      "cold": [
+        0,
+        65
+      ],
+      "fire": [
+        0,
+        75
+      ],
+      "light": [
+        0,
+        75
+      ],
+      "poison": [
+        0,
+        75
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "739": {
+    "coefficients": {
+      "phys": [
+        0,
+        90
+      ],
+      "cold": [
+        0,
+        80
+      ],
+      "fire": [
+        0,
+        90
+      ],
+      "light": [
+        0,
+        80
+      ],
+      "poison": [
+        0,
+        90
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "740": {
+    "coefficients": {
+      "phys": [
+        0,
+        90
+      ],
+      "cold": [
+        0,
+        80
+      ],
+      "fire": [
+        0,
+        90
+      ],
+      "light": [
+        0,
+        80
+      ],
+      "poison": [
+        0,
+        90
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "741": {
+    "coefficients": {
+      "phys": [
+        0,
+        90
+      ],
+      "cold": [
+        0,
+        90
+      ],
+      "fire": [
+        0,
+        90
+      ],
+      "light": [
+        0,
+        90
+      ],
+      "poison": [
+        0,
+        95
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "742": {
+    "coefficients": {
+      "phys": [
+        0,
+        90
+      ],
+      "cold": [
+        0,
+        90
+      ],
+      "fire": [
+        0,
+        90
+      ],
+      "light": [
+        0,
+        90
+      ],
+      "poison": [
+        0,
+        95
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "743": {
+    "coefficients": {
+      "phys": [
+        0,
+        80
+      ],
+      "cold": [
+        0,
+        85
+      ],
+      "fire": [
+        0,
+        90
+      ],
+      "light": [
+        0,
+        90
+      ],
+      "poison": [
+        0,
+        80
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "744": {
+    "coefficients": {
+      "phys": [
+        0,
+        80
+      ],
+      "cold": [
+        0,
+        85
+      ],
+      "fire": [
+        0,
+        90
+      ],
+      "light": [
+        0,
+        90
+      ],
+      "poison": [
+        0,
+        80
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "745": {
+    "coefficients": {
+      "phys": [
+        0,
+        85
+      ],
+      "cold": [
+        0,
+        90
+      ],
+      "fire": [
+        0,
+        90
+      ],
+      "light": [
+        0,
+        90
+      ],
+      "poison": [
+        0,
+        90
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "746": {
+    "coefficients": {
+      "phys": [
+        0,
+        80
+      ],
+      "cold": [
+        0,
+        80
+      ],
+      "fire": [
+        0,
+        80
+      ],
+      "light": [
+        0,
+        90
+      ],
+      "poison": [
+        0,
+        100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "747": {
+    "coefficients": {
+      "phys": [
+        0,
+        80
+      ],
+      "cold": [
+        0,
+        80
+      ],
+      "fire": [
+        0,
+        80
+      ],
+      "light": [
+        0,
+        90
+      ],
+      "poison": [
+        0,
+        100
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "748": {
+    "coefficients": {
+      "phys": [
+        0,
+        90
+      ],
+      "cold": [
+        0,
+        80
+      ],
+      "fire": [
+        0,
+        90
+      ],
+      "light": [
+        0,
+        80
+      ],
+      "poison": [
+        0,
+        90
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1193": {
+    "coefficients": {
+      "phys": [
+        0,
+        243
+      ],
+      "cold": [
+        0,
+        243
+      ],
+      "fire": [
+        0,
+        243
+      ],
+      "light": [
+        0,
+        243
+      ],
+      "poison": [
+        0,
+        243
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1194": {
+    "coefficients": {
+      "phys": [
+        0,
+        243
+      ],
+      "cold": [
+        0,
+        243
+      ],
+      "fire": [
+        0,
+        243
+      ],
+      "light": [
+        0,
+        243
+      ],
+      "poison": [
+        0,
+        243
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1195": {
+    "coefficients": {
+      "phys": [
+        0,
+        243
+      ],
+      "cold": [
+        0,
+        243
+      ],
+      "fire": [
+        0,
+        243
+      ],
+      "light": [
+        0,
+        243
+      ],
+      "poison": [
+        0,
+        243
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1196": {
+    "coefficients": {
+      "phys": [
+        0,
+        243
+      ],
+      "cold": [
+        0,
+        243
+      ],
+      "fire": [
+        0,
+        243
+      ],
+      "light": [
+        0,
+        243
+      ],
+      "poison": [
+        0,
+        243
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1197": {
+    "coefficients": {
+      "phys": [
+        0,
+        243
+      ],
+      "cold": [
+        0,
+        243
+      ],
+      "fire": [
+        0,
+        243
+      ],
+      "light": [
+        0,
+        243
+      ],
+      "poison": [
+        0,
+        243
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1198": {
+    "coefficients": {
+      "phys": [
+        0,
+        243
+      ],
+      "cold": [
+        0,
+        243
+      ],
+      "fire": [
+        0,
+        243
+      ],
+      "light": [
+        0,
+        243
+      ],
+      "poison": [
+        0,
+        243
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1199": {
+    "coefficients": {
+      "phys": [
+        0,
+        243
+      ],
+      "cold": [
+        0,
+        243
+      ],
+      "fire": [
+        0,
+        243
+      ],
+      "light": [
+        0,
+        243
+      ],
+      "poison": [
+        0,
+        243
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1200": {
+    "coefficients": {
+      "phys": [
+        0,
+        243
+      ],
+      "cold": [
+        0,
+        243
+      ],
+      "fire": [
+        0,
+        243
+      ],
+      "light": [
+        0,
+        243
+      ],
+      "poison": [
+        0,
+        243
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1201": {
+    "coefficients": {
+      "phys": [
+        0,
+        243
+      ],
+      "cold": [
+        0,
+        243
+      ],
+      "fire": [
+        0,
+        243
+      ],
+      "light": [
+        0,
+        243
+      ],
+      "poison": [
+        0,
+        243
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1202": {
+    "coefficients": {
+      "phys": [
+        0,
+        243
+      ],
+      "cold": [
+        0,
+        243
+      ],
+      "fire": [
+        0,
+        243
+      ],
+      "light": [
+        0,
+        243
+      ],
+      "poison": [
+        0,
+        243
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  },
+  "1364": {
+    "coefficients": {
+      "phys": [
+        0,
+        60
+      ],
+      "cold": [
+        0,
+        75
+      ],
+      "fire": [
+        0,
+        60
+      ],
+      "light": [
+        0,
+        75
+      ],
+      "poison": [
+        0,
+        60
+      ]
+    },
+    "caps": {
+      "phys": 95,
+      "cold": 95,
+      "fire": 95,
+      "light": 95,
+      "poison": 95
+    }
+  }
+}

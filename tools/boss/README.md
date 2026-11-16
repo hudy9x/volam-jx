@@ -24,3 +24,11 @@ Game dev có thể tự reload do watcher khi file mã nguồn thay đổi; thao
 Giao diện theo [guideline chung](../../docs/tools-ui-ux-guidelines.md), hỗ trợ trình duyệt desktop và viewport cảm ứng. Desktop app có thể mở địa chỉ local trong trình duyệt; chưa đóng gói app riêng. Điện thoại thật không truy cập được server chỉ nghe loopback trên máy tính; không có bản native mobile và không tự mở LAN.
 
 - `BOSS_CONFIG_DIR`: thư mục config.json/config.ts riêng khi kiểm thử, mặc định nguồn shared. Trang trong Manager dùng chung nav/registry map, kể cả map tự dựng; không nhân đôi loader hoặc cấu hình. Không mở nhiều phiên cùng lưu cấu hình Boss.
+
+## Kháng của Boss
+
+Mở **Kháng** tại dòng Boss. **Theo dữ liệu SHXT** mặc định tính năm kháng gốc theo cấp; **Tự cài đặt** dùng năm giá trị cố định, trần từng loại nằm trong Nâng cao. Kháng gốc cho phép −1000..1000, trần 0..95; kháng gốc vượt95 vẫn hợp lệ. Chỉ số này chưa tính bùa, xuyên kháng và ngũ hành của đòn đánh. NPC chưa có dữ liệu nguồn hiển thị cảnh báo và tạm dùng25/trần75.
+
+Lưu và Áp dụng giữ hai bước hiện có. Bản xem trước dùng cùng module công thức với server. Game cần restart khi cài mã mới; sau đó Áp dụng nạp cấu hình qua đường reloadBoss hiện có. NPC đang dùng chung định nghĩa không bị sửa khi quái khác hóa Xanh.
+
+Dữ liệu `packages/shared/src/bosses/resistance-data.json` do `apps/client/tools/gen-boss-resists.ts` sinh từ PAK thắng SHXT, không sửa tay. Sinh lại bằng `JX_CLIENT=/đường/dẫn/Client_VLTK_SHXT node --import tsx apps/client/tools/gen-boss-resists.ts` tại gốc repo, không sinh lại sprite.
