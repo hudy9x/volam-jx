@@ -345,3 +345,5 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 - MC4 commit2026-11-16: tách dữ liệu/API/validation/3test điểm chuyển với UI icon/PortalEditor/switch Z/nút tùy chọn. USER đã duyệt commit, không push.
 
 - MC4 đã commit2026-11-16: core/API `c261353`; UI đi commit feat(map-manager): add portal editor and compact view controls. Switch phải/Z, Vùngchặn button option, portal editor và icons/shared helper hoàn tất; không push.
+
+- MC4 cấu hìnhUSER2026-11-16: lưu điểm37→319 Lâm Du Quan, validate/nav hai đầu đạt; commit cùngcheckpoint trước merge main theo USER. Full110test/typecheck/build đạt.

@@ -1,3 +1,9 @@
+## 2026-11-16 · Kiểm tra tích hợp main và cấu hình điểm chuyển USER
+
+- USER yêu cầu kiểm tra, merge toàn bộ vào main rồi push origin. HEAD1c941a0 trên codex/viewport-culling, main1668d90 là tổ tiên; origin git@github.com:hudy9x/volam-jx đã có (khác ghi chú repo cũ), fetch thành công, chưa có origin/main tại thời điểm kiểm tra.
+- Phát hiện USER lưu map-portals.json chưa commit: map37 có1điểm Tới Lâm Du Quan319, IDportal-cb6c98aa-014c-475b-88d2-f03c2ff143d1, source30853,5116/radius40/dest8208,7432. Giữ nguyên đúng bản lưu, không tự khôi phục Dược Vương Cốc. validatePortals + nav/clearance cả2đầu đạt; commit cấu hình riêng trước merge.
+- Toàn bộ23filetest:110test đạt, typecheck/build đạt (cảnh báo chunk lớn cũ); git diff --check đạt. Log /tmp/jx-main-merge-{tests,typecheck,build}.log. Không thay DB/assets/NPC/zone hoặc bật/tắt serverUSER; testserver tự cô lập.
+
 ## 2026-11-16 · Commit giao diện Map Manager và switch nền
 
 - USER yêu cầu commit khi xong. Đã commit `c261353` feat(maps): configure portal placements and destinations cho cấu hình/runtime/API/store/3test. Commit giao diện tiếp theo feat(map-manager): add portal editor and compact view controls gồm editor đặt/kéo điểm, icon/tooltip/shortcut dùng chungCreator, switch nền ngoài cùng bên phải và nút option Vùng chặn.
