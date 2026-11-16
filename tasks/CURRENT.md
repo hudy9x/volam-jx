@@ -1,3 +1,13 @@
+## 2026-11-16 · Ràng buộc bản đồ bot theo thiết lập nhân vật và sửa AutoPlay level sync
+
+- USER yêu cầu bot khi chạy kịch bản bắt buộc phải di chuyển trong các bản đồ thuộc thiết lập nhân vật (`char.bot.setup.map.maps`), không tự ý bị chuyển sang La Tiêu Sơn, Trúc Tơ Động, Thanh Loa Đảo.
+- `AutoPlay.ts`: Sửa `leveledUp = this.level > 0 && self.state.level > this.level`. Khi mới kết nối (`this.level = 0`), việc nhận cấp ban đầu của actor chỉ là đồng bộ cấp khởi điểm, không kích hoạt giả lệnh `train(true)`. Chỉ khi thực sự lên cấp trong lúc đánh quái mới kích hoạt đổi bãi theo cấp.
+- `MapRoom.ts`: Thêm `resolveTrainingTarget(sim, currentMapId, list)` xử lý `C2S.train`. Nếu nhân vật là bot có `botMaps`:
+  + Đang ở một bản đồ trong danh sách thiết lập và không phải vùng an toàn: giữ nguyên bản đồ, không đổi map.
+  + Đang ở vùng an toàn (về thành mua thuốc) hoặc bản đồ ngoài danh sách: chọn bãi luyện công phù hợp nhất hoặc bản đồ hợp lệ nằm trong danh sách thiết lập của bot (`setup.map.maps`), tuyệt đối không chuyển ra ngoài.
+  + Người chơi thông thường không có ràng buộc bot tiếp tục dùng `bestTrainingMap` theo cấp toàn server.
+- Test `tests/bot-map-confinement.test.ts` (2 ca) đạt 100%; `npm run test:auto` (57 ca), `typecheck` và `build` đạt 100%. Đã commit `fix(bots): confine bot training map to configured setup and fix initial level sync`, chưa push theo quy định.
+
 ## 2026-11-16 · Triển khai Thiên Vương nhịp riêng và tiêu hao sinh lực theo USER
 
 - USER duyệt phương án Thiên Vương nhịp riêng và tiêu hao sinh lực, giữ nguyên tốc độ hiện tại và ngưỡng dự trữ 25% HP. Đã commit `feat(skills): implement Tianwang custom cadence and life cost`.

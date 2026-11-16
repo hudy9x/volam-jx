@@ -36,6 +36,65 @@ interface AuthData { username: string; charId: string }
 /** charId -> roomId for every character currently in the world (one session per character). */
 const online = new Map<string, string>();
 /** Bãi luyện công (maps/training.ts) of the maps this machine has (map art + grid), computed once. */
+export interface TrainingTargetResult {
+  targetMapId?: number;
+  alreadyThere: boolean;
+  message: string;
+}
+
+export function resolveTrainingTarget(sim: Sim, currentMapId: number, list: TrainingMap[]): TrainingTargetResult {
+  const char = sim.charId ? db.getCharacter(sim.charId) : undefined;
+  const botMaps = char?.bot?.setup?.map?.maps;
+  if (Array.isArray(botMaps) && botMaps.length > 0) {
+    if (botMaps.includes(currentMapId) && !MAPS[currentMapId]?.safe) {
+      return {
+        alreadyThere: true,
+        message: `Đang ở bản đồ thiết lập: ${MAPS[currentMapId]?.name ?? currentMapId}.`,
+      };
+    }
+    const availableAllowed = botMaps.filter(id => mapAvailable(id, true));
+    const nonSafeAllowed = availableAllowed.filter(id => !MAPS[id]?.safe);
+    const candidates = list.filter(t => nonSafeAllowed.includes(t.mapId));
+    const best = bestTrainingMap(candidates, sim.progress?.prog.level ?? 1);
+    const targetMapId = best?.mapId ?? nonSafeAllowed[0] ?? availableAllowed[0];
+    if (!targetMapId) {
+      return {
+        alreadyThere: false,
+        message: 'Không tìm thấy bản đồ hợp lệ trong thiết lập nhân vật.',
+      };
+    }
+    if (targetMapId === currentMapId) {
+      return {
+        alreadyThere: true,
+        message: `Đang ở bản đồ thiết lập: ${MAPS[targetMapId]?.name ?? targetMapId}.`,
+      };
+    }
+    return {
+      targetMapId,
+      alreadyThere: false,
+      message: `Đổi sang bản đồ thiết lập: ${MAPS[targetMapId]?.name ?? targetMapId}.`,
+    };
+  }
+  const best = bestTrainingMap(list, sim.progress?.prog.level ?? 1);
+  if (!best) {
+    return {
+      alreadyThere: false,
+      message: 'Không tìm thấy bãi luyện công.',
+    };
+  }
+  if (best.mapId === currentMapId) {
+    return {
+      alreadyThere: true,
+      message: `Đang ở bãi luyện công phù hợp: ${best.name} (quái cấp ${best.lo}–${best.hi}).`,
+    };
+  }
+  return {
+    targetMapId: best.mapId,
+    alreadyThere: false,
+    message: `Đổi bãi luyện công: ${best.name} (quái cấp ${best.lo}–${best.hi}).`,
+  };
+}
+
 export const trainingList = (): TrainingMap[] => { refreshMapRegistry(); return trainingMaps(id => mapAvailable(id)); };
 
 /** Whether a character is in the game on some map (bot dev API: reset / delete only offline bots). */
@@ -291,12 +350,18 @@ export class MapRoom extends Room<{ state: MapState }> {
     this.onMessage(C2S.train, (client, msg: TrainMsg) => {
       const sim = this.simOf(client);
       if (!sim || sim.dead || !sim.progress) return;
-      const best = bestTrainingMap(trainingList(), sim.progress.prog.level);
-      if (!best) { this.notify(sim, 'Không tìm thấy bãi luyện công.'); return; }
-      if (best.mapId === this.state.mapId) { if (!msg?.quiet) this.notify(sim, `Đang ở bãi luyện công phù hợp: ${best.name} (quái cấp ${best.lo}–${best.hi}).`); return; }
-      this.notify(sim, `Đổi bãi luyện công: ${best.name} (quái cấp ${best.lo}–${best.hi}).`);
-      const entry = MAPS[best.mapId].raw.entry;
-      this.transfer(sim, best.mapId, entry.x, entry.y);
+      const res = resolveTrainingTarget(sim, this.state.mapId, trainingList());
+      if (res.alreadyThere) {
+        if (!msg?.quiet) this.notify(sim, res.message);
+        return;
+      }
+      if (!res.targetMapId) {
+        this.notify(sim, res.message);
+        return;
+      }
+      this.notify(sim, res.message);
+      const entry = MAPS[res.targetMapId].raw.entry;
+      this.transfer(sim, res.targetMapId, entry.x, entry.y);
     });
 
     this.onMessage(C2S.respawn, client => {

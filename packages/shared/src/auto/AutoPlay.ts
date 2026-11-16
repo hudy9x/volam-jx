@@ -295,8 +295,9 @@ export class AutoPlay {
 
     // Level up: the bãi luyện công of the new level (jx-web-main Xe on level up).
     if (self.state.level !== this.level) {
+      const leveledUp = this.level > 0 && self.state.level > this.level;
       this.level = self.state.level;
-      if (opts.autoMap && now >= this.nextTravel) { this.nextTravel = now + TRAVEL_GAP_MS; this.host.train(true); return; }
+      if (leveledUp && opts.autoMap && now >= this.nextTravel) { this.nextTravel = now + TRAVEL_GAP_MS; this.host.train(true); return; }
     }
     const main = this.mainSkill();
     const resource = this.host.resourceCost?.(main);
