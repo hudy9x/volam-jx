@@ -1473,3 +1473,36 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - Map9101 Đồng cỏ thử nghiệm revision3 đã BẬT qua UI, build r3-bc3ba525; nguồn3584×3584/94world giữ nguyên. Chrome thật: vào9101 → Tắt → thông báo/chuyển Biện Kinh; Manager còn nhãn Đã tắt → bật lại nhận map. Ảnh /tmp/jx-map-enable-evidence/{creator-enabled,manager-enabled,returned-bien-kinh,grass-game}.jpg. HUD xác nhận chuyển map; screenshot scene game bị đen trong phiên thử nên không coi là bằng chứng render địa hình. Dùng server2568/client5174 và DB /tmp/jx-map-enable-demo, không thao tác DB người dùng2567.
 - GitNexus đã refresh; diff gate30file/82symbol/80flow riskCritical do đường tick/transfer/auth dùng chung. Đã đọc nguồn và hồi quy liên quan; đồ thị bị giới hạn nhánh/entry, không coi thiếu flow là không có tác động. File mới chưa tracked được kiểm nguồn/test trực tiếp.
 - Typecheck/build đạt (cảnh báo chunk lớn cũ). Publication/access3ca gồm build reuse/revision/CAS/collision, real Colyseus join/teleport/online/offline/mất đăng ký/thiếu tài nguyên đạt. Creator3/Manager4/Auto34/bots10/safe-zones4 =55ca hồi quy đạt. Bot team fixture thêm HTTP preflight mock. Native/mobile thật chưa kiểm. Tài liệu Creator/Manager/root/AGENTS cập nhật; cần restart server/build client khi cài code lần đầu, sau đó bật/tắt đọc động; remote phải triển khai cả asset/manifest.
+
+## 2026-11-15 · Commit Bật/Tắt map và tối ưu UX Map Creator
+
+- USER yêu cầu commit hiện trạng rồi tối ưu UI. Đã commit `751fb47` feat(maps): publish custom maps and return stranded players to town, không push; đây là commit nguyên khối đăng ký/pipeline/runtime/client/bot/tool/test. HEAD khớp, không đổi nhánh hiện có codex/viewport-culling.
+- Tiếp theo UX Creator: icon SVG riêng cho công cụ, tooltip/phím tắt kiểu editor, chữ ngắn; tách Lưu thiết kế với Mở/Đóng map trong game. Đã xong và kiểm tra, chưa commit phần UI mới. Icon/tooltip/shortcut V/I/H/B/E/P, Spacepan, zoom0/+−, cỡcọ[/], Ctrl/Cmd+D/undo; bỏ qua input/dialog/busy/drag, save chốt thuộc tính. Công cụ có tên/hint thường trực, phím trợ giúp/focus/Esc; cọ theo mode, thuộc tính nâng cao đóng mặc định. Lưu thiết kế tách khối Trong game, Mở/Đóng map; xuất/backup vào Tùy chọn tệp. Confirm bỏ nháp/thay nền dùng dialog tool (confirm browser làm gián đoạn Chrome, đã thay và kiểm Hủy/Bỏ thay đổi).
+- Typecheck/build + Creator3ca đạt. Chrome thử phím/inputguard/duplicate95→undo94; IAB desktop1440×1000 và390×844 không tràn ngang (375px), inspector không tràn, tooltip focus/help Tab/Esc/trả focus và bỏ nháp đạt. Ảnh /tmp/jx-map-creator-ux/{desktop,mobile}.jpg đã xem desktop/mobile; chưa native/touch thật. Không lưu thay đổi demo,9101revision3/94objects/enabled giữ nguyên, không đụng DB/assets/luật game. README cập nhật.
+- GitNexus refresh HEAD751fb47, gate7file/35symbol LOW,0flow; setMode trùng tên đã đối chiếu UID Creator LOW8 và callsite nguồn. Không coi graph thiếu flow là không ảnh hưởng. Test4581 đã dừng; USER đã tự bật lại4569/2567/5173, giữ các tiến trình đó; cần restart Creator4569 để nhận bundle UI mới.
+- Trước đó USER yêu cầu dừng server: đã dừng2567/5173/2568/5174/4569/4570; lượt UX chỉ khởi động tool kiểm thử riêng.
+
+## 2026-11-15 · Creator bố cục gọn và preview nhân vật/quái (chưa commit)
+
+- USER yêu cầu gom toolbar/phím trợ giúp1hàng, gộp chọn map + trạng thái game và tên map, thuộc tính qua icon, tài nguyên sang phải; bổ sung preview có nhân vật/quái thật kiểm tỷ lệ. Đã triển khai; giữ HEAD751fb47 và toàn bộ UI chưa commit từ lượt trước. Không commit/push.
+- Header chung có tên map chỉnh tại chỗ, icon mở điểm vào qua Dialogs. Editor bên trái, resource/inspector bên phải; desktop tools trái/views phải cùng hàng; mobile cuộn nội bộ không tràn trang. Cọ theo mode, tên/hint dưới canvas; Chơi thử có hàng điều khiển riêng.
+- PreviewAssets chỉ đọc metadata sprite gốc và serve22sheet tham chiếu qua API whitelist. MapPreview vẽ nhân vật nam mặc định nhiều lớp+bóng và3quái thật có sprite sẵn (3hổ), không placeholder; frame/dir/anchor/scale theo metadata. Đứng/chạy/đổi hướng, depth cùng world; click/touch đi A* + nav alpha/manual/collider/clearance9 dùng chung shared, tốc nền theo SPEED resolver. Camera theo người/entry/zoom1:1, stop/Esc trả camera cũ; preview khoá chỉnh sửa và không ghi actor/spawn/project/serverDB. Không phải combat/AI server; tool spawn vẫn riêng.
+- Browser IAB1440×1000/390×844: toolbar tất cả cùngY, header có1namefield, rightsidebar đúng, không tràn1425/375; icon settings/Esc, sprite+bóng/che khuất, clicknhânvật1792,1792→1904,1880, vềentry vàdừngzoom15%, chơi bản nháp chưa lưu/giữ dirty rồi discard đạt. Source9101revision3/94objects/enabled giữ nguyên. Ảnh /tmp/jx-map-preview-evidence/{desktop,mobile,mobile-preview}.jpg, desktop/mobile đã xem. Chưa thiết bịtouch/native thật.
+- GitNexus refresh hoàn tất; diff gate gồm UI/server tool và tracking, file preview mới kiểm trực tiếp qua source/tests (chưa tracked). Không coi graph thiếu flow là không ảnh hưởng.
+- Typecheck/build đạt(cảnh báo chunk cũ), Creator3ca + preview2ca đạt. Không sửa gameplay/formulas/generated/assets/DB. Tooltest4581 dừng sau kiểm, không đụng server USER4569/2567/5173; restart Creator4569 để nhận UI/API mới. README/AGENTS/BACKLOG cập nhật.
+
+## 2026-11-15 · Pulse trạng thái nút Mở/Đóng map
+
+- USER hỏi ý nghĩa Thiết kế bản3: revision bản lưu, bản đang dùng trong game có thể khác bản đã lưu mới. USER yêu cầu map bật dùng icon pulse đỏ nhấp nháy trên Đóng map, chưa bật/đã tắt dùng pulse xanh và nhãn Mở map. Đã sửa riêng icon/class theo trạng thái publication trả về; giữ nguyên hành vi/backend.
+- CSS animation1,6s chỉ trên icon đỏ; prefers-reduced-motion dùng đỏ tĩnh, nhãn vẫn rõ. Đây là ngoại lệ animation theo yêu cầu USER, đã ghi README. Typecheck/diffcheck đạt; IAB thực trạng thái mở=rgb248,113,113/animationmap-live-pulse, đóng=rgb185,216,191/none và đúng nhãn. Ảnh /tmp/jx-map-pulse/{open,closed}.jpg đã xem.
+- Kiểm với registry bản sao /tmp/jx-map-pulse/registry.json và tool4581, không tắt map thật9101/không thay project/assets/DB. Tooltest đã dừng; server USER giữ nguyên. HEAD751fb47, không commit/push; UI trước và lượt này vẫn chưa commit.
+
+## 2026-11-15 · Đổi pulse thành chấm tròn
+
+- USER đính chính icon trạng thái cần hình tròn. Đã thay đường nhịp tim bằng SVGcircle tô currentColor; giữ đỏ nhấp nháy/map mở và xanh tĩnh/map đóng, reduced-motion và nhãn. Chỉ đổi hình icon, không đổi hành vi hoặc dữ liệu. Kiểm SVG/diff đạt; không commit/push, HEAD751fb47.
+
+## 2026-11-16 · Commit UI/UX Map Creator
+
+- USER yêu cầu chia commit UI/UX và Chơi thử. Commit này chỉ gồm bố cục header/toolbar/tài nguyên phải, icon/tooltip/phím tắt, Lưu thiết kế vs Mở/Đóng map, dialog thuộc tính/xác nhận, chấm tròn đỏ nháy/xanh và README. Chơi thử được giữ ngoài commit này để commit riêng ngay sau.
+- Đã dựng cây staged riêng ở /tmp/jx-creator-commit-split/ui-tree: tsc tool và bundle cùng plugin CSS của server đạt; không phụ thuộc Preview.ts/PreviewAssets/API mới. GitNexus staged5file/53symbol LOW; không coi0flow là không ảnh hưởng. Các kiểm tra browser desktop/mobile/focus từ lượt triển khai vẫn áp dụng; không đổi hành vi khi chia commit.
+- HEAD nền751fb47; không push. Nguồn9101/registry/assets/NPC/vùng an toàn/DB giữ nguyên; không khởi động/dừng server USER.

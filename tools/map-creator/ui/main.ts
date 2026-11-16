@@ -2,6 +2,7 @@ import { dialogs } from '../../../apps/client/src/ui/kit/dialog.js';
 import { navigationMask, validateProject, CELL_W, CELL_H, type Project, type Asset, type WorldObject } from '../model.js';
 import type { CustomMap } from '../../../packages/shared/src/maps/registry.js';
 import './main.css';
+import { tools, labelAction } from './actions.js';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const input = (id: string) => $<HTMLInputElement>(id);
@@ -20,7 +21,8 @@ $('publication-confirm').addEventListener('keydown', e => {
 });
 $('publication-no').onclick = () => dialogs.close('publication-confirm');
 $('publication-yes').onclick = () => { const done = publicationConfirm; publicationConfirm = null; dialogs.close('publication-confirm'); done?.(true); };
-function confirmPublication(text: string): Promise<boolean> {
+function confirmPublication(text: string, accept = 'Xác nhận', title = 'Map trong game'): Promise<boolean> {
+  $('publication-yes').textContent = accept; $('publication-confirm').setAttribute('aria-label', title); $('publication-confirm').querySelector('.dlg-title')!.textContent = title;
   publicationFocus = document.activeElement as HTMLElement; $('publication-message').textContent = text; $('publication-backdrop').hidden = false; dialogs.open('publication-confirm'); $('publication-no').focus();
   return new Promise(resolve => { publicationConfirm = resolve; });
 }
@@ -43,17 +45,24 @@ async function run(task: () => Promise<void>) {
 function controls() {
   for (const id of ['save', 'export', 'reload', 'backup']) $<HTMLButtonElement>(id).disabled = !project || busy;
   $<HTMLButtonElement>('toggle-map').disabled = !project || !publication || dirty || busy;
-  $('toggle-map').textContent = publication?.map?.enabled ? 'Tắt map trong game' : 'Bật map trong game';
-  $<HTMLSelectElement>('map-type').disabled = !project || busy || !!publication?.map?.enabled;
-  $('publication-state').textContent = !publication?.map ? 'Chưa đưa vào game' : `${publication.map.enabled ? 'Đã bật' : 'Đã tắt'} · Bản đã xuất ${publication.map.projectRevision}${project && publication.map.projectRevision !== project.revision ? ' · Project có bản lưu mới: tắt rồi bật để cập nhật' : ''}`;
-  $('publication-hint').textContent = dirty ? 'Lưu project trước khi bật/tắt map.' : 'Map bật xuất hiện trong Map Manager và Xa phu. Tắt map giữ dữ liệu, chuyển người chơi về Biện Kinh.';
+  const enabled = !!publication?.map?.enabled;
+  $('toggle-map').classList.toggle('is-map-open', enabled);
+  labelAction($('toggle-map'), 'pulse', enabled ? 'Đóng map' : 'Mở map', enabled ? 'Ngừng cho vào map; người chơi được về Biện Kinh. Giữ thiết kế.' : 'Đưa bản đã lưu vào game và Map Manager.');
+  $<HTMLSelectElement>('map-type').disabled = !project || busy || enabled;
+  $('publication-state').textContent = !publication?.map ? 'Chưa mở' : `${enabled ? 'Đang mở' : 'Đã đóng'} · Thiết kế bản ${publication.map.projectRevision}`;
+  $('publication-state').classList.toggle('is-open', enabled);
+  $('publication-hint').textContent = !project ? 'Chọn map để thiết lập.' : dirty ? 'Có thay đổi chưa lưu. Lưu thiết kế trước khi mở hoặc đóng map.' : project && publication?.map && publication.map.projectRevision !== project.revision ? 'Có thiết kế mới. Đóng rồi mở map để áp dụng bản đã lưu.' : enabled ? 'Người chơi vào được qua Xa phu. Đóng map sẽ đưa họ về Biện Kinh.' : 'Mở map để người chơi vào được. Lưu thiết kế không tự mở map.';
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-mode]')) b.disabled = !project?.ground || busy;
+  $('brush-control').hidden = mode !== 'block' && mode !== 'erase';
   $<HTMLButtonElement>('new').disabled = busy;
+  input('map-name').disabled = !project || busy;
+  $<HTMLButtonElement>('map-settings').disabled = !project || busy;
   $<HTMLSelectElement>('projects').disabled = busy;
   $<HTMLFieldSetElement>('resources').disabled = !project || busy;
   $<HTMLFieldSetElement>('map-fields').disabled = !project || busy;
   $<HTMLFieldSetElement>('object-fields').disabled = !selectedObject() || busy;
   $('stage').style.pointerEvents = busy ? 'none' : '';
-  $('state').textContent = project ? `#${project.id} · ${dirty ? 'Chưa lưu' : `Đã lưu · bản ${project.revision}`}${busy ? ' · Đang xử lý…' : ''}` : 'Chưa mở project';
+  $('state').textContent = project ? `#${project.id} · ${dirty ? 'Chưa lưu' : `Đã lưu · bản ${project.revision}`}${busy ? ' · Đang xử lý…' : ''}` : 'Chưa mở map';
   $<HTMLButtonElement>('undo').disabled = !history.length || busy;
   $<HTMLButtonElement>('redo').disabled = !future.length || busy;
 }
@@ -66,11 +75,14 @@ function changed() {
 function setMode(next: string) {
   mode = next;
   document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+  const tool = tools.find(t => t.mode === mode)!;
+  $('active-tool').textContent = `${tool.label} · ${tool.key}`; $('tool-hint').textContent = tool.hint;
+  $('brush-control').hidden = mode !== 'block' && mode !== 'erase';
   canvas.style.cursor = mode === 'pan' ? 'grab' : mode === 'select' ? 'default' : 'crosshair';
 }
 async function projectList() {
   const list = await api<{ id: number; name: string }[]>('/api/projects');
-  const select = $<HTMLSelectElement>('projects'); select.replaceChildren(new Option('Chọn project…', ''));
+  const select = $<HTMLSelectElement>('projects'); select.replaceChildren(new Option('Chọn map…', ''));
   list.forEach(p => select.add(new Option(`${p.name} · #${p.id}`, String(p.id))));
   select.value = project ? String(project.id) : '';
 }
@@ -93,11 +105,11 @@ async function openProject(id: number) {
 function render() {
   $('empty').hidden = !!project;
   $('stage-empty').hidden = !!project?.ground;
-  $('dimensions').textContent = project ? `${project.width} × ${project.height} px · ${project.objects.length} world` : 'Chưa có map';
+  $('dimensions').textContent = project ? `${project.width} × ${project.height} px · ${project.objects.length} vật thể` : 'Chưa có map';
   $('object-count').textContent = String(project?.objects.length ?? 0);
   input('map-name').value = project?.name ?? '';
   input('entry-x').value = String(project?.entry.x ?? 0); input('entry-y').value = String(project?.entry.y ?? 0);
-  $('ground-info').textContent = project?.ground ? `${project.ground.name} · ${project.width}×${project.height}` : 'Chưa có ground';
+  $('ground-info').textContent = project?.ground ? `${project.ground.name} · ${project.width}×${project.height}` : 'Chưa có ảnh nền';
   renderLists(); inspector(); controls(); draw();
 }
 function renderLists() {
@@ -115,8 +127,8 @@ function renderLists() {
     const b = document.createElement('button'); b.textContent = o.name; b.className = o.id === selected ? 'selected' : '';
     b.onclick = () => { selected = o.id; setMode('select'); inspector(); renderLists(); draw(); controls(); }; return b;
   }));
-  if (project && !project.assets.length) $('assets').textContent = 'Chưa có ảnh world.';
-  if (project && !project.objects.length) $('objects').textContent = 'Chưa đặt world.';
+  if (project && !project.assets.length) $('assets').textContent = 'Chưa có ảnh vật thể.';
+  if (project && !project.objects.length) $('objects').textContent = 'Chưa đặt vật thể.';
 }
 function inspector() {
   const o = selectedObject(); $('selection-empty').hidden = !!o; $('object-fields').hidden = !o;
@@ -196,12 +208,12 @@ function paint(x: number, y: number) {
 canvas.addEventListener('pointerdown', e => {
   if (!project || busy || drag) return;
   canvas.focus(); const p = worldPoint(e); const inside = p.x >= 0 && p.y >= 0 && p.x < project.width && p.y < project.height;
-  if (e.button === 1 || mode === 'pan') {
+  if (e.button === 1 || mode === 'pan' || spacePan) {
     e.preventDefault(); drag = { pointer: e.pointerId, x: e.clientX, y: e.clientY, panX, panY, ox: 0, oy: 0, type: 'pan' };
   } else if (e.button === 0 && inside) {
     if (mode === 'place') {
       const a = project.assets.find(a => a.id === chosenAsset);
-      if (!a) { status('Chọn một ảnh world trong thư viện trước.', true); return; }
+      if (!a) { status('Chọn một ảnh vật thể trong thư viện trước.', true); return; }
       mutate(() => { const o: WorldObject = { id: crypto.randomUUID(), asset: a.id, name: a.name, x: Math.round(p.x), y: Math.round(p.y), scale: 1, anchorX: a.width / 2, anchorY: a.height, depthOffset: 0, collider: { enabled: false, rx: 24, ry: 12, ox: 0, oy: 0 } }; project!.objects.push(o); selected = o.id; }); return;
     }
     if (mode === 'entry') { mutate(() => { project!.entry = { x: Math.floor(p.x), y: Math.floor(p.y) }; }); return; }
@@ -268,28 +280,28 @@ $('save').onclick = () => void run(save);
 $('toggle-map').onclick = async () => {
   if (!project || !publication || busy || dirty) return;
   const enabled = !publication.map?.enabled;
-  if (!await confirmPublication(enabled ? `Bật “${project.name}” trong game? Tool sẽ xuất bản đã lưu, kiểm điểm vào và đăng ký map.` : `Tắt “${project.name}”? Người chơi trong map sẽ được chuyển về Biện Kinh. Project và các bản xuất được giữ nguyên.`)) return;
+  if (!await confirmPublication(enabled ? `Mở “${project.name}” cho người chơi? Thiết kế đã lưu sẽ được đưa vào game và Map Manager.` : `Đóng “${project.name}”? Người chơi trong map sẽ về Biện Kinh. Thiết kế và ảnh nguồn vẫn được giữ.`, enabled ? 'Mở map' : 'Đóng map')) return;
   void run(async () => {
-    status(enabled ? 'Đang xuất và kiểm tra map để bật trong game…' : 'Đang tắt map…');
+    status(enabled ? 'Đang chuẩn bị mở map…' : 'Đang đóng map…');
     publication = await api(`/api/projects/${project!.id}/publication`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled, projectRevision: project!.revision, revision: publication!.revision, type: input('map-type').value }) });
-    status(enabled ? 'Đã bật map. Map Manager sẽ nhận khi làm mới, người chơi có thể vào qua Xa phu.' : 'Đã tắt map. Server chặn vào map và chuyển người chơi về Biện Kinh. Dữ liệu được giữ nguyên.');
+    status(enabled ? 'Đã mở map. Người chơi vào được qua Xa phu; Map Manager đã nhận map.' : 'Đã đóng map. Người chơi được về Biện Kinh; thiết kế được giữ nguyên.');
   });
 };
 $('export').onclick = () => void run(async () => {
-  await save(); status('Đang xuất ground, world và lưới đi lại…');
+  await save(); status('Đang tạo ảnh xem trước từ thiết kế…');
   const r = await api<{ build: string; preview: string }>(`/api/projects/${project!.id}/export`, { method: 'POST' });
   const a = $<HTMLAnchorElement>('preview'); a.href = r.preview; a.hidden = false;
-  status(`Đã xuất bộ map ${r.build}. Bộ map nằm trong project, chưa đưa vào game. Xem ảnh xuất ở cột thuộc tính.`);
+  status(`Đã tạo ảnh xem trước. Bấm Mở ảnh xem trước ở cột thuộc tính. Trạng thái trong game không thay đổi.`);
 });
 $('backup').onclick = () => {
   if (!project) return;
   const url = URL.createObjectURL(new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' }));
   const a = document.createElement('a'); a.href = url; a.download = `map-${project.id}-project.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
-$('reload').onclick = () => { if (project && (!dirty || confirm('Bỏ thay đổi chưa lưu và mở lại bản đã lưu?'))) void run(() => openProject(project!.id)); };
-$<HTMLSelectElement>('projects').onchange = e => {
+$('reload').onclick = async () => { if (project && (!dirty || await confirmPublication('Bỏ thay đổi chưa lưu và mở lại thiết kế đã lưu?', 'Bỏ thay đổi', 'Mở bản lưu'))) void run(() => openProject(project!.id)); };
+$<HTMLSelectElement>('projects').onchange = async e => {
   const select = e.target as HTMLSelectElement, id = Number(select.value);
-  if (!id || dirty && !confirm('Bỏ thay đổi chưa lưu để mở project khác?')) { select.value = String(project?.id ?? ''); return; }
+  if (!id || dirty && !await confirmPublication('Bỏ thay đổi chưa lưu để mở map khác?', 'Bỏ thay đổi', 'Đổi map')) { select.value = String(project?.id ?? ''); return; }
   void run(() => openProject(id));
 };
 dialogs.register('create-dialog', { onClose: () => $('new').focus() });
@@ -307,35 +319,119 @@ $('cancel-create').onclick = () => { dialogs.close('create-dialog'); $('new').fo
 $('create').onclick = () => void run(async () => {
   $('create-error').textContent = '';
   try {
-    if (dirty && !confirm('Bỏ thay đổi chưa lưu để tạo project mới?')) return;
+    if (dirty && !await confirmPublication('Bỏ thay đổi chưa lưu để tạo map mới?', 'Bỏ thay đổi', 'Tạo map mới')) return;
     const p = await api<Project>('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: Number(input('new-id').value), name: input('new-name').value.trim() }) });
     await openProject(p.id); await projectList(); dialogs.close('create-dialog'); $('new').focus();
   } catch (e) { $('create-error').textContent = (e as Error).message; }
 });
 async function upload(files: FileList | null, ground: boolean) {
   if (!project || !files?.length) return;
-  if (ground && (project.objects.length || project.blocked.length) && !confirm('Thay ground sẽ xóa world đã đặt và vùng tô chặn để tránh lệch tọa độ. Tiếp tục?')) return;
+  if (ground && (project.objects.length || project.blocked.length) && !await confirmPublication('Thay nền sẽ xóa vật thể đã đặt và vùng tô chặn. Ảnh trong thư viện vẫn được giữ. Có thể hoàn tác trước khi lưu.', 'Thay nền', 'Thay ảnh nền')) return;
   checkpoint();
   try {
     for (const file of Array.from(files)) {
-      status(`Đang upload ${file.name}…`);
+      status(`Đang tải ${file.name}…`);
       const a = await api<Asset>(`/api/projects/${project.id}/assets?name=${encodeURIComponent(file.name)}`, { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: file });
       if (ground) {
-        if (a.width % CELL_W || a.height % CELL_H) throw Error('Ground rộng phải chia hết cho 32, cao chia hết cho 16. Hãy chỉnh kích thước ảnh và upload lại.');
+        if (a.width % CELL_W || a.height % CELL_H) throw Error('Ảnh nền rộng phải chia hết cho 32, cao chia hết cho 16. Hãy chỉnh kích thước ảnh và thêm lại.');
         project.ground = a; project.width = a.width; project.height = a.height; project.entry = { x: a.width / 2, y: a.height / 2 }; project.objects = []; project.blocked = []; selected = '';
       } else if (!project.assets.some(x => x.id === a.id)) { if (project.assets.length >= 300) throw Error('Thư viện tối đa 300 ảnh.'); project.assets.push(a); chosenAsset = a.id; }
       changed();
     }
   } finally { await loadImages(); render(); if (ground) fit(); }
-  status(ground ? 'Đã upload ground. Đặt điểm vào và world, rồi lưu project.' : 'Đã upload world. Chọn ảnh rồi click map để đặt.');
+  status(ground ? 'Đã thêm ảnh nền. Đặt điểm vào và vật thể, rồi lưu thiết kế.' : 'Đã thêm ảnh vật thể. Chọn ảnh rồi click map để đặt.');
 }
 input('ground').onchange = () => void run(async () => { try { await upload(input('ground').files, true); } finally { input('ground').value = ''; } });
 input('world').onchange = () => void run(async () => { try { await upload(input('world').files, false); } finally { input('world').value = ''; } });
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+let spacePan = false;
+const dialogOpen = () => !!document.querySelector('.dlg:not(.hidden)');
 window.addEventListener('keydown', e => {
-  const typing = (e.target as HTMLElement).matches('input,textarea,select');
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); void run(save); }
-  if (!typing && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) restore(future, history); else restore(history, future); }
-  if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && selected) { e.preventDefault(); $('delete').click(); }
+  if (dialogOpen() || e.isComposing) return;
+  const target = e.target as HTMLElement;
+  const typing = !!target.closest('input,textarea,select,[contenteditable="true"]');
+  const mod = e.ctrlKey || e.metaKey, key = e.key.toLowerCase();
+  if (mod && key === 's') { e.preventDefault(); if (project && !busy) { if (typing) target.blur(); void run(save); } return; }
+  if (typing || busy || drag) return;
+  if (mod) {
+    if (key === 'z') { e.preventDefault(); if (e.shiftKey) restore(future, history); else restore(history, future); }
+    if (key === 'd' && selected) { e.preventDefault(); $('duplicate').click(); }
+    return;
+  }
+  if (e.altKey) return;
+  if (key === '?' || key === 'f1') { e.preventDefault(); $('shortcut-help').click(); return; }
+  if (!project?.ground) return;
+  if (key === ' ') { e.preventDefault(); spacePan = true; canvas.style.cursor = 'grab'; return; }
+  const tool = tools.find(t => t.key.toLowerCase() === key);
+  if (tool) { e.preventDefault(); setMode(tool.mode); return; }
+  if (key === '0') { e.preventDefault(); fit(); }
+  if (key === '+' || key === '=') { e.preventDefault(); $('zoom-in').click(); }
+  if (key === '-') { e.preventDefault(); $('zoom-out').click(); }
+  if ((key === '[' || key === ']') && (mode === 'block' || mode === 'erase')) {
+    e.preventDefault(); input('brush').value = String(Math.max(1, Math.min(12, Number(input('brush').value) + (key === ']' ? 1 : -1))));
+  }
+  if ((key === 'delete' || key === 'backspace') && selected) { e.preventDefault(); $('delete').click(); }
 });
+function releasePan() { spacePan = false; setMode(mode); }
+window.addEventListener('keyup', e => { if (e.key === ' ' && spacePan) { e.preventDefault(); releasePan(); } });
+window.addEventListener('blur', releasePan);
+
+// All actions keep text for assistive technology; compact tools expose descriptions on focus and hover.
+for (const tool of tools) {
+  const button = document.querySelector<HTMLElement>(`[data-mode="${tool.mode}"]`)!;
+  labelAction(button, tool.mode, tool.label, tool.hint, tool.key, true);
+  const key = document.createElement('span'); key.className = 'tool-key'; key.textContent = tool.key; key.setAttribute('aria-hidden', 'true'); button.append(key);
+}
+const actionLabels: [string, string, string, string, string?, boolean?][] = [
+  ['new', 'new', 'Tạo map', 'Bắt đầu một thiết kế mới.'],
+  ['save', 'save', 'Lưu thiết kế', 'Lưu thay đổi để sửa tiếp; không cập nhật map trong game.', 'Ctrl/Cmd+S'],
+  ['reload', 'open', 'Mở bản lưu', 'Bỏ bản nháp và mở lại thiết kế đã lưu.'],
+  ['backup', 'backup', 'Tải thiết kế JSON', 'Tải bố cục dự phòng; không kèm ảnh nguồn.'],
+  ['export', 'export', 'Tạo ảnh xem trước', 'Lưu thiết kế và tạo bộ xuất để xem; không mở map trong game.'],
+  ['pick-ground', 'upload', 'Thêm nền', 'Thêm ảnh đất, cỏ và đường đi.'],
+  ['pick-world', 'place', 'Thêm ảnh', 'Thêm ảnh cây, đá hoặc công trình có nền trong suốt.'],
+  ['undo', 'undo', 'Hoàn tác', 'Bỏ thao tác chỉnh sửa gần nhất.', 'Ctrl/Cmd+Z', true],
+  ['redo', 'redo', 'Làm lại', 'Áp lại thao tác vừa hoàn tác.', 'Ctrl/Cmd+Shift+Z', true],
+  ['fit', 'fit', 'Vừa khung', 'Xem toàn bộ map.', '0', true],
+  ['zoom-out', 'minus', 'Thu nhỏ', 'Thu nhỏ tại giữa khung.', '-', true],
+  ['zoom-in', 'plus', 'Phóng to', 'Phóng to tại giữa khung.', '+', true],
+  ['duplicate', 'duplicate', 'Nhân bản', 'Tạo bản sao vật thể đang chọn.', 'Ctrl/Cmd+D'],
+  ['delete', 'delete', 'Xóa vật thể', 'Xóa vật thể đang chọn; có thể hoàn tác.', 'Delete'],
+  ['shortcut-help', 'help', 'Phím tắt', 'Xem thao tác chuột và bàn phím.', '?', true],
+  ['map-settings', 'settings', 'Thuộc tính map', 'Chỉnh điểm vào của map.', '', true],
+];
+for (const [id, name, label, hint, key, compact] of actionLabels) labelAction($(id), name, label, hint, key, compact);
+let settingsFocus: HTMLElement | null = null;
+dialogs.register('map-settings-dialog', { onClose: () => settingsFocus?.focus() });
+$('map-settings').onclick = () => { settingsFocus = document.activeElement as HTMLElement; dialogs.open('map-settings-dialog'); input('entry-x').focus(); };
+$('close-map-settings').onclick = () => dialogs.close('map-settings-dialog');
+$('map-settings-dialog').addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const els = Array.from($('map-settings-dialog').querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled)'));
+  if (e.shiftKey && document.activeElement === els[0]) { e.preventDefault(); els.at(-1)!.focus(); }
+  else if (!e.shiftKey && document.activeElement === els.at(-1)) { e.preventDefault(); els[0].focus(); }
+});
+let helpFocus: HTMLElement | null = null;
+dialogs.register('shortcuts-dialog', { onClose: () => helpFocus?.focus() });
+$('shortcut-help').onclick = () => { helpFocus = document.activeElement as HTMLElement; dialogs.open('shortcuts-dialog'); $('close-shortcuts').focus(); };
+$('close-shortcuts').onclick = () => dialogs.close('shortcuts-dialog');
+$('shortcuts-dialog').addEventListener('keydown', e => {
+  if (e.key === 'Tab') { e.preventDefault(); const close = $('shortcuts-dialog').querySelector<HTMLElement>('.dlg-x')!; (document.activeElement === close ? $('close-shortcuts') : close).focus(); }
+});
+const shortcuts = [...tools.map(t => [t.key, t.label]), ['Space + kéo', 'Kéo khung tạm thời'], ['Cuộn / + / −', 'Zoom'], ['0', 'Vừa khung'], ['[ / ]', 'Giảm / tăng cỡ cọ'], ['Ctrl/Cmd+S', 'Lưu thiết kế'], ['Ctrl/Cmd+Z', 'Hoàn tác'], ['Ctrl/Cmd+Shift+Z', 'Làm lại'], ['Ctrl/Cmd+D', 'Nhân bản'], ['Delete', 'Xóa vật thể']];
+for (const [key, label] of shortcuts) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = key; dd.textContent = label; $('shortcut-list').append(dt, dd); }
+const tip = $('action-tooltip');
+function hideTip() { tip.hidden = true; document.querySelectorAll('[aria-describedby="action-tooltip"]').forEach(el => el.removeAttribute('aria-describedby')); }
+function showTip(e: Event) {
+  const button = (e.target as HTMLElement).closest<HTMLElement>('[data-tip]');
+  if (!button || button.matches(':disabled') || dialogOpen()) return;
+  hideTip(); tip.textContent = button.dataset.tip!; tip.hidden = false; button.setAttribute('aria-describedby', tip.id);
+  const r = button.getBoundingClientRect(), t = tip.getBoundingClientRect();
+  tip.style.left = `${Math.max(8, Math.min(window.innerWidth - t.width - 8, r.left))}px`;
+  tip.style.top = `${r.bottom + t.height + 12 > window.innerHeight ? Math.max(8, r.top - t.height - 8) : r.bottom + 8}px`;
+}
+document.addEventListener('pointerover', showTip); document.addEventListener('focusin', showTip);
+document.addEventListener('pointerout', hideTip); document.addEventListener('focusout', hideTip);
+document.addEventListener('pointerdown', hideTip); document.addEventListener('keydown', hideTip);
+window.addEventListener('scroll', hideTip, true); window.addEventListener('resize', hideTip);
 void run(projectList);

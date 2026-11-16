@@ -3,3 +3,36 @@
 .tool-page [hidden]{display:none!important}
 
 .tool-page #publication-backdrop{position:fixed;inset:0;background:#0007;z-index:19}.tool-page #publication-confirm{z-index:20;width:min(460px,calc(100vw - 32px));left:calc(50% - min(230px,50vw - 16px));top:20%}.tool-page .project-bar #publication-hint{flex-basis:100%;margin:0}.tool-page #publication-state{font-size:13px;color:var(--tool-muted)}
+
+/* Editing controls and game availability are separate, with one clear save action. */
+.tool-page button{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.tool-page .action-icon{flex:none;pointer-events:none}.tool-page .action-label{overflow-wrap:anywhere}
+.tool-page .publication-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 20px;border:1px solid var(--tool-border);border-radius:10px;background:var(--tool-panel);margin-top:12px}
+.tool-page .publication-summary{min-width:170px;margin-right:auto}.tool-page .publication-summary h2{margin:0 0 3px;font-size:13px;color:#b8c1ba}
+.tool-page #publication-state{font-size:14px}.tool-page #publication-state.is-open{color:var(--tool-accent)}
+.tool-page .publication-bar label{min-width:160px}.tool-page .publication-bar .hint{flex-basis:100%;margin:0}
+.tool-page .toolbar{gap:8px}.tool-page .toolbar button,.tool-page .viewbar button{width:44px;height:44px;min-height:44px;flex:none;padding:10px}
+.tool-page .tool-context{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--tool-border);font-size:12px}
+.tool-page #active-tool{color:var(--tool-accent);font-weight:600}.tool-page #tool-hint{color:#b8c1ba;flex:1;min-width:160px}
+.tool-page #shortcut-help{font-size:12px}.tool-page .file-actions{display:grid;gap:8px;margin-bottom:12px}
+.tool-page #action-tooltip{position:fixed;z-index:10000;max-width:min(320px,calc(100vw - 16px));padding:10px 12px;background:#242d26;color:var(--tool-text);border:1px solid var(--tool-control-border);border-radius:6px;font-size:12px;line-height:1.5;box-shadow:0 4px 16px #0006;pointer-events:none}
+.tool-page #shortcut-list{display:grid;grid-template-columns:auto 1fr;gap:10px 20px;margin:0}.tool-page #shortcut-list dt{font:12px/1.5 ui-monospace,monospace;color:var(--tool-accent)}.tool-page #shortcut-list dd{margin:0;font-size:13px}
+.tool-page .object-list button{justify-content:flex-start}
+@media(max-width:760px){.tool-page .publication-bar{padding:16px;gap:12px}.tool-page .publication-summary{min-width:100%;margin:0}.tool-page .publication-bar label{flex:1;min-width:140px}.tool-page .toolbar{gap:8px}.tool-page .toolbar button{flex:none}.tool-page .tool-context{gap:8px}.tool-page #tool-hint{flex-basis:100%;order:3}.tool-page .project-bar label{min-width:0}.tool-page .page-head .actions button{flex:1}.tool-page .library,.tool-page .inspector{max-height:none}}
+.tool-page .pair>label{min-width:0}.tool-page .pair input{width:100%}.tool-page .tool-key{font:10px/1 ui-monospace,monospace;position:absolute;right:4px;bottom:3px;opacity:.8}.tool-page .toolbar button{position:relative}
+.tool-page .advanced-fields{display:grid;gap:14px}.tool-page .advanced-fields .hint{margin:0}
+@media(max-width:760px){.tool-page .workspace>.editor{order:0}.tool-page .workspace>.library{order:1}.tool-page .workspace>.inspector{order:2}}
+/* Compact map header and one-line editing toolbar. */
+.tool-page .map-bar{padding:16px 20px;background:var(--tool-panel);border:1px solid var(--tool-border);border-radius:10px;display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end}
+.tool-page .map-identity{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr);gap:12px;flex:1;min-width:360px}.tool-page .map-identity input{width:100%}
+.tool-page .map-actions{display:flex;gap:8px;align-items:end}.tool-page .map-actions label{width:150px}.tool-page #map-settings{width:40px;padding:8px}.tool-page .map-state{display:flex;gap:18px;color:var(--tool-muted);font-size:12px;flex-basis:100%}.tool-page .map-bar>.hint{margin:0;flex-basis:100%}
+.tool-page .workspace{grid-template-columns:minmax(0,1fr) 270px}.tool-page .right-sidebar{display:grid;gap:16px;min-width:0;max-height:calc(100dvh - 260px);overflow:auto}.tool-page .library,.tool-page .inspector{max-height:none;overflow:visible;display:block}.tool-page .editor{min-width:0}
+.tool-page .editor-bar{display:flex;justify-content:space-between;gap:16px;padding:8px;border-bottom:1px solid var(--tool-border);overflow-x:auto;align-items:center}.tool-page .edit-tools,.tool-page .view-tools{display:flex;gap:4px;align-items:center;flex:none}.tool-page .editor-bar button{position:relative;width:36px;height:40px;padding:7px;flex:none}.tool-page .editor-bar .check{white-space:nowrap;font-size:12px;gap:4px;padding:0 3px}.tool-page .editor-bar output{min-width:34px}.tool-page .editor-bar button[aria-pressed=true]{background:#263a2c;border-color:var(--tool-accent);color:var(--tool-accent)}.tool-page .tool-context{font-size:12px}
+@media(max-width:1100px){.tool-page .workspace{grid-template-columns:minmax(0,1fr) 240px}.tool-page .map-identity{min-width:100%}.tool-page .right-sidebar .inspector{grid-column:auto}}
+@media(max-width:760px){.tool-page .map-bar{padding:16px}.tool-page .map-identity{min-width:0;flex-basis:100%;grid-template-columns:1fr}.tool-page .map-actions{flex-wrap:wrap}.tool-page .map-actions label{width:130px}.tool-page .workspace{grid-template-columns:1fr}.tool-page .right-sidebar{max-height:none;overflow:visible}.tool-page .editor-bar button{width:44px;height:44px}.tool-page .editor-bar .check{min-width:44px;min-height:44px}.tool-page .map-state{flex-wrap:wrap;gap:6px 14px}.tool-page .map-actions #map-settings{width:44px}}
+
+/* USER: pulse marks the live map; the button label describes the next action. */
+.tool-page #toggle-map .action-icon{color:var(--tool-accent)}
+.tool-page #toggle-map.is-map-open .action-icon{color:#f87171;animation:map-live-pulse 1.6s ease-in-out infinite}
+@keyframes map-live-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.9)}}
+@media(prefers-reduced-motion:reduce){.tool-page #toggle-map.is-map-open .action-icon{animation:none}}

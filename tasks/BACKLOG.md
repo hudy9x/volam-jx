@@ -329,3 +329,12 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 - MC2 cập nhật2026-11-15: minimap mặc định toàn map, wheel/+− zoom giữ minimap; nút xem NPC thật tại chỗ, pen dùng chung tọa độ. Typecheck/Chrome2330%/390×844 đạt, chưa commit.
 
 - MC2 commit2026-11-15: luật vùng an toàn `d9a7828`; pen/minimap/API lưu/teststore tách commit `feat(map-manager): add safe-zone pen and zoomable minimap`. Code hoàn tất,72test/typecheck/build đạt; vị trí NPC USER sửa giữ ngoài phạm vi.
+
+- MC1 UX2026-11-15: icon SVG/tooltip/phím V I H B E P + Space/zoom/cỡ cọ/nhân bản, tách Lưu thiết kế và Mở/Đóng map, Tùy chọn tệp/Nâng cao, dialog nội bộ. Desktop/mobile browser đạt, typecheck/build/testCreator3ca đạt; UI mới chưa commit, phần Bật/Tắt đã commit751fb47.
+
+- MC1 preview2026-11-15: header/toolbar gộp, settings icon, tài nguyên phải; Chơi thử sprite gốc nhiều lớp+bóng +3quái, click đi nav/A*, không lưu spawn/không server combat. Creator3+preview2/typecheck/build + browser desktop/mobile đạt; chưa commit/native/touch thật.
+
+- MC1 trạng thái2026-11-15: nút Đóng map iconpulse đỏ nháy khi enabled, Mở map xanh khi disabled; reduced-motion tắt nháy, typecheck/browser registry/tmp đạt, source9101 không đổi; chưa commit.
+- MC1 đính chính2026-11-15: trạng thái dùng chấm tròn đặc, giữ nháy đỏ/xanh; không dùng đường nhịp tim.
+
+- MC1 commit UI/UX2026-11-16: header/toolbar gọn, tài nguyên phải, icon/tooltip/shortcut/dialog/chấm trạng thái; commit độc lập, Chơi thử tách sau.
