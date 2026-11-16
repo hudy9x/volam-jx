@@ -58,7 +58,7 @@ const PAGE = `
 <div class="bp-cols">
 <section class="bp-card" id="template-card">
   <h2>2. Thiết lập nhân vật</h2>
-  ${f('Thiết lập đã lưu', sel('bt-file', '<optgroup label="Tự cài đặt">' + opt('', 'Tự cài đặt') + '</optgroup><optgroup label="Danh sách template thiết lập"></optgroup>'))}
+  <div class="bp-row bp-file-actions">${f('Thiết lập đã lưu', sel('bt-file', '<optgroup label="Tự cài đặt">' + opt('', 'Tự cài đặt') + '</optgroup><optgroup label="Danh sách template thiết lập"></optgroup>'))}<button type="button" id="bt-delete" class="bp-danger" disabled>Xóa thiết lập</button></div>
   <p id="bt-review" class="bp-note">Tự chỉnh thông số bên dưới, rồi cập nhật nhân vật hoặc lưu để dùng lại.</p>
   <fieldset id="bt-fields">
     <div class="bp-grid">
@@ -121,7 +121,7 @@ const PAGE = `
 
 <section class="bp-card" id="scenario-card">
   <h2>3. Kịch bản chạy</h2>
-  ${f('Kịch bản đã lưu', sel('sc-file', '<optgroup label="Tự cài đặt">' + opt('', 'Tự cài đặt') + '</optgroup><optgroup label="Danh sách template kịch bản"></optgroup>'))}
+  <div class="bp-row bp-file-actions">${f('Kịch bản đã lưu', sel('sc-file', '<optgroup label="Tự cài đặt">' + opt('', 'Tự cài đặt') + '</optgroup><optgroup label="Danh sách template kịch bản"></optgroup>'))}<button type="button" id="sc-delete" class="bp-danger" disabled>Xóa kịch bản</button></div>
   <p id="sc-review" class="bp-note">Tự chọn hoạt động bên dưới rồi lưu kịch bản để có lệnh chạy.</p>
   <p class="bp-run-note">Chạy liên tục · không giới hạn thời gian · dừng bằng Ctrl+C</p>
   <fieldset id="sc-fields">
@@ -170,6 +170,7 @@ class BotPanel {
   private scenarioBase: BotScenario = structuredClone(DEFAULT_BOT_SCENARIO);
   private scenarioRequest = 0;
   private loadingScenario = false;
+  private configBusy = false;
   private customTemplate: BotTemplate = structuredClone(DEFAULT_BOT_TEMPLATE);
 
   constructor(private root: HTMLElement) {
@@ -191,9 +192,11 @@ class BotPanel {
     this.$('bt-mapmode').addEventListener('change', () => { this.selectedMaps = this.mapOptions(); this.renderMapSelection(); });
     this.on('bt-map-edit', () => void this.pickMaps());
     this.on('bt-save', () => void this.saveTemplate());
+    this.on('bt-delete', () => void this.deleteFile('templates'));
     this.$('sc-file').addEventListener('change', () => void this.chooseScenario());
     for (const id of ['sc-grind', 'sc-chat', 'sc-sell']) this.$(id).addEventListener('change', () => this.showActivities());
     this.on('sc-save', () => void this.saveScenario());
+    this.on('sc-delete', () => void this.deleteFile('scenarios'));
     this.on('bl-run', () => void this.runSelected());
     this.on('bl-stop', () => void this.stopSelected());
     this.$('bl-scenario').addEventListener('change', () => this.updateRunActions());
@@ -323,28 +326,31 @@ class BotPanel {
       this.set('bt-level', band.join('-'));
       this.$('bt-gear').innerHTML = opt('green', 'Đồ xanh') + opt('gold', 'Hoàng kim môn phái'); this.set('bt-gear', this.customTemplate.gear === 'starter' ? 'green' : this.customTemplate.gear);
       this.$<HTMLFieldSetElement>('bt-fields').disabled = false;
-      this.$('bt-review').textContent = 'Tự chỉnh thông số bên dưới, rồi cập nhật nhân vật hoặc lưu để dùng lại.'; return;
+      this.$('bt-review').textContent = 'Tự chỉnh thông số bên dưới, rồi cập nhật nhân vật hoặc lưu để dùng lại.'; this.updateFileActions(); return;
     }
     this.customTemplate = this.$<HTMLFieldSetElement>('bt-fields').disabled ? this.customTemplate : this.readTemplate();
     this.$<HTMLFieldSetElement>('bt-fields').disabled = true; this.loadingTemplate = true;
     this.$('bt-review').textContent = 'Đang tải template…';
+    this.updateFileActions();
     try {
       const t = await this.call<BotTemplate>(`/files/templates/${name}`); if (request !== this.templateRequest) return;
       this.writeTemplate(t); this.templateTitle = t.title || name; this.remember('templates', name);
       const legacy = !BOT_LEVEL_BANDS.some(b => b.join('-') === t.level.join('-')) || t.gear === 'starter' || t.horse !== 'random' || t.ring || t.map.mode === 'list';
       this.$('bt-review').textContent = `Đang xem “${this.templateTitle}” — chỉ đọc. Chọn Tự cài đặt để chỉnh.${legacy ? ' Template cũ: cập nhật sẽ dùng ngựa theo cấp, không có giới chỉ; hãy chọn lại dải cấp/trang bị nếu cần.' : ''}`;
     } catch (e) { if (request === this.templateRequest) { this.status(`Không tải được template: ${(e as Error).message}`, true); this.set('bt-file', ''); this.writeTemplate(this.customTemplate); this.$<HTMLFieldSetElement>('bt-fields').disabled = false; this.$('bt-review').textContent = 'Tự cài đặt'; } }
-    finally { if (request === this.templateRequest) this.loadingTemplate = false; }
+    finally { if (request === this.templateRequest) this.loadingTemplate = false; this.updateFileActions(); }
   }
   private async saveTemplate(): Promise<void> {
-    if (this.loadingTemplate) return;
+    if (this.loadingTemplate || this.configBusy || this.savingScenario) return;
     const template = this.readTemplate();
     const title = await this.setupDialogs.askName(); if (!title) return;
     const name = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
     if (!name) { this.status('Tên thiết lập cần có ít nhất một chữ hoặc số.', true); return; }
     if ([...this.$<HTMLSelectElement>('bt-file').options].some(o => o.value === name) && !confirm(`Ghi đè thiết lập “${title}” đã lưu?`)) return;
+    this.configBusy = true; this.updateFileActions();
     try { await this.call(`/files/templates/${name}`, 'PUT', { ...template, title }); await this.refreshFiles(); this.status(`Đã lưu thiết lập “${title}”. Chưa áp dụng cho nhân vật.`); }
     catch (e) { this.status(`Không lưu được thiết lập: ${(e as Error).message}`, true); }
+    finally { this.configBusy = false; this.updateFileActions(); }
   }
 
 
@@ -401,6 +407,40 @@ class BotPanel {
 
   // ---------- files ----------
 
+  private updateFileActions(): void {
+    const busy = this.configBusy || this.savingScenario;
+    for (const [select, button] of [['bt-file', 'bt-delete'], ['sc-file', 'sc-delete']]) {
+      this.$<HTMLSelectElement>(select).disabled = busy;
+      this.$<HTMLButtonElement>(button).disabled = busy || this.loadingTemplate || this.loadingScenario || !this.val(select);
+      this.$(button).title = this.val(select) ? 'Chỉ xóa mẫu đã lưu, không xóa nhân vật.' : 'Chọn một mẫu đã lưu để xóa.';
+    }
+    this.$<HTMLButtonElement>('bt-save').disabled = busy;
+    this.$<HTMLButtonElement>('sc-save').disabled = busy;
+  }
+
+  private async deleteFile(kind: 'templates' | 'scenarios'): Promise<void> {
+    if (this.configBusy || this.savingScenario || this.loadingTemplate || this.loadingScenario) return;
+    const id = kind === 'templates' ? 'bt-file' : 'sc-file';
+    const name = this.val(id); if (!name) return;
+    const title = this.$<HTMLSelectElement>(id).selectedOptions[0]?.textContent || name;
+    const label = kind === 'templates' ? 'thiết lập nhân vật' : 'kịch bản';
+    if (!confirm(`Xóa mẫu ${label} “${title}”?\nChỉ xóa mẫu đã lưu; nhân vật và thiết lập đã áp dụng được giữ nguyên.`)) return;
+    this.configBusy = true; this.updateFileActions();
+    this.status(`Đang xóa mẫu ${label}…`);
+    try {
+      await this.call(`/files/${kind}/${name}`, 'DELETE');
+      const selects = kind === 'templates' ? ['bt-file'] : ['sc-file', 'bl-scenario'];
+      for (const select of selects) for (const option of [...this.$<HTMLSelectElement>(select).options]) {
+        if (option.value === name) option.remove();
+      }
+      this.set(id, ''); this.remember(kind, '');
+      if (kind === 'templates') await this.chooseTemplate(); else await this.chooseScenario();
+      await this.refreshFiles();
+      this.status(`Đã xóa mẫu ${label} “${title}”. Dữ liệu trên form được giữ ở Tự cài đặt.`);
+    } catch (e) { this.status(`Không xóa được mẫu ${label}: ${(e as Error).message}`, true); }
+    finally { this.configBusy = false; this.updateFileActions(); }
+  }
+
   private async refreshFiles(): Promise<void> {
     try {
       const files = await this.call<{ templates: string[]; titles: Record<string, string>; scenarios: string[]; scenarioTitles: Record<string, string>; dir: string }>('/files');
@@ -415,13 +455,15 @@ class BotPanel {
       this.set('bl-scenario', runScenario); this.updateRunActions();
       this.$('bt-file').title = this.$('sc-file').title = `Lưu ở ${files.dir}`;
     } catch { /* status shows the server problem */ }
+    finally { this.updateFileActions(); }
   }
 
   private async chooseScenario(): Promise<void> {
     const name = this.val('sc-file'); const request = ++this.scenarioRequest;
     this.savedScenario = ''; this.showCommand();
-    if (!name) { this.loadingScenario = false; this.$<HTMLFieldSetElement>('sc-fields').disabled = false; this.$('sc-review').textContent = 'Tự chọn hoạt động rồi lưu kịch bản.'; return; }
+    if (!name) { this.loadingScenario = false; this.$<HTMLFieldSetElement>('sc-fields').disabled = false; this.$('sc-review').textContent = 'Tự chọn hoạt động rồi lưu kịch bản.'; this.updateFileActions(); return; }
     this.loadingScenario = true; this.$<HTMLFieldSetElement>('sc-fields').disabled = true; this.$('sc-review').textContent = 'Đang tải kịch bản…';
+    this.updateFileActions();
     try {
       const data = await this.call<BotScenario>(`/files/scenarios/${name}`); if (request !== this.scenarioRequest) return;
       this.writeScenario(data); if (this.loadedSelection && this.rosterLoaded) await this.refresh();
@@ -429,10 +471,10 @@ class BotPanel {
       this.savedScenario = name; this.showCommand();
       this.$('sc-review').textContent = `Đang xem “${data.title || name}” — chỉ đọc. Chọn Tự cài đặt để chỉnh.`;
     } catch (e) { if (request === this.scenarioRequest) { this.status(`Không tải được kịch bản: ${(e as Error).message}`, true); this.set('sc-file', ''); this.$<HTMLFieldSetElement>('sc-fields').disabled = false; this.$('sc-review').textContent = 'Tự cài đặt'; } }
-    finally { if (request === this.scenarioRequest) this.loadingScenario = false; }
+    finally { if (request === this.scenarioRequest) this.loadingScenario = false; this.updateFileActions(); }
   }
   private async saveScenario(): Promise<void> {
-    if (this.savingScenario || this.loadingScenario) return;
+    if (this.savingScenario || this.loadingScenario || this.configBusy) return;
     const data = this.readScenario();
     if (!data.activities.grind && !data.activities.chat && !data.activities.sell) { this.status('Bật ít nhất một hoạt động.', true); return; }
     const title = await this.setupDialogs.askName('scenario'); if (!title) return;
@@ -440,6 +482,7 @@ class BotPanel {
     if (!name) { this.status('Tên kịch bản cần có ít nhất một chữ hoặc số.', true); return; }
     if ([...this.$<HTMLSelectElement>('sc-file').options].some(o => o.value === name) && !confirm(`Ghi đè kịch bản “${title}”?`)) return;
     this.savingScenario = true;
+    this.updateFileActions();
     try {
       const saved = await this.call<BotScenario>(`/files/scenarios/${name}`, 'PUT', { ...data, title });
       await this.refreshFiles(); this.writeScenario(saved); this.set('sc-file', name); this.$<HTMLFieldSetElement>('sc-fields').disabled = true;
@@ -447,7 +490,7 @@ class BotPanel {
       this.$('sc-review').textContent = `Đã lưu “${title}” — chỉ đọc. Chọn Tự cài đặt để chỉnh.`;
       this.status(this.picked.size ? 'Đã lưu kịch bản chạy liên tục. Sao chép lệnh để bắt đầu.' : 'Đã lưu kịch bản. Chọn nhân vật và kịch bản ở mục 1 để chạy.');
     } catch (e) { this.status(`Không lưu được kịch bản: ${(e as Error).message}`, true); }
-    finally { this.savingScenario = false; }
+    finally { this.savingScenario = false; this.updateFileActions(); }
   }
 
   private remember(kind: string, name: string): void {

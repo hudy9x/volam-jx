@@ -15,7 +15,7 @@
 
 ## Kỹ năng, quái và boss
 
-- Người chơi dùng chiêu tấn công trên thanh phím; bot tự xếp chiêu đã học theo ReqLevel, vũ khí và trạng thái cưỡi. Chiêu có `noHorse` bị loại khi cưỡi; bot xếp lại khi lên/xuống ngựa.
+- Người chơi dùng chiêu tấn công trên thanh phím; bot tự xếp chiêu đã học theo ReqLevel, vũ khí và trạng thái cưỡi. **USER2026-11-16:** khi có quái trong600px và chiêu phái ưu tiên cần đi bộ, bot gửi xuống ngựa rồi chờ Actor xác nhận trước khi đánh. Buff/hào quang cần đi bộ cũng có thể yêu cầu xuống ngựa khi bật tự buff. Lệnh thử lại giãn1giây; chờ vẫn uống thuốc/hồi sinh/về thành theo Auto. Chiêu dùng được trên ngựa thì giữ cưỡi, không thêm vòng tự lên lại ngựa. Bot xếp lại thanh sau xác nhận; các đòn common1/2/53 không xen vào khi có chiêu phái dùng được.
 - Xoay chiêu áp dụng cả trên boss. Khi chiêu chính chưa sẵn sàng, tìm chiêu tấn công khác dùng được trước khi đánh thường. Không đưa đánh thường vào vòng xoay khi có chiêu tấn công thật.
 - Chiêu 90/120/150 vẫn cần đủ điều kiện cấp và đã học. Không có tầng chiêu 70 riêng trong dữ liệu hiện tại. Template bot có tùy chọn tự học đủ điều kiện; chạy kịch bản không tự reset tiến trình tài khoản cũ.
 - Có3chế độ dùng chung cho Auto và bot: **Hoàng Kim (2) → Boss Xanh (1) → quái thường (0)** (`boss`, mặc định); **Boss Xanh → Quái thường** (`blue`, bỏ Hoàng Kim); **Gần nhất** (`near`). Bật Bỏ qua boss vẫn loại mọi boss, chỉ đánh quái thường.
@@ -86,6 +86,9 @@ WS thật trên2568, DB riêng `/tmp/jx-auto-focus/db.json`: runner Auto đánh 
 - Hoa Sơn có Huyễn Nhãn Vân Yên và các trạng thái kiếm pháp, trường có lợi1376/1380; ưu tiên buff thường trước hai trạng thái1364/1369 làm giảm hồi nội lực. Đây không phải triển khai thêm khí trường/kích nổ hay sửa lỗi hồi nội lực âm đã được điều tra. Nếu hết nội lực thì Auto chờ điều kiện thi triển; bộ kỹ năng Kiếm Tông có1349 vẫn chịu lỗi cũ. Kiểm WS11phái dùng Hoa Sơn Khí Tông; không khẳng định đã cân bằng hoặc hoàn thiện toàn bộ Hoa Sơn.
 
 ### Thiết lập tạo bot và cấu hình cũ
+
+- **Bổ sung học buff cơ bản — USER2026-11-16:** server cấp các buff duy trì/hào quang thường của phái ở cấp tối đa hợp lệ theo cấp nhân vật. Đây là bước cấp kỹ năng riêng cho bot, tương tự thiết lập tầng chiêu; không tiêu hoặc phân lại điểm kỹ năng, không giảm chiêu đã có, không tẩy nhân vật. Gợi ý cộng điểm của người chơi giữ nguyên. Chỉ áp dụng khi thiết lập nhân vật cho phép tự buff; không tự mở bí kíp90/120/150, Ngự TuyếtẨn hoặc hỗ trợ theo tình huống.
+- Áp dụng cả bot mới và bot đã tạo ngay khi vào map bằng bản server mới, lưu bổ sung vào nhân vật; khi tăng cấp/đổi phái thì kiểm lại một lần. Giữ cấp/EXP/điểm/đồ/túi/tiền/thục luyện và chiêu tấn công. Bỏ tick không xóa buff đã học. Nguồn `world/botBuffs.ts`, đăng ký từ bản ghi bot đã xác thực trong MapRoom; nhân vật thường không được cấp theo đường này. Runner đang chạy cần nạp mã mới; không tự reset hoặc ghi DB trực tiếp để chuyển đổi.
 
 - **Thiết lập nhân vật** có checkbox **Tự động buff kỹ năng đã học và duy trì hào quang**, mặc định bật (`BotTemplate.autoBuff`). Template/nhân vật cũ thiếu trường này được hiểu là bật; không cần đặt lại cấp/trang bị của bot cũ. Bỏ tick rồi **Cập nhật thiết lập** mới áp dụng cho nhân vật; **Lưu Thiết lập** chỉ lưu template.
 - Kịch bản cũ, kể cả từng có `auto.autoBuff:false`, được chuyển mặc định sang bật theo USER. Kịch bản mới lưu `buffVersion:1` để giữ lựa chọn tắt rõ ràng qua lưu/nạp/chạy lại. Không đổi các lựa chọn Auto khác. Tùy chọn tự buff trong kịch bản vẫn là công tắc cho lượt chạy; một trong thiết lập nhân vật/kịch bản mới chủ động tắt thì bot không tự buff/hào quang.

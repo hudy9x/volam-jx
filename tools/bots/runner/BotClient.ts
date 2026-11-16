@@ -1,7 +1,7 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
   applyMapRegistry, combatRulesAt, BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillCost,
-  tuningOf, weaponOk, weaponTypeOf, autoAuraSkill,
+  tuningOf, weaponOk, weaponTypeOf, autoAuraSkill, autoBuffSkills, isoDistance,
   type AutoSettings, type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type InventoryMsg, type Item,
   type SkillDef, type SkillsMsg, type StatsMsg, type TransferMsg, type TeamMsg,
 } from '@vltk/shared';
@@ -56,6 +56,7 @@ export class BotClient {
   aura = -1;
   private autoAura: number | null = null;
   private barMounted = false;
+  private dismountAt = -Infinity;
   readonly host: AutoHost;
 
   private client: Client;
@@ -240,6 +241,32 @@ export class BotClient {
 
   // ======================= skills =======================
 
+  /** Keep travelling mounted, but wait for the server to dismount before using an on-foot skill. */
+  prepareCombat(now: number): boolean {
+    const me = this.me();
+    if (!me?.mounted || me.hp <= 0 || this.host.safe()) return false;
+    const learned = this.learnedDefs();
+    const preferred = learned.find(s => s.pack !== 'common' && !s.aura && skillCategory(s) === 'attack');
+    const nearEnemy = this.actors().some(a => !a.isSelf && a.state.kind === 'monster' && a.state.hp > 0
+      && isoDistance(me.x, me.y, a.x, a.y) <= 600);
+    const upkeep = this.autoSettings.autoBuff && (autoBuffSkills(learned.map(s => s.id))
+      .some(id => getSkill(id)?.noHorse && ![...(me.states ?? [])].includes(id))
+      || !!getSkill(autoAuraSkill(learned.map(s => s.id), () => true))?.noHorse);
+    if (!(preferred?.noHorse && nearEnemy) && !upkeep) return false;
+    if (now - this.dismountAt >= 1000) {
+      this.dismountAt = now;
+      this.send(C2S.mount, { on: false });
+    }
+    return true;
+  }
+
+  /** Weapon-compatible learned skills, including those that require dismounting. */
+  private learnedDefs(): SkillDef[] {
+    return Object.keys(this.levels).map(Number).filter(id => this.levelOf(id) > 0).map(getSkill)
+      .filter((s): s is SkillDef => !!s && isCastable(s) && weaponOk(s, this.weapon()))
+      .sort((a, b) => (b.reqLevel ?? 0) - (a.reqLevel ?? 0) || this.levelOf(b.id) - this.levelOf(a.id));
+  }
+
   levelOf(id: number): number {
     const base = this.levels[id] ?? (id === BASIC_ATTACK ? 1 : 0);
     return base > 0 ? base + (this.bonus[id] ?? 0) : base;
@@ -281,13 +308,11 @@ export class BotClient {
    * hand is sent once (C2S.aura, the server keeps it on). Buff upkeep reads all learned skills independently of this bar.
    */
   private layoutBar(): void {
-    const weapon = this.weapon();
     this.barMounted = !!this.me()?.mounted;
-    const learned = Object.keys(this.levels).map(Number).filter(id => this.levelOf(id) > 0)
-      .map(getSkill).filter((s): s is SkillDef => !!s && isCastable(s) && weaponOk(s, weapon) && !(s.noHorse && this.barMounted))
-      .sort((a, b) => (b.reqLevel ?? 0) - (a.reqLevel ?? 0) || this.levelOf(b.id) - this.levelOf(a.id));
+    const learned = this.learnedDefs().filter(s => !(s.noHorse && this.barMounted));
     const of = (cat: string, n: number) => learned.filter(s => !s.aura && skillCategory(s) === cat).slice(0, n).map(s => s.id);
-    const attacks = of('attack', 5);
+    const factionAttacks = learned.filter(s => s.pack !== 'common' && !s.aura && skillCategory(s) === 'attack');
+    const attacks = factionAttacks.length ? factionAttacks.slice(0, 5).map(s => s.id) : of('attack', 5);
     this.left = attacks[0] ?? BASIC_ATTACK;
     const keys = [...attacks, ...of('buff', 2), ...of('debuff', 2)];
     this.keys = Array.from({ length: 9 }, (_, i) => keys[i] ?? null);
@@ -320,6 +345,7 @@ export class BotClient {
       self: () => this.actors().find(a => a.isSelf),
       actors: () => this.actors(),
       safe: () => this.safe(),
+      prepareCombat: now => this.prepareCombat(now),
       skillAt: slot => {
         if (this.barMounted !== !!this.me()?.mounted) this.layoutBar();
         return slot === 'left' ? this.left : this.keys[slot] ?? null;

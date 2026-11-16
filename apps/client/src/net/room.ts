@@ -2,10 +2,10 @@ import { beginCharacterAuto, receiveCharacterAuto } from '../state/characterAuto
 import { C2S, type CharacterAuto } from '@vltk/shared';
 import { Client, type Room } from '@colyseus/sdk';
 import { marketResult, knbPurchaseResult } from '../state/market';
-import { team, teamInvites } from '../state/team';
+import { receiveTeam, receiveTeamInvite } from '../state/team';
 import { chatOnlineCount, receiveChat, receiveOlder, receiveReacts } from '../state/chat';
 import { addSyslog } from '../state/syslog';
-import { type TeamMsg, type TeamInviteMsg, MAP_ROOM, S2C, type InventoryMsg, type StashMsg, type SkillsMsg, type StatsMsg, type ChatLine, type ChatOlderMsg, type ChatReactsMsg, type LogMsg, type OnlineMsg } from '@vltk/shared';
+import { MAP_ROOM, S2C, type InventoryMsg, type StashMsg, type SkillsMsg, type StatsMsg, type ChatLine, type ChatOlderMsg, type ChatReactsMsg, type LogMsg, type OnlineMsg } from '@vltk/shared';
 import { inventory } from '../state/inventory';
 import { stash } from '../state/stash';
 import { progress } from '../state/progress';
@@ -31,15 +31,12 @@ export async function joinMap(mapId: number, charId: string): Promise<Room> {
   room.onMessage(S2C.stash, (msg: StashMsg) => stash.set(msg));
   room.onMessage(S2C.skills, (msg: SkillsMsg) => skillbar.setLevels(msg.levels, msg.exp, msg.bonus));
   room.onMessage(S2C.stats, (msg: StatsMsg) => progress.set(msg));
-  room.onMessage(S2C.team, (msg: TeamMsg | null) => team.set(msg));
+  room.onMessage(S2C.team, receiveTeam);
   room.onMessage(S2C.chat, (msg: ChatLine | ChatLine[]) => receiveChat(msg));
   room.onMessage(S2C.chatReacts, (msg: ChatReactsMsg) => receiveReacts(msg));
   room.onMessage(S2C.chatOlder, (msg: ChatOlderMsg) => receiveOlder(msg));
   room.onMessage(S2C.log, (msg: LogMsg) => addSyslog(msg));
   room.onMessage(S2C.online, (msg: OnlineMsg) => chatOnlineCount.set(Math.max(0, Number(msg?.n) || 0)));
-  room.onMessage(S2C.teamInvite, (msg: TeamInviteMsg) => {
-    const list = teamInvites.get().filter(n => n !== msg.from);
-    teamInvites.set([...list, msg.from].slice(-5));
-  });
+  room.onMessage(S2C.teamInvite, receiveTeamInvite);
   return room;
 }

@@ -7,6 +7,7 @@ import {
 import { Actor } from '../net/schema.js';
 import { makeSim, type Sim } from './entity.js';
 import { restoreProgress, unlockSkills } from './progress.js';
+import { maintainBotBuffs } from './botBuffs.js';
 import { ensureToken } from './token.js';
 import { applyEquipment, makeItem, outfitItems, restoreBag, restoreEquipment } from './inventory.js';
 import { setAnim } from './systems/anim.js';
@@ -124,6 +125,7 @@ export function regen(w: World, sim: Sim, dt: number): void {
 }
 
 export function updatePlayer(w: World, sim: Sim, dt: number): void {
+  maintainBotBuffs(w, sim);
   if (combatRulesAt(w.meta, sim.a, w.rules).safe) { sim.pending = null; sim.a.attackTarget = ''; }
   if (sim.slotAura) holdSlotAura(w, sim, sim.slotAura);
   if (w.now < sim.castUntil) return;

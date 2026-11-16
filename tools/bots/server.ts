@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MAPS } from '@vltk/shared';
 import { ConfigStore } from './ConfigStore.js';
+import { handleConfigRequest } from './ConfigRoutes.js';
 import { RunManager } from './RunManager.js';
 import { build } from 'esbuild';
 
@@ -26,15 +27,7 @@ const server = http.createServer((req,res) => {
   try { pathname = decodeURIComponent(new URL(req.url ?? '/', 'http://localhost').pathname); } catch { res.writeHead(400);res.end();return; }
   res.setHeader('Cache-Control','no-cache');
   if(pathname==='/api/maps'&&req.method==='GET'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(Object.keys(MAPS).map(Number).filter(id=>fs.existsSync(path.join(ASSETS,'maps',String(id),'nav.json')))));return;}
-  if(pathname==='/api/config'||pathname.startsWith('/api/config/')){
-    res.setHeader('Content-Type','application/json; charset=utf-8');
-    const [, , , kind, name] = pathname.split('/');
-    try{
-      if(req.method==='GET'){res.end(JSON.stringify(pathname==='/api/config'?store.list():store.read(kind,name)));return;}
-      if(req.method!=='PUT'||req.headers.origin&&req.headers.origin!==`http://${req.headers.host}`){res.writeHead(403);res.end(JSON.stringify({error:'Yêu cầu không hợp lệ.'}));return;}
-      let raw='';req.on('data',chunk=>{raw+=chunk;if(raw.length>65536)req.destroy();});req.on('end',()=>{try{res.end(JSON.stringify(store.save(kind,name,JSON.parse(raw))));}catch(error){res.writeHead(400);res.end(JSON.stringify({error:(error as Error).message}));}});
-    }catch(error){res.writeHead(400);res.end(JSON.stringify({error:(error as Error).message}));}return;
-  }
+  if(handleConfigRequest(req,res,pathname,store,runs)) return;
   if (pathname.startsWith('/api/runner/')) {
     res.setHeader('Content-Type','application/json; charset=utf-8');
     if (pathname==='/api/runner/status'&&req.method==='GET') {res.end(JSON.stringify(runs.status()));return;}

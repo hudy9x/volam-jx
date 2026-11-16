@@ -54,6 +54,7 @@ Bế Nguyệt Phất Trần (5 hào quang, không gây sát thương). Phản đ
   vòng 28, như jx-web-main không cần gõ tên), người được mời Đồng ý / Từ chối (hết hạn 60 giây). Tối đa **8** người
   (`MAX_TEAM`, như JX1). Người không ở trong đội mời thì thành đội trưởng.
 - Đội trưởng: mời, mời ra, nhường đội trưởng. Ai cũng rời đội được; còn 1 người thì đội giải tán.
+- USER2026-11-16: vào đội xóa toàn bộ lời mời chờ ở server và giao diện, kể cả người vừa thành đội trưởng khi lập đội. Lời mời cũ không dùng lại được sau rời đội; lời mời mới gửi tới người đã có đội bị chặn, client bỏ qua gói mời đến muộn. Rời đội nhận lời mời mới bình thường; đội trưởng vẫn mời thêm người khi đội còn chỗ.
 - Đội sống ở tiến trình server, xuyên bản đồ; ngoại tuyến quá 30 giây (thoát game) thì rời đội, chuyển bản đồ không mất đội.
 - Cửa sổ Tổ đội (phím **G**, nút trên thanh dưới): thành viên, cấp, phái, bản đồ, thanh Sinh lực (cập nhật 2 giây).
 - Đồ rơi: 20 giây đầu người đánh chết quái **và tổ đội** được nhặt (VT7).

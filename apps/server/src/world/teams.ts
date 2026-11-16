@@ -104,7 +104,11 @@ export function teamOrder(charId: string, op: string, name = ''): void {
       if (t.members.length >= MAX_TEAM) { me.notify(`Tổ đội đã đủ ${MAX_TEAM} người.`); return; }
       t.members.push(charId);
       teamOf.set(charId, t);
-      for (const id of t.members) { const s = seats.get(id); if (s) { refreshCamp(s.sim); s.notify(`${me.sim.a.name} đã vào tổ đội.`); } }
+      for (const id of t.members) {
+        invites.delete(id);
+        const s = seats.get(id);
+        if (s) { refreshCamp(s.sim); s.notify(`${me.sim.a.name} đã vào tổ đội.`); }
+      }
       broadcast(t);
       return;
     }

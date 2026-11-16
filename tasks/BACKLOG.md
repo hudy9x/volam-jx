@@ -291,6 +291,13 @@ Ghi chú GP8 — 2026-11-14 · Điều tra die (chưa sửa): HEAD8a8b6ff. Serve
 
 ### Ghi chú điều tra buff/Auto — 2026-11-14 (GP9 / HU2, đã triển khai)
 
+- [x] USER2026-11-16 yêu cầu commit toàn bộ Auto/bot/tổ đội/xóa mẫu của cuộc chat: `fix(bots): repair auto combat, team invites and template deletion`, nền8115d8a.105test/typecheck/build đạt trên bản index riêng; khôngpush. Giữ4filemẫu đã xóa ngoài commit, không sửa DB/assets.
+
+- [x] USER2026-11-16 bổ sung Xóa thiết lập/Xóa kịch bản trong tool bot; xác nhận/custombusy/giữform, xóa riêng file mẫu không đụng nhân vật; chặn dependency initialSetup và running/preparing (kể cả start đồng thời), kiểm origin/path. 25test:bots (5mới)/typecheck/build/HTTPthật/Chromium1440+390 đạt; ảnh/log /tmp/jx-bot-config-delete. Chưa commit, restart bots:ui để nhận mã; không sửa mẫu thật hoặc DB.
+
+- [x] Điều tra USER2026-11-16 (HEAD e349beb): thiếu tự xuống ngựa; common2/53 lọt vòngxoay; buff cơ bản chưa học do tuyến gợi ý dù autoBuff bật. Snapshot20bot đã khởi tạo và40biếnthể bộnhớ, teamOrder4seat, Auto34/bots10 đạt. Chi tiết CURRENT/HISTORY; chưa WS/browser/native.
+- [x] USER2026-11-16 duyệt và sửa ngựa/chọn chiêu, học buff riêng bot theo cấp như bước thiết lập không tiêu/phân lại điểm, cập nhật bot cũ không reset; dọn lời mời cũ cho cả leader/thànhviên và bỏ gói muộn. 96test/typecheck/build/WS20botcũ+5combatfixture+2botmới/Chromium1440+390+transfer đạt. Script/ảnh /tmp/jx-bot-fix-live; chưa native/touchthật, chưa commit theoUSER. Cần nạp lại server/runner/tool/reloadclient, không reset bot.
+
 - [x] Đối chiếu buff từng phái và Auto/bot: giới hạn keys1–9/tối đa2buff bot, Nga My712 gộp5hào quang, Côn Lôn173/178 có chỉ số và FX nhưng thiếu đường hiển thị passive. Chi tiết CURRENT/HISTORY.
 - [x] USER đã duyệt và hoàn tất: Auto từ mọi kỹ năng đã học, loại Ngự Tuyết Ẩn, duy trì aura/NgaMy712, ready/retry/revive, FX riêng173/178; checkbox tạo bot mặc địnhbật + migrationbotcũ + giữexplicitoff mới. Test:auto22/bots10/market13/typecheck/build/WS11phái/Chromium1440/390 đạt; chưa sửa công thức nội lực Hoa Sơn/native. Commit phần buff theo USER; hash xem git log, không push; chi tiết CURRENT/HISTORY và docs/auto.md.
 

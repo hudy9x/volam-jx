@@ -22,6 +22,7 @@ import { teamOffline, teamOnline, teamOrder } from '../world/teams.js';
 import { chatHistoryFor, chatOffline, chatOlder, chatOnline, onlineCount, chatReact, chatRoomOpen, chatSay } from '../world/chat.js';
 import { addPlayer, revive } from '../world/players.js';
 import { applyBotSetup } from '../world/botSetup.js';
+import { configureBotBuffs } from '../world/botBuffs.js';
 import { applySuggestion, addPotential, expNext, gainExp, joinFaction, raiseSkill } from '../world/progress.js';
 import { pickup } from '../world/systems/drops.js';
 import { World } from '../world/World.js';
@@ -334,6 +335,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     }
     marketOnline(sim, () => { this.sendInventory(client, sim); this.saveCharacter(sim); });
     if (char.bot) {
+      if (configureBotBuffs(this.world, sim, normalizeBotTemplate(char.bot.setup))) this.saveCharacter(sim);
       const auto = char.auto ?? { enabled: false, settings: { ...DEFAULT_AUTO }, revision: 0 };
       char.auto = { ...auto, settings: { ...normalizeAuto(auto.settings), autoBuff: normalizeBotTemplate(char.bot.setup).autoBuff } };
     }

@@ -1,8 +1,22 @@
+## 2026-11-16 · Commit Auto bot, tổ đội và xóa template theo USER
+
+- USER yêu cầu commit toàn bộ phần sửa trong cuộc chat, chưa push. Commit chứa checkpoint này: `fix(bots): repair auto combat, team invites and template deletion`, nền `8115d8a` main. Bao gồm mã,15test mới, hướng dẫn và tracking của Auto/buff/bot cũ/tổ đội/xóa mẫu.
+- Kiểm bản index riêng (giữ mẫu mặc định ở bản kiểm tra, không khôi phục mẫu USER đã xóa):105test đạt =bots25+Auto34+effects20+speed5+safezones4+market13+fixedcold4; typecheck/build đạt, warningchunkcũ. Bản sao dùng dependencyworkspace trỏ đúng bản snapshot để tránh tách registry. WS/browser đã kiểm ở các lượt triển khai bên dưới; không chạy lại trận/native trong lượt commit.
+- Giữ4filemẫu đã xóa ngoài commit: tools/bots/data/{luyen-cong-30,luyen-cong,mac-dinh}.json vàtemplates/mac-dinh.json. Không reset/khôi phục các file này hoặc sửa DB/assets. Phần băng đã có commit8115d8a riêng, không gộp lại. Staged diff/graph được kiểm ngay trướccommit; khôngpush.
+
 ## 2026-11-16 · Commit băng cố định theo USER
 
 - USER yêu cầu commit riêng băng60iso/s và4FPSchuẩn, chưa push. Commit chứa checkpoint này: `feat(effects): synchronize fixed cold movement and gait`, nền e349beb main.
 - Chỉ gồm công thức/tuning băng, di chuyển có tọa độ lẻ, ActorView, kiểm thử và tài liệu liên quan. Giữ riêng thay đổi bot/tổ đội/xóa mẫu trong working tree.
 -36test/typecheck/build đạt ở lượt triển khai; staged diff/graph kiểm trước commit. Chưa browser sprite thật/WS/native. Không đổi thời gian băng/trần77, tốc đánh hoặc PvP.
+
+## 2026-11-16 · Xóa mẫu thiết lập/kịch bản bot theo USER (chưa commit)
+
+- USER yêu cầu bổ sung xóa template nhân vật và kịch bản trong tools/bots. Nền e349beb main; giữ công việc Auto/team trước và băng cố định của phiên đồng thời. Không commit/push/restart tool USER, không sửa file mẫu thật/DB/assets/gameplay cho đầu việc này.
+- UI có nút Xóa thiết lập/Xóa kịch bản cạnh selector, danger/44px, custom/loading/saving/deleting khóa; confirm nêu chỉ xóa mẫu. Thành công giữ thông số form ở Tự cài đặt, gỡ option ở danh sách chạy, xóa saved command/last selection. Lỗi/cancel giữ lựa chọn và dữ liệu; không tự chạy/dừng hoặc cập nhật nhân vật.
+- ConfigStore.remove + ConfigRoutes DELETE kiểm kind/name/path/origin,404 khi mất,409 khi dependency hoặc running. Mẫu còn được saved scenario.initialSetup tham chiếu thì chặn/báo tên; scenario hỏng chặn kiểm dependency tới khi sửa/xóa. RunManager.usesScenario giữ cả child đang chạy và counter chuẩn bị async, kể cả2start đồng thời; không tự kill child. Chỉ guard lượt do tool quản lý, không tuyên bố theo dõi CLI ngoài tool.
+- 25test:bots đạt gồm5mới store/delete/dependency/path/pendingstart/HTTP thật (4ca mới fail trước triển khai); typecheck/build/diffcheck đạt, warningchunkcũ. HTTP kiểm origin403/conflict409/missing404/malformed400 và giữ file. Chromium1440/390: customdisabled, hủy bằng bàn phím, busy/1DELETE, xóa2loại/persistreload/giữform/clearselector+copy/dependencyerror; viewport390 không tràn ngang,nút44px,0pageerror,đãxemảnh. Không native/touch thật.
+- Artifacts /tmp/jx-bot-config-delete: tests.log/typecheck-final.log/build.log/ui-result.json vàcontrols-desktop/mobile.png. Tool thử4586/BOTS_DIR riêng được dừng sau kiểm; game GET được giả lập ở browser, không gọi game USER. Nạp lại bots:ui để có bundle mới. README/AGENTS/tracking cập nhật. Graph impacts tool LOW, constructor/HTTPentry UNKNOWN đã đối chiếu main/newBotPanel/servercallback và kiểm thực tế; finaldetect gồm thay đổi Auto/cold đồng thời, không coi đó là rủi ro chỉ của feature tool này hoặc projectionCLI là đầy đủ.
 
 ## 2026-11-16 · Băng cố định60 và4FPS chuẩn theo USER (chưa commit)
 
@@ -22,6 +36,26 @@
 
 - Đọc effects.md/speed.md và đối chiếu mã: tổng % chạy/đánh/cast nhân0,5 trước chọn mốc, không khóa FPS cố định; chạy100/180/260% tương ứng8/16/24FPS chuẩn, bịbăng5/6/10. Client nhân thêm coldLoopRate0,5 cho vòng đứng/chạy, không nhân thêm vận tốc hoặc oneshot. Áp dụng chung người/quái/boss; spriteFPS phụ thuộc số ảnh thực. Băng4FPS/75pxs vẫn chỉ là đề xuất cũ, chưa triểnkhai.
 - HEAD e349beb; giữ thay đổi bot/team đang có của phiên khác. Chỉ tra cứu và kiểm số từ resolver, không sửa gameplay/commit/push.
+
+## 2026-11-16 · Sửa Auto bot và lời mời tổ đội theo USER (chưa commit)
+
+- USER duyệt cả3phần, áp dụng bot đã tạo không reset, test kỹ/chưa commit. HEAD `e349beb` main; giữ ghi chú điều tra trước. Không commit/push, không restart tiến trình USER hoặc ghi DB/config/assets thật.
+- Cuối lượt xuất hiện tài liệu untracked `docs/research/fixed-cold-movement-proposal-2026-11-16.md` từ công việc đồng thời; giữ nguyên, không thuộc thay đổi Auto/tổ đội này.
+- BotClient chuẩn bị xuống ngựa khi chiêu phái ưu tiên noHorse và có quái600px hoặc cần buff/aura đi bộ; thử1giây/lệnh, chờ Actor.mounted=false rồi xếp lại bar. Hook tùy chọn AutoHost chạy sau thuốc/hồi sinh/town, không chặn xử lý khẩn cấp. Chiêu cho phép cưỡi giữ ngựa; không tự lên lại. Chỉ xoay chiêu phái khi có chiêu dùng được, loại common1/2/53 khỏi bar trong trường hợp này. Auto người chơi không được thêm chính sách xuống ngựa.
+- `world/botBuffs.ts` chỉ đăng ký từ char.bot đã xác thực trong MapRoom, WeakMap theoSim/cấp/phái; cấp buff/aura thường ở cap hợp lệ như bước thiết lập bot, không tiêu/phân lại điểm, không giảm skill hiện có/đụng thục luyện. Không cấp bí kíp90/120/150 hoặc ẩn thân/giải trạng thái theo tình huống. Bot cũ cập nhật/lưu khi vào map, kiểm lại tăng cấp/đổi phái; nhân vật thường/autoBuff=false không tham gia. Không chạy lại applyBotSetup với bot cũ.
+- Server xóa lời mời chờ cho cả thành viên và đội trưởng mới khi lập/vào đội. Client receiveTeam xóa mọi pending khi có membership; receiveTeamInvite bỏ gói đến muộn lúc đang có đội. Rời đội nhận lời mời mới; quyền đội trưởng/tối đa8 giữ nguyên. Kiểm thêm lỗi leader còn pending bằng test fail→pass.
+- 96test đạt: bots20 (10mới), Auto34, effects20, speed5, safezones4, market13. Typecheck/build/diffcheck đạt, build chỉ warningchunk cũ. 6test mount/common/team đã fail trên mã cũ rồi pass; helper buff kiểm11phái×7mốccấp,0điểm,giữtiếntrình,idempotent,optout,tăngcấp.
+- WS thật2568/DBriêng:20bản sao bot đã khởi tạo vào MapRoom/lưu buff, so sánh chính xác cấp/EXP/điểm/đồ/túi/tiền/KNB/thục luyện/chiêu tấn công giữ nguyên. 5fixture xác nhận mountedfalse→chiêu319/1079/336/372, buffCY100/109/KL171 thật, EM1114 giữ cưỡi và aura712+5; không common. API tạo2bot mới kiểm pending setup/buff mặc định và explicitoff/lưu thật.
+- Chromium+WS5174:2lời mời→Đồngý→0; chặn mời người đã có đội, leader thêm thành3, chuyển140→37 giữđội3 và0pending, rờiđội nhận/từchối lời mời mới. Đã xem ảnh desktop/viewport390, không pageerror. Chưa native/điệnthoại/cảmứng thật. Script/log/ảnh/results `/tmp/jx-bot-fix-live/`, tests/graph logs `/tmp/jx-bot-auto-audit/`. Server/Vite thử riêng được dừng sau kiểm; không đụng2567/5173.
+- Graph refreshfull tớiHEAD; initial impact BotClient/layout/updatePlayer/teamOrder LOW, joinMap HIGH doenter/transfer nên kiểm WS/browserchuyểnmap; onJoin UNKNOWN (framework dispatch) xác minh MapRoom registration + join thật. Finaldetect40symbol/23flowCRITICAL theo scopeMapRoom/clientshared, CLIprojectdanh sách cógiớihạn; đọcdiff/code mới riêng và testtíchhợp, không coi graph làbằngchứngkhôngrủiro. DocsAuto/tool/team/AGENTS cập nhật. Cần nạp lại server+runner/tool vàreloadclient đểbot thật nhậnmã; botcũ không cần reset. Chưa commit theoUSER.
+
+## 2026-11-16 · Điều tra bot cưỡi ngựa, thiếu buff và lời mời tổ đội (chưa sửa mã)
+
+- USER yêu cầu kiểm tra/nguyên nhân, chưa duyệt triển khai. HEAD `e349beb` main khớp checkpoint; cây sạch lúc bắt đầu. GitNexus CLI repo `volam-jx` đã refresh tới HEAD, đối chiếu nguồn trực tiếp và chạy mô phỏng bộ nhớ; không restart server/runner USER, không ghi DB/config/assets, không commit/push.
+- `applyBotSetup` mặc ngựa rồi setMounted(true); BotClient.usable/layoutBar loại noHorse, AutoHost/AutoPlay không có bước xuống ngựa. Đòn thường chỉ nhận diện ID1; ID2/53 pack common vẫn lọt danh sách xoay nên có thể xen vào chiêu môn phái. Snapshot DB mặc định:200bot,180pending chưa khởi tạo,20đã khởi tạo/17lưu mounted=true (không phải số online). Mô phỏng20bộ skills/equip × cưỡi/đi bộ:6bot khi cưỡi chỉ gửi common, đi bộ có chiêu phái; không phát lệnh mount. 150 vẫn cần đủ cấp/đã học, không coi bot110–149 thiếu150 là lỗi.
+- Tự buff đang bật ở toàn bộ setup/snapshot và5scenario đã chuẩn hóa. Thiếu chính ở học chiêu: planSkills chỉ cộng tuyến hiện tại, giữ điểm dư; applyBotSetup dùng gợi ý này rồi học tiers90/120/150, không học bổ sung buff cơ bản. Bot ThiênVương33/42, ThúyYên100/109, CônLôn171, VõĐang157/159 đều0; một số còn điểm dư. Mô phỏng ThiếuLâm273/CáiBang130/ThiênNhẫn150+715/HoaSơn1358+1364 vẫn gửi buff, NgaMy chọn712; không kết luận mọi buff đều hỏng. Giới hạn ngựa là yếu tố phụ với chiêu noHorse, không phải nguyên nhân các buff0.
+- Tổ đội: server chặn lời mời mới tới người đã có đội; chỉ đội trưởng mời thêm, tối đa8. Harness teamOrder thật xác nhận A↔B lập đội, C→B bị chặn, A→D vẫn gửi, B→D bị từ chối. Thiếu cleanup: accept chỉ xóa lời mời vừa chọn ở server/UI, S2C.team không xóa teamInvites; lời mời cũ còn hiển thị và server còn giữ tới expiry/được xử lý.
+- 34test:auto +10test:bots đạt; harness40biếnthể và4seat thật trong bộnhớ đạt assertions. Kết quả/script/log `/tmp/jx-bot-auto-audit/`; không WS/browser/livecombat/native trong lượt này. Hướng đề xuất chờ USER: chính sách xuống ngựa theo chiêu, loại toàn bộ common khỏi vòngxoay khi có chiêu phái, bổ sung kế hoạch học buff riêng bot đúng cấp/điểm và cập nhật bot cũ không reset, dọn lời mời khi vào đội. Luật chung Web/Desktop/Mobile; UI/native cần kiểm riêng khi sửa.
 
 ## 2026-11-16 · Commit kháng riêng Boss và tool theo USER
 

@@ -57,6 +57,8 @@ export interface AutoHost {
   actors(): Iterable<AutoActor>;
   /** Town / safe map: no fighting. */
   safe(): boolean;
+  /** Optional bot preparation (e.g. awaiting dismount); vitals and emergency travel still run first. */
+  prepareCombat?(now: number): boolean;
   /** Skill in a bar slot ('left' or key 0–8), null if empty / unknown. */
   skillAt(slot: 'left' | number): number | null;
   /** The worn weapon can use that skill and it is learned. */
@@ -281,6 +283,7 @@ export class AutoPlay {
     this.drink(now, self, 'hp', opts.autoHp, opts);
     this.drink(now, self, 'mp', opts.autoMp, opts, this.costOf(main));
     if (now < this.pausedUntil) return;
+    if (this.host.prepareCombat?.(now)) return;
     if ((opts.autoJunk || opts.autoSellBlue) && now - this.lastJunk > JUNK_GAP_MS) { this.lastJunk = now; this.sellJunk(opts); }
 
     const acknowledged = self.state.attackTarget;

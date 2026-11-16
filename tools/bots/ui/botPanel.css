@@ -97,3 +97,7 @@
 #bots-page #bl-quick-status:empty { display:none; }
 
 #bots-page #sc-auto>.bp-f:has(#sc-a-autoPriority) { grid-column:1/-1; }
+
+#bots-page .bp-file-actions { align-items:end; }
+#bots-page .bp-file-actions>.bp-f { flex:1 1 220px; }
+#bots-page .bp-file-actions :is(select,button) { min-height:44px; }

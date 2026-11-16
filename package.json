@@ -16,7 +16,7 @@
     "typecheck": "tsc -p packages/shared && tsc -p apps/server && tsc -p apps/client && tsc -p apps/client/src/platform/sw && tsc -p tools/bots && tsc -p tools/map-creator && tsc -p tools/map-manager",
     "build": "npm run build -w @vltk/client",
     "bots:ui": "node --import tsx tools/bots/server.ts",
-    "test:bots": "node --import tsx --test tests/bot-roster.test.ts tests/bot-social.test.ts tests/bots-tool.test.ts tests/bot-team.test.ts",
+    "test:bots": "node --import tsx --test tests/bot-roster.test.ts tests/bot-social.test.ts tests/bots-tool.test.ts tests/bot-team.test.ts tests/bot-combat-maintenance.test.ts tests/bot-buff-learning.test.ts tests/team-invitations.test.ts tests/bot-config-delete.test.ts",
     "test:auto": "node --import tsx --test tests/auto-behavior.test.ts tests/auto-passive-fx.test.ts tests/auto-server-target.test.ts",
     "test:market": "node --import tsx --test tests/market-auto-profile.test.mts tests/market-pricing.test.mts",
     "map:creator": "node --import tsx tools/map-creator/server.ts",

@@ -1,3 +1,27 @@
+## 2026-11-16 · Commit sửa Auto bot, tổ đội và xóa mẫu theo USER
+
+- USER yêu cầu commit toàn bộ thay đổi của cuộc chat và chưa push. Commit `fix(bots): repair auto combat, team invites and template deletion`, nền8115d8a main; gồm mã/test/docs/tracking Auto xuốngngựa+họcbuffbotcũkhôngreset, lời mời tổ đội vàxóatemplate tool.
+-105test/typecheck/build đạt trên bản index riêng, không ghi DB/assets/mẫu thật; WS/browser đã kiểm lượt triển khai. Giữ4filemẫu bị xóa ngoài index, không gộp vào commit tính năng hoặc khôi phục chúng. Giữ commitbăng8115d8a của phiên khác; stageddiff/graphkiểmtrướccommit. Khôngpush.
+
+## 2026-11-16 · Thêm xóa template nhân vật và kịch bản bot
+
+- USER yêu cầu bổ sung thao tác xóa ở tool. Đã thêm2nút selector/confirm/busy/giữform, remove/API riêng và guard dependency initialSetup/running/preparing đồng thời. Chỉ xóa file mẫu, không xóa/reset nhân vật hoặc tự dừng bot. Chưa commit/push, giữ thay đổi Auto/team/cold đồng thời trên e349beb.
+- 25test:bots/5mới, HTTP thật, typecheck/build đạt; Chromium1440/390 kiểm cancel/delete/reload/giữform/clearcommand/dependency/busy,0pageerror,nút44px vàkhôngtràn,đãxemảnh. Mẫu thử/data/log/ảnh /tmp/jx-bot-config-delete; không sửa mẫu/DB/assets thật, không native/touch thật. Tool thử4586 riêng dừng sau kiểm; cần restart bots:ui nạp bundle mới. README/AGENTS/CURRENT/BACKLOG cập nhật.
+
+## 2026-11-16 · Triển khai sửa Auto bot và lời mời tổ đội theo USER
+
+- USER duyệt3phần/testkỹ/ápbotcũkhôngreset/chưacommit; nền e349beb main. Không commit/push/ghiDBthật/restarttiếntrìnhUSER.
+- Bot xuống ngựa theo chiêu cần đi bộ, chờsync/giãn1s, giữthuốc/hồisinh/town; khôngcommonxenchiêuphái. Server cấp buff/aura thường captheocấp cho botbậtbuff, khôngtiêu/phânlạiđiểm hoặc giảmchiêu, khôngmởsách; botcũ cậpnhật/lưu ởjoin, tăngcấp/đổipháikiểmlại. Team xóaincomingcho cảleader/thànhviên, clientxóapending/ignorelate, giữquyềnleader8người.
+- 96test/typecheck/build đạt; các hồi quy mount/team failtrướcpasssau. WSserver2568/Vite5174/DBriêng:20snapshotbotcũgiữnguyên tiếntrình/đồ/tiền/chiêutấncông vàlưubuff;5fixturechiêu90/150/buffCY/KL/auraEMgiữcưỡikhihợplệ;2botmớiAPIpending/optout đạt. Chromium1440/390:2invite→accept→0, chặnnew,leaderthêmngười,transfergiữđội,rờiđộinhậnmới;0pageerror,đãxemảnh. Chưanative/touchthật.
+- Docs/AGENTS/tracking cậpnhật; graphrefreshfull +detect/phạmviMapRoom/enter/transfer đượcđốichiếu bằngcode/WS/browser,khôngcoiprojectiongiớihạnlàtoànbộ. Artifacts /tmp/jx-bot-fix-live và/tmp/jx-bot-auto-audit. Dừngserver/toolthửriêngsaukiểm. Cầnrestartserver/runner/tool/reloadclient đểbotthật nhậnmã; khôngreset. GiữchưacommittheoUSER.
+
+## 2026-11-16 · Điều tra Auto bot: ngựa, học buff và tổ đội
+
+- USER hỏi nguyên nhân bot không xuống ngựa/dùng chiêu90/150, không buff tốc/kháng, và hành vi lời mời sau khi vào đội; chỉ điều tra, chưa sửa gameplay. HEAD e349beb main, GitNexus CLI volam-jx refresh và nguồn thật. Không commit/push/restart hoặc ghi DB/config/assets USER.
+- Xác minh thiếu điều khiển xuống ngựa; noHorse bị loại khỏi bar/usable. Common2/53 lọt xoay vì chỉ loại BASIC_ATTACK1. Snapshot200bot có20khởi tạo/17mounted,180pending; mô phỏng20bộ dữ liệu ×2trạng thái:6bộ khi cưỡi chỉ đánh common, đi bộ dùng chiêu phái, không lệnh mount.
+- Buff bật nhưng nhiều chiêu cơ bản chưa học: tuyến gợi ý không bao gồm33/42ThiênVương,100/109ThúyYên,171CônLôn,157/159VõĐang; DB đều0 dù có điểm dư. Một số buff khác và aura712 vẫn được Auto yêu cầu trong harness; không quy mọi lỗi buff cho ngựa. Chiêu150 cần đủ cấp/đã học.
+- TeamOrder thật/bộ nhớ xác nhận đã có đội chặn nhận mới, đội trưởng vẫn mời thêm; accept chưa dọn mọi lời mời cũ ở server và client. Chờ duyệt hướng sửa, không đánh dấu tính năng sửa xong. Auto34/bots10 đạt; không WS/browser/native, artifacts /tmp/jx-bot-auto-audit/.
+
 ## 2026-11-15 · Điều tra tầng 2 chiêu 80/150 Côn Lôn (chưa sửa mã)
 
 - USER yêu cầu điều tra và đọc docs; xác nhận phạm vi Côn Lôn. HEAD `aca6c91`, nhánh `codex/viewport-culling`, cây làm việc sạch lúc bắt đầu; khớp checkpoint culling hiện tại. Đã đọc `docs/skills-layers.md`, `docs/formulas/skills.md` và đối chiếu KN10.

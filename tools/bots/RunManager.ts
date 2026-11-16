@@ -9,11 +9,13 @@ interface Run { child:ChildProcess; bots:Map<string,RunningBot>; log:string; tit
 /** Owns only children launched by this tools app. Game restarts do not restart this manager or its children. */
 export class RunManager {
   private runs = new Map<string,Run>();
+  private starting = new Map<string,number>();
   private errors: { message:string; at:number }[] = [];
   constructor(private here:string, private dataDir:string) {}
   status(): { bots:RunningBot[]; errors:{message:string;at:number}[] } {
     return { bots:[...this.runs.values()].flatMap(run=>[...run.bots.values()]),errors:this.errors.slice(-5) };
   }
+  usesScenario(name:string):boolean {return this.starting.has(name)||[...this.runs.values()].some(run=>run.scenario===name);}
   async start(scenario:unknown, users:unknown, server:unknown): Promise<void> {
     if (typeof scenario!=='string'||!BOT_FILE_RE.test(scenario)) throw Error('Chọn một kịch bản đã lưu.');
     if (!Array.isArray(users)||!users.length||users.length>200||users.some(id=>typeof id!=='string'||!BOT_IDENTITIES.has(id))) throw Error('Tích chọn nhân vật trong danh sách cố định.');
@@ -22,6 +24,8 @@ export class RunManager {
     const config=normalizeBotScenario(JSON.parse(fs.readFileSync(file,'utf8')));
     const ids=[...new Set(users)] as string[];
     if(this.status().bots.some(bot=>ids.includes(bot.username))) throw Error('Có nhân vật đang chạy hoặc chờ vào; hãy bỏ chọn hoặc dừng nhân vật đó trước.');
+    this.starting.set(scenario,(this.starting.get(scenario)??0)+1);
+    try {
     const response=await fetch(`${server.replace(/\/$/,'')}/api/dev/bots`,{signal:AbortSignal.timeout(5000)});
     if(!response.ok)throw Error('Không đọc được trạng thái bot từ máy chủ game.');
     const existing=await response.json() as {username:string;online:boolean}[];
@@ -38,6 +42,10 @@ export class RunManager {
     });
     child.on('error',error=>{this.errors.push({message:error.message,at:Date.now()});this.runs.delete(id);});
     child.on('exit',code=>{if(code&&run.bots.size)this.errors.push({message:`${title}: ${run.log.slice(-1000)}`,at:Date.now()});this.runs.delete(id);});
+    } finally {
+      const count=(this.starting.get(scenario)??1)-1;
+      if(count) this.starting.set(scenario,count); else this.starting.delete(scenario);
+    }
   }
   stop(users:unknown): void {
     if(!Array.isArray(users)||!users.length)throw Error('Tích chọn nhân vật cần dừng.');

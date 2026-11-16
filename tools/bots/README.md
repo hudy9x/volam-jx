@@ -24,6 +24,12 @@ Giới tính hiện bằng ký hiệu ♂ màu vàng (Nam) / ♀ màu xanh dươ
 
 Hai thao tác chọn/chạy kịch bản chỉ mở khi có nhân vật được tích chọn. Một nhân vật không chạy hai lượt đồng thời. Bảng cập nhật trạng thái khoảng mỗi giây.
 
+## Xóa mẫu đã lưu
+
+Chọn mẫu trong **Thiết lập đã lưu** hoặc **Kịch bản đã lưu**, rồi bấm **Xóa thiết lập** / **Xóa kịch bản** và xác nhận. Ở Tự cài đặt hoặc khi đang tải/lưu/xóa, nút xóa bị khóa. Xóa chỉ gỡ mẫu đã lưu; nhân vật, tiến trình và cấu hình đã áp dụng cho bot được giữ nguyên. Form chuyển về Tự cài đặt với thông số đang xem; xóa kịch bản cũng gỡ khỏi ô Chọn kịch bản và bỏ lệnh sao chép cũ.
+
+Nếu một kịch bản đã lưu còn dùng mẫu nhân vật để khởi tạo (`initialSetup`), tool báo tên kịch bản và giữ mẫu; hãy đổi hoặc xóa kịch bản liên quan trước. Kịch bản đang chạy/chuẩn bị chạy do tool quản lý cần dừng các bot của lượt chạy đó trước khi xóa. Tool không tự dừng bot để xóa mẫu. Có thể xóa cả mẫu có sẵn theo cùng quy tắc.
+
 ## Mẫu có sẵn
 
 - `data/templates/cap-40-69.json`
@@ -96,3 +102,7 @@ Thiết lập nhân vật có **Tự động buff kỹ năng đã học và duy 
 Bỏ tick rồi **Cập nhật thiết lập** để áp dụng cho nhân vật đã chọn; **Lưu Thiết lập** chỉ lưu mẫu. Kịch bản mới lưu quyết định tắt bằng `buffVersion:1`; reload/chạy lại không tự bật ngược. Thiết lập nhân vật hoặc kịch bản mới chủ động tắt thì bot không tự buff và không tự chọn hào quang.
 
 Auto lấy toàn bộ kỹ năng đã học, không phụ thuộc thanh phím hay giới hạn2buff. Bỏ Ngự Tuyết Ẩn, Nga My ưu tiên Bế Nguyệt Phất Trần; kiểm sẵn sàng và duy trì trạng thái/hào quang. Chi tiết/phạm vi đã kiểm ở [Auto](../../docs/auto.md#tự-buff-toàn-bộ-kỹ-năng-đã-học--user-2026-11-14). Sau cập nhật mã cần restart tool/runner/server và reload game; không tự dừng runner thật để nạp mã.
+
+USER2026-11-16: thiết lập nhân vật bật tự buff còn được bổ sung **học buff/hào quang cơ bản theo cấp**, kể cả bot cũ không còn điểm dư. Server chỉ thêm/nâng buff thường đến cấp hợp lệ, không phân lại điểm hoặc reset cấp/EXP/trang bị/túi/tiền/thục luyện/chiêu tấn công; không tự mở tầng bí kíp90/120/150. Cập nhật và lưu khi bot vào map bằng server mới, kiểm lại khi tăng cấp/đổi phái. Tắt tự buff không xóa các chiêu đã học.
+
+Khi đánh, bot tự xuống ngựa nếu chiêu phái ưu tiên yêu cầu đi bộ và có quái trong600px; chờ server xác nhận rồi mới dùng chiêu90/150 đã học. Buff cần đi bộ cũng có thể khiến bot xuống ngựa. Giữ cưỡi khi chiêu cho phép; không tự lên lại liên tục. Chỉ xoay chiêu phái khi có chiêu dùng được, không xen các đòn Công kích vật lý common. Trong lúc chờ xuống ngựa vẫn xử lý thuốc/hồi sinh/về thành theo Auto.
