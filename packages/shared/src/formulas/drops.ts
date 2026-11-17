@@ -28,6 +28,14 @@ export function itemLevelRange(t: DropTable, level: number): [number, number] {
   return [Math.max(1, lo), Math.max(1, hi)];
 }
 
+/** Chia đều tỉ lệ rơi Triền Thủ (particular = 6) trên các bảng rơi đủ 6 loại vũ khí cận chiến gốc (0–5). */
+function resolveMeleeParticular(t: DropTable, particular: number, rng: () => number): number {
+  const hasAllBaseMelee = [0, 1, 2, 3, 4, 5].every(p => t.items.some(r => r[0] === 0 && !r[4] && r[1] === 0 && r[2] === p && r[3] > 0));
+  const hasGlove = t.items.some(r => r[0] === 0 && !r[4] && r[1] === 0 && r[2] === 6 && r[3] > 0);
+  if (hasAllBaseMelee && !hasGlove && rng() < 1 / 7) return 6;
+  return particular;
+}
+
 /** Pick one equipment row (genre 0, non-gold) from `t` proportionally to its weights, ignoring empty/script slots. */
 export function rollEquipmentFromTable(t: DropTable, level: number, rng: () => number): ItemDef | null {
   const equipRows = t.items.filter(([genre, , , rate, quality]) => genre === 0 && !quality && rate > 0);
@@ -38,9 +46,10 @@ export function rollEquipmentFromTable(t: DropTable, level: number, rng: () => n
   for (const [, detail, particular, rate] of equipRows) {
     if (x < rate) {
       const kind = DETAIL_KINDS[detail];
+      const part = detail === 0 ? resolveMeleeParticular(t, particular, rng) : particular;
       const [lo, hi] = itemLevelRange(t, level);
       const lv = lo + Math.floor(rng() * (hi - lo + 1));
-      return (kind && ITEMS[`${kind}-${particular}-${lv}`]) || null;
+      return (kind && ITEMS[`${kind}-${part}-${lv}`]) || null;
     }
     x -= rate;
   }
@@ -55,9 +64,10 @@ export function rollItem(t: DropTable, level: number, rng: () => number): ItemDe
       if (genre !== 0) return null; // quest / script items (Genre 4, 6) not yet
       if (quality) return ITEMS[`gold-${detail}`] ?? null; // hoàng kim: Detail = goldequip row (TB11)
       const kind = DETAIL_KINDS[detail];
+      const part = detail === 0 ? resolveMeleeParticular(t, particular, rng) : particular;
       const [lo, hi] = itemLevelRange(t, level);
       const lv = lo + Math.floor(rng() * (hi - lo + 1));
-      return (kind && ITEMS[`${kind}-${particular}-${lv}`]) || null;
+      return (kind && ITEMS[`${kind}-${part}-${lv}`]) || null;
     }
     x -= rate;
   }

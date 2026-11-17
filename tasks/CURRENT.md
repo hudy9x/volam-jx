@@ -1,3 +1,12 @@
+## 2026-11-17 · Bổ sung 10 cấp vũ khí Triền Thủ thường/xanh vào bảng rơi đồ & sprite mặt đất (đã commit)
+
+- **USER yêu cầu commit** phần bổ sung vũ khí Triền Thủ (`melee-6-1..10`) vào vật phẩm thường/xanh rơi từ quái và sprite rơi mặt đất (không push), nền `20d35a3`.
+- **Nội dung gồm:**
+  1. `packages/shared/src/items/extra-items.ts`, `items.ts`, `index.ts`: Thêm `EXTRA_ITEMS` (`melee-6-1..10`, từ `meleeweapon.txt` dòng 61–70 của `volam-shxt`, dùng chung giới hạn thuộc tính đồ xanh `melee` trong `magicattrib.gen.ts`) và `extraGroundObjSprite` (dùng chung sprite rơi mặt đất `obj_zb_014` / `obj_zb_013` với Bao tay, cùng sprite tương ứng cho `gold-ext-532..536`).
+  2. `packages/shared/src/formulas/drops.ts`: Thêm `resolveMeleeParticular` chia đều `1/7` xác suất rơi `particular = 6` (Triền Thủ) trên các bảng rơi có đủ 6 loại vũ khí cận chiến gốc (`0..5`).
+  3. `apps/client/src/ui/windows/forge.ts` & `apps/client/src/game/actors/GroundView.ts`: Thêm `'Triền thủ'` vào danh sách Thợ Rèn; dùng `extraGroundObjSprite` làm fallback trước `def?.icon`.
+  4. **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run build` (thành công), `tests/drop-config.test.ts` (7/7 pass).
+
 ## 2026-11-17 · Bổ sung Bộ Mộng Long mở rộng (9 món, gồm Triền Thủ) (đã commit)
 
 - **USER yêu cầu commit** phần bổ sung 5 món Mộng Long mở rộng gộp vào Bộ Mộng Long (`suite: 1`) và bỏ `Mộng Long Đạt Ma Tăng hài` (`gold-5`), giữ đúng 9 món (không push), nền `4da2fc0`.

@@ -1,6 +1,6 @@
 import { moneyText } from '@vltk/shared';
 import Phaser from 'phaser';
-import { ITEMS, QUALITY_COLORS, groundObjSprite } from '@vltk/shared';
+import { ITEMS, QUALITY_COLORS, extraGroundObjSprite, groundObjSprite } from '@vltk/shared';
 import { ui, uiPx, textResolution, zoomPlate } from '../display';
 import { assetUrl } from '../../art/assets';
 
@@ -21,7 +21,7 @@ export class GroundView {
 
   constructor(scene: Phaser.Scene, readonly id: string, readonly g: GroundState) {
     const def = g.def === 'money' ? undefined : ITEMS[g.def];
-    const key = groundObjSprite(g.def, g.amount) ?? def?.icon ?? MONEY_ICON;
+    const key = groundObjSprite(g.def, g.amount) ?? extraGroundObjSprite(g.def) ?? def?.icon ?? MONEY_ICON;
     const tex = `gnd:${key}`;
     const add = () => {
       if (this.dead) return;

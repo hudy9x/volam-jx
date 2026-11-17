@@ -16,7 +16,7 @@ const ID = 'forge-panel';
 
 /** Names of the weapon / ám khí row types (meleeweapon.txt / rangeweapon.txt DetailType). */
 const TYPE_NAMES: Partial<Record<ItemKind, string[]>> = {
-  melee: ['Kiếm', 'Đao', 'Bổng (côn)', 'Thương', 'Chùy', 'Song đao'],
+  melee: ['Kiếm', 'Đao', 'Bổng (côn)', 'Thương', 'Chùy', 'Song đao', 'Triền thủ'],
   range: ['Phi tiêu', 'Phi đao', 'Tụ tiễn'],
 };
 const typeName = (kind: ItemKind, type: number, rows: ItemDef[]) =>
