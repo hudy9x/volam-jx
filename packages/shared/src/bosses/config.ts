@@ -18,7 +18,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       30,
       45
     ],
-    "dropRolls": 12,
+    "dropRolls": 30,
     "blueRatePct": 73.6,
     "specialRatePct": 19.9,
     "goldRatePct": 3.4

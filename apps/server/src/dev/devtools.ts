@@ -8,12 +8,15 @@ import {
   formatSpeedCode,
   formatSpawnFile,
   getActiveSpeedConfig,
+  getDropConfig,
   setActiveSpeedConfig,
+  setDropConfig,
   setGoldenBossConfig,
   setSpawns,
   spawnFileError,
   spawnsOf,
   syncGoldenBossMonsters,
+  syncGoldenSettingsToDropConfig,
   validateGoldenBossConfig,
   validateSpeedConfiguration,
   type GoldenBossConfig,
@@ -73,6 +76,7 @@ export function registerDevRoutes(app: Application, spawnsDir: string): void {
     const err = validateGoldenBossConfig(cfg);
     if (err) { res.status(400).json({ error: err }); return; }
     setGoldenBossConfig(cfg);
+    setDropConfig(syncGoldenSettingsToDropConfig(getDropConfig(), cfg.settings));
     syncGoldenBossMonsters(cfg);
     for (const world of LIVE_WORLDS.values()) reloadSpawns(world);
     console.log(`[dev] reloaded Golden Boss config (${cfg.bosses.filter(b => b.enabled).length} enabled bosses)`);

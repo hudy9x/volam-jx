@@ -122,12 +122,29 @@ export function dropLoot(w: World, monster: Sim, killer: Sim | undefined): void 
   const moneyTable = t.moneyRate > 0 ? t : (levelTable ?? t);
   const money = rollMoneyWithProfile(level, moneyTable.moneyScale, profile.moneyRatePct, profile.moneyMul, Math.random);
   if (money) out.push({ item: null, money });
-  out.forEach((d, i) => put(w, monster.a.x, monster.a.y, i, d.item, d.money, killer.id));
+  const total = out.length;
+  out.forEach((d, i) => put(w, monster.a.x, monster.a.y, i, total, d.item, d.money, killer.id));
 }
 
-function put(w: World, x: number, y: number, i: number, item: Item | null, money: number, owner: string): void {
-  const a = (i / 6) * Math.PI * 2 + Math.random() * 0.5, r = i ? 28 + Math.random() * 20 : 0;
-  const [sx, sy] = nearestWalkable(w.grid, x + Math.cos(a) * r, y + Math.sin(a) * r * 0.5);
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+function dropOffset(i: number, total: number): [number, number] {
+  if (total <= 6) {
+    const a = (i / 6) * Math.PI * 2 + Math.random() * 0.5;
+    const r = i ? 28 + Math.random() * 20 : 0;
+    return [Math.cos(a) * r, Math.sin(a) * r * 0.5];
+  }
+  // Số lượng nhiều (boss): rải đều theo xoắn ốc góc vàng trong phạm vi 200–250 px (isometric Y × 0.5) để tên đồ không đè lên nhau.
+  const maxR = Math.min(250, 200 + Math.max(0, total - 8) * 2);
+  const r = i === 0 ? 0 : maxR * Math.sqrt((i + 0.5) / total) * (0.9 + Math.random() * 0.2);
+  const clampedR = Math.min(250, r);
+  const a = i * GOLDEN_ANGLE + (Math.random() - 0.5) * 0.25;
+  return [Math.cos(a) * clampedR, Math.sin(a) * clampedR * 0.5];
+}
+
+function put(w: World, x: number, y: number, i: number, total: number, item: Item | null, money: number, owner: string): void {
+  const [dx, dy] = dropOffset(i, total);
+  const [sx, sy] = nearestWalkable(w.grid, x + dx, y + dy);
   const id = `d${nextDrop++}`;
   const g = new Ground();
   Object.assign(g, {
@@ -143,7 +160,7 @@ function put(w: World, x: number, y: number, i: number, item: Item | null, money
  * (DROPS.lifeMs) and only its thrower may take it back during DROPS.ownerMs.
  */
 export function throwItem(w: World, sim: Sim, item: Item): void {
-  put(w, sim.a.x, sim.a.y, 1 + Math.floor(Math.random() * 6), item, 0, sim.id);
+  put(w, sim.a.x, sim.a.y, 1 + Math.floor(Math.random() * 6), 1, item, 0, sim.id);
 }
 
 /** Every tick: remove drops whose time is over; open them to everyone after the owner time. */

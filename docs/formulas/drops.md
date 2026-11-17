@@ -31,13 +31,13 @@ Ví dụ theo cấu hình mặc định hiện tại:
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | Quái thường (`normal`) | 1 | 0 | 5 % | 0 % | 0 % | +0 | 40 % | ×1 |
 | Boss Xanh (`blueBoss`) | 5 | 1 | 35 % | 5 % *(thuốc quý)* | 0 % | +2 | 100 % | ×3 |
-| Boss Hoàng Kim (`goldenBoss.default`) | 12 | 3 | 73,6 % | 19,9 % | 3,4 % | +3 | 100 % | ×4 |
-| ↳ Tiểu Boss (`byTier.minor`) | 8 | 2 | *(kế thừa)* | *(kế thừa)* | 1,5 % | *(kế thừa)* | *(kế thừa)* | ×3 |
-| ↳ Đại Boss (`byTier.major`) | 12 | 4 | *(kế thừa)* | *(kế thừa)* | 3,4 % | *(kế thừa)* | *(kế thừa)* | ×5 |
-| ↳ Boss mới (`byTier.newboss`) | 15 | 5 | *(kế thừa)* | *(kế thừa)* | 5,0 % | *(kế thừa)* | *(kế thừa)* | ×6 |
+| Boss Hoàng Kim (`goldenBoss.default`) | 30 | 10 | 73,6 % | 19,9 % | 3,4 % | +3 | 100 % | ×4 |
+| ↳ Tiểu Boss (`byTier.minor`) | *(kế thừa)* | 2 | *(kế thừa)* | *(kế thừa)* | *(kế thừa)* | *(kế thừa)* | *(kế thừa)* | ×3 |
+| ↳ Đại Boss (`byTier.major`) | *(kế thừa)* | 4 | *(kế thừa)* | *(kế thừa)* | *(kế thừa)* | *(kế thừa)* | *(kế thừa)* | ×5 |
+| ↳ Boss mới (`byTier.newboss`) | *(kế thừa)* | 5 | *(kế thừa)* | *(kế thừa)* | *(kế thừa)* | *(kế thừa)* | *(kế thừa)* | ×6 |
 
 - Có thể ghi đè riêng từng con quái/boss theo `id` trong `overrides` (xem chi tiết ý nghĩa từng trường tại [packages/shared/src/drops/README.md](../../packages/shared/src/drops/README.md)).
-- Khi chỉnh thông số Boss Hoàng Kim trên giao diện `tools/boss` (`packages/shared/src/bosses/config.json`), các trường `dropRolls`, `blueRatePct`, `specialRatePct`, `goldRatePct` sẽ tự đồng bộ vào nhóm `goldenBoss` nếu chưa bị `byTier` / `overrides` ghi đè.
+- `tools/boss` (`packages/shared/src/bosses/config.json`) và `drop-config.json` (`profiles.goldenBoss.default`) **đồng bộ 2 chiều**: mở `tools/boss` sẽ đọc từ `drop-config.json`, còn bấm **Lưu thiết lập** trong `tools/boss` sẽ ghi ngược 4 trường (`rolls`, `equipRatePct`, `specialRatePct`, `goldRatePct`) vào `drop-config.json` (và bấm **Áp dụng vào game** cập nhật ngay cả hai trong RAM server dev).
 
 ## Dòng xanh và may mắn (TB6, VT10)
 

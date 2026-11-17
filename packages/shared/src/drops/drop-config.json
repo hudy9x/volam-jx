@@ -39,22 +39,16 @@
       },
       "byTier": {
         "minor": {
-          "rolls": 8,
           "minItems": 2,
-          "moneyMul": 3,
-          "goldRatePct": 1.5
+          "moneyMul": 3
         },
         "major": {
-          "rolls": 12,
           "minItems": 4,
-          "moneyMul": 5,
-          "goldRatePct": 3.4
+          "moneyMul": 5
         },
         "newboss": {
-          "rolls": 15,
           "minItems": 5,
-          "moneyMul": 6,
-          "goldRatePct": 5
+          "moneyMul": 6
         }
       }
     }

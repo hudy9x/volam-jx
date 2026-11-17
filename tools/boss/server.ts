@@ -16,16 +16,22 @@ import {
   MAGIC_DESC,
   MAPS,
   MAP_TYPE_NAMES,
+  applyDropConfigToGoldenSettings,
   formatAttr,
   formatGoldenBossConfigTs,
+  getDropConfig,
   getSkill,
   isWalkable,
   getGrid,
   mapLevelBand,
+  setDropConfig,
   setGoldenBossConfig,
   setNavLoader,
   snapToMap,
+  syncGoldenSettingsToDropConfig,
+  validateDropConfig,
   validateGoldenBossConfig,
+  type DropConfig,
   type GoldenBossConfig,
   type NavFile,
 } from '../../packages/shared/src/index.js';
@@ -38,6 +44,7 @@ const MAPS_DIR = path.join(CLIENT_ASSETS_DIR, 'maps');
 const configDirectory = path.resolve(process.env.BOSS_CONFIG_DIR ?? path.join(REPO_ROOT, 'packages/shared/src/bosses'));
 const CONFIG_JSON_PATH = path.join(configDirectory, 'config.json');
 const CONFIG_TS_PATH = path.join(configDirectory, 'config.ts');
+const DROP_CONFIG_PATH = path.resolve(process.env.DROP_CONFIG_PATH ?? path.join(REPO_ROOT, 'packages/shared/src/drops/drop-config.json'));
 
 const manifestFile = path.join(CLIENT_ASSETS_DIR, 'manifest.json');
 let assetManifest: { packs: Record<string, { v: string }> } | null = null;
@@ -98,17 +105,35 @@ function formatGoldLine(attr: string, min: number[], max: number[]): string {
   return `${a} → ${b}`;
 }
 
-function loadCurrentConfig(): GoldenBossConfig {
-  if (fs.existsSync(CONFIG_JSON_PATH)) {
+function loadDropConfigFile(): DropConfig {
+  if (fs.existsSync(DROP_CONFIG_PATH)) {
     try {
-      const parsed = JSON.parse(fs.readFileSync(CONFIG_JSON_PATH, 'utf8')) as GoldenBossConfig;
-      setGoldenBossConfig(parsed);
-      return parsed;
+      const parsed = JSON.parse(fs.readFileSync(DROP_CONFIG_PATH, 'utf8')) as DropConfig;
+      if (!validateDropConfig(parsed)) return parsed;
     } catch {
-      // Fallback sang GOLDEN_BOSS_CONFIG
+      // Fallback sang getDropConfig()
     }
   }
-  return GOLDEN_BOSS_CONFIG;
+  return getDropConfig();
+}
+
+function loadCurrentConfig(): GoldenBossConfig {
+  let base: GoldenBossConfig = GOLDEN_BOSS_CONFIG;
+  if (fs.existsSync(CONFIG_JSON_PATH)) {
+    try {
+      base = JSON.parse(fs.readFileSync(CONFIG_JSON_PATH, 'utf8')) as GoldenBossConfig;
+    } catch {
+      base = GOLDEN_BOSS_CONFIG;
+    }
+  }
+  const dropCfg = loadDropConfigFile();
+  setDropConfig(dropCfg);
+  const merged: GoldenBossConfig = {
+    ...base,
+    settings: applyDropConfigToGoldenSettings(dropCfg, base.settings),
+  };
+  setGoldenBossConfig(merged);
+  return merged;
 }
 
 function buildBootstrap() {
@@ -287,17 +312,27 @@ export async function handleBossRequest(req: http.IncomingMessage, res: http.Ser
       return;
     }
 
-    // Ghi vào cả config.json và config.ts trong packages/shared/src/bosses/
+    // Ghi vào cả config.json, config.ts trong packages/shared/src/bosses/ và đồng bộ sang drop-config.json
     fs.writeFileSync(CONFIG_JSON_PATH, `${JSON.stringify(body, null, 2)}\n`, 'utf8');
     fs.writeFileSync(CONFIG_TS_PATH, formatGoldenBossConfigTs(body), 'utf8');
     setGoldenBossConfig(body);
 
-    console.log(`[boss-tool] Đã lưu cấu hình Boss Hoàng Kim (${body.bosses.length} Boss) -> packages/shared/src/bosses/config.{ts,json}`);
+    const nextDropCfg = syncGoldenSettingsToDropConfig(loadDropConfigFile(), body.settings);
+    const dropErr = validateDropConfig(nextDropCfg);
+    if (dropErr) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: dropErr }));
+      return;
+    }
+    fs.writeFileSync(DROP_CONFIG_PATH, `${JSON.stringify(nextDropCfg, null, 2)}\n`, 'utf8');
+    setDropConfig(nextDropCfg);
+
+    console.log(`[boss-tool] Đã lưu cấu hình Boss Hoàng Kim (${body.bosses.length} Boss) -> bosses/config.{ts,json} & drop-config.json`);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       ok: true,
       savedAt: new Date().toISOString(),
-      files: ['packages/shared/src/bosses/config.ts', 'packages/shared/src/bosses/config.json'],
+      files: ['packages/shared/src/bosses/config.ts', 'packages/shared/src/bosses/config.json', 'packages/shared/src/drops/drop-config.json'],
     }));
     return;
   }

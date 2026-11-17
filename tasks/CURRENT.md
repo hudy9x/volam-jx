@@ -1,3 +1,12 @@
+## 2026-11-17 · Đồng bộ 2 chiều Boss Hoàng Kim <-> drop-config và rải vị trí đồ rơi (đã commit)
+
+- **USER yêu cầu commit** phần đồng bộ 2 chiều giữa `tools/boss` và `drop-config.json` cùng cải tiến rải vị trí vật phẩm rơi từ boss (không push), nền `cc64abb`.
+- **Nội dung gồm:**
+  1. `packages/shared/src/drops/config.ts` & `drop-config.json` & `packages/shared/src/bosses/config.{json,ts}`: Thêm `syncGoldenSettingsToDropConfig`, `applyDropConfigToGoldenSettings`; bỏ `rolls`/`goldRatePct` khỏi `byTier` để `tools/boss` và `goldenBoss.default` khớp 1:1; đồng bộ sẵn `dropRolls: 30`.
+  2. `tools/boss/server.ts` & `apps/server/src/dev/devtools.ts`: `tools/boss` đọc `drop-config.json` khi load, ghi ngược vào `drop-config.json` khi Lưu; `/api/dev/bosses/reload` cập nhật cả `setDropConfig` trong RAM server dev.
+  3. `apps/server/src/world/systems/drops.ts`: Khi rơi `> 6` món, `dropOffset` rải đều theo xoắn ốc góc vàng (`GOLDEN_ANGLE`) trong phạm vi bán kính `200–250` px để tên vật phẩm không đè lên nhau.
+  4. Tài liệu & test: `docs/formulas/drops.md`, `tests/drop-config.test.ts` (6/6 pass), `npm run test:map-manager` (9/9 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công).
+
 ## 2026-11-17 · Cấu hình tỉ lệ rơi đồ theo loại quái/boss (đã commit)
 
 - **USER yêu cầu commit** phần cấu hình tỉ lệ rơi trang bị, ngân lượng, đồ xanh và vật phẩm đặc biệt theo từng nhóm/boss (không push), nền `892016f`.

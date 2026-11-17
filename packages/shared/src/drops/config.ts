@@ -141,6 +141,48 @@ export function resetDropConfig(): void {
   activeDropConfig = rawConfig as DropConfig;
 }
 
+/**
+ * Đồng bộ 4 thông số tỉ lệ rơi từ `tools/boss` (`settings`) sang `profiles.goldenBoss.default` của `DropConfig`.
+ * Tự động giới hạn `minItems <= rolls` để cấu hình luôn hợp lệ.
+ */
+export function syncGoldenSettingsToDropConfig(cfg: DropConfig, settings: GoldenSettingsSync): DropConfig {
+  const next = structuredClone(cfg);
+  const def = next.profiles.goldenBoss.default;
+  if (typeof settings.dropRolls === 'number' && Number.isInteger(settings.dropRolls) && settings.dropRolls >= 0) {
+    def.rolls = Math.min(100, settings.dropRolls);
+  }
+  if (typeof settings.blueRatePct === 'number' && Number.isFinite(settings.blueRatePct)) {
+    def.equipRatePct = settings.blueRatePct;
+  }
+  if (typeof settings.specialRatePct === 'number' && Number.isFinite(settings.specialRatePct)) {
+    def.specialRatePct = settings.specialRatePct;
+  }
+  if (typeof settings.goldRatePct === 'number' && Number.isFinite(settings.goldRatePct)) {
+    def.goldRatePct = settings.goldRatePct;
+  }
+  def.minItems = Math.min(def.minItems, def.rolls);
+  if (next.profiles.goldenBoss.byTier) {
+    for (const patch of Object.values(next.profiles.goldenBoss.byTier)) {
+      if (patch.minItems !== undefined) patch.minItems = Math.min(patch.minItems, patch.rolls ?? def.rolls);
+    }
+  }
+  return next;
+}
+
+/**
+ * Đưa 4 thông số tỉ lệ rơi từ `profiles.goldenBoss.default` của `DropConfig` sang `settings` của `tools/boss`.
+ */
+export function applyDropConfigToGoldenSettings<T extends GoldenSettingsSync>(dropCfg: DropConfig, settings: T): T {
+  const def = dropCfg.profiles.goldenBoss.default;
+  return {
+    ...settings,
+    dropRolls: def.rolls,
+    blueRatePct: def.equipRatePct,
+    specialRatePct: def.specialRatePct,
+    goldRatePct: def.goldRatePct,
+  };
+}
+
 function mergePatch(base: DropProfile, patch?: DropProfilePatch): DropProfile {
   if (!patch) return { ...base };
   return {

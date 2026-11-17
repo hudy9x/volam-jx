@@ -1,3 +1,9 @@
+## 2026-11-17 · Đồng bộ 2 chiều Boss Hoàng Kim <-> drop-config và rải vị trí đồ rơi
+
+- USER yêu cầu đồng bộ 2 chiều giữa `tools/boss` và `drop-config.json`, rải vị trí đồ rơi boss trong phạm vi 200–250 px, và commit (không push).
+- Triển khai `syncGoldenSettingsToDropConfig` / `applyDropConfigToGoldenSettings`, cập nhật `tools/boss/server.ts`, `apps/server/src/dev/devtools.ts`, `apps/server/src/world/systems/drops.ts` (`dropOffset` xoắn ốc góc vàng), `docs/formulas/drops.md`, `tests/drop-config.test.ts`.
+- Kiểm tra: `tests/drop-config.test.ts` (6/6 pass), `npm run test:map-manager` (9/9 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công). Không push theo quy định.
+
 ## 2026-11-17 · Cấu hình tỉ lệ rơi đồ theo loại quái/boss
 
 - USER yêu cầu tách cấu hình tỉ lệ rơi trang bị, ngân lượng, đồ xanh và vật phẩm đặc biệt theo từng loại quái/boss (`normal`, `blueBoss`, `goldenBoss.default/byTier`, `overrides[id]`) và commit, không push.
