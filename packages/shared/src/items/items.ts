@@ -5,6 +5,7 @@
 import { DEFAULT_LOOK, GEN_ITEMS, type GenItem } from './items.gen.js';
 import { GEN_HORSES } from './horses.gen.js';
 import { GEN_GOLD, type GoldData } from './gold.gen.js';
+import { EXTRA_GOLD, EXCLUDED_GOLD_IDS } from './gold-extra.js';
 import { BOOK_ITEMS, CANKHON_RING, TOKEN_ITEM, TOWN_PORTAL_ITEM, type BookEffect } from './books.js';
 import type { Gender } from '../characters/factions.js';
 import type { MagicLine } from './magic.js';
@@ -55,7 +56,9 @@ const HORSE_ITEMS: ItemDef[] = GEN_HORSES.map(h => ({
   price: h.price, size: h.size, desc: h.desc, base: h.base, req: h.req,
 }));
 
-export const ITEMS: Record<string, ItemDef> = Object.fromEntries([...GEN_ITEMS, ...HORSE_ITEMS, ...GEN_GOLD, ...BOOK_ITEMS, TOKEN_ITEM, CANKHON_RING, TOWN_PORTAL_ITEM].map(it => [it.id, it]));
+export const ITEMS: Record<string, ItemDef> = Object.fromEntries(
+  [...GEN_ITEMS, ...HORSE_ITEMS, ...GEN_GOLD.filter(it => !EXCLUDED_GOLD_IDS.has(it.id)), ...EXTRA_GOLD, ...BOOK_ITEMS, TOKEN_ITEM, CANKHON_RING, TOWN_PORTAL_ITEM].map(it => [it.id, it]),
+);
 export const ITEM_LIST: ItemDef[] = Object.values(ITEMS);
 
 // ---------- concrete items ----------

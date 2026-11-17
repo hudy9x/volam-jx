@@ -1,3 +1,12 @@
+## 2026-11-17 · Bổ sung Bộ Mộng Long mở rộng (9 món, gồm Triền Thủ) (đã commit)
+
+- **USER yêu cầu commit** phần bổ sung 5 món Mộng Long mở rộng gộp vào Bộ Mộng Long (`suite: 1`) và bỏ `Mộng Long Đạt Ma Tăng hài` (`gold-5`), giữ đúng 9 món (không push), nền `4da2fc0`.
+- **Nội dung gồm:**
+  1. `packages/shared/src/items/gold-extra.ts` & `packages/shared/src/items/items.ts`: Thêm `EXTRA_GOLD` (`gold-ext-532..536`: Dây chuyền, vũ khí Triền Thủ `type: 6` `Mộng Long Chi Bồ Đề Tiền Thủ`, Giày, Bao tay, Nhẫn — lấy chỉ số từ `platinaequip.txt` dòng 532–536 của `volam-shxt`) gộp vào `suite: 1`, và `EXCLUDED_GOLD_IDS` lọc bỏ `gold-5` mà không sửa `gold.gen.ts`.
+  2. `packages/shared/src/items/describe.ts`: Tooltip liệt kê đủ 9 món trong Bộ Mộng Long; tô xanh dòng kích hoạt ẩn khi mặc đủ `Math.min(set.pieces.length, SUITE_SIZE)` (5 món).
+  3. `packages/shared/src/skills/core/types.ts` & `apps/client/src/ui/windows/token.ts`: Thêm `6: 'Triền thủ'` vào `WEAPON_NAMES`; bỏ chữ cố định `5 món` ở danh sách chọn bộ Hoàng Kim của Lệnh bài.
+  4. **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run build` (thành công), runtime check `SUITES[1]` có đúng 9 món và `factionSuites('shaolin')` trả `1:Mộng Long(9)`.
+
 ## 2026-11-17 · Trích xuất và hiển thị sprite vật phẩm rơi trên mặt đất (đã commit)
 
 - **USER yêu cầu commit** phần trích xuất và hiển thị sprite đồ rơi trên mặt đất (không push), nền `da554d4`.

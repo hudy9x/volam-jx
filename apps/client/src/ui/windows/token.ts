@@ -83,7 +83,7 @@ export class TokenWindow {
   private suites(): void {
     const faction = this.ctx.self()?.faction ?? '';
     if (!faction) { this.ctx.notice('Phải gia nhập môn phái trước.'); return; }
-    this.sub(`Chọn bộ hoàng kim ${FACTIONS[faction]?.name ?? ''} (5 món vào hành trang):`, factionSuites(faction).map(s => ({
+    this.sub(`Chọn bộ hoàng kim ${FACTIONS[faction]?.name ?? ''} (vào hành trang):`, factionSuites(faction).map(s => ({
       label: `${s.name} — ${s.pieces.map(p => p.name.replace(s.name, '').trim()).join(', ')}`,
       pick: () => this.send({ op: 'gold', suite: s.suite }),
     })));

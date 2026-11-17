@@ -43,7 +43,7 @@ export const Target = { Enemy: 1, Ally: 2, Self: 4 } as const;
 
 /** Weapon a skill needs (skills.txt EqtLimit). Melee item types 0–5, ám khí 100 + type, -1 bare hand, -2 any. */
 export const WEAPON_NAMES: Record<number, string> = {
-  [-1]: 'Tay không', 0: 'Kiếm', 1: 'Đao', 2: 'Côn', 3: 'Thương', 4: 'Chùy', 5: 'Song đao',
+  [-1]: 'Tay không', 0: 'Kiếm', 1: 'Đao', 2: 'Côn', 3: 'Thương', 4: 'Chùy', 5: 'Song đao', 6: 'Triền thủ',
   100: 'Phi tiêu', 101: 'Phi đao', 102: 'Tụ tiễn',
 };
 export const ANY_WEAPON = -2;

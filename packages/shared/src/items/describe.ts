@@ -6,7 +6,7 @@ import { formatAttr, richText, type TipLine } from '../skills/core/describe.js';
 import { MAGIC_DESC } from '../skills/core/magicdesc.gen.js';
 import { missesReq, type ItemViewer } from './equip.js';
 import { KIND_NAMES, KIND_SLOTS, QUALITY, QUALITY_NAMES, SLOT_NAMES, type EquipSlot, type Equipment, type Item, type ItemDef } from './items.js';
-import { lineParam3, suiteOf } from './gold.js';
+import { SUITE_SIZE, lineParam3, suiteOf } from './gold.js';
 import { ACTIVATED_BY, GENERATES, MAGIC_KINDS, SERIES_NAMES, activeLines, isHidden, magicRange } from './magic.js';
 import { POTION_PULSE_MS, potionPumps } from './potions.js';
 
@@ -120,7 +120,7 @@ export function describeItem(def: ItemDef, item?: Item, viewer?: ItemViewer, ctx
     const n = set.pieces.filter(p => worn.has(p.id)).length;
     suite.push([{ text: `Bộ ${set.name} (${n}/${set.pieces.length})`, color: TIP_COLORS.gold }]);
     for (const p of set.pieces) suite.push([{ text: `  ${p.name}`, color: worn.has(p.id) ? TIP_COLORS.green : GRAY }]);
-    suite.push([{ text: 'Mặc đủ bộ: kích hoạt toàn bộ thuộc tính ẩn', color: n >= set.pieces.length ? TIP_COLORS.green : GRAY }]);
+    suite.push([{ text: 'Mặc đủ bộ: kích hoạt toàn bộ thuộc tính ẩn', color: n >= Math.min(set.pieces.length, SUITE_SIZE) ? TIP_COLORS.green : GRAY }]);
   } else if (item && item.series !== undefined && (item.q === QUALITY.magic || !item.q) && MAGIC_KINDS.includes(def.kind)) {
     const gen = GENERATES.indexOf(item.series);
     const pair = (s: EquipSlot) => (ACTIVATED_BY[s] ?? []).map(k => SLOT_NAMES[k]).join(' + ');
