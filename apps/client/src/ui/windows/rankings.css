@@ -1,0 +1,14 @@
+#rankings-dlg { width: 620px; max-width: calc(var(--hud-w) - 40px); }
+#rankings-dlg .ranking-tabs { display: flex; gap: 8px; }
+#rankings-dlg .ranking-tabs button { flex: 1; min-height: 40px; }
+#rankings-dlg .ranking-tabs .on { color: #ffdf8b; border-color: #b69a54; background: #344a39; }
+#rankings-dlg .ranking-filter { display: flex; gap: 12px; align-items: center; }
+#rankings-dlg select { min-height: 36px; background: #15231c; color: #e5dcc5; border: 1px solid #827346; }
+#rankings-dlg p { margin: 4px 0; }
+#rankings-dlg .ranking-scroll { max-height: 340px; min-height: 200px; overflow: auto; }
+#rankings-dlg table { width: 100%; border-collapse: collapse; }
+#rankings-dlg th { position: sticky; top: 0; background: #26352a; color: #e4c67b; }
+#rankings-dlg td, #rankings-dlg th { padding: 10px 8px; text-align: left; border-bottom: 1px solid #59664c55; }
+#rankings-dlg td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+#rankings-dlg tbody tr:nth-child(-n+3) td:first-child { color: #ffd46b; font-weight: bold; }
+#rankings-dlg .ranking-self { background: #66552c55; color: #ffe6a0; }

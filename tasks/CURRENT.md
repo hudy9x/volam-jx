@@ -1,3 +1,24 @@
+## 2026-11-17 · Commit Bảng xếp hạng theo USER
+
+- USER yêu cầu commit phần Bảng xếp hạng Cấp độ/Tài phú, không push. Commit `feat(rankings): add level and wealth leaderboards`, nền82fc6ba; checkpoint này nằm trong commit đó.
+- Stage riêng icon/dialog, HTTP API đăng nhập/cache60s, kiểu dữ liệu shared, tests/rankings.test.ts và tracking GD9. Giữ ngoài commit toàn bộ thay đổi drops/bosses/docs kiến trúc đồng thời.
+- Lượt triển khai đã đạt typecheck/build,5/5test và browser module thật với dữ liệu mẫu; chưa kiểm gameplay/native/mobile thật. Cần restart server/reload client. Không có quyết định chờ USER.
+- Kiểm lại chính xác bản index trong snapshot độc lập (workspace shared trỏ snapshot): typecheck/build và5/5test đạt. Build snapshot không chép assets gitignore nên có cảnh báo URL ảnh resolve lúc runtime, cùng cảnh báo chunk lớn; không sinh/sửa assets. Staged diff-check đạt.
+
+## 2026-11-17 · Bảng xếp hạng Cấp độ / Tài phú (chưa commit)
+
+- USER bỏ Lực chiến/Binh giáp, giữ Cấp độ và Tài phú. Đã thêm icon cúp SVG cạnh GM/Kỳ Trân Các, dialog dùng khung game hiện có, hai tab, lọc môn phái, Top100, tô hàng nhân vật hiện tại; trạng thái tải/rỗng/lỗi và hỗ trợ chuyển tab bằng phím.
+- API /api/rankings yêu cầu đăng nhập, kiểm kind/faction, chỉ trả dữ liệu công khai. Snapshot toàn server gồm offline từ DB và giá trị live từ LIVE_WORLDS, cache60s dùng chung hai tab/lọc. Cấp giảm dần→EXP→ID ổn định; Tài phú tiền túi giảm dần→ID, không cộng tiền rương tài khoản/KNB/giá trị đồ. Cùng cấp nên so EXP tương đương so phần trăm EXP. Không có Binh giáp hoặc công thức sức mạnh.
+- typecheck/build đạt (cảnh báo chunk lớn có sẵn); tests/rankings.test.ts5/5 gồm sort/filter/top100/live overlay/legacy wallet/HTTP thật với DB tạm, auth401/query400/cache/public fields. Browser thật IAB trên5187 dùng module Quickbar/RankingsWindow production và API dữ liệu mẫu: click icon/mở/chuyển hai tab/lọc Nga My/đóng; xem screenshot khung1280 thu vừa. Không tuyên bố đã kiểm phiên gameplay thật hoặc thiết bị Mobile/native. Preview tạm đã gỡ, server thử đã dừng; không đụng2567/5173 hoặc DB thật.
+- Shared web UI/HTTP dùng chung Web/Desktop/Mobile, không đổi preset/render. Cần nạp lại server và reload client để nhận tính năng. Giữ toàn bộ thay đổi drops/bosses đồng thời; HEAD82fc6ba; không commit/push. Không còn chờ duyệt công thức Binh giáp.
+
+## 2026-11-17 · Đề xuất Bảng xếp hạng (chờ duyệt công thức)
+
+- USER yêu cầu icon mở Bảng xếp hạng gồm Cấp độ, Tài phú, Lực chiến/Binh giáp. Sau làm rõ, USER chọn Tài phú theo ngân lượng, Binh giáp theo trang bị cá nhân và yêu cầu đề xuất công thức trước. Chưa triển khai UI/server hoặc tạo icon.
+- Đã kiểm nguồn: chưa có hệ thống ranking; CharacterRecord có level/progress/money/equip; stashMoney thuộc tài khoản, không thuộc từng nhân vật. HUD dùng Quickbar và Dialogs, giữ preset game hiện tại.
+- Đề xuất: level giảm dần, hòa so tiến độ EXP; tài phú dùng tiền túi từng nhân vật (không cộng rương tài khoản vào nhiều nhân vật); Binh giáp = tổng điểm thuộc tính trang bị đang mặc đã chuẩn hóa theo mốc chuẩn và trọng số cấu hình, chỉ dòng đang kích hoạt, không điểm cộng màu/cấp đồ riêng. Đây là công thức CHỌN mới chưa duyệt, không phải công thức JX gốc. Bao gồm ngựa đang trang bị độc lập lên/xuống ngựa; loại đồ chỉ đổi hình không có chỉ số. Đề xuất Top100, lọc phái, dữ liệu toàn server kể cả offline, server cập nhật định kỳ60s.
+- HEAD82fc6ba khớp checkpoint đầu; giữ thay đổi drops/bosses có sẵn, không sửa DB/assets, không commit/push. Chờ USER duyệt quy tắc, nhất là tiền rương và trọng số Binh giáp, rồi mới triển khai. Chưa chạy test vì chỉ khảo sát/ghi tracking.
+
 ## 2026-11-17 · Sửa lỗi hào quang Vô Hình Độc, tỉ lệ figure chọn nhân vật, GM Tool tốc độ, ngựa khi load & dialog (đã commit)
 
 - **USER yêu cầu commit** toàn bộ các sửa đổi hiện tại (không push).

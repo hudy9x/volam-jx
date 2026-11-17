@@ -10,6 +10,8 @@ import { db } from './account/db.js';
 import { registerDevRoutes } from './dev/devtools.js';
 import { registerBotRoutes } from './dev/botAdmin.js';
 import { MAPS_DIR, PORT, SPAWNS_DIR } from './env.js';
+import { registerRankingRoutes } from './account/rankingRoutes.js';
+import { LIVE_WORLDS } from './net/MapRoom.js';
 import { MapRoom } from './net/MapRoom.js';
 
 // Training maps hold 100–300 monsters (packages/shared/spawns): the full state of a room is far above the
@@ -34,6 +36,14 @@ const server = new Server({
   greet: false,
   express: app => {
     registerAuthRoutes(app);
+    registerRankingRoutes(app, function* () {
+      for (const world of LIVE_WORLDS.values()) for (const sim of world.sims.values()) {
+        if (!sim.charId) continue;
+        yield { id: sim.charId, name: sim.a.name, faction: sim.a.faction,
+          level: sim.progress?.prog.level ?? sim.a.level, exp: sim.progress?.prog.exp ?? 0,
+          money: sim.money ?? 0 };
+      }
+    });
     registerDevRoutes(app, SPAWNS_DIR);
     registerBotRoutes(app);
     app.get('/api/maps', (_req, res) => { refreshMapRegistry(true); res.setHeader('Cache-Control', 'no-store'); res.json(registrySnapshot()); });

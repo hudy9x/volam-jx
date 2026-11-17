@@ -80,3 +80,9 @@
 .fn.b-kytran .fn-key { right: 6px; top: 2px; }
 /* empty slots already show their number in the original art */
 .sk-slot:not(.filled) .key-no { display: none; }
+
+.fn.b-rankings { top: -50px; width: 46px; height: 42px; border: 1px solid #9e8346; border-radius: 5px;
+  background: radial-gradient(circle at 50% 30%, #354737, #111b15); color: #edcc78;
+  box-shadow: inset 0 1px 1px #e8c87966, 0 2px 6px #000b; }
+.fn.b-rankings svg { width: 30px; height: 30px; fill: #b68a3444; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.fn.b-rankings:hover, .fn.b-rankings:focus-visible { border-color: #ffd94e; filter: brightness(1.25); }

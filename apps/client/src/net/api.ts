@@ -39,6 +39,8 @@ async function api<T>(path: string, body?: unknown, method = body ? 'POST' : 'GE
 export async function syncMapRegistry() { applyMapRegistry(await api<MapRegistry>('/api/maps')); }
 
 export const Api = {
+  rankings: (kind: import('@vltk/shared').RankingKind, faction = '') =>
+    api<import('@vltk/shared').RankingResponse>(`/api/rankings?kind=${kind}&faction=${encodeURIComponent(faction)}`),
   enterMap: (charId: string) => api<{ mapId: number }>('/api/enter-map', { charId }),
   login: (username: string, password: string) => api<AuthResponse>('/api/login', { username, password }),
   register: (username: string, password: string) => api<AuthResponse>('/api/register', { username, password }),
