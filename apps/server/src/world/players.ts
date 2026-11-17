@@ -80,8 +80,10 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
   // Older builds kept the horse outside the equipment.
   const legacy = char.horse ? (HORSES[char.horse] ? char.horse : LEGACY_HORSES[char.horse]) : undefined;
   if (legacy && !sim.equip.horse) sim.equip.horse = makeItem(legacy) ?? undefined;
-  applyEquipment(sim, true);
+  const horseDef = sim.equip.horse?.def;
+  sim.a.horse = horseDef && HORSES[horseDef] ? horseDef : '';
   sim.a.mounted = !!sim.a.horse && !!char.mounted;
+  applyEquipment(sim, true);
   updateSpeed(sim);
   w.add(sim);
   return sim;

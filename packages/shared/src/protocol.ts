@@ -130,6 +130,14 @@ export interface TokenMsg { op: TokenOp; suite?: number; faction?: string }
 export interface DevMoneyMsg { amount: number }
 /** Dev (server DEV_TOOLS on): gain `levels` levels (exactly the exp they need). */
 export interface DevLevelMsg { levels: number }
+/** Dev (server DEV_TOOLS on): customize player speed or speed configuration live. */
+export interface DevSpeedMsg {
+  runPercent?: number | null;
+  attackPercent?: number | null;
+  mounted?: boolean;
+  config?: import('./formulas/speed.js').SpeedConfiguration;
+  reset?: boolean;
+}
 
 export const C2S = {
   move: 'move',
@@ -158,6 +166,7 @@ export const C2S = {
   raiseSkill: 'raiseSkill',
   devMoney: 'devMoney',
   devLevel: 'devLevel',
+  devSpeed: 'devSpeed',
   token: 'token',
   team: 'team',
   suggest: 'suggest',

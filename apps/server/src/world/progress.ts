@@ -1,5 +1,5 @@
 import { equipSkillBonus, wornActiveCount, itemNeeds, planPotential, planSkills, pointsAtLevel,
-  BASIC_SKILLS, FACTIONS, LEVEL, POTENTIALS, addAttr, addExp, mergeBag, moveFactor, passiveBag, playerCombat, skillBonuses, stateBag, baseValue, characterStats, expAfterGap, expShare,
+  BASIC_SKILLS, FACTIONS, LEVEL, POTENTIALS, addAttr, addExp, mergeBag, moveFactor, passiveBag, playerCombat, resolveSpeed, skillBonuses, stateBag, baseValue, characterStats, expAfterGap, expShare,
   expToNext, getSkill, isoDistance, itemDef, joinFactionError, learnableSkills, levelCap, monsterExp, newProgress, practicePerHit,
   TIER_BOOKS, learnTiers, raiseError, skillExpToNext, skillGrowth, startLevel, tierOf, weaponBaseDamage, weaponTypeOf,
   QUALITY, activeLines, bossMultiplier, seriesOf, passiveVisualSkills,
@@ -100,7 +100,9 @@ export function refreshStats(sim: Sim, fresh = false): void {
   });
   sim.stats = stats;
   sim.combat = playerCombat(stats, pp.prog.level, pp.series, wtype, bag, skillBonuses(levels));
-  sim.moveScale = moveFactor(bag, (sim.effects?.slowUntil ?? 0) > Date.now());
+  sim.moveScale = sim.devRunPercent !== undefined
+    ? resolveSpeed('run', sim.devRunPercent).multiplier
+    : moveFactor(bag, (sim.effects?.slowUntil ?? 0) > Date.now());
   sim.a.level = pp.prog.level;
   sim.a.maxHp = stats.life;
   sim.a.maxMp = stats.mana;

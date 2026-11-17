@@ -28,6 +28,7 @@ const HTML = `
   <button class="fn b-pk" id="pk-toggle" style="left:584px" title="Chế độ PK (${keyLabel('pk')})"><kbd class="fn-key">${keyLabel('pk')}</kbd></button>
   <button class="fn b-trade" id="shop-open" style="left:615px" title="Thợ rèn: trang bị cấp 1–10 (giao dịch trong thành) (${keyLabel('shop')})"><kbd class="fn-key">${keyLabel('shop')}</kbd></button>
   <button class="fn b-team" id="team-open" style="left:677px" title="Tổ đội (${keyLabel('team')})"><kbd class="fn-key">${keyLabel('team')}</kbd></button>
+  <button class="fn b-gm" id="gm-open" style="left:666px" title="GM Tool: Kiểm tra & Trích xuất tốc độ chạy/đánh">GM</button>
   <button class="fn b-kytran" id="kytran-open" style="left:722px" title="Kỳ Trân Các: bí kíp kỹ năng (${keyLabel('kytran')})"><kbd class="fn-key">${keyLabel('kytran')}</kbd></button>
   <button class="fn b-auto" id="auto-toggle" style="left:646px" title="Mở cài đặt Auto (${keyLabel('auto')})">AUTO<kbd class="fn-key">${keyLabel('auto')}</kbd></button>
   <button class="fn b-system" id="menu-open" style="left:739px" title="Hệ thống (${keyLabel('system')})"><kbd class="fn-key">${keyLabel('system')}</kbd></button>
@@ -49,6 +50,8 @@ export interface QuickbarHandlers {
   system(): void;
   /** Kỳ Trân Các shop (bí kíp). */
   kytran(): void;
+  /** GM Tool window. */
+  gm(): void;
   /** Tổ đội window. */
   team(): void;
   notice(text: string): void;
@@ -102,6 +105,7 @@ export class Quickbar {
     $('shop-open').addEventListener('click', () => h.shop());
     $('menu-open').addEventListener('click', () => h.system());
     $('kytran-open').addEventListener('click', () => h.kytran());
+    $('gm-open')?.addEventListener('click', () => h.gm());
     $('team-open').addEventListener('click', () => h.team());
     $('auto-toggle').addEventListener('click', () => h.auto());
     $('auto-toggle').addEventListener('contextmenu', e => { e.preventDefault(); h.autoOptions(); });

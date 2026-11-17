@@ -60,6 +60,8 @@ export interface WorldActions {
   devLevel: (levels: number) => void;
   /** Dev: add money (server DEV_TOOLS on). */
   devMoney: (amount: number) => void;
+  /** Dev: speed tuning and custom speed testing (server DEV_TOOLS on). */
+  devSpeed: (msg: import('@vltk/shared').DevSpeedMsg) => void;
   /** Lệnh bài option (items/token.ts). */
   token: (msg: TokenMsg) => void;
   /** Kênh chat Thế giới: one line to every online character. */
@@ -71,7 +73,7 @@ export interface WorldActions {
 }
 
 /** Windows the scene opens (keys, NPCs). */
-export type WindowId = 'bag' | 'char' | 'skills' | 'bigmap' | 'travel' | 'shop' | 'drugstore' | 'kytran' | 'horse-shop' | 'system' | 'team' | 'stash';
+export type WindowId = 'bag' | 'char' | 'skills' | 'bigmap' | 'travel' | 'shop' | 'drugstore' | 'kytran' | 'horse-shop' | 'system' | 'team' | 'stash' | 'gm';
 
 /** Which window each NPC action opens. */
 export const NPC_WINDOWS: Record<NpcAction, WindowId> = { shop: 'shop', drug: 'drugstore', kytran: 'kytran', travel: 'travel', horse: 'horse-shop', stash: 'stash' };

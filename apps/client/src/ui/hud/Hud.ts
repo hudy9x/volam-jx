@@ -23,6 +23,7 @@ import { TeamWindow } from '../windows/team';
 import { SuggestWindow } from '../windows/suggest';
 import { NpcTalkWindow } from '../windows/npcTalk';
 import { SettingsWindow } from '../windows/settings';
+import { GmToolWindow } from '../windows/gm';
 import { ShopWindow } from '../windows/shop';
 import { SkillsWindow } from '../windows/skills';
 import { StashWindow } from '../windows/stash';
@@ -74,6 +75,7 @@ export class Hud implements WorldUi {
   private readonly npcTalk: NpcTalkWindow;
   private readonly system: SystemWindow;
   private readonly settings: SettingsWindow;
+  private readonly gmTool: GmToolWindow;
   private readonly autoWin: AutoWindow;
   private readonly death: DeathWindow;
   private actions: WorldActions | null = null;
@@ -117,6 +119,7 @@ export class Hud implements WorldUi {
       shop: () => this.toggleWindow('shop'),
       system: () => this.toggleWindow('system'),
       kytran: () => this.toggleWindow('kytran'),
+      gm: () => this.toggleWindow('gm'),
       team: () => this.toggleWindow('team'),
       notice: text => this.notice(text),
       useItem: defId => this.actions?.useItem(defId),
@@ -149,6 +152,7 @@ export class Hud implements WorldUi {
       quit: () => this.app?.quit(),
     });
     this.settings = new SettingsWindow(root);
+    this.gmTool = new GmToolWindow(root, ctx);
     this.autoWin = new AutoWindow(root, on => this.setAuto(on));
     this.notices.onAutoToggle = () => this.setAuto(!this.autoOn);
     characterAuto.watch(value => this.setAuto(value.enabled));
@@ -286,6 +290,7 @@ export class Hud implements WorldUi {
       case 'horse-shop': this.horseShop.toggle(open); break;
       case 'system': this.system.toggle(open); break;
       case 'team': this.team.toggle(open); break;
+      case 'gm': this.gmTool.toggle(open); break;
     }
   }
 

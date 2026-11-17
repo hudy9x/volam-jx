@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  coldMovement, CAMP_COLORS, SPEED, resolveSpeed, type Camp, jumpHeight,
+  coldMovement, CAMP_COLORS, SPEED, getActiveSpeedConfig, trackBasePercent, resolveSpeed, type Camp, jumpHeight,
   attackSpeedPct, castSpeedPct, speedPoints, totalSpeedPercents, attrOf,
 } from '@vltk/shared';
 import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
@@ -266,14 +266,15 @@ export class ActorView {
     // Only the running gait follows movement; standing and one-shot actions keep their own clocks.
     const running = loop === 'run' || loop === 'townRun';
     const cold = s.hp > 0 && !!((s.ctl ?? 0) & 2);
-    const cycleMs = cold ? coldMovement().cycleMs : s.runMs ?? resolveSpeed('run', SPEED.basePercent).cycleMs / Math.max(0.001, s.moveScale ?? 1);
+    const runBase = trackBasePercent('run', getActiveSpeedConfig());
+    const cycleMs = cold ? coldMovement().cycleMs : s.runMs ?? resolveSpeed('run', runBase).cycleMs / Math.max(0.001, s.moveScale ?? 1);
     if (this.isSelf) {
       if (running) {
         const p = progress.get();
         const slowed = !!((s.ctl ?? 0) & 2);
         const totals = p?.combat ? totalSpeedPercents(p.combat.bag, slowed) : null;
         const runBonus = p?.combat ? attrOf(p.combat.bag, 'fastwalkrun_p') : 0;
-        const totalRun = totals ? totals.run : SPEED.basePercent;
+        const totalRun = totals ? totals.run : runBase;
         const runResolved = resolveSpeed('run', totalRun);
         const points = speedPoints(totalRun);
         const frames = jx.framesOf(loop) || 14;
@@ -288,7 +289,7 @@ export class ActorView {
           console.log([
             `[TỐC ĐỘ DI CHUYỂN - BẮT ĐẦU / ĐỔI TỐC]`,
             `• Hiển thị F3/N: T.Độ Chạy = ${points} điểm (Cộng thêm: ${runBonus}%)`,
-            `• Cài đặt tuning.ts: Nền ${SPEED.basePercent}% | Tổng ${totalRun}% -> Mốc: ${runResolved.phasePercent}% | Chuẩn: ${SPEED.run.referenceFrames} frames @ ${runResolved.fps} FPS -> Chu kỳ chuẩn: ${Math.round(runResolved.cycleMs)}ms | moveScale: ${runResolved.multiplier.toFixed(2)}`,
+            `• Cài đặt tuning.ts: Nền ${runBase}% | Tổng ${totalRun}% -> Mốc: ${runResolved.phasePercent}% | Chuẩn: ${SPEED.run.referenceFrames} frames @ ${runResolved.fps} FPS -> Chu kỳ chuẩn: ${Math.round(runResolved.cycleMs)}ms | moveScale: ${runResolved.multiplier.toFixed(2)}`,
             `• Server đồng bộ: moveScale = ${s.moveScale ?? 1} | Đang cưỡi: ${s.mounted ? 'Có' : 'Không'}`,
             `• Client vẽ Canvas: Sprite sheet có ${frames} frames | Chu kỳ vẽ 1 vòng bước: ${Math.round(cycleMs)}ms -> FPS vẽ sprite: ${spriteFps} FPS`,
             `• So sánh: Chuẩn ${SPEED.run.referenceFrames} frames @ ${runResolved.fps} FPS (${Math.round(runResolved.cycleMs)}ms) <=> Sprite ${frames} frames @ ${spriteFps} FPS (${Math.round(cycleMs)}ms)`,

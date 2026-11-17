@@ -6,9 +6,10 @@ import { Room, ServerError, type Client } from 'colyseus';
 import {
   bestTrainingMap, trainingMaps, type TrainingMap, type TrainMsg, type TeamOrderMsg, type SuggestMsg, type TokenMsg,
   BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, expToNext, TICK_MS, TOWN_MAP_ID, getGrid,
+  DEFAULT_SPEED, setActiveSpeedConfig,
   type BagMoveMsg, type BagSortMsg, type BagStashTransferMsg, type StashCurrencyMsg, type StashMoveMsg, type StashMsg,
-  type BuyMsg, type CastMsg, type DevMoneyMsg, type DiscardMsg, type EquipMsg, type ForgeMsg, type InventoryMsg, type MountMsg, type AuraMsg, type ChatMsg, type ChatMoreMsg, type ChatReactMsg, type MoveMsg,
-  type AddPotentialMsg, type DevLevelMsg, type PickupMsg, type JoinFactionMsg, type Potential, type RaiseSkillMsg, type StatsMsg, type LogMsg, type NoticeMsg, type OnlineMsg, type PkMsg, type SellMsg, type SkillLevelMsg, type SkillsMsg, type TeleportMsg, type TransferMsg,
+  type BuyMsg, type CastMsg, type DevMoneyMsg, type DevLevelMsg, type DevSpeedMsg, type DiscardMsg, type EquipMsg, type ForgeMsg, type InventoryMsg, type MountMsg, type AuraMsg, type ChatMsg, type ChatMoreMsg, type ChatReactMsg, type MoveMsg,
+  type AddPotentialMsg, type PickupMsg, type JoinFactionMsg, type Potential, type RaiseSkillMsg, type StatsMsg, type LogMsg, type NoticeMsg, type OnlineMsg, type PkMsg, type SellMsg, type SkillLevelMsg, type SkillsMsg, type TeleportMsg, type TransferMsg,
   type UnequipMsg, type UseMsg,
 } from '@vltk/shared';
 import { verifyToken } from '../account/auth.js';
@@ -25,6 +26,7 @@ import { addPlayer, revive } from '../world/players.js';
 import { applyBotSetup } from '../world/botSetup.js';
 import { configureBotBuffs } from '../world/botBuffs.js';
 import { applySuggestion, addPotential, expNext, gainExp, joinFaction, raiseSkill } from '../world/progress.js';
+import { refreshMoveScale } from '../world/systems/effects.js';
 import { pickup } from '../world/systems/drops.js';
 import { World } from '../world/World.js';
 import { MapState } from './schema.js';
@@ -333,6 +335,37 @@ export class MapRoom extends Room<{ state: MapState }> {
       this.saveCharacter(sim);
     });
     inventoryOp<DevMoneyMsg>(C2S.devMoney, (sim, msg) => devTools() && addMoney(sim, Math.min(10_000_000, Number(msg?.amount))));
+    this.onMessage(C2S.devSpeed, (client, msg: DevSpeedMsg) => {
+      if (!devTools()) return;
+      const sim = this.simOf(client);
+      if (!sim) return;
+      if (msg?.reset) {
+        sim.devRunPercent = undefined;
+        sim.devAttackPercent = undefined;
+        setActiveSpeedConfig(DEFAULT_SPEED);
+      } else {
+        if (msg?.config) {
+          try {
+            setActiveSpeedConfig(msg.config);
+          } catch (e) {
+            this.notify(sim, `Lỗi cấu hình tốc độ: ${e instanceof Error ? e.message : String(e)}`);
+            return;
+          }
+        }
+        if (msg?.runPercent !== undefined) {
+          sim.devRunPercent = msg.runPercent === null ? undefined : Number(msg.runPercent);
+        }
+        if (msg?.attackPercent !== undefined) {
+          sim.devAttackPercent = msg.attackPercent === null ? undefined : Number(msg.attackPercent);
+        }
+        if (typeof msg?.mounted === 'boolean') {
+          sim.a.mounted = msg.mounted;
+        }
+      }
+      refreshMoveScale(this.world, sim);
+      sim.a.moveScale = sim.moveScale ?? 1;
+      this.notify(sim, msg?.reset ? 'Đã khôi phục tốc độ gốc.' : 'Đã áp dụng tốc độ thử nghiệm.');
+    });
 
     // ---- map travel (Xa phu / "Bản đồ" button) ----
     this.onMessage(C2S.teleport, (client, msg: TeleportMsg) => {

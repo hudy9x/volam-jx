@@ -1,4 +1,4 @@
-import { coldMovement, PLAYER_SPEED, SPEED, clearSegment, direction8, findPath, isWalkable, isoDistance, stepToward, type Point } from '@vltk/shared';
+import { coldMovement, getActiveSpeedConfig, PLAYER_SPEED, clearSegment, direction8, findPath, isWalkable, isoDistance, stepToward, type Point } from '@vltk/shared';
 import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
 
@@ -27,7 +27,7 @@ export function followPath(sim: Sim, dt: number, speedScale = 1): void {
   // Share the same rate with observers; cold ignores AI and equipment multipliers.
   sim.a.moveScale = speedScale * (sim.moveScale ?? 1);
   if (!sim.path.length || (cold && (sim.dead || sim.jump || (sim.a.ctl & 1) || sim.speed <= 0))) { sim.coldPosition = undefined; return; }
-  let budget = (cold ? coldMovement().velocity : sim.speed * SPEED.run.distanceScale * sim.a.moveScale) * dt; // items / bùa / chậm (systems/effects.ts)
+  let budget = (cold ? coldMovement().velocity : sim.speed * getActiveSpeedConfig().run.distanceScale * sim.a.moveScale) * dt; // items / bùa / chậm (systems/effects.ts)
   const precise = cold && sim.coldPosition?.syncedX === sim.a.x && sim.coldPosition?.syncedY === sim.a.y ? sim.coldPosition : undefined;
   let x = precise?.x ?? sim.a.x, y = precise?.y ?? sim.a.y;
   const startX = x, startY = y;

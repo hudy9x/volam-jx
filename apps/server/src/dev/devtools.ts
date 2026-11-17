@@ -4,20 +4,27 @@ import type { Application } from 'express';
 import {
   MAPS,
   MONSTERS,
+  DEFAULT_SPEED,
+  formatSpeedCode,
   formatSpawnFile,
+  getActiveSpeedConfig,
+  setActiveSpeedConfig,
   setGoldenBossConfig,
   setSpawns,
   spawnFileError,
   spawnsOf,
   syncGoldenBossMonsters,
   validateGoldenBossConfig,
+  validateSpeedConfiguration,
   type GoldenBossConfig,
   type SpawnFile,
+  type SpeedConfiguration,
 } from '@vltk/shared';
 import { requireAuth, type AuthedRequest } from '../account/auth.js';
 import { LIVE_WORLDS } from '../net/MapRoom.js';
 import { devTools } from '../env.js';
 import { reloadSpawns } from '../world/systems/spawner.js';
+import { refreshMoveScale } from '../world/systems/effects.js';
 
 /**
  * Dev tool of the big map (client: dev/spawn-editor/spawnEditor.ts): read / save a map's monster spawns. Saving writes
@@ -70,5 +77,53 @@ export function registerDevRoutes(app: Application, spawnsDir: string): void {
     for (const world of LIVE_WORLDS.values()) reloadSpawns(world);
     console.log(`[dev] reloaded Golden Boss config (${cfg.bosses.filter(b => b.enabled).length} enabled bosses)`);
     res.json({ ok: true });
+  });
+
+  app.get('/api/dev/speed', (_req, res) => {
+    res.json({
+      config: getActiveSpeedConfig(),
+      default: DEFAULT_SPEED,
+    });
+  });
+
+  app.put('/api/dev/speed', (req, res) => {
+    const body = req.body as { config?: SpeedConfiguration; persist?: boolean; reset?: boolean };
+    try {
+      let nextConfig: SpeedConfiguration;
+      if (body.reset) {
+        nextConfig = DEFAULT_SPEED;
+      } else if (body.config) {
+        validateSpeedConfiguration(body.config);
+        nextConfig = body.config;
+      } else {
+        res.status(400).json({ error: 'Thiếu cấu hình tốc độ (config).' });
+        return;
+      }
+
+      setActiveSpeedConfig(nextConfig);
+
+      if (body.persist !== false) {
+        const tuningFile = path.resolve(process.cwd(), 'packages/shared/src/formulas/tuning.ts');
+        if (fs.existsSync(tuningFile)) {
+          const content = fs.readFileSync(tuningFile, 'utf8');
+          const replaced = content.replace(/export const SPEED = \{[\s\S]*?\} as const;\n?/m, formatSpeedCode(nextConfig));
+          fs.writeFileSync(tuningFile, replaced, 'utf8');
+          console.log('[dev] Đã lưu cấu hình SPEED vào packages/shared/src/formulas/tuning.ts');
+        }
+      }
+
+      for (const world of LIVE_WORLDS.values()) {
+        for (const sim of world.sims.values()) {
+          if (sim.kind === 'player') {
+            refreshMoveScale(world, sim);
+            sim.a.moveScale = sim.moveScale ?? 1;
+          }
+        }
+      }
+
+      res.json({ ok: true, config: getActiveSpeedConfig() });
+    } catch (e) {
+      res.status(400).json({ error: e instanceof Error ? e.message : String(e) });
+    }
   });
 }

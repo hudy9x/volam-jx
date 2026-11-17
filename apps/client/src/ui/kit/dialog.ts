@@ -186,14 +186,25 @@ export class Dialogs {
     });
   }
 
-  /** Absolute position in logical HUD pixels, kept inside the game frame. */
+  /**
+   * Absolute position in logical HUD pixels, allowed to move partially outside the game frame
+   * with a safe margin so the title bar remains accessible. Overflow is clipped by #hud.
+   */
   private place(el: HTMLElement, x: number, y: number): void {
-    const w = el.offsetWidth, h = el.offsetHeight;
+    const w = el.offsetWidth;
     const { width: vw, height: vh } = hudSize();
     el.classList.add('placed');
     el.style.right = el.style.bottom = el.style.transform = '';
-    el.style.left = `${Math.round(Math.max(0, Math.min(Math.max(0, vw - w), x)))}px`;
-    el.style.top = `${Math.round(Math.max(0, Math.min(Math.max(0, vh - h), y)))}px`;
+
+    // Safe margins: keep at least 60px visible horizontally, and keep the title bar reachable vertically.
+    const minVisible = 60;
+    const minX = Math.min(0, -(w - minVisible));
+    const maxX = Math.max(0, vw - minVisible);
+    const minY = 0;
+    const maxY = Math.max(0, vh - 32);
+
+    el.style.left = `${Math.round(Math.max(minX, Math.min(maxX, x)))}px`;
+    el.style.top = `${Math.round(Math.max(minY, Math.min(maxY, y)))}px`;
   }
 
   private restore(id: string, el: HTMLElement): void {

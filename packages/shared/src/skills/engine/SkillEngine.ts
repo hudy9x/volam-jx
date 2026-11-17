@@ -431,11 +431,13 @@ export class SkillEngine {
     const kind = skillCategory(s) === 'debuff' ? 'debuff' : 'buff';
     const child = s.child ? getSkill(s.child) : undefined;
     const reach = s.radius || child?.radius || 180;
-    this.port.addState(o, { skill: s.id, kind: 'buff', ms: AURA_STATE_MS, aura: true, by: o.id, level: aura.level });
+    // Hostile auras (e.g. Vô Hình Độc) show their foot aura on the caster without applying debuff attrs to them.
+    const ownerVisualOnly = kind === 'debuff';
+    this.port.addState(o, { skill: s.id, kind: 'buff', ms: AURA_STATE_MS, aura: true, by: o.id, level: aura.level, ...(ownerVisualOnly ? { visualOnly: true } : {}) });
     // skill_appendskill (Bế Nguyệt Phất Trần): the auras it carries, at the level of its P2 table.
     const extra = (tuningOf(s.id).appendSkills ?? []).map(getSkill).filter((x): x is SkillDef => !!x);
     const extraLevel = attr(s, 'skill_appendskill', aura.level)?.[1] || aura.level;
-    for (const e of extra) this.port.addState(o, { skill: e.id, kind: 'buff', ms: AURA_STATE_MS, aura: true, by: o.id, level: extraLevel });
+    for (const e of extra) this.port.addState(o, { skill: e.id, kind: 'buff', ms: AURA_STATE_MS, aura: true, by: o.id, level: extraLevel, ...(ownerVisualOnly ? { visualOnly: true } : {}) });
     for (const t of this.port.combatants()) {
       if (t === o || t.dead || isoDistance(o.a.x, o.a.y, t.a.x, t.a.y) > reach) continue;
       const ok = kind === 'buff' ? this.port.friendly(o, t) : this.port.hostile(o, t);

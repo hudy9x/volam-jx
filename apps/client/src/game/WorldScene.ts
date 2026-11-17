@@ -352,6 +352,7 @@ export class WorldScene extends Phaser.Scene {
       setSkillLevel: (skill, level) => this.room.send(C2S.skillLevel, { skill, level }),
       devMoney: amount => this.room.send(C2S.devMoney, { amount }),
       devLevel: levels => this.room.send(C2S.devLevel, { levels }),
+      devSpeed: msg => this.room.send(C2S.devSpeed, msg),
       addPotential: (stat, n) => this.room.send(C2S.addPotential, { stat, n }),
       joinFaction: faction => this.room.send(C2S.joinFaction, { faction }),
       raiseSkill: skill => this.room.send(C2S.raiseSkill, { skill }),

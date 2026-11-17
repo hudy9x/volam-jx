@@ -1,3 +1,14 @@
+## 2026-11-17 · Sửa lỗi hào quang Vô Hình Độc, tỉ lệ figure chọn nhân vật, GM Tool tốc độ, ngựa khi load & dialog (đã commit)
+
+- **USER yêu cầu commit** toàn bộ các sửa đổi hiện tại (không push).
+- **Nội dung commit gồm:**
+  1. **GM Tool thử nghiệm tốc độ (`apps/client/src/ui/windows/gm.ts`, `gm.css`, `quickbar`, `devtools.ts`, `MapRoom.ts`, `speed.ts`, `ActorView.ts`...)**: Cho phép tùy chỉnh tốc độ chạy/đánh trực tiếp, chỉnh sửa bảng mốc `SPEED`, lưu/reset và trích xuất mã TS.
+  2. **Nới lỏng biên kéo dialog (`apps/client/src/ui/kit/dialog.ts`)**: Cho phép kéo dialog chìm ra ngoài viewport (giữ safe margin 60px ngang, 32px tiêu đề).
+  3. **Sửa lỗi tốc độ ngựa khi mới load (`apps/server/src/world/players.ts`)**: Khởi tạo `sim.a.horse` và `sim.a.mounted` trước khi gọi `applyEquipment(sim, true)`.
+  4. **Sửa lỗi hào quang Vô Hình Độc (`packages/shared/src/status/states.ts`, `SkillEngine.ts`)**: Hào quang gây hại (`kind === 'debuff'`) chỉ gắn trạng thái hiển thị (`visualOnly: true`) lên chủ thể, không áp dụng thuộc tính trừ `-50%` tốc chạy vào bản thân người chơi.
+  5. **Sửa độ cao nhân vật ở màn hình chọn (`apps/client/src/ui/screens/figure.ts`)**: `showFigure()` chỉ scale theo chiều cao (`el.clientHeight / art.idleHeight`) để vũ khí ngang rộng (như Thiếu Lâm) không làm thu nhỏ nhân vật.
+- **Kiểm tra trước commit:** `npm run test:speed` (12/12 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công). Không push theo quy định.
+
 ## 2026-11-17 · Commit quản lý kịch bản bot và quay lại bãi theo USER
 
 - USER yêu cầu commit, không push. Commit chứa checkpoint này: `feat(bots): persist scenarios and restore training return positions`, nền4733032/main.
@@ -5,6 +16,13 @@
 - Kiểm chính xác bản index qua snapshot riêng /tmp/jx-bots-commit-snapshot: typecheck/build đạt; Auto62/62; bots27/28, failduynhấtpresetthiếucap-40-69.json từtrước. Không khôi phục mẫu bị xóa. WS/browser thật đã kiểm lượt triển khai ở dưới; không chạy lại trận game thật trong lượt commit.
 - GitNexusCLI1.6.12 đã refresh graph/FTS/PDG tớiHEAD4733032; runnerIdentityStatuscurrent/incompleteReasons[]. detect_changes staged bản JSON đầy đủ227symbol/46flow, khôngpartial/truncated; riskcritical doactor/MapRoom/Auto/runner/UIentrypoints, đối chiếu diff và các ca test/WS/browser trước. Danh sách process của analyzer có giới hạn toàngraph nên không coi thiếu flow là chứng minh không ảnh hưởng; staged offsets khác working tree GM nên đối chiếu vịtrí nguồn trực tiếp.
 - Không commit phần GM, tốc độ, sửa ngựa khi đăng nhập, kéo dialog, không push. Cần nạp lại server/runner/tool/client để nhận mã mới.
+
+## 2026-11-17 · Sửa lỗi điểm tốc độ ngựa không được cộng khi mới load game theo USER
+
+- USER phản ánh lúc mới load game, nếu nhân vật đang cưỡi ngựa thì không thấy điểm tốc độ của ngựa được cộng vào nhân vật; phải xuống ngựa, lên ngựa lại mới được cộng.
+- Nguyên nhân: `apps/server/src/world/players.ts` trong hàm `addPlayer` gọi `applyEquipment(sim, true)` trước khi gán `sim.a.mounted = !!sim.a.horse && !!char.mounted`. Tại thời điểm `applyEquipment` chạy, `sim.a.mounted` vẫn là `false` nên hàm `equipmentBag` đã bỏ qua ô Ngựa (`if (slot === 'horse' && !mounted) continue;`), dẫn đến `sim.combat`, `sim.stats` và `sim.moveScale` ban đầu bị tính thiếu ngựa. Chỉ khi gọi `setMounted` (xuống/lên ngựa lại), `refreshStats` mới được chạy với `mounted = true`.
+- Khắc phục: Khởi tạo `sim.a.horse` và `sim.a.mounted` từ record nhân vật trước khi gọi `applyEquipment(sim, true)`. Khi vào game hoặc đổi map, `applyEquipment` nhận diện `sim.a.mounted = true` ngay từ đầu, cộng đầy đủ `fastwalkrun_p` và các thuộc tính của ngựa vào `bag` và đồng bộ chính xác xuống Client qua `S2C.stats`.
+- Kiểm thử: Viết unit test xác thực tại `tests/gm-speed-tuning.test.ts` (kiểm tra `mounted = true`, `fastwalkrun_p` có mặt trong `sim.combat.bag` và `moveScale > 1.0` ngay từ `addPlayer`). Toàn bộ 11/11 test `test:speed` pass, `typecheck` 0 lỗi, `build` thành công. Chưa commit/push theo quy định.
 
 ## 2026-11-17 · Triển khai Auto quay lại điểm luyện công và Xa phu (chưa commit)
 
@@ -16,6 +34,12 @@
 - WS thật productionMapRoom trên2578/DBriêng: đi bộ rồiThổĐịaPhù tại140(5410,9620)→thành→trainreturn đúngtọađộ; teleportthành/hồisinh/đăngnhậplại giữđiểm. Botcũ thành37chưađiểm, autoMapfalse/returntrue tựvào140duynhấttronglist; vềthành rồi quaylạiđúng(5280,9600). Đãchạylạivớisourcemới nhất. Chết đượcđiềukhiểntrongharnessriêngđểkiểmluồngrespawn, khôngkhẳngđịnhtestcânbằngchiếnđấu.
 - Chromiumthật client5184/game2578: Xa phu clickreturn→đúngtọađộ, ngoàithànhdisabled; Auto2checkboxđộclập/uncheck/save/reloadfalse/checktrue. Tool4589/BOTS_DIRriêng: mẫucũdefaulttrue/readonly/custom/uncheck/save/reloadfalse,1440/390khôngtrànngang/0pageerror. ĐãxemảnhXaPhu/Auto/tool; khôngnóitestnative. 2568/5174đangcóphiênthửkhác nênkhôngđụng; khôngđụnggame2567/client5173. Artifacts /tmp/jx-return-live và/tmp/jx-return-tool, logs/tmp/jx-return-*. GitNexusMCPkhôngcótrongphiên; xácminhsource/testthựctế, khôngkếtluậntừgraphcũ.
 - READMEbot/docsAuto/botsguide/AGENTS cậpnhật. Cần nạplạiserver,tool,runner vàreloadclient đểbotthậtnhậnmã; khôngresetbot/khôngsửahàngloạtDB. KhôngcóquyếtđịnhcầnUSERchọn.
+
+## 2026-11-17 · Nới lỏng biên di chuyển dialog chìm ra ngoài viewport theo USER
+
+- USER yêu cầu cho phép các dialog di chuyển ra ngoài vùng viewport; phần dư ra sẽ biến mất hoặc chìm vào vùng biên.
+- `apps/client/src/ui/kit/dialog.ts`: Cập nhật hàm `place(el, x, y)` cho phép kéo cửa sổ chìm sang trái/phải/dưới với safe margin 60px (chiều ngang) và giữ thanh tiêu đề (32px ở đáy / top >= 0), phần vượt ngoài biên viewport tự động được `#hud` cắt bằng `overflow: hidden;`. Click đúp thanh tiêu đề vẫn trả về vị trí mặc định giữa màn hình.
+- Kiểm tra: `typecheck`, `test:speed` (10/10) và `build` đạt 100%. Chưa commit/push theo quy định.
 
 ## 2026-11-17 · Điều tra bot đứng Biện Kinh khi chạy kịch bản (chưa sửa)
 
@@ -33,6 +57,25 @@
 - Kiểm mới 5/5: IPC child thật với game API giả lập xác nhận stop/persist reload/resume nhiều nhóm/overwrite/toggle/không trùng; team formation/transfer/dissolve và renderer lifecycle. Typecheck/build đạt (warning chunk lớn cũ). Bộ test:bots cuối 27/28, ca còn lại thiếu templates/cap-40-69.json đã không có từ trước; không tự khôi phục mẫu USER. Khi thử renderer cũ thêm 5 ca lỗi do mock thiếu trackBasePercent từ thay đổi GM có sẵn, giữ ngoài phạm vi; test cờ riêng đạt.
 - Chromium1440×1000/390×844 thật trên tool4588/BOTS_DIR riêng, API game/runner giả lập: resume/stop/giữ tên/card play-pause/nút44px/không tràn ngang/0pageerror, đã xem ảnh. Artifacts /tmp/jx-scenario-ui; log /tmp/jx-bot-scenarios-*. Không tuyên bố kiểm kết nối game thật. GitNexus MCP không có trong phiên; xác minh nguồn trực tiếp và test thay thế, không dùng graph cũ để kết luận.
 - Cần khởi động lại bots:ui/server và reload client để nhận mã; không reset nhân vật. README/AGENTS/docs tổ đội cập nhật. Không có quyết định mới cần USER chọn.
+
+## 2026-11-17 · Triển khai GM Tool thử nghiệm và trích xuất tốc độ chạy & đánh theo USER
+
+- USER yêu cầu tạo công cụ GM tool trực tiếp trong bản production đặt cạnh Kỳ Trân Các để test trực tiếp tốc độ chạy và trích xuất cài đặt tốc độ chạy + tốc độ đánh chính xác. Yêu cầu tuân thủ đúng công thức hiện tại, sao lưu snapshot cài đặt gốc để reset lại bất cứ lúc nào, cho phép custom tốc độ người chơi trực tiếp và save cài đặt dễ dàng.
+- `packages/shared/src/formulas/speed.ts`:
+  + Lưu snapshot gốc `DEFAULT_SPEED = Object.freeze(structuredClone(SPEED))`.
+  + Bổ sung `getActiveSpeedConfig()`, `setActiveSpeedConfig(config)`, `resetSpeedConfig()`.
+  + Bổ sung `formatSpeedCode(config)` chuẩn hóa khối code TypeScript `export const SPEED = { ... } as const;`.
+  + Chuẩn hóa `resolveSpeed()` tính đúng sải chân ngựa (`horseStridePixels`) khi `mounted = true`.
+- `packages/shared/src/protocol.ts`: Thêm `C2S.devSpeed` và interface `DevSpeedMsg`.
+- `apps/server`:
+  + `apps/server/src/dev/devtools.ts`: Thêm endpoint `GET /api/dev/speed` và `PUT /api/dev/speed` (lưu vĩnh viễn vào `packages/shared/src/formulas/tuning.ts` và cập nhật live runtime).
+  + `apps/server/src/net/MapRoom.ts`: Xử lý `C2S.devSpeed` (hỗ trợ `runPercent`, `attackPercent`, `mounted`, `config`, `reset`).
+  + `apps/server/src/world/systems/movement.ts`, `effects.ts`, `progress.ts`: Đồng bộ `sim.devRunPercent` và `sim.devAttackPercent` với `moveScale` và `followPath`.
+- `apps/client`:
+  + `apps/client/src/game/actors/ActorView.ts`: Sửa lỗi tính `cycleMs` chu kỳ bước chân dùng đúng `trackBasePercent('run', getActiveSpeedConfig())` (100%) thay vì `SPEED.basePercent` (10%), khớp 100% giữa sprite bước chân và vận tốc di chuyển.
+  + `apps/client/src/ui/hud/quickbar.ts` & `quickbar.css`: Thêm icon nút `GM` bên cạnh Kỳ Trân Các (`left: 666px; top: -50px`).
+  + `apps/client/src/ui/windows/gm.ts` & `gm.css`: Cửa sổ `GmToolWindow` (`#gm-dlg`) với tab Tốc độ Di chuyển & Đánh gồm 3 phần: Live Test trên nhân vật, Bảng tinh chỉnh Frame/Sải chân/Quãng đường, và Cụm nút Lưu/Khôi phục gốc/Sao chép mã.
+- Kiểm thử: 10/10 test `npm run test:speed` đạt 100% (bao gồm 5 test mới tại `tests/gm-speed-tuning.test.ts`), `npm run typecheck` đạt 0 lỗi, `npm run build` thành công. Chưa commit theo quy định.
 
 ## 2026-11-16 · Ràng buộc bản đồ bot theo thiết lập nhân vật và sửa AutoPlay level sync
 

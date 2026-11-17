@@ -31,7 +31,25 @@ export interface ResolvedSpeed {
   velocity?: number;
 }
 
-export function trackBasePercent(kind: SpeedKind, config: SpeedConfiguration = SPEED): number {
+export const DEFAULT_SPEED: SpeedConfiguration = Object.freeze(structuredClone(SPEED));
+
+let activeSpeedConfig: SpeedConfiguration = structuredClone(SPEED);
+
+export function getActiveSpeedConfig(): SpeedConfiguration {
+  return activeSpeedConfig;
+}
+
+export function setActiveSpeedConfig(config: SpeedConfiguration): void {
+  validateSpeedConfiguration(config);
+  activeSpeedConfig = structuredClone(config);
+}
+
+export function resetSpeedConfig(): SpeedConfiguration {
+  activeSpeedConfig = structuredClone(DEFAULT_SPEED);
+  return activeSpeedConfig;
+}
+
+export function trackBasePercent(kind: SpeedKind, config: SpeedConfiguration = getActiveSpeedConfig()): number {
   if (kind === 'run') return config.run?.basePercent ?? 100;
   return config.attack?.basePercent ?? config.basePercent ?? 10;
 }
@@ -52,7 +70,7 @@ export function validateSpeedConfiguration(config: SpeedConfiguration): void {
 validateSpeedConfiguration(SPEED);
 
 /** Compose all buffs/slows first, then choose one phase with one final floor/cap. */
-export function resolveSpeed(kind: SpeedKind, totalPercent: number, config: SpeedConfiguration = SPEED, mounted = false): ResolvedSpeed {
+export function resolveSpeed(kind: SpeedKind, totalPercent: number, config: SpeedConfiguration = getActiveSpeedConfig(), mounted = false): ResolvedSpeed {
   const base = trackBasePercent(kind, config);
   const track = config[kind];
   const sorted = [...track.phases].sort((a, b) => a.minPercent - b.minPercent);
@@ -68,7 +86,7 @@ export function resolveSpeed(kind: SpeedKind, totalPercent: number, config: Spee
   let velocity: number | undefined;
   if (kind === 'run') {
     const defaultStride = mounted ? (config.run.horseStridePixels ?? 180) : (config.run.stridePixels ?? 120);
-    stridePixels = phase.stride ?? defaultStride;
+    stridePixels = mounted ? (config.run.horseStridePixels ?? 180) : (phase.stride ?? defaultStride);
     velocity = (phase.fps / config.run.referenceFrames) * stridePixels;
   }
 
@@ -86,7 +104,7 @@ export function castSpeedPct(bag: AttrBag): number {
   return attrOf(bag, 'castspeed_v') + attrOf(bag, 'castspeed_yan_v');
 }
 /** Common game/lab adapter: UI bonuses are not total percentages; slow applies before capping. */
-export function totalSpeedPercents(bag: AttrBag, slowed: boolean, config: SpeedConfiguration = SPEED) {
+export function totalSpeedPercents(bag: AttrBag, slowed: boolean, config: SpeedConfiguration = getActiveSpeedConfig()) {
   const runBase = trackBasePercent('run', config);
   const attackBase = trackBasePercent('attack', config);
   const slow = slowed ? EFFECTS.slowFactor : 1;
@@ -111,4 +129,61 @@ export function speedPoints(pct: number): number {
 
 export const moveFactor = (bag: AttrBag, slowed: boolean): number =>
   resolveSpeed('run', totalSpeedPercents(bag, slowed).run).multiplier;
+
+/** Formats current speed configuration to exact TypeScript export string */
+export function formatSpeedCode(config: SpeedConfiguration): string {
+  const formatAttackPhases = (phases: readonly SpeedPhase[]): string => {
+    const lines: string[] = [];
+    for (let i = 0; i < phases.length; i += 2) {
+      const p1 = phases[i];
+      const p2 = phases[i + 1];
+      if (p2) {
+        lines.push(`      { minPercent: ${p1.minPercent}, fps: ${p1.fps} }, { minPercent: ${p2.minPercent}, fps: ${p2.fps} },`);
+      } else {
+        lines.push(`      { minPercent: ${p1.minPercent}, fps: ${p1.fps} },`);
+      }
+    }
+    return lines.join('\n');
+  };
+
+  const formatRunPhases = (phases: readonly SpeedPhase[]): string => {
+    const lines: string[] = [];
+    for (let i = 0; i < phases.length; i += 2) {
+      const p1 = phases[i];
+      const p2 = phases[i + 1];
+      const s1 = p1.stride ? `, stride: ${p1.stride}` : '';
+      const s2 = p2 ? (p2.stride ? `, stride: ${p2.stride}` : '') : '';
+      if (p2) {
+        lines.push(`      { minPercent: ${p1.minPercent}, fps: ${p1.fps}${s1} }, { minPercent: ${p2.minPercent}, fps: ${p2.fps}${s2} },`);
+      } else {
+        lines.push(`      { minPercent: ${p1.minPercent}, fps: ${p1.fps}${s1} },`);
+      }
+    }
+    return lines.join('\n');
+  };
+
+  return `export const SPEED = {
+  basePercent: ${config.basePercent},
+  minPercent: ${config.minPercent},
+  maxPercent: ${config.maxPercent},
+  run: {
+    basePercent: ${config.run.basePercent ?? 100},
+    distanceScale: ${config.run.distanceScale},
+    stridePixels: ${config.run.stridePixels ?? 120},
+    horseStridePixels: ${config.run.horseStridePixels ?? 180},
+    referenceFrames: ${config.run.referenceFrames},
+    phases: [
+${formatRunPhases(config.run.phases)}
+    ],
+  },
+  attack: {
+    basePercent: ${config.attack.basePercent ?? 10},
+    referenceFrames: ${config.attack.referenceFrames},
+    phases: [
+${formatAttackPhases(config.attack.phases)}
+    ],
+  },
+} as const;
+`;
+}
 

@@ -64,7 +64,8 @@ export function showFigure(el: HTMLElement, gender: Gender, series: Element, fac
   const key = `${FACTIONS[faction]?.element ?? series}-${gender}`;
   const art = LOGIN_FIGURES[`${key}-idle`];
   if (!art) return;
-  const scale = Math.min(1, el.clientWidth / art.idleWidth, el.clientHeight / art.idleHeight);
+  // Scale only by height so wide weapons (e.g. Thiếu Lâm staff) don't shrink the character down.
+  const scale = el.clientHeight > 0 ? Math.min(1, el.clientHeight / art.idleHeight) : 1;
   const sprite = document.createElement('div');
   sprite.className = 'login-figure-sprite';
   sprite.setAttribute('aria-hidden', 'true');

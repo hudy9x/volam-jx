@@ -1,5 +1,5 @@
 import {
-  getSkill, isExternal, levelOf, skillActionMs, applyBossResistance, attackTiming, mergeBag, mergePoison, monsterCombat, moveFactor, passiveBag, skillBonuses, stateBag,
+  getSkill, isExternal, levelOf, resolveSpeed, skillActionMs, applyBossResistance, attackTiming, mergeBag, mergePoison, monsterCombat, moveFactor, passiveBag, skillBonuses, stateBag,
   type CombatStats, type HitEffects, type PoisonRun,
 } from '@vltk/shared';
 import type { Sim } from '../entity.js';
@@ -43,13 +43,17 @@ export function combatOf(sim: Sim): CombatStats {
 
 /** Movement factor (fastwalkrun_p of items / bùa, slow) used by systems/movement.ts. */
 export function refreshMoveScale(w: World, sim: Sim): void {
-  sim.moveScale = moveFactor(combatOf(sim).bag, slowed(w, sim));
+  sim.moveScale = sim.devRunPercent !== undefined
+    ? resolveSpeed('run', sim.devRunPercent).multiplier
+    : moveFactor(combatOf(sim).bag, slowed(w, sim));
 }
 
 /** Snapshot the resolved attack phase at the start of the action. */
 export function castTiming(w: World, sim: Sim, skillId: number) {
   const s = getSkill(skillId), cold = slowed(w, sim);
-  const timing = attackTiming(combatOf(sim).bag, !!s && isExternal(s, levelOf(sim, skillId) ?? 1), cold);
+  const timing = sim.devAttackPercent !== undefined
+    ? resolveSpeed('attack', sim.devAttackPercent)
+    : attackTiming(combatOf(sim).bag, !!s && isExternal(s, levelOf(sim, skillId) ?? 1), cold);
   return s ? { ...timing, cycleMs: skillActionMs(s, timing.cycleMs, cold) } : timing;
 }
 
