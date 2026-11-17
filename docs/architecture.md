@@ -24,7 +24,7 @@ protocol.ts       lệnh C2S / S2C, FxEvent, kiểu tin nhắn
 geometry.ts       khoảng cách isometric, hướng, bước đi, mulberry32
 formulas/         công thức trò chơi (docs/formulas/): tuning.ts (điểm xuất hằng số; EFFECTS ở effects/tuning.ts) · attrs.ts (túi thuộc tính) · character.ts (chỉ số)
                   · level.ts (exp, chia exp) · monster.ts (đường cong quái) · combat.ts (CombatStats) · damage.ts · effects.ts (điểm gọi) · effects/ (công thức từng hiệu ứng + tuning) · speed.ts · drops.ts
-drops/            drops.gen.ts (bảng rơi gốc, gen:drops)
+drops/            drops.gen.ts (bảng rơi gốc, gen:drops) · drop-config.json + config.ts (tỉ lệ theo nhóm/boss) · README.md
 characters/       factions.ts (11 phái, hệ) · player.gen.ts (bảng nhân vật gốc, gen:player) · progression.ts (hệ, cấp, điểm, vào phái)
                   · player.ts (PLAYER_SPEED) · look.ts (lookOf: trang bị → paper-doll)
                   · starter.ts (đồ khởi đầu)            sau: level, điểm tiềm năng, chỉ số dẫn xuất

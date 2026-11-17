@@ -1,3 +1,13 @@
+## 2026-11-17 · Cấu hình tỉ lệ rơi đồ theo loại quái/boss (đã commit)
+
+- **USER yêu cầu commit** phần cấu hình tỉ lệ rơi trang bị, ngân lượng, đồ xanh và vật phẩm đặc biệt theo từng nhóm/boss (không push), nền `892016f`.
+- **Nội dung gồm:**
+  1. `packages/shared/src/drops/drop-config.json` & `config.ts`: Hỗ trợ tách cấu hình `normal`, `blueBoss`, `goldenBoss` (`default` + `byTier`) và `overrides[monsterId]`, giữ đồng bộ tỉ lệ Boss Hoàng Kim từ `tools/boss`.
+  2. `packages/shared/src/formulas/drops.ts` & `packages/shared/src/bosses/index.ts`: Thêm `rollEquipmentFromTable`, `rollMoneyWithProfile`, `rollGoldenBossItemWithRates`.
+  3. `apps/server/src/world/systems/drops.ts`: `dropLoot` dùng `resolveDropProfile`, tung đủ `rolls`, tung bù nếu thiếu `minItems`, áp `luckBonus`, `moneyRatePct` và `moneyMul`.
+  4. Tài liệu & test: `packages/shared/src/drops/README.md`, `docs/formulas/drops.md`, `docs/architecture.md`, `tests/drop-config.test.ts`.
+- **Kiểm tra trước commit:** `node --import tsx --test tests/drop-config.test.ts` (4/4 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công). Cần restart server để áp dụng cấu hình mới.
+
 ## 2026-11-17 · Commit Bảng xếp hạng theo USER
 
 - USER yêu cầu commit phần Bảng xếp hạng Cấp độ/Tài phú, không push. Commit `feat(rankings): add level and wealth leaderboards`, nền82fc6ba; checkpoint này nằm trong commit đó.

@@ -1,3 +1,9 @@
+## 2026-11-17 · Cấu hình tỉ lệ rơi đồ theo loại quái/boss
+
+- USER yêu cầu tách cấu hình tỉ lệ rơi trang bị, ngân lượng, đồ xanh và vật phẩm đặc biệt theo từng loại quái/boss (`normal`, `blueBoss`, `goldenBoss.default/byTier`, `overrides[id]`) và commit, không push.
+- Triển khai `packages/shared/src/drops/drop-config.json`, `config.ts`, `README.md`; bổ sung `rollEquipmentFromTable`, `rollMoneyWithProfile`, `rollGoldenBossItemWithRates`; cập nhật `apps/server/src/world/systems/drops.ts` (`dropLoot`) và tài liệu `docs/formulas/drops.md`, `docs/architecture.md`.
+- Kiểm tra: `tests/drop-config.test.ts` (4/4 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công). Không push theo quy định.
+
 ## 2026-11-17 · Commit Bảng xếp hạng theo USER
 
 - USER yêu cầu commit phần Bảng xếp hạng Cấp độ/Tài phú, không push. Commit `feat(rankings): add level and wealth leaderboards`, nền82fc6ba; checkpoint này nằm trong commit đó.

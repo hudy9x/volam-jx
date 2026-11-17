@@ -28,6 +28,25 @@ export function itemLevelRange(t: DropTable, level: number): [number, number] {
   return [Math.max(1, lo), Math.max(1, hi)];
 }
 
+/** Pick one equipment row (genre 0, non-gold) from `t` proportionally to its weights, ignoring empty/script slots. */
+export function rollEquipmentFromTable(t: DropTable, level: number, rng: () => number): ItemDef | null {
+  const equipRows = t.items.filter(([genre, , , rate, quality]) => genre === 0 && !quality && rate > 0);
+  if (!equipRows.length) return null;
+  let total = 0;
+  for (const row of equipRows) total += row[3];
+  let x = rng() * total;
+  for (const [, detail, particular, rate] of equipRows) {
+    if (x < rate) {
+      const kind = DETAIL_KINDS[detail];
+      const [lo, hi] = itemLevelRange(t, level);
+      const lv = lo + Math.floor(rng() * (hi - lo + 1));
+      return (kind && ITEMS[`${kind}-${particular}-${lv}`]) || null;
+    }
+    x -= rate;
+  }
+  return null;
+}
+
 /** One roll of a table: an equipment row (our item def) or nothing. Other genres (quest items, scripts) are skipped. */
 export function rollItem(t: DropTable, level: number, rng: () => number): ItemDef | null {
   let x = Math.floor(rng() * t.range);
@@ -45,10 +64,22 @@ export function rollItem(t: DropTable, level: number, rng: () => number): ItemDe
   return null;
 }
 
+/** Money of a kill with explicit chance % and multiplier (from drop-config.json). */
+export function rollMoneyWithProfile(
+  level: number,
+  moneyScale: number,
+  moneyRatePct: number,
+  moneyMul: number,
+  rng: () => number,
+): number {
+  if (moneyRatePct <= 0 || moneyMul <= 0 || rng() * 100 >= moneyRatePct) return 0;
+  const base = Math.max(1, Math.ceil(level * moneyScale * DROPS.moneyPerLevel * (0.5 + rng())));
+  return Math.max(1, Math.round(base * moneyMul));
+}
+
 /** Money of a kill: MoneyRate % chance; amount CHỌN (DROPS.moneyPerLevel). */
 export function rollMoney(t: DropTable, level: number, rng: () => number): number {
-  if (rng() * 100 >= t.moneyRate) return 0;
-  return Math.max(1, Math.ceil(level * t.moneyScale * DROPS.moneyPerLevel * (0.5 + rng())));
+  return rollMoneyWithProfile(level, t.moneyScale, t.moneyRate, 1, rng);
 }
 
 /** Factor that divides the candidate threshold: max(0.2, 1 + 0.2 × (luck − 5)). */

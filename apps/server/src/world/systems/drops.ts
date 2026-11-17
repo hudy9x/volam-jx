@@ -1,6 +1,8 @@
 import { moneyText } from '@vltk/shared';
 import {
   DROPS,
+  GOLDEN_BOSS_SPECIAL_ITEMS,
+  ITEMS,
   addToBag,
   createGold,
   createItem,
@@ -9,11 +11,16 @@ import {
   isoDistance,
   itemDef,
   nearestWalkable,
-  rollGoldenBossItem,
-  rollItem,
+  resolveDropProfile,
+  rollEquipmentFromTable,
+  rollGoldenBossItemWithRates,
   rollMagicLines,
-  rollMoney,
+  rollMoneyWithProfile,
+  type DropProfile,
+  type DropTable,
   type Item,
+  type ItemDef,
+  type MonsterDropTier,
 } from '@vltk/shared';
 import { Ground } from '../../net/schema.js';
 import type { Sim } from '../entity.js';
@@ -40,35 +47,80 @@ export interface GroundDrop {
 
 let nextDrop = 1;
 
+function rollProfileItem(
+  tier: 0 | 1 | 2,
+  monsterId: number | undefined,
+  level: number,
+  table: DropTable,
+  profile: DropProfile,
+  rng: () => number,
+): ItemDef | null {
+  if (tier >= 2 && monsterId !== undefined) {
+    return rollGoldenBossItemWithRates(monsterId, level, profile, rng);
+  }
+  const roll = rng() * 100;
+  if (roll < profile.specialRatePct) {
+    const ids = profile.specialItems?.length ? profile.specialItems : GOLDEN_BOSS_SPECIAL_ITEMS;
+    const pool = ids.map(id => ITEMS[id]).filter((it): it is ItemDef => !!it);
+    if (pool.length > 0) return pool[Math.floor(rng() * pool.length)] ?? null;
+  }
+  if (roll < profile.specialRatePct + profile.equipRatePct) {
+    return rollEquipmentFromTable(table, level, rng);
+  }
+  return null;
+}
+
+function buildDroppedItem(
+  def: ItemDef,
+  magicEnabled: boolean,
+  luck: number,
+  rng: () => number,
+): Item {
+  const item = def.gold ? createGold(def, newItemUid(), luck) : createItem(def, newItemUid());
+  if (magicEnabled && !def.gold && !def.stack && def.kind !== 'potion') {
+    const series = Math.floor(rng() * 5);
+    const lines = rollMagicLines(def, series, luck, rng);
+    if (lines.length) {
+      item.q = 1;
+      item.magic = lines;
+      item.series = series;
+    }
+  }
+  return item;
+}
+
 /** A monster died to `killer`: roll its table (rolls per kill), put the items / money around the corpse. */
 export function dropLoot(w: World, monster: Sim, killer: Sim | undefined): void {
   if (!killer || killer.kind !== 'player' || monster.def?.dummy) return;
   const level = monster.a.level;
-  const tier = monster.a.boss;
+  const tier: MonsterDropTier = monster.a.boss >= 2 ? 2 : monster.a.boss === 1 ? 1 : 0;
   const levelTable = dropTableFor(level);
   const t = (tier >= 2 ? dropTableFor(level, monster.def?.dropTable) : undefined) ?? levelTable;
   if (!t) return;
   const luck = killer.stats?.luck ?? 5;
-  const bossSettings = getGoldenBossConfig().settings;
-  const rolls = tier >= 2 ? Math.max(1, bossSettings.dropRolls || DROPS.bossRolls) : tier === 1 ? DROPS.blueBossRolls : DROPS.rolls;
+  const bossCfg = getGoldenBossConfig();
+  const goldenEntry = tier >= 2 && monster.def ? bossCfg.bosses.find(b => b.id === monster.def!.id) : undefined;
+  const profile = resolveDropProfile(tier, monster.def?.id, goldenEntry?.tier, tier >= 2 ? bossCfg.settings : undefined);
+  const magicEnabled = Boolean(t.magic || levelTable?.magic || tier >= 2);
+  const effectiveLuck = luck + profile.luckBonus;
   const out: { item: Item | null; money: number }[] = [];
-  for (let i = 0; i < rolls; i++) {
-    let def = tier >= 2 && monster.def
-      ? rollGoldenBossItem(monster.def.id, level, Math.random)
-      : rollItem(t, level, Math.random);
-    if (!def && tier < 2 && t !== levelTable && levelTable) def = rollItem(levelTable, level, Math.random);
+
+  for (let i = 0; i < profile.rolls; i++) {
+    const def = rollProfileItem(tier, monster.def?.id, level, t, profile, Math.random);
     if (!def) continue;
-    const item = def.gold ? createGold(def, newItemUid(), luck) : createItem(def, newItemUid());
-    if ((t.magic || levelTable?.magic || tier >= 2) && !def.gold && !def.stack && def.kind !== 'potion') {
-      const series = Math.floor(Math.random() * 5);
-      const lines = rollMagicLines(def, series, luck + (tier >= 2 ? 3 : tier === 1 ? 1 : 0), Math.random);
-      if (lines.length) { item.q = 1; item.magic = lines; item.series = series; }
-    }
-    out.push({ item, money: 0 });
+    out.push({ item: buildDroppedItem(def, magicEnabled, effectiveLuck, Math.random), money: 0 });
   }
+
+  // Bảo đảm số món tối thiểu (minItems) cho Boss Xanh / Boss Hoàng Kim nếu các lượt tung bị trượt.
+  const equipTable = tier >= 2 ? (dropTableFor(Math.max(90, level)) ?? t) : (levelTable ?? t);
+  while (out.length < profile.minItems) {
+    const def = rollEquipmentFromTable(equipTable, tier >= 2 ? Math.max(90, level) : level, Math.random);
+    if (!def) break;
+    out.push({ item: buildDroppedItem(def, magicEnabled, effectiveLuck, Math.random), money: 0 });
+  }
+
   const moneyTable = t.moneyRate > 0 ? t : (levelTable ?? t);
-  const moneyMul = tier >= 2 ? 4 : tier === 1 ? 2 : 1;
-  const money = rollMoney(moneyTable, level, Math.random) * moneyMul;
+  const money = rollMoneyWithProfile(level, moneyTable.moneyScale, profile.moneyRatePct, profile.moneyMul, Math.random);
   if (money) out.push({ item: null, money });
   out.forEach((d, i) => put(w, monster.a.x, monster.a.y, i, d.item, d.money, killer.id));
 }

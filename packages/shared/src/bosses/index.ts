@@ -1,4 +1,4 @@
-import { dropTableFor, rollItem } from '../formulas/drops.js';
+import { dropTableFor, rollEquipmentFromTable } from '../formulas/drops.js';
 import { ITEMS, type ItemDef } from '../items/items.js';
 import { GOLDEN_BOSS_CONFIG } from './config.js';
 import {
@@ -97,18 +97,26 @@ export function nextGoldenBossSpawnDelayMs(
   return 10_000;
 }
 
+export interface GoldenBossRollRates {
+  goldRatePct: number;
+  specialRatePct: number;
+  equipRatePct: number;
+  specialItems?: readonly string[];
+}
+
 /**
- * Quay 1 lần vật phẩm rơi ra từ Boss Hoàng Kim dựa theo tỉ lệ cài đặt trong `settings`:
- * - `goldRatePct` %: Rơi 1 trang bị Hoàng Kim trong danh sách `boss.goldDrops` (nếu Boss có gắn đồ HK).
- * - `specialRatePct` %: Rơi 1 vật phẩm đặc biệt (Bí kíp 90/120/150, Đại thành bí kíp, Ngũ Hoa Ngọc Lộ Hoàn...).
- * - `blueRatePct` %: Rơi 1 trang bị xanh theo cấp độ của Boss.
+ * Quay 1 lần vật phẩm rơi ra từ Boss Hoàng Kim theo bộ tỉ lệ `rates` truyền vào.
  */
-export function rollGoldenBossItem(bossId: number, level: number, rng: () => number): ItemDef | null {
-  const { settings } = currentConfig;
+export function rollGoldenBossItemWithRates(
+  bossId: number,
+  level: number,
+  rates: GoldenBossRollRates,
+  rng: () => number,
+): ItemDef | null {
   const boss = byIdMap.get(bossId);
-  const goldRate = Math.max(0, Number(settings.goldRatePct) || 0);
-  const specialRate = Math.max(0, Number(settings.specialRatePct) || 0);
-  const blueRate = Math.max(0, Number(settings.blueRatePct) || 0);
+  const goldRate = Math.max(0, Number(rates.goldRatePct) || 0);
+  const specialRate = Math.max(0, Number(rates.specialRatePct) || 0);
+  const blueRate = Math.max(0, Number(rates.equipRatePct) || 0);
   const roll = rng() * 100;
 
   // 1. Trúng nhóm Trang bị Hoàng Kim
@@ -128,7 +136,8 @@ export function rollGoldenBossItem(bossId: number, level: number, rng: () => num
 
   // 2. Trúng nhóm Vật phẩm Đặc biệt
   if (roll < goldRate + specialRate) {
-    const spPool = GOLDEN_BOSS_SPECIAL_ITEMS.map(id => ITEMS[id]).filter((it): it is ItemDef => !!it);
+    const ids = rates.specialItems?.length ? rates.specialItems : GOLDEN_BOSS_SPECIAL_ITEMS;
+    const spPool = ids.map(id => ITEMS[id]).filter((it): it is ItemDef => !!it);
     if (spPool.length > 0) {
       return spPool[Math.floor(rng() * spPool.length)] ?? null;
     }
@@ -138,14 +147,31 @@ export function rollGoldenBossItem(bossId: number, level: number, rng: () => num
   if (roll < goldRate + specialRate + blueRate) {
     const levelTable = dropTableFor(Math.max(90, level));
     if (levelTable) {
-      for (let attempt = 0; attempt < 4; attempt++) {
-        const def = rollItem(levelTable, Math.max(90, level), rng);
-        if (def && !def.gold) return def;
-      }
+      return rollEquipmentFromTable(levelTable, Math.max(90, level), rng);
     }
   }
 
   return null;
+}
+
+/**
+ * Quay 1 lần vật phẩm rơi ra từ Boss Hoàng Kim dựa theo tỉ lệ cài đặt trong `settings`:
+ * - `goldRatePct` %: Rơi 1 trang bị Hoàng Kim trong danh sách `boss.goldDrops` (nếu Boss có gắn đồ HK).
+ * - `specialRatePct` %: Rơi 1 vật phẩm đặc biệt (Bí kíp 90/120/150, Đại thành bí kíp, Ngũ Hoa Ngọc Lộ Hoàn...).
+ * - `blueRatePct` %: Rơi 1 trang bị xanh theo cấp độ của Boss.
+ */
+export function rollGoldenBossItem(bossId: number, level: number, rng: () => number): ItemDef | null {
+  const { settings } = currentConfig;
+  return rollGoldenBossItemWithRates(
+    bossId,
+    level,
+    {
+      goldRatePct: settings.goldRatePct,
+      specialRatePct: settings.specialRatePct,
+      equipRatePct: settings.blueRatePct,
+    },
+    rng,
+  );
 }
 
 /** Kiểm tra tính hợp lệ của toàn bộ cấu hình Boss Hoàng Kim (bao gồm ràng buộc không trùng ID trang bị Hoàng Kim). */

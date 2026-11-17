@@ -1,6 +1,7 @@
 # Rơi đồ, nhặt đồ, may mắn, chỉ số đồ
 
-Mã: `packages/shared/src/formulas/drops.ts` (`dropTableFor`, `itemLevelRange`, `rollItem`, `rollMoney`, `luckFactor`, `rollMagicLines`),
+Mã: `packages/shared/src/formulas/drops.ts` (`dropTableFor`, `itemLevelRange`, `rollEquipmentFromTable`, `rollItem`, `rollMoneyWithProfile`, `rollMoney`, `luckFactor`, `rollMagicLines`),
+cấu hình tỉ lệ theo nhóm/boss `packages/shared/src/drops/drop-config.json` & `drops/config.ts` (mô tả các trường ở [packages/shared/src/drops/README.md](../../packages/shared/src/drops/README.md)),
 bảng gốc `drops/drops.gen.ts` (`npm run gen:drops -w @vltk/client`), trọng số dòng xanh `items/magicattrib.gen.ts` (`gen:magic`), hằng số
 `formulas/tuning.ts` (`DROPS`, `LUCK`). Server: `apps/server/src/world/systems/drops.ts`, `world/progress.ts` (`equipmentBag`).
 Nghiên cứu: [docs/research/luck-drops.md](../research/luck-drops.md).
@@ -9,21 +10,38 @@ Nghiên cứu: [docs/research/luck-drops.md](../research/luck-drops.md).
 
 | Bước | Luật | Nguồn |
 |---|---|---|
-| Bảng | dải cấp quái: `npcdroprate10` … `90` (bản đồ 37 / 140 dùng `npcdroprate10`) | DATA bảng · CHỌN (gốc chọn theo bản đồ / boss) |
-| Số lần tung | thường 1, boss 8 | CHỌN (gốc: cột `Treasure` của `npcs.txt`, chưa nhập) |
-| Một lần tung | x = rand(RandRange); đi qua các món theo RandRate cộng dồn → nhiều nhất 1 món; hết danh sách = không rơi | INFERRED |
+| Cấu hình theo nhóm/boss | `resolveDropProfile(tier, monsterId, goldenTier, goldenSettings)` đọc `drops/drop-config.json` (`normal`, `blueBoss`, `goldenBoss.default/byTier`, `overrides[id]`) | `drops/config.ts` |
+| Bảng | dải cấp quái: `npcdroprate10` … `90` | DATA bảng · CHỌN |
+| Số lần tung & tối thiểu | `profile.rolls` (mặc định: thường 1, Boss Xanh 5, Hoàng Kim 12/theo tier); nếu rơi ít hơn `profile.minItems` (Boss Xanh 1, Hoàng Kim 2–5) thì tung bù trang bị cho đủ | `drop-config.json` |
+| Một lần tung | Tung `0..100`: theo `goldRatePct` → `specialRatePct` → `equipRatePct`; khi trúng trang bị, `rollEquipmentFromTable` bốc ngẫu nhiên theo trọng số `genre = 0` trong bảng cấp quái | `drops/config.ts` · `formulas/drops.ts` |
 | Món | Genre 0: Detail 0–9 = vũ khí cận chiến, tầm xa, áo, nhẫn, dây chuyền, giày, đai, nón, bao tay, ngọc bội; Particular = kiểu → id `kind-type-level` | DATA |
 | Cấp món | lo = max(MinItemLevel, ⌊cấp quái / MinItemLevelScale⌋), hi = min(MaxItemLevel, ⌊cấp quái / MaxItemLevelScale⌋), tung trong [lo, hi] | INFERRED |
-| Tiền | xác suất MoneyRate %; lượng ⌈cấp × MoneyScale × 0,1 × U(0,5–1,5)⌉ | DATA (tỉ lệ) · CHỌN (lượng) |
+| Tiền | xác suất `profile.moneyRatePct` %; lượng `⌈cấp × MoneyScale × 0,1 × U(0,5–1,5)⌉ × profile.moneyMul` | `drop-config.json` · CHỌN |
 | Quyền nhặt | **người đánh chết quái** (VT9); sau **20 s** ai cũng nhặt được; biến mất sau **60 s** | USER |
 | Nhặt | bấm vào vật rơi; xa hơn 80 thì tự đi tới rồi nhặt | CHỌN |
-| Chưa làm | đồ hoàng kim (`Quality=1`, TB11), vật phẩm nhiệm vụ / script (Genre 4, 6), quái vàng, chia đồ tổ đội | |
+| Chưa làm | vật phẩm nhiệm vụ / script theo từng map (`Genre 4, 6` trong `npcdroprate`), chia đồ tổ đội | |
 
-Ví dụ (mô phỏng 100 000 lần, quái cấp 15): ra trang bị 2 %, ra tiền 20 % (trung bình 75 lượng), món cấp 1.
+Ví dụ theo cấu hình mặc định hiện tại:
+- Quái thường cấp 15: **5 %** ra trang bị (món cấp 1), **40 %** ra tiền (trung bình ~75 lượng/bọc).
+- Boss Xanh cấp 30: tung **5** lần, **100 %** rơi ít nhất **1** trang bị (35 % mỗi lượt, cộng +2 may mắn), **100 %** rơi tiền ×3 (trung bình ~450 lượng/bọc), và **5 %** mỗi lượt ra thuốc quý (`specialItems`).
+
+### Bảng cấu hình mặc định (`packages/shared/src/drops/drop-config.json`)
+
+| Nhóm | `rolls` | `minItems` | `equipRatePct` | `specialRatePct` | `goldRatePct` | `luckBonus` | `moneyRatePct` | `moneyMul` |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Quái thường (`normal`) | 1 | 0 | 5 % | 0 % | 0 % | +0 | 40 % | ×1 |
+| Boss Xanh (`blueBoss`) | 5 | 1 | 35 % | 5 % *(thuốc quý)* | 0 % | +2 | 100 % | ×3 |
+| Boss Hoàng Kim (`goldenBoss.default`) | 12 | 3 | 73,6 % | 19,9 % | 3,4 % | +3 | 100 % | ×4 |
+| ↳ Tiểu Boss (`byTier.minor`) | 8 | 2 | *(kế thừa)* | *(kế thừa)* | 1,5 % | *(kế thừa)* | *(kế thừa)* | ×3 |
+| ↳ Đại Boss (`byTier.major`) | 12 | 4 | *(kế thừa)* | *(kế thừa)* | 3,4 % | *(kế thừa)* | *(kế thừa)* | ×5 |
+| ↳ Boss mới (`byTier.newboss`) | 15 | 5 | *(kế thừa)* | *(kế thừa)* | 5,0 % | *(kế thừa)* | *(kế thừa)* | ×6 |
+
+- Có thể ghi đè riêng từng con quái/boss theo `id` trong `overrides` (xem chi tiết ý nghĩa từng trường tại [packages/shared/src/drops/README.md](../../packages/shared/src/drops/README.md)).
+- Khi chỉnh thông số Boss Hoàng Kim trên giao diện `tools/boss` (`packages/shared/src/bosses/config.json`), các trường `dropRolls`, `blueRatePct`, `specialRatePct`, `goldRatePct` sẽ tự đồng bộ vào nhóm `goldenBoss` nếu chưa bị `byTier` / `overrides` ghi đè.
 
 ## Dòng xanh và may mắn (TB6, VT10)
 
-Mỗi món rơi có hệ ngẫu nhiên và 6 vị trí dòng (chẵn = tiền tố luôn bật, lẻ = hậu tố ẩn của hệ món):
+Mỗi món rơi có hệ ngẫu nhiên và 6 vị trí dòng (chẵn = tiền tố luôn bật, lẻ = hậu tố ẩn của hệ món). Điểm may mắn dùng để tung dòng = `May mắn nhân vật + profile.luckBonus` (mặc định `+0` quái thường, `+2` Boss Xanh, `+3` Boss Hoàng Kim):
 
 ```
 ngưỡng = rand(1 000 000) / hệ số may mắn

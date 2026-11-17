@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "profiles": {
+    "normal": {
+      "rolls": 1,
+      "minItems": 0,
+      "equipRatePct": 5,
+      "luckBonus": 0,
+      "moneyRatePct": 40,
+      "moneyMul": 1,
+      "specialRatePct": 0,
+      "goldRatePct": 0
+    },
+    "blueBoss": {
+      "rolls": 25,
+      "minItems": 5,
+      "equipRatePct": 35,
+      "luckBonus": 2,
+      "moneyRatePct": 100,
+      "moneyMul": 3,
+      "specialRatePct": 5,
+      "goldRatePct": 0,
+      "specialItems": [
+        "potion-2-5",
+        "potion-0-5",
+        "potion-1-5"
+      ]
+    },
+    "goldenBoss": {
+      "default": {
+        "rolls": 30,
+        "minItems": 10,
+        "equipRatePct": 73.6,
+        "luckBonus": 3,
+        "moneyRatePct": 100,
+        "moneyMul": 4,
+        "specialRatePct": 19.9,
+        "goldRatePct": 3.4
+      },
+      "byTier": {
+        "minor": {
+          "rolls": 8,
+          "minItems": 2,
+          "moneyMul": 3,
+          "goldRatePct": 1.5
+        },
+        "major": {
+          "rolls": 12,
+          "minItems": 4,
+          "moneyMul": 5,
+          "goldRatePct": 3.4
+        },
+        "newboss": {
+          "rolls": 15,
+          "minItems": 5,
+          "moneyMul": 6,
+          "goldRatePct": 5
+        }
+      }
+    }
+  },
+  "overrides": {}
+}
