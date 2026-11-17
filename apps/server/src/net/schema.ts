@@ -26,6 +26,7 @@ export const Actor = schema({
   maxMp: t.uint32(),
   pk: t.uint8(),             // PK mode: 0 Luyện công, 1 Chiến đấu, 2 Đồ sát (shared combat/rules.ts)
   camp: t.string(),          // players: camp shown by the name colour (own, or the team leader's); '' monsters
+  teamLeader: t.boolean(), // authoritative captain marker visible to nearby players
   team: t.string(),          // players: team id ('' = none; world/teams.ts)
   boss: t.uint8(),           // monsters: 0 normal (white), 1 Boss Xanh (blue), 2 Boss Hoàng Kim (gold)
   scale: t.float32(),

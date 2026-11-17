@@ -50,6 +50,8 @@ Bế Nguyệt Phất Trần (5 hào quang, không gây sát thương). Phản đ
 
 ## Tổ đội
 
+- USER2026-11-17: cờ vàng nhỏ trên đầu đội trưởng, mọi người gần đó đều thấy qua `Actor.teamLeader` do server xác định. Nhường đội trưởng/rời đội/giải tán cập nhật cờ; ẩn khi chết hoặc ra ngoài vùng nhìn. Dùng bộ vẽ chung Web/Desktop/Mobile; chưa kiểm native/điện thoại thật.
+
 - Mời bằng nút **Mời** trong danh sách **người chơi xung quanh** (những người đang thấy trên màn hình, gần nhất trước, làm mới mỗi giây —
   vòng 28, như jx-web-main không cần gõ tên), người được mời Đồng ý / Từ chối (hết hạn 60 giây). Tối đa **8** người
   (`MAX_TEAM`, như JX1). Người không ở trong đội mời thì thành đội trưởng.

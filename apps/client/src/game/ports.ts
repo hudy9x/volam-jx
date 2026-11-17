@@ -47,6 +47,7 @@ export interface WorldActions {
   /** Deposit or withdraw money / KNB in the account stash. */
   stashCurrency: (op: 'deposit' | 'withdraw', currency: 'money' | 'knb', amount: number) => void;
   teleport: (mapId: number) => void;
+  returnTraining: () => void;
   /** Dev: level of a learned skill. */
   setSkillLevel: (skill: number, level: number) => void;
   /** Spend potential points (Trang bị và Thuộc tính +). */

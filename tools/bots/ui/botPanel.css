@@ -101,3 +101,9 @@
 #bots-page .bp-file-actions { align-items:end; }
 #bots-page .bp-file-actions>.bp-f { flex:1 1 220px; }
 #bots-page .bp-file-actions :is(select,button) { min-height:44px; }
+
+#bots-page .bp-scenario-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+#bots-page .bp-scenario-item {display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #303832;border-radius:6px;padding:14px;overflow-wrap:anywhere}
+#bots-page .bp-scenario-item button {min-width:44px;min-height:44px}
+
+#bots-page #scenario-overview {grid-column:1/-1}

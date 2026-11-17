@@ -26,7 +26,7 @@ const AUTO_LABELS: Record<keyof AutoSettings, string> = {
   autoMoney: 'Tự nhặt ngân lượng', autoSellBlue: 'Tự bán đồ xanh trong túi', autoKeepValuable: 'Giữ đồ xanh có giá trị để rao bán',
   autoRadius: 'Bán kính quanh chỗ bắt đầu', autoSkipBoss: 'Bỏ qua boss', autoBuff: 'Tự động buff kỹ năng đã học và duy trì hào quang', autoReturn: 'Quay về chỗ cũ khi hết quái',
   autoSeek: 'Tìm quái ở xa', autoPickup: 'Tự nhặt đồ', autoPriority: 'Mục tiêu ưu tiên', autoRotate: 'Xoay chiêu',
-  autoCurse: 'Tự dùng bùa hại', autoMap: 'Tự đổi bãi luyện công theo cấp', autoRevive: 'Tự hồi sinh rồi quay lại',
+  autoCurse: 'Tự dùng bùa hại', autoMap: 'Tự đổi bãi luyện công theo cấp', autoReturnTraining: 'Tự quay lại bãi luyện công trước đó', autoRevive: 'Tự hồi sinh khi trọng thương',
   autoBuyPotion: 'Hết thuốc về thành mua', autoJunk: 'Tự bán đồ trắng không mặc được', autoLoot: 'Lọc đồ nhặt',
   autoReachPct: 'Tầm xa: đứng ở % tầm chiêu', autoMeleeClose: 'Cận chiến áp sát', autoHp: 'Uống thuốc khi Sinh lực < %',
   autoMp: 'Uống thuốc khi Nội lực < %',
@@ -98,7 +98,7 @@ const PAGE = `
     <button id="bl-del" class="bp-danger">Xóa</button>
     <button id="bl-refresh">Làm mới</button>
   </div>
-  <div class="bp-row bp-run-actions">${f('Chọn kịch bản', sel('bl-scenario', opt('', 'Chọn kịch bản đã lưu')))}<button id="bl-run" class="bp-main" disabled>Chạy kịch bản</button><button id="bl-stop" disabled>Dừng bot đã chọn</button></div>
+  <div class="bp-row bp-run-actions">${f('Chọn kịch bản', sel('bl-scenario', opt('', 'Chọn kịch bản đã lưu')))}<button id="bl-run" class="bp-main" disabled>Chạy kịch bản</button><button id="bl-resume" disabled>Chạy tiếp</button><button id="bl-stop" disabled>Dừng bot đã chọn</button></div>
   <div class="bp-tabs" role="tablist" aria-label="Trạng thái nhân vật">
     <button type="button" id="bl-tab-all" role="tab" aria-controls="bl-panel" aria-selected="false" tabindex="-1" data-state="all">Tất cả <span id="bl-count-all">(0)</span></button>
     <button type="button" id="bl-tab-online" role="tab" aria-controls="bl-panel" aria-selected="true" data-state="online">Online <span id="bl-count-online">(0)</span></button>
@@ -152,6 +152,8 @@ const PAGE = `
 class BotPanel {
   private bots: BotInfo[] = BOT_ROSTER.map(b=>({username:b.id,name:b.name,gender:b.gender,faction:b.faction,charId:'',level:0,mapId:0,online:false,pending:false,template:''}));
   private running = new Map<string,{username:string;title:string;phase:string}>();
+  private assignments: Record<string,string> = {};
+  private scenarioTitles: Record<string,string> = {};
   private runnerErrorAt = 0;
   private runBusy = false;
   private picked = new Set<string>();
@@ -198,6 +200,7 @@ class BotPanel {
     this.on('sc-save', () => void this.saveScenario());
     this.on('sc-delete', () => void this.deleteFile('scenarios'));
     this.on('bl-run', () => void this.runSelected());
+    this.on('bl-resume', () => void this.resumeSelected());
     this.on('bl-stop', () => void this.stopSelected());
     this.$('bl-scenario').addEventListener('change', () => this.updateRunActions());
     this.on('bt-update', () => void this.updateSetup());
@@ -401,6 +404,9 @@ class BotPanel {
     const [template, list, scenario] = cards;
     list.id = 'roster-card'; template.id = 'template-card'; scenario.id = 'scenario-card';
     this.root.querySelector('.bp-cols')!.prepend(list);
+    const overview=document.createElement('section');overview.className='bp-card';overview.id='scenario-overview';
+    overview.innerHTML='<h2>Kịch bản</h2><div id="bl-scenario-cards" class="bp-scenario-grid"></div>';
+    list.before(overview);
     for (const input of this.root.querySelectorAll<HTMLInputElement>('input:not([type=checkbox])')) if (!input.closest('label')) input.setAttribute('aria-label', input.placeholder || input.id);
     for (const select of this.root.querySelectorAll('select')) if (!select.closest('label') && !select.hasAttribute('aria-label')) select.setAttribute('aria-label', select.id);
   }
@@ -450,6 +456,8 @@ class BotPanel {
       const scenario = this.val('sc-file');
       this.$('sc-file').innerHTML = '<optgroup label="Tự cài đặt">' + opt('', 'Tự cài đặt') + '</optgroup><optgroup label="Danh sách template kịch bản">' + files.scenarios.map(n => opt(n, files.scenarioTitles?.[n] || n)).join('') + '</optgroup>';
       this.set('sc-file', scenario);
+      this.scenarioTitles=Object.fromEntries(files.scenarios.map(name=>[name,files.scenarioTitles?.[name]||name]));
+      this.renderScenarioCards();
       const runScenario = this.val('bl-scenario');
       this.$('bl-scenario').innerHTML = opt('', 'Chọn kịch bản đã lưu') + files.scenarios.map(name=>opt(name, files.scenarioTitles?.[name] || name)).join('');
       this.set('bl-scenario', runScenario); this.updateRunActions();
@@ -546,26 +554,49 @@ class BotPanel {
 
   private updateRunActions(): void {
     if(!this.$('bl-run'))return;
+    this.root.querySelectorAll<HTMLButtonElement>('[data-toggle-scenario]').forEach(button=>{button.disabled=this.runBusy||!Object.values(this.assignments).includes(button.dataset.toggleScenario!);});
     this.$<HTMLSelectElement>('bl-scenario').disabled = !this.picked.size || this.runBusy;
     this.$<HTMLButtonElement>('bl-run').disabled = !this.picked.size || !this.val('bl-scenario') || this.runBusy;
+    this.$<HTMLButtonElement>('bl-resume').disabled = this.runBusy || ![...this.picked].some(id=>this.assignments[id]&&!this.running.has(id));
     this.$<HTMLButtonElement>('bl-stop').disabled = ![...this.picked].some(id=>this.running.has(id)) || this.runBusy;
   }
-  private async runnerCall(path:string, body?:unknown): Promise<{bots:{username:string;title:string;phase:string}[];errors:{message:string;at:number}[]}> {
+  private async runnerCall(path:string, body?:unknown): Promise<{assignments:Record<string,string>;bots:{username:string;title:string;phase:string}[];errors:{message:string;at:number}[]}> {
     const response=await fetch(`/api/runner/${path}`,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
     const result=await response.json();if(!response.ok)throw Error(result.error||'Không điều khiển được bộ chạy bot.');return result;
   }
   private async refreshRuns(): Promise<void> {
-    try{const before=JSON.stringify([...this.running.values()]); const state=await this.runnerCall('status');this.running=new Map(state.bots.map(bot=>[bot.username,bot]));
+    try{const before=JSON.stringify([[...this.running.values()],this.assignments]); const state=await this.runnerCall('status');this.running=new Map(state.bots.map(bot=>[bot.username,bot]));this.assignments=state.assignments;
       const error=state.errors.at(-1);if(error&&error.at>this.runnerErrorAt){this.runnerErrorAt=error.at;this.status(error.message,true);}
-      if(before!==JSON.stringify([...this.running.values()])){this.renderList();void this.refresh(true);}
+      if(before!==JSON.stringify([[...this.running.values()],this.assignments])){this.renderScenarioCards();this.renderList();void this.refresh(true);}
     }catch{/* Game API and runner startup show errors on explicit actions. */}
   }
   private async runSelected(): Promise<void> {
     if(!this.picked.size||!this.val('bl-scenario')||this.runBusy)return;
-    if([...this.picked].some(id=>this.running.has(id)||this.bots.find(b=>b.username===id)?.online)){this.status('Có nhân vật đang online hoặc chờ vào; hãy bỏ chọn nhân vật đó trước.',true);return;}
     this.runBusy=true;this.updateRunActions();
-    try{const state=await this.runnerCall('start',{scenario:this.val('bl-scenario'),usernames:[...this.picked],server:SERVER_URL});this.running=new Map(state.bots.map(bot=>[bot.username,bot]));this.status(`Đã bắt đầu ${this.picked.size} nhân vật; bot sẽ vào lần lượt 3–5 mỗi giây.`);this.renderList();}
+    try{const state=await this.runnerCall('start',{scenario:this.val('bl-scenario'),usernames:[...this.picked],server:SERVER_URL});this.running=new Map(state.bots.map(bot=>[bot.username,bot]));this.assignments=state.assignments;this.renderScenarioCards();this.status(`Đã bắt đầu ${this.picked.size} nhân vật; bot sẽ vào lần lượt 3–5 mỗi giây.`);this.renderList();}
     catch(error){this.status((error as Error).message,true);}finally{this.runBusy=false;this.updateRunActions();}
+  }
+  private async resumeSelected(): Promise<void> {
+    if(this.runBusy)return;
+    const users=[...this.picked].filter(id=>!this.running.has(id)&&!this.bots.find(b=>b.username===id)?.online);
+    this.runBusy=true;this.updateRunActions();
+    try {await this.runnerCall('resume',{usernames:users,server:SERVER_URL});await this.refreshRuns();this.status('Đã chạy tiếp theo kịch bản đã gán.');}
+    catch(error){this.status((error as Error).message,true);}finally{this.runBusy=false;this.updateRunActions();}
+  }
+  private renderScenarioCards():void {
+    const host=this.$('bl-scenario-cards');if(!host)return;
+    host.innerHTML=Object.entries(this.scenarioTitles).map(([name,title])=>{
+      const count=Object.values(this.assignments).filter(s=>s===name).length;
+      const running=[...this.running.values()].filter(bot=>this.assignments[bot.username]===name);
+      const active=running.length>0;
+      const phase=!active?'Đã dừng':running.every(bot=>bot.phase==='stopping')?'Đang dừng':running.some(bot=>bot.phase==='online')?'Đang chạy':'Đang chuẩn bị';
+      return `<article class="bp-scenario-item"><div><strong>${esc(title)}</strong><div class="bp-note">${count} bot · ${phase}</div></div><button data-toggle-scenario="${esc(name)}" aria-label="${active?'Dừng':'Chạy'} ${esc(title)}" title="${active?'Dừng':'Chạy'} ${esc(title)}" ${!count||this.runBusy?'disabled':''}>${active?'❚❚':'▶'}</button></article>`;
+    }).join('')||'<p class="bp-note">Chưa có kịch bản. Lưu kịch bản bên dưới để bắt đầu.</p>';
+    host.querySelectorAll<HTMLButtonElement>('[data-toggle-scenario]').forEach(button=>button.onclick=async()=>{
+      if(this.runBusy)return;this.runBusy=true;this.updateRunActions();this.renderScenarioCards();
+      try {await this.runnerCall('toggle',{scenario:button.dataset.toggleScenario,server:SERVER_URL});await this.refreshRuns();}
+      catch(error){this.status((error as Error).message,true);}finally{this.runBusy=false;this.updateRunActions();this.renderScenarioCards();}
+    });
   }
   private async stopSelected(): Promise<void> {
     if(!this.picked.size||this.runBusy)return;this.runBusy=true;this.updateRunActions();
@@ -630,7 +661,7 @@ class BotPanel {
     const rows = this.filtered().slice(0, 1000).map(b => `<tr class="${b.online ? 'on' : ''}">
       <td><label class="bp-select-cell"><input type="checkbox" aria-label="Chọn ${esc(b.name)}" data-user="${esc(b.username)}" ${this.picked.has(b.username) ? 'checked' : ''}></label></td>
       <td class="bp-name" title="${esc(b.username)}">${esc(b.name)} <span class="bp-gender ${b.gender === 'female' ? 'female' : 'male'}" role="img" aria-label="${b.gender === 'female' ? 'Nữ' : 'Nam'}" title="${b.gender === 'female' ? 'Nữ' : 'Nam'}">${b.gender === 'female' ? '♀' : '♂'}</span></td><td>${esc(FACTIONS[b.faction]?.name ?? '—')} / ${ELEMENT_NAMES[FACTIONS[b.faction]?.element] ?? '—'}</td><td>${b.level || '—'}</td>
-      <td>${esc(MAPS[b.mapId]?.name ?? (b.mapId ? String(b.mapId) : '—'))}</td><td>${b.gear === 'green' ? 'Đồ xanh' : b.gear === 'gold' ? 'Hoàng kim' : '—'}</td><td>${esc(b.horse === 'random' ? 'Theo cấp' : HORSES[b.horse ?? '']?.name ?? '—')}</td><td>${b.online ? '🟢 Online' : this.running.has(b.username) ? ({preparing:'Đang chuẩn bị',queued:'Chờ vào game',reconnecting:'Đang vào lại',stopping:'Đang dừng'}[this.running.get(b.username)!.phase] ?? 'Đang vào game') : !b.charId ? 'Chưa thiết lập' : b.pending ? '🔴 Offline · Chờ áp mẫu' : '🔴 Offline'}</td><td>${esc(b.templateTitle || b.template || (b.charId ? 'Tự cài đặt' : '—'))}</td><td>${esc(this.running.get(b.username)?.title ?? '—')}</td></tr>`);
+      <td>${esc(MAPS[b.mapId]?.name ?? (b.mapId ? String(b.mapId) : '—'))}</td><td>${b.gear === 'green' ? 'Đồ xanh' : b.gear === 'gold' ? 'Hoàng kim' : '—'}</td><td>${esc(b.horse === 'random' ? 'Theo cấp' : HORSES[b.horse ?? '']?.name ?? '—')}</td><td>${b.online ? '🟢 Online' : this.running.has(b.username) ? ({preparing:'Đang chuẩn bị',queued:'Chờ vào game',reconnecting:'Đang vào lại',stopping:'Đang dừng'}[this.running.get(b.username)!.phase] ?? 'Đang vào game') : !b.charId ? 'Chưa thiết lập' : b.pending ? '🔴 Offline · Chờ áp mẫu' : '🔴 Offline'}</td><td>${esc(b.templateTitle || b.template || (b.charId ? 'Tự cài đặt' : '—'))}</td><td>${esc(this.scenarioTitles[this.assignments[b.username]] ?? this.running.get(b.username)?.title ?? this.assignments[b.username] ?? '—')}</td></tr>`);
     this.$('bl-body').innerHTML = rows.join('') || '<tr><td colspan="10" class="bp-empty">Không có nhân vật khớp bộ lọc.</td></tr>';
   }
 }

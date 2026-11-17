@@ -10,6 +10,8 @@ import { assetUrl } from '../../art/assets';
 const ID = 'travel-panel';
 const HTML = `
 <section id="${ID}" class="dlg hidden" data-title="Xa phu · Chuyển bản đồ">
+  <button type="button" class="btn" id="travel-return" disabled>Trở lại bãi luyện công</button>
+  <p class="muted" id="travel-return-note"></p>
   <input id="travel-search" type="search" placeholder="Tìm bản đồ (gõ không dấu cũng được)…" autocomplete="off" />
   <div id="travel-types" class="tabs"></div>
   <div id="travel-list"></div>
@@ -25,12 +27,14 @@ export class TravelWindow {
   constructor(parent: HTMLElement, private ctx: HudContext) {
     mount(parent, HTML);
     progress.watch(p => {
+      this.renderReturn();
       const level = p?.progress.level ?? 0;
       if (level === this.level) return;
       this.level = level;
       if (dialogs.isOpen(ID)) { this.render(); void syncMapRegistry().then(() => { if (dialogs.isOpen(ID)) this.render(); }).catch(e => this.ctx.notice((e as Error).message)); }
     }, false);
     dialogs.register(ID);
+    $('travel-return').addEventListener('click', () => { dialogs.close(ID); this.ctx.actions()?.returnTraining(); });
     $<HTMLInputElement>('travel-search').addEventListener('input', e => {
       this.query = fold((e.target as HTMLInputElement).value);
       this.render();
@@ -48,7 +52,17 @@ export class TravelWindow {
     this.render();
   }
 
+  private renderReturn(): void {
+    const point = progress.get()?.trainingReturn;
+    const button = $<HTMLButtonElement>('travel-return');
+    button.disabled = !point || !this.meta?.safe || !isMapEnabled(point.mapId);
+    $('travel-return-note').textContent = point
+      ? `Điểm đã lưu: ${MAPS[point.mapId]?.name ?? point.mapId} (${point.x}, ${point.y}).${!this.meta?.safe ? ' Chỉ trở lại từ trong thành.' : ''}`
+      : 'Chưa có điểm quay lại. Điểm được lưu khi rời bãi về thành bằng Thổ Địa Phù, Auto hoặc hồi sinh.';
+  }
+
   private render(): void {
+    this.renderReturn();
     const level = progress.get()?.progress.level ?? this.ctx.self()?.level ?? 0;
     const all = Object.values(MAPS).filter(m => isMapEnabled(m.id)).sort((a, b) => Number(b.safe) - Number(a.safe)
       || (mapLevelBand(a.id)?.[0] ?? Infinity) - (mapLevelBand(b.id)?.[0] ?? Infinity)

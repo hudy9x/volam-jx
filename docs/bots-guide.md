@@ -112,8 +112,8 @@ Cứ 10 giây, lệnh in một dòng trạng thái. Ví dụ thật (12 bot):
 ## 5. Lưu ý
 
 - **Giới hạn bản đồ:** "Danh sách bản đồ" ở mục 1 chỉ quyết định **chỗ xuất hiện**.
-  - Luyện quái (khi bật "Tự đổi bãi luyện công theo cấp") vẫn tự đi bãi luyện công theo cấp.
-  - Chết thì hồi sinh về thành.
+  - **Tự đổi bãi luyện công theo cấp** chọn bãi theo cấp; **Tự quay lại bãi luyện công trước đó** trở lại đúng map/tọa độ server đã lưu. Từ thành ưu tiên quay lại nếu bật cả hai. Bot chưa có điểm nhớ chọn bãi trong danh sách thiết lập để bắt đầu. Điểm lưu khi dùng Thổ Địa Phù, Auto về thành hoặc hồi sinh; Xa phu có nút trở lại dùng chung. Tắt cả hai thì chờ trong thành.
+  - Chết thì hồi sinh về thành nếu bật Tự hồi sinh; trở lại bãi do hai tùy chọn đi bãi quyết định.
   - Chưa có ô "chỉ hoạt động ở các bản đồ…" trong kịch bản; ô này mới là đề xuất.
 - Bot chưa tự cộng điểm khi lên cấp, chưa mặc đồ nhặt được, chưa có hành vi đi theo đội/phối hợp mục tiêu hay lịch online/offline (BACKLOG BT8); đã có mời/nhận tổ đội và chat/rao đồ.
 - Số đo hiệu năng server (tick, CPU, RAM, băng thông) là **phần 2**, chưa làm (`bots.md` §3).

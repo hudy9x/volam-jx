@@ -58,6 +58,7 @@ export function teamOffline(charId: string, sim: Sim): void {
 export function refreshCamp(sim: Sim): void {
   const charId = sim.charId;
   const team = charId ? teamOf.get(charId) : undefined;
+  sim.a.teamLeader = !!team && team.leader === charId;
   if (!team) { sim.a.team = ''; sim.a.camp = campOf(sim.a.faction); return; }
   sim.a.team = team.id;
   const leader = seats.get(team.leader)?.sim ?? (team.leader === charId ? sim : undefined);

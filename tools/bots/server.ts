@@ -33,7 +33,7 @@ const server = http.createServer((req,res) => {
     if (pathname==='/api/runner/status'&&req.method==='GET') {res.end(JSON.stringify(runs.status()));return;}
     if(req.method!=='POST'||req.headers.origin&&req.headers.origin!==`http://${req.headers.host}`) {res.writeHead(403);res.end(JSON.stringify({error:'Yêu cầu không hợp lệ.'}));return;}
     let raw='';req.on('data',chunk=>{raw+=chunk;if(raw.length>65536)req.destroy();});req.on('end',async()=>{
-      try{const body=JSON.parse(raw);if(pathname==='/api/runner/start')await runs.start(body.scenario,body.usernames,body.server);else if(pathname==='/api/runner/stop')runs.stop(body.usernames);else throw Error('Không có thao tác này.');res.end(JSON.stringify(runs.status()));}
+      try{const body=JSON.parse(raw);if(pathname==='/api/runner/start')await runs.replace(body.scenario,body.usernames,body.server);else if(pathname==='/api/runner/resume')await runs.resume(body.usernames,body.server);else if(pathname==='/api/runner/toggle')await runs.toggleScenario(body.scenario,body.server);else if(pathname==='/api/runner/stop')runs.stop(body.usernames);else throw Error('Không có thao tác này.');res.end(JSON.stringify(runs.status()));}
       catch(error){res.writeHead(400);res.end(JSON.stringify({error:(error as Error).message}));}
     });return;
   }

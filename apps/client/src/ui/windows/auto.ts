@@ -34,9 +34,10 @@ const HTML = `
   <label class="check"><input type="checkbox" data-set="autoSeek" /> Tự tìm quái khắp bản đồ khi quanh đây đã hết</label>
   <label class="slider">Phạm vi quanh chỗ đứng (khi không tự tìm) <input type="range" min="200" max="1200" step="50" data-set="autoRadius" /><span></span></label>
   <label class="check"><input type="checkbox" data-set="autoReturn" /> Hết quái thì quay về chỗ bắt đầu (khi không tự tìm quái)</label>
-  <label class="check"><input type="checkbox" data-set="autoMap" /> Tự đổi bãi luyện công theo cấp (lên cấp, từ trong thành)</label>
-  <label class="check"><input type="checkbox" data-set="autoRevive" /> Trọng thương thì tự hồi sinh và quay lại bãi</label>
-  <p class="muted">Tự tìm đường vòng vật cản; đứng kẹt hoặc đánh mãi không mất máu thì bỏ mục tiêu 10 giây. Auto vẫn bật khi đổi bản đồ; trong thành sẽ mua thuốc, bán đồ thừa rồi đi bãi nếu bật “Tự đổi bãi”.</p>
+  <label class="check"><input type="checkbox" data-set="autoMap" /> Tự đổi bãi luyện công theo cấp</label>
+  <label class="check"><input type="checkbox" data-set="autoReturnTraining" /> Tự quay lại bãi luyện công trước đó (đúng vị trí đã lưu)</label>
+  <label class="check"><input type="checkbox" data-set="autoRevive" /> Trọng thương thì tự hồi sinh</label>
+  <p class="muted">Tự tìm đường vòng vật cản; đứng kẹt hoặc đánh mãi không mất máu thì bỏ mục tiêu 10 giây. Auto vẫn bật khi đổi bản đồ; trong thành sẽ mua thuốc, bán đồ thừa rồi trở lại điểm đã lưu nếu bật “Tự quay lại bãi”. Nếu chỉ bật đổi bãi theo cấp, Auto chọn bãi theo cấp.</p>
   </div>
   <div id="auto-panel-loot" role="tabpanel" aria-labelledby="auto-tab-loot" tabindex="0" hidden>
   <div class="auto-h">Nhặt đồ và bán đồ</div>
@@ -51,7 +52,7 @@ const HTML = `
   <div class="auto-h">Thuốc</div>
   <label class="slider">Uống thuốc khi Sinh lực dưới (%) <input type="range" min="0" max="90" step="5" data-set="autoHp" /><span></span></label>
   <label class="slider">Uống thuốc khi Nội lực dưới (%) <input type="range" min="0" max="90" step="5" data-set="autoMp" /><span></span></label>
-  <label class="check"><input type="checkbox" data-set="autoBuyPotion" /> Hết thuốc Sinh lực thì về thành mua (≤ 20% ngân lượng) rồi quay lại</label>
+  <label class="check"><input type="checkbox" data-set="autoBuyPotion" /> Hết thuốc Sinh lực thì về thành mua (≤ 20% ngân lượng; cần bật một tùy chọn đi bãi)</label>
   <p class="muted">Nội lực dưới 2 lần chi phí chiêu cũng uống thuốc. Bản gốc cần Bạch Câu Hoàn; prototype cho dùng tự do.</p>
   </div>
   </div>

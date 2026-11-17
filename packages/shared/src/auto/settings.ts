@@ -18,6 +18,8 @@ export interface AutoSettings {
   autoRotate: boolean;
   autoCurse: boolean;
   autoMap: boolean;
+  /** Return from town to the saved field position, independently of level-based travel. */
+  autoReturnTraining: boolean;
   autoRevive: boolean;
   autoBuyPotion: boolean;
   autoJunk: boolean;
@@ -39,7 +41,7 @@ export interface AutoSettings {
 
 export const DEFAULT_AUTO: AutoSettings = {
   autoRadius: 500, autoSkipBoss: false, autoBuff: true, autoReturn: true, autoSeek: true, autoPickup: true,
-  autoPriority: 'boss', autoRotate: true, autoCurse: true, autoMap: true, autoRevive: true, autoBuyPotion: true, autoJunk: true,
+  autoPriority: 'boss', autoRotate: true, autoCurse: true, autoMap: true, autoReturnTraining: true, autoRevive: true, autoBuyPotion: true, autoJunk: true,
   autoMoney: true, autoSellBlue: false, autoKeepValuable: true,
   autoLoot: 'all', autoHp: 50, autoMp: 20, autoReachPct: 60, autoMeleeClose: true,
 };

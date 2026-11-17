@@ -10,3 +10,6 @@
 .map-card .muted { font-size: 11px; }
 
 .map-card .map-level-high { color: #ff9990; }
+
+#travel-return { min-height: 44px; flex-shrink: 0; }
+#travel-return-note { margin: 4px 0 8px; }

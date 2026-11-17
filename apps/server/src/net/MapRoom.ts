@@ -1,3 +1,4 @@
+import { rememberTrainingReturn, resolveSavedTrainingReturn } from '../world/trainingReturn.js';
 import { mapAvailable, refreshMapRegistry, resolveCharacterMap } from '../mapRegistry.js';
 import { DEFAULT_AUTO, normalizeAuto, normalizeBotTemplate, type CharacterAuto, type TradePostMsg } from '@vltk/shared';
 import { buyKnb, marketOnline, marketOffline, marketPost, marketBuy } from '../world/market.js';
@@ -350,6 +351,20 @@ export class MapRoom extends Room<{ state: MapState }> {
     this.onMessage(C2S.train, (client, msg: TrainMsg) => {
       const sim = this.simOf(client);
       if (!sim || sim.dead || !sim.progress) return;
+      if (msg?.returnPrevious) {
+        const char = sim.charId ? db.getCharacter(sim.charId) : undefined;
+        if (!char) return;
+        const saved = resolveSavedTrainingReturn(char, this.state.mapId);
+        if (saved.error) { this.notify(sim, saved.error); return; }
+        if (saved.point) {
+          const { mapId, x, y } = saved.point;
+          this.notify(sim, saved.adjusted ? 'Vị trí cũ bị chặn: trở lại điểm đứng hợp lệ gần nhất.' : `Trở lại bãi luyện công: ${MAPS[mapId].name}.`);
+          this.transfer(sim, mapId, x, y); return;
+        }
+        // Existing bots in town may predate departure memory. Bootstrap within their configured maps.
+        if (char.bot && !char.bot.setup.map.maps.some(id => MAPS[id] && !MAPS[id].safe && mapAvailable(id, true))) { this.notify(sim, 'Không tìm thấy bãi luyện công hợp lệ trong thiết lập bot.'); return; }
+        if (!char.bot && !char.auto?.settings.autoMap) { this.notify(sim, 'Chưa có điểm quay lại. Hãy đến bãi luyện công trước.'); return; }
+      }
       const res = resolveTrainingTarget(sim, this.state.mapId, trainingList());
       if (res.alreadyThere) {
         if (!msg?.quiet) this.notify(sim, res.message);
@@ -440,6 +455,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     client.send(S2C.stats, {
       series: sim.progress.series, faction: sim.a.faction, progress: sim.progress.prog, expNext: expNext(sim), stats: sim.stats,
       combat: sim.combat,
+      trainingReturn: sim.charId ? db.getCharacter(sim.charId)?.trainingReturn : undefined,
     } satisfies StatsMsg);
   }
 
@@ -532,6 +548,7 @@ export class MapRoom extends Room<{ state: MapState }> {
   /** Move a player to another map: persist the destination, drop them here, tell the client to rejoin. */
   private transfer(sim: Sim, mapId: number, x: number, y: number): void {
     if (!mapAvailable(mapId, true)) { this.notify(sim, 'Map đích đã tắt hoặc không còn tồn tại.'); return; }
+    rememberTrainingReturn(sim, this.state.mapId, mapId);
     const client = this.clients.find(c => c.sessionId === sim.sessionId);
     this.saveCharacter(sim, { mapId, x, y });
     marketOffline(sim);

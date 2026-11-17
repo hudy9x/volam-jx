@@ -104,7 +104,8 @@ export interface BagSortMsg { page: number; target?: 'bag' | 'stash' }
 /** Throw away the item in bag slot `index`. */
 export interface DiscardMsg { index: number }
 /** Auto-play: go to the bãi luyện công of the own level (maps/training.ts; the server picks the map). */
-export interface TrainMsg { quiet?: boolean }
+export interface TrainingReturnPoint { mapId: number; x: number; y: number }
+export interface TrainMsg { quiet?: boolean; returnPrevious?: boolean }
 /** Map travel (Xa phu / "Bản đồ" button). */
 export interface TeleportMsg { mapId: number }
 /** Dev: set the level of a learned skill (1..max). */
@@ -219,6 +220,8 @@ export interface LogMsg { kind: LogKind; text: string }
  * (formulas/character.ts) the F3 window shows.
  */
 export interface StatsMsg {
+  /** Owner-only last field departure point. */
+  trainingReturn?: TrainingReturnPoint;
   series: Element; faction: string; progress: Progress; expNext: number; stats: CharacterStats;
   /** Combat stats (attribute bag, skill bonuses): F3 shows the lực tay of the skills on the bar with formulas/damage.ts. */
   combat?: CombatStats;

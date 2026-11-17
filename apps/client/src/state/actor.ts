@@ -35,6 +35,7 @@ export interface ActorState {
   camp?: string;
   /** Players: team id ('' = none). */
   team?: string;
+  teamLeader?: boolean;
   /** Boss tier: 0/false = normal (white), 1 = Boss Xanh (blue), 2/true = Boss Hoàng Kim (gold). */
   boss: boolean | number;
   scale: number;

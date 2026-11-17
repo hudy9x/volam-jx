@@ -2,6 +2,16 @@
 
 > Nguồn chuẩn cho chủ đề **Auto / AUTO / tự động đánh** trong game và bot. Cập nhật 2026-11-14. Mã triển khai: `a7180d3` (chọn chiêu/boss/loot) và `7491d71` (lưu theo nhân vật, nút điều khiển và khôi phục).
 
+## Hai tùy chọn đi bãi độc lập — USER 2026-11-17
+
+- **Tự đổi bãi luyện công theo cấp** (`autoMap`): giữ lựa chọn bãi theo cấp khi tăng cấp thật hoặc xuất phát từ thành nếu không bật quay lại. Bot vẫn giới hạn trong `bot.setup.map.maps`.
+- **Tự quay lại bãi luyện công trước đó** (`autoReturnTraining`, mặc định bật): sau chuỗi tiếp tế trong thành, gửi ý định trở lại điểm lưu; không chọn bãi theo cấp. Cấu hình cũ thiếu trường được chuẩn hóa bật, lựa chọn false mới được giữ. Nếu bật cả hai, từ thành ưu tiên điểm quay lại; tăng cấp tại bãi vẫn xét autoMap. Tắt cả hai thì chờ trong thành, không tự về thành mua thuốc.
+- **Tự hồi sinh** (`autoRevive`) chỉ quyết định hồi sinh; đi tiếp do hai lựa chọn trên quyết định. `autoReturn` cũ vẫn là quay về chỗ bắt đầu khi hết quái trong cùng map, không phải tính năng trở lại từ thành.
+- Server lưu riêng `CharacterRecord.trainingReturn={mapId,x,y}` khi chuyển từ bãi hợp lệ về thành: Thổ Địa Phù, Auto về tiếp tế, chuyển thành thủ công và hồi sinh. Không ghi đè khi đi giữa các thành hoặc giữa các bãi. Điểm lấy từ Actor trên server ngay trước chuyển, tồn tại qua đổi phòng/đăng nhập lại/khởi động lại server; không chứa tọa độ do client gửi.
+- Xa phu có **Trở lại bãi luyện công**, hiển thị map/tọa độ qua StatsMsg owner-only. Chỉ dùng trong thành và khi còn sống; chưa có điểm thì nút khóa. Auto và Xa phu cùng dùng `C2S.train {returnPrevious:true}`. Map/tọa độ hợp lệ giữ nguyên; điểm bị chặn tìm điểm đứng hợp lệ gần nhất và báo rõ; map tắt/mất dữ liệu/tọa độ hỏng báo lỗi, không chuyển ngầm sang cửa map khác. Bot không trở lại map ngoài danh sách thiết lập hiện tại.
+- Bot cũ ở thành chưa có điểm nhớ: khi bật quay lại, chọn bãi hợp lệ trong danh sách thiết lập làm điểm khởi đầu. Không tự reset bot hoặc sửa file mẫu/DB hàng loạt. Nhân vật thường chưa có điểm chỉ chọn bãi theo cấp khi autoMap bật; tắt autoMap thì báo chưa có điểm và giữ trong thành.
+- Luật chung Web/Desktop/Mobile; client mới nhận tùy chọn và Xa phu, runner mới nhận đường gửi returnPrevious. Cần nạp lại server/runner/tool/client; không tác động runner đang chạy để cập nhật nóng. Kiểm riêng cổng2578/5184 vì2568/5174 đang có phiên thử khác, DB/artifacts `/tmp/jx-return-live`; unit + WS thật + browser desktop/mobile, chưa native/điện thoại thật.
+
 ## Điều khiển và lưu cài đặt đã triển khai
 
 - Cửa sổ cài đặt rộng tối đa 560px, tự co theo màn hình; chia 4 tab **Chiến đấu / Bãi luyện / Nhặt đồ / Thuốc**. Chạy/Dừng luôn ở phía trên; đổi tab giữ nguyên giá trị. Tab hỗ trợ phím trái/phải, Home/End; nội dung cuộn riêng khi thiếu chiều cao.
@@ -9,7 +19,7 @@
 - **Z** hoặc nút AUTO trên thanh chức năng mở hộp thoại. **Chạy auto / Dừng auto** trong hộp thoại và nút **▶ / ❚❚ Auto** cạnh bảng tên bật/tắt.
 - Mỗi nhân vật có `CharacterRecord.auto` gồm cài đặt và trạng thái bật. Server xác thực nhân vật từ kết nối, chuẩn hóa giá trị và lưu DB; không lấy ID nhân vật do client gửi.
 - Cache `vltk.auto.character.<charId>` giúp hiện cài đặt nhanh. Khi vào bản đồ, bản server luôn đối chiếu và thay cache cũ. localStorage bị chặn/hỏng vẫn lấy được server. Không dùng cài đặt Auto toàn máy cho nhân vật khác.
-- Reload/đăng nhập lại tự tiếp tục nếu lần trước bật. Đây là Auto trong phiên chơi, không chạy khi người chơi đã đóng game. Trong thành, nếu tắt tự đổi bãi thì chờ, không tự tắt trạng thái đã lưu.
+- Reload/đăng nhập lại tự tiếp tục nếu lần trước bật. Đây là Auto trong phiên chơi, không chạy khi người chơi đã đóng game. Trong thành, nếu tắt cả tự đổi bãi và tự quay lại thì chờ, không tự tắt trạng thái đã lưu.
 - Bot lấy lựa chọn từ kịch bản, ghi cấu hình Auto đang chạy vào nhân vật; dừng runner ghi trạng thái tắt. Tổ đội khi luyện công chọn một chế độ mời/nhận/tắt, xem [hướng dẫn bot](bots-guide.md); không tự mời/nhận khi tắt luyện công.
 
 

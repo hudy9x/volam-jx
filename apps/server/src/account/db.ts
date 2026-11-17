@@ -56,6 +56,7 @@ export interface CharacterRecord {
   /** Tiền túi (lượng); missing = saved before money existed (gets START_MONEY). */
   money?: number;
   knb?: number;
+  trainingReturn?: import('@vltk/shared').TrainingReturnPoint;
   auto?: import('@vltk/shared').CharacterAuto;
   /** Hệ chosen at creation; missing on records before 2026-11-12 (= the faction's ngũ hành). */
   series?: Element;

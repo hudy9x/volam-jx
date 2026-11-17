@@ -11,9 +11,59 @@ export class RunManager {
   private runs = new Map<string,Run>();
   private starting = new Map<string,number>();
   private errors: { message:string; at:number }[] = [];
-  constructor(private here:string, private dataDir:string) {}
-  status(): { bots:RunningBot[]; errors:{message:string;at:number}[] } {
-    return { bots:[...this.runs.values()].flatMap(run=>[...run.bots.values()]),errors:this.errors.slice(-5) };
+  private assignments: Record<string,string> = {};
+  constructor(private here:string, private dataDir:string) {
+    const file=path.join(dataDir,'.assignments.json');
+    if(fs.existsSync(file)) {
+      const saved=JSON.parse(fs.readFileSync(file,'utf8'));
+      for(const [user,scenario] of Object.entries(saved)) if(BOT_IDENTITIES.has(user)&&typeof scenario==='string'&&BOT_FILE_RE.test(scenario)) this.assignments[user]=scenario;
+    }
+  }
+  private saveAssignments():void {
+    fs.mkdirSync(this.dataDir,{recursive:true});
+    const file=path.join(this.dataDir,'.assignments.json'), temp=file+'.tmp';
+    fs.writeFileSync(temp,JSON.stringify(this.assignments,null,2)+'\n');fs.renameSync(temp,file);
+  }
+  async replace(scenario:unknown,users:unknown,server:unknown):Promise<void> {
+    if(typeof scenario!=='string'||!BOT_FILE_RE.test(scenario)||!fs.existsSync(path.join(this.dataDir,scenario+'.json'))) throw Error('Chọn một kịch bản đã lưu.');
+    if(!Array.isArray(users)||!users.length||users.length>200||users.some(id=>typeof id!=='string'||!BOT_IDENTITIES.has(id))) throw Error('Chọn nhân vật hợp lệ.');
+    if(typeof server!=='string'||!/^https?:\/\/[^\s]+$/.test(server)) throw Error('Địa chỉ máy chủ không hợp lệ.');
+    normalizeBotScenario(JSON.parse(fs.readFileSync(path.join(this.dataDir,scenario+'.json'),'utf8')));
+    const readOnline=async()=>{
+      const response=await fetch(`${server.replace(/\/$/,'')}/api/dev/bots`,{signal:AbortSignal.timeout(5000)});
+      if(!response.ok)throw Error('Không đọc được trạng thái bot.');
+      return await response.json() as {username:string;online:boolean}[];
+    };
+    const existing=await readOnline();
+    if(existing.some(bot=>bot.online&&users.includes(bot.username)&&!this.status().bots.some(active=>active.username===bot.username))) throw Error('Có bot online ngoài quyền quản lý công cụ. Hãy dừng lượt chạy bên ngoài trước.');
+    this.stop(users);
+    const deadline=Date.now()+15000;
+    while(this.status().bots.some(bot=>users.includes(bot.username))||(await readOnline()).some(bot=>bot.online&&users.includes(bot.username))) {
+      if(Date.now()>deadline)throw Error('Bot chưa dừng xong. Hãy thử chạy lại sau.');
+      await new Promise(resolve=>setTimeout(resolve,200));
+    }
+    await this.start(scenario,users,server);
+  }
+  async resume(users:unknown,server:unknown):Promise<void> {
+    if(!Array.isArray(users)||!users.length||users.some(id=>typeof id!=='string'||!BOT_IDENTITIES.has(id))) throw Error('Chọn bot đã có kịch bản.');
+    const groups=new Map<string,string[]>();
+    for(const user of new Set(users as string[])) {
+      const scenario=this.assignments[user];
+      if(!scenario||!fs.existsSync(path.join(this.dataDir,scenario+'.json'))) throw Error('Có bot chưa có kịch bản hoặc kịch bản đã bị xóa.');
+      if(this.status().bots.some(bot=>bot.username===user)) continue;
+      groups.set(scenario,[...(groups.get(scenario)??[]),user]);
+    }
+    for(const [scenario,ids] of groups) await this.start(scenario,ids,server);
+  }
+  async toggleScenario(scenario:unknown,server:unknown):Promise<void> {
+    if(typeof scenario!=='string'||!BOT_FILE_RE.test(scenario)) throw Error('Kịch bản không hợp lệ.');
+    const active=this.status().bots.filter(bot=>bot.scenario===scenario);
+    if(active.length) {this.stop(active.map(bot=>bot.username));return;}
+    const users=Object.keys(this.assignments).filter(user=>this.assignments[user]===scenario);
+    await this.resume(users,server);
+  }
+  status(): { assignments:Record<string,string>; bots:RunningBot[]; errors:{message:string;at:number}[] } {
+    return { assignments:{...this.assignments}, bots:[...this.runs.values()].flatMap(run=>[...run.bots.values()]),errors:this.errors.slice(-5) };
   }
   usesScenario(name:string):boolean {return this.starting.has(name)||[...this.runs.values()].some(run=>run.scenario===name);}
   async start(scenario:unknown, users:unknown, server:unknown): Promise<void> {
@@ -30,6 +80,9 @@ export class RunManager {
     if(!response.ok)throw Error('Không đọc được trạng thái bot từ máy chủ game.');
     const existing=await response.json() as {username:string;online:boolean}[];
     if(existing.some(bot=>bot.online&&ids.includes(bot.username))||this.status().bots.some(bot=>ids.includes(bot.username)))throw Error('Có nhân vật đã online hoặc đang chạy.');
+    const previous={...this.assignments};
+    ids.forEach(user=>{this.assignments[user]=scenario;});
+    try {this.saveAssignments();} catch(error) {this.assignments=previous;throw error;}
     const id=randomUUID(), title=config.title||scenario;
     const child=fork(path.join(this.here,'run.ts'),[scenario,'--server',server,'--users',JSON.stringify(ids)],{cwd:path.resolve(this.here,'../..'),execArgv:['--import','tsx'],env:{...process.env,BOTS_DIR:this.dataDir},stdio:['ignore','pipe','pipe','ipc']});
     const bots=new Map(ids.map(username=>[username,{username,scenario,title,phase:'preparing' as const,runId:id}]));

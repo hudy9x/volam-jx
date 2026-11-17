@@ -20,3 +20,6 @@ tools/map-creator/projects/
 
 # Auth secret when server is launched from repository root (integration tests/dev).
 /data/secret
+
+# Local bot scenario assignments
+tools/bots/data/.assignments.json*

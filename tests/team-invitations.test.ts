@@ -47,3 +47,18 @@ test('client clears all pending names on team confirmation, ignores late invites
   assert.deepEqual(teamInvites.get(), ['C']);
   team.set(null); teamInvites.set([]);
 });
+
+test('captain marker follows formation, leadership transfer and dissolution', () => {
+  const actors = ['captain-marker-a','captain-marker-b'].map(name => {
+    const a=new Actor();Object.assign(a,{name,faction:'shaolin',hp:100,maxHp:100});
+    const sim=makeSim(name,'player',a,'kim',100);sim.charId=name;
+    teamOnline(name,{sim,mapId:140,send:()=>{},notify:()=>{}});return a;
+  });
+  assert.equal(actors[0].teamLeader,false);
+  teamOrder('captain-marker-a','invite','captain-marker-b');teamOrder('captain-marker-b','accept','captain-marker-a');
+  assert.equal(actors[0].teamLeader,true);assert.equal(actors[1].teamLeader,false);
+  teamOrder('captain-marker-a','lead','captain-marker-b');
+  assert.equal(actors[0].teamLeader,false);assert.equal(actors[1].teamLeader,true);
+  teamOrder('captain-marker-b','leave');
+  assert.equal(actors[0].teamLeader,false);assert.equal(actors[1].teamLeader,false);
+});

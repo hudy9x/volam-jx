@@ -87,8 +87,8 @@ export interface AutoHost {
   /** Drops on the ground of this map and picking one up (the server walks there first). */
   drops(): Iterable<AutoDrop>;
   pickup(id: string): void;
-  /** Travel: the bãi luyện công of the own level (the server picks it), the town, revive. */
-  train(quiet: boolean): void;
+  /** Travel: level-based bãi or saved departure point (server resolves), town, revive. */
+  train(quiet: boolean, returnPrevious?: boolean): void;
   goTown(): void;
   respawn(): void;
   notice(text: string): void;
@@ -351,11 +351,11 @@ export class AutoPlay {
   // ======================= town round =======================
 
   /**
-   * In town (revived, out of potions, or started there): buy potions, sell junk, then go to the bãi luyện công (autoMap)
-   * — one step every TOWN_STEP_MS. Without autoMap, wait in town while retaining the character’s enabled preference.
+   * In town (revived, out of potions, or started there): buy potions, sell junk, then return to the saved field point (autoReturnTraining), else choose a level-based field (autoMap)
+   * — one step every TOWN_STEP_MS. With both travel options off, wait in town while retaining the enabled preference.
    */
   private town(now: number, opts: Settings): void {
-    if (!opts.autoMap) return;
+    if (!opts.autoMap && !opts.autoReturnTraining) return;
     if (now < this.townNext) return;
     this.townNext = now + TOWN_STEP_MS;
     switch (this.townStep++) {
@@ -363,7 +363,7 @@ export class AutoPlay {
       case 1: if (opts.autoBuyPotion) this.buyPotions('mp'); return;
       case 2: if (opts.autoJunk || opts.autoSellBlue) this.sellJunk(opts); return;
       default:
-        if (now >= this.nextTravel) { this.nextTravel = now + TRAVEL_GAP_MS; this.host.train(false); }
+        if (now >= this.nextTravel) { this.nextTravel = now + TRAVEL_GAP_MS; this.host.train(false, !!opts.autoReturnTraining); }
     }
   }
 
@@ -389,7 +389,7 @@ export class AutoPlay {
   /**
    * Drink a potion for `stat` when it is under `pct` % (Nội lực also under twice `need`, the main skill's cost) and the last
    * one has finished pumping (or the bar is under half of `pct`). The smallest potion that fills what is missing, else the
-   * biggest. None left: back to town for more (autoBuyPotion + autoMap).
+   * biggest. None left: back to town for more (autoBuyPotion + either travel option).
    */
   private drink(now: number, self: AutoActor, stat: PotionStat, pct: number, opts: Settings, need = 0, minimum = 0): void {
     const cur = stat === 'hp' ? self.state.hp : self.state.mp;
@@ -410,7 +410,7 @@ export class AutoPlay {
     if (best < 0) {
       if (!p.warned) this.host.notice(`Hết thuốc ${STAT_NAMES[stat]} trong hành trang.`);
       p.warned = true;
-      if (stat === 'hp' && opts.autoBuyPotion && opts.autoMap && now >= this.nextTravel) {
+      if (stat === 'hp' && opts.autoBuyPotion && (opts.autoMap || opts.autoReturnTraining) && now >= this.nextTravel) {
         this.nextTravel = now + TRAVEL_GAP_MS;
         this.host.notice('Về thành mua thuốc.');
         this.host.goTown();

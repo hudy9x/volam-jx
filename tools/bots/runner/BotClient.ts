@@ -378,7 +378,7 @@ export class BotClient {
         return out;
       },
       pickup: id => this.send(C2S.pickup, { id }),
-      train: quiet => this.send(C2S.train, { quiet }),
+      train: (quiet, returnPrevious) => this.send(C2S.train, { quiet, returnPrevious }),
       goTown: () => this.send(C2S.teleport, { mapId: TOWN_MAP_ID }),
       respawn: () => this.send(C2S.respawn, {}),
       notice: () => undefined,

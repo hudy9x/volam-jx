@@ -14,7 +14,12 @@ Mở **http://localhost:4568/**. Đây là app riêng, không có Vite/HMR và k
    Có thể dùng **Chọn 10 / Chọn 20 / Chọn 30** hoặc nhập **Số lượng nhân vật** rồi bấm **Chọn** (Enter cũng được). Chọn các tên đầu tiên theo thứ tự bảng trong tab/bộ lọc hiện tại, thay lựa chọn trong kết quả lọc và giữ lựa chọn ngoài kết quả lọc. Nếu ít người hơn số yêu cầu, chọn tất cả số đang có và báo số thực tế. Số lượng phải là số nguyên dương.
 2. Chọn **kịch bản** ở hàng thao tác ngay dưới bộ lọc.
 3. Bấm **Chạy kịch bản**. Bot vào lần lượt; bảng chuyển từ Đang chuẩn bị/Chờ vào game sang Online theo kết nối thực, cột Kịch bản hiện tên đang chạy.
-4. Tích chọn bot cần dừng và bấm **Dừng bot đã chọn**; những bot khác tiếp tục chạy.
+4. Tích chọn bot cần dừng và bấm **Dừng bot đã chọn**; những bot khác tiếp tục chạy. Bot chuyển Offline, vẫn giữ kịch bản.
+5. Chọn lại bot rồi bấm **Chạy tiếp** để chạy theo kịch bản đã gán cho từng bot; có thể chọn bot thuộc nhiều kịch bản. Chọn kịch bản mới và **Chạy kịch bản** sẽ ghi đè kịch bản của các bot được chọn. Nếu đang chạy trong công cụ, bot được dừng và chờ Offline trước khi chạy bản mới.
+
+Section **Kịch bản** phía trên danh sách nhân vật hiển thị tên, tổng bot được gán và trạng thái. **▶** chạy toàn bộ bot được gán; **❚❚** dừng các bot đang chạy của kịch bản đó. Kịch bản chưa có bot khóa nút chạy. Chạy/Dừng giữ dữ liệu nhân vật và không xóa file kịch bản.
+
+Gán kịch bản lưu riêng tại `BOTS_DIR/.assignments.json`, tồn tại qua tải lại trang và khởi động lại công cụ. File này không phải mẫu kịch bản và không vào git. Các lượt đã dừng trước bản cập nhật chưa có dữ liệu gán: chọn và chạy kịch bản một lần để lưu. Xóa mẫu kịch bản vẫn giữ tham chiếu tên cũ ở bot; cần gán kịch bản khác trước khi chạy tiếp. Chạy tiếp dùng nội dung mới nhất của mẫu đã lưu, không lưu bản sao bất biến theo bot.
 
 Bộ lọc **Thiết lập nhân vật** nằm cạnh **Nam và nữ**: chọn tên template đang được gán, thiết lập riêng có tên, **Tự cài đặt**, **Chưa thiết lập** hoặc **Tất cả thiết lập nhân vật**. Kết hợp với tab, phái, giới tính và tìm kiếm; checkbox đầu bảng và chọn nhanh chỉ tác động kết quả lọc. Refresh giữ bộ lọc đã chọn, kể cả khi không còn nhân vật khớp.
 
@@ -48,6 +53,14 @@ npm run bots -- luyen-cong-30
 ```
 
 Dừng lệnh bằng Ctrl+C. Lượt chạy từ terminal chạy riêng; bảng vẫn thấy trạng thái online từ game, nhưng nút Dừng chỉ điều khiển những lượt được mở bằng app.
+
+## Quay lại bãi luyện công — USER 2026-11-17
+
+Kịch bản có hai checkbox độc lập: **Tự đổi bãi luyện công theo cấp** và **Tự quay lại bãi luyện công trước đó**. Tùy chọn quay lại mặc định bật cho mẫu cũ thiếu trường; bỏ tick rồi lưu sẽ giữ tắt. Bật cả hai thì từ thành ưu tiên quay lại, tăng cấp tại bãi vẫn xét đổi bãi. Tắt cả hai thì bot chờ trong thành.
+
+Thổ Địa Phù, Auto về tiếp tế và hồi sinh lưu điểm rời bãi trên server. Bot quay lại đúng map/tọa độ đó, giữ qua dừng/chạy tiếp và đăng nhập lại. Bot đang ở thành chưa có điểm nhớ sẽ chọn một bãi hợp lệ trong danh sách thiết lập để bắt đầu; từ lần về thành tiếp theo có điểm chính xác. Map đã lưu không còn hợp lệ hoặc ngoài danh sách bot thì báo lỗi, không âm thầm quay về cửa map khác. Xa phu trong game dùng cùng điểm nhớ.
+
+**Tự hồi sinh** chỉ quyết định hồi sinh, không tự bật hai lựa chọn đi bãi. Muốn áp dụng cho bot đang chạy cần lưu mẫu nếu đã chỉnh, dừng/chạy tiếp runner bằng mã mới; không cần cập nhật lại cấp/trang bị hoặc tạo lại bot. Xem [Auto](../../docs/auto.md).
 
 ## Bản đồ và mua thuốc
 

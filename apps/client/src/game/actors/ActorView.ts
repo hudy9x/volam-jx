@@ -27,6 +27,7 @@ export class ActorView {
   /** Invisible point at the feet; the camera follows it. */
   readonly anchor: Phaser.GameObjects.Zone;
   private readonly label: Phaser.GameObjects.Text;
+  private readonly leaderFlag: Phaser.GameObjects.Graphics;
   private readonly bar: Phaser.GameObjects.Graphics;
   private readonly decor: StateDecor;
   private jx: JxSprite | null = null;
@@ -83,6 +84,7 @@ export class ActorView {
     this.label = scene.add.text(this.x, this.y, '', {
       resolution: textResolution(), fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(13), stroke: '#000', strokeThickness: ui(3),
     }).setOrigin(0.5, 1).setDepth(1e6);
+    this.leaderFlag = scene.add.graphics().setDepth(1e6);
     this.bar = scene.add.graphics().setDepth(1e6);
     this.decor = new StateDecor(scene);
     this.syncSource();
@@ -121,6 +123,7 @@ export class ActorView {
       this.drawPlate();
     } else {
       this.jx?.hide();
+      this.leaderFlag.setVisible(false);
       this.label.setVisible(false);
       this.bar.setVisible(false);
       const s = this.state;
@@ -314,6 +317,13 @@ export class ActorView {
     const plate = zoomPlate();
     if (this.shown && this.jx!.height > 0) this.headHeight = this.jx!.height + 8;
     const top = Math.round(this.y - this.lift - this.headHeight);
+    this.leaderFlag.clear().setVisible(s.kind === 'player' && !!s.team && !!s.teamLeader && s.hp > 0);
+    if (s.kind === 'player' && s.team && s.teamLeader && s.hp > 0) {
+      const x=Math.round(this.x), y=top-ui(32);
+      this.leaderFlag.lineStyle(ui(2),0x171b18,1).lineBetween(x,y,x,y+ui(16));
+      this.leaderFlag.lineStyle(ui(1),0xffe7a0,1).lineBetween(x,y,x,y+ui(16));
+      this.leaderFlag.fillStyle(0xffd05a,1).fillTriangle(x+ui(1),y,x+ui(13),y+ui(4),x+ui(1),y+ui(9));
+    }
     // Players: the colour of their camp (own, or the team leader's) — shared CAMP_COLORS; Đồ sát is marked.
     // Monsters (USER 2026-11-14): normal = white (#ffffff), Boss Xanh (1) = blue (#5cb8ff), Boss Hoàng Kim (2) = gold (#ffd700).
     const color = s.kind === 'npc' ? '#9cf08a'
@@ -361,6 +371,7 @@ export class ActorView {
   }
 
   destroy(): void {
+    this.leaderFlag.destroy();
     this.label.destroy();
     this.bar.destroy();
     this.decor.destroy();
