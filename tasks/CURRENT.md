@@ -1,3 +1,11 @@
+## 2026-11-17 · Trích xuất và hiển thị sprite vật phẩm rơi trên mặt đất (đã commit)
+
+- **USER yêu cầu commit** phần trích xuất và hiển thị sprite đồ rơi trên mặt đất (không push), nền `da554d4`.
+- **Nội dung gồm:**
+  1. `apps/client/tools/gen-ground-objs.ts` & `apps/client/package.json` (`gen:ground-objs`): Trích xuất 45 sprite `.spr` từ `objdata.txt` / `moneyobj.txt` / `ObjID` sang `public/assets/obj-items/*.webp` (gitignore) và sinh `packages/shared/src/items/ground-objs.gen.ts` (1.531 vật phẩm + 5 mốc ngân lượng).
+  2. `packages/shared/src/items/index.ts` & `apps/client/src/game/actors/GroundView.ts`: Dùng `groundObjSprite(defId, amount)` vẽ sprite nhỏ trên mặt đất thay cho icon hành trang, tự căn vị trí nhãn tên theo chiều cao sprite.
+  3. `tests/drop-config.test.ts`: Bổ sung test `groundObjSprite` (7/7 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công).
+
 ## 2026-11-17 · Đồng bộ 2 chiều Boss Hoàng Kim <-> drop-config và rải vị trí đồ rơi (đã commit)
 
 - **USER yêu cầu commit** phần đồng bộ 2 chiều giữa `tools/boss` và `drop-config.json` cùng cải tiến rải vị trí vật phẩm rơi từ boss (không push), nền `cc64abb`.

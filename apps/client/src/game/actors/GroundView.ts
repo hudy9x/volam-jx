@@ -1,6 +1,6 @@
 import { moneyText } from '@vltk/shared';
 import Phaser from 'phaser';
-import { ITEMS, QUALITY_COLORS } from '@vltk/shared';
+import { ITEMS, QUALITY_COLORS, groundObjSprite } from '@vltk/shared';
 import { ui, uiPx, textResolution, zoomPlate } from '../display';
 import { assetUrl } from '../../art/assets';
 
@@ -21,23 +21,24 @@ export class GroundView {
 
   constructor(scene: Phaser.Scene, readonly id: string, readonly g: GroundState) {
     const def = g.def === 'money' ? undefined : ITEMS[g.def];
-    const key = def?.icon ?? MONEY_ICON;
+    const key = groundObjSprite(g.def, g.amount) ?? def?.icon ?? MONEY_ICON;
     const tex = `gnd:${key}`;
     const add = () => {
       if (this.dead) return;
       this.img = scene.add.image(g.x, g.y, tex).setOrigin(0.5, 1).setDepth(g.y - 2);
+      this.label.setY(g.y - Math.max(18, this.img.height + 4));
     };
+    const name = def ? def.name : `${moneyText(g.amount)} lượng`;
+    this.label = scene.add.text(g.x, g.y - 24, name, {
+      resolution: textResolution(), fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(12), stroke: '#000', strokeThickness: ui(3),
+      color: def ? QUALITY_COLORS[g.q] ?? '#ffffff' : MONEY_COLOR,
+    }).setOrigin(0.5, 1).setScale(zoomPlate().textScale).setDepth(1e6 - 1);
     if (scene.textures.exists(tex)) add();
     else {
       scene.load.image(tex, assetUrl(`${key}.webp`));
       scene.load.once(`filecomplete-image-${tex}`, add);
       scene.load.start();
     }
-    const name = def ? def.name : `${moneyText(g.amount)} lượng`;
-    this.label = scene.add.text(g.x, g.y - 30, name, {
-      resolution: textResolution(), fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(12), stroke: '#000', strokeThickness: ui(3),
-      color: def ? QUALITY_COLORS[g.q] ?? '#ffffff' : MONEY_COLOR,
-    }).setOrigin(0.5, 1).setScale(zoomPlate().textScale).setDepth(1e6 - 1);
   }
 
   syncZoom(): void {

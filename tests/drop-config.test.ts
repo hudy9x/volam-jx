@@ -5,6 +5,7 @@ import {
   decodeGrid,
   dropTableFor,
   getDropConfig,
+  groundObjSprite,
   resetDropConfig,
   resolveDropProfile,
   rollEquipmentFromTable,
@@ -182,4 +183,16 @@ test('dropLoot spreads large boss drops across 200-250 radius', () => {
   } finally {
     resetDropConfig();
   }
+});
+
+test('groundObjSprite resolves ground sprites for equipment, potions, gold items and money tiers', () => {
+  assert.equal(groundObjSprite('money', 100), 'obj-items/obj_money_01');
+  assert.equal(groundObjSprite('money', 1000), 'obj-items/obj_money_02');
+  assert.equal(groundObjSprite('money', 5000), 'obj-items/obj_money_03');
+  assert.equal(groundObjSprite('money', 10000), 'obj-items/obj_money_04');
+  assert.equal(groundObjSprite('money', 50000), 'obj-items/obj_money_05');
+  assert.ok(groundObjSprite('armor-0-1')?.startsWith('obj-items/'));
+  assert.ok(groundObjSprite('melee-0-1')?.startsWith('obj-items/'));
+  assert.ok(groundObjSprite('potion-0-5')?.startsWith('obj-items/'));
+  assert.ok(groundObjSprite('gold-1')?.startsWith('obj-items/'));
 });

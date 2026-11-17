@@ -1,3 +1,9 @@
+## 2026-11-17 · Trích xuất và hiển thị sprite vật phẩm rơi trên mặt đất
+
+- USER yêu cầu trích xuất sprite đồ rơi trên mặt đất từ `Client_VLTK_SHXT` (`objdata.txt`, `moneyobj.txt`, `ObjID`) và commit (không push).
+- Thêm `apps/client/tools/gen-ground-objs.ts` (`npm run gen:ground-objs -w @vltk/client`), sinh `packages/shared/src/items/ground-objs.gen.ts` (1.531 item + 5 mốc tiền, 45 sprite `.webp` vào `public/assets/obj-items/`), cập nhật `apps/client/src/game/actors/GroundView.ts` và `tests/drop-config.test.ts`.
+- Kiểm tra: `tests/drop-config.test.ts` (7/7 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công). Không push theo quy định.
+
 ## 2026-11-17 · Đồng bộ 2 chiều Boss Hoàng Kim <-> drop-config và rải vị trí đồ rơi
 
 - USER yêu cầu đồng bộ 2 chiều giữa `tools/boss` và `drop-config.json`, rải vị trí đồ rơi boss trong phạm vi 200–250 px, và commit (không push).
