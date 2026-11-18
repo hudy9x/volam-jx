@@ -45,6 +45,18 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
         [
           321,
           15
+        ],
+        [
+          1055,
+          20
+        ],
+        [
+          1056,
+          20
+        ],
+        [
+          20,
+          20
         ]
       ],
       "goldDrops": [
@@ -56,7 +68,10 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 320,
       "x": 10800,
-      "y": 16040
+      "y": 16040,
+      "hp": 500000,
+      "attackCooldown": 0.5,
+      "skillLevelsFixed": true
     },
     {
       "id": 1194,
@@ -79,6 +94,10 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
         [
           321,
           15
+        ],
+        [
+          1057,
+          20
         ]
       ],
       "goldDrops": [
@@ -90,7 +109,9 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 38,
       "x": 3280,
-      "y": 4120
+      "y": 4120,
+      "attackCooldown": 0.5,
+      "skillLevelsFixed": true
     },
     {
       "id": 512,
@@ -113,6 +134,10 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
         [
           20,
           12
+        ],
+        [
+          319,
+          20
         ]
       ],
       "goldDrops": [
@@ -122,7 +147,9 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 92,
       "x": 9840,
-      "y": 16600
+      "y": 16600,
+      "attackCooldown": 0.5,
+      "skillLevelsFixed": true
     },
     {
       "id": 516,
@@ -140,7 +167,11 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
         ],
         [
           20,
-          12
+          20
+        ],
+        [
+          321,
+          20
         ]
       ],
       "goldDrops": [
@@ -149,7 +180,9 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 39,
       "x": 2544,
-      "y": 3784
+      "y": 3784,
+      "attackCooldown": 0.5,
+      "skillLevelsFixed": true
     },
     {
       "id": 566,
@@ -183,7 +216,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 90,
       "x": 8272,
-      "y": 14456
+      "y": 14456,
+      "attackCooldown": 0.5
     },
     {
       "id": 739,
@@ -217,7 +251,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 341,
       "x": 11856,
-      "y": 13704
+      "y": 13704,
+      "attackCooldown": 0.5
     },
     {
       "id": 748,
@@ -249,7 +284,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 41,
       "x": 2864,
-      "y": 11320
+      "y": 11320,
+      "attackCooldown": 0.5
     },
     {
       "id": 1193,
@@ -280,7 +316,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 68,
       "x": 6832,
-      "y": 5528
+      "y": 5528,
+      "attackCooldown": 0.5
     },
     {
       "id": 517,
@@ -308,7 +345,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 40,
       "x": 2704,
-      "y": 520
+      "y": 520,
+      "attackCooldown": 0.5
     },
     {
       "id": 741,
@@ -342,7 +380,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 340,
       "x": 21232,
-      "y": 12392
+      "y": 12392,
+      "attackCooldown": 0.5
     },
     {
       "id": 1195,
@@ -376,7 +415,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 26,
       "x": 2576,
-      "y": 712
+      "y": 712,
+      "attackCooldown": 0.5
     },
     {
       "id": 523,
@@ -410,7 +450,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 26,
       "x": 3035,
-      "y": 570
+      "y": 570,
+      "attackCooldown": 0.5
     },
     {
       "id": 522,
@@ -444,7 +485,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 320,
       "x": 9297,
-      "y": 16085
+      "y": 16085,
+      "attackCooldown": 0.5
     },
     {
       "id": 521,
@@ -468,7 +510,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 19,
       "x": 11664,
-      "y": 1368
+      "y": 1368,
+      "attackCooldown": 0.5
     },
     {
       "id": 514,
@@ -496,7 +539,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 3,
       "x": 1424,
-      "y": 7704
+      "y": 7704,
+      "attackCooldown": 0.5
     },
     {
       "id": 582,
@@ -530,7 +574,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 74,
       "x": 9552,
-      "y": 264
+      "y": 264,
+      "attackCooldown": 0.5
     },
     {
       "id": 742,
@@ -564,7 +609,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 193,
       "x": 592,
-      "y": 5896
+      "y": 5896,
+      "attackCooldown": 0.5
     },
     {
       "id": 1196,
@@ -598,7 +644,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 179,
       "x": 14576,
-      "y": 12936
+      "y": 12936,
+      "attackCooldown": 0.5
     },
     {
       "id": 743,
@@ -632,7 +679,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 21,
       "x": 32848,
-      "y": 20872
+      "y": 20872,
+      "attackCooldown": 0.5
     },
     {
       "id": 568,
@@ -666,7 +714,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 23,
       "x": 5296,
-      "y": 680
+      "y": 680,
+      "attackCooldown": 0.5
     },
     {
       "id": 1197,
@@ -700,7 +749,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 22,
       "x": 10832,
-      "y": 3960
+      "y": 3960,
+      "attackCooldown": 0.5
     },
     {
       "id": 513,
@@ -724,7 +774,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 24,
       "x": 12496,
-      "y": 11096
+      "y": 11096,
+      "attackCooldown": 0.5
     },
     {
       "id": 567,
@@ -758,7 +809,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 167,
       "x": 18000,
-      "y": 13960
+      "y": 13960,
+      "attackCooldown": 0.5
     },
     {
       "id": 744,
@@ -792,7 +844,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 342,
       "x": 11824,
-      "y": 14856
+      "y": 14856,
+      "attackCooldown": 0.5
     },
     {
       "id": 1198,
@@ -820,7 +873,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 70,
       "x": 2096,
-      "y": 4424
+      "y": 4424,
+      "attackCooldown": 0.5
     },
     {
       "id": 583,
@@ -853,7 +907,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 224,
       "x": 12560,
-      "y": 1640
+      "y": 1640,
+      "attackCooldown": 0.5
     },
     {
       "id": 745,
@@ -886,7 +941,9 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 336,
       "x": 3344,
-      "y": 2216
+      "y": 2216,
+      "attackCooldown": 0.5,
+      "hp": 500000
     },
     {
       "id": 1199,
@@ -917,7 +974,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 195,
       "x": 37392,
-      "y": 10648
+      "y": 10648,
+      "attackCooldown": 0.5
     },
     {
       "id": 515,
@@ -941,7 +999,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 56,
       "x": 6000,
-      "y": 1064
+      "y": 1064,
+      "attackCooldown": 0.5
     },
     {
       "id": 563,
@@ -975,7 +1034,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 319,
       "x": 2704,
-      "y": 13624
+      "y": 13624,
+      "attackCooldown": 0.5
     },
     {
       "id": 564,
@@ -1009,7 +1069,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 7,
       "x": 4400,
-      "y": 1512
+      "y": 1512,
+      "attackCooldown": 0.5
     },
     {
       "id": 565,
@@ -1043,7 +1104,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 50,
       "x": 4816,
-      "y": 3848
+      "y": 3848,
+      "attackCooldown": 0.5
     },
     {
       "id": 1200,
@@ -1071,7 +1133,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 14,
       "x": 6608,
-      "y": 2280
+      "y": 2280,
+      "attackCooldown": 0.5
     },
     {
       "id": 518,
@@ -1099,7 +1162,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 5,
       "x": 7632,
-      "y": 696
+      "y": 696,
+      "attackCooldown": 0.5
     },
     {
       "id": 562,
@@ -1133,7 +1197,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 6,
       "x": 6256,
-      "y": 7688
+      "y": 7688,
+      "attackCooldown": 0.5
     },
     {
       "id": 746,
@@ -1167,7 +1232,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 93,
       "x": 5520,
-      "y": 696
+      "y": 696,
+      "attackCooldown": 0.5
     },
     {
       "id": 1201,
@@ -1195,7 +1261,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 4,
       "x": 8880,
-      "y": 8808
+      "y": 8808,
+      "attackCooldown": 0.5
     },
     {
       "id": 511,
@@ -1219,7 +1286,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 43,
       "x": 8880,
-      "y": 1752
+      "y": 1752,
+      "attackCooldown": 0.5
     },
     {
       "id": 747,
@@ -1253,7 +1321,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 122,
       "x": 7920,
-      "y": 4552
+      "y": 4552,
+      "attackCooldown": 0.5
     },
     {
       "id": 1202,
@@ -1287,7 +1356,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 2,
       "x": 1648,
-      "y": 11352
+      "y": 11352,
+      "attackCooldown": 0.5
     },
     {
       "id": 519,
@@ -1321,7 +1391,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       ],
       "mapId": 224,
       "x": 11800,
-      "y": 2200
+      "y": 2200,
+      "attackCooldown": 0.5
     },
     {
       "id": 1364,
@@ -1349,7 +1420,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 340,
       "x": 19500,
-      "y": 11800
+      "y": 11800,
+      "attackCooldown": 0.5
     },
     {
       "id": 10031,
@@ -1377,7 +1449,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 140,
       "x": 5280,
-      "y": 9600
+      "y": 9600,
+      "attackCooldown": 0.5
     },
     {
       "id": 520,
@@ -1405,7 +1478,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "goldDrops": [],
       "mapId": 14,
       "x": 6200,
-      "y": 2600
+      "y": 2600,
+      "attackCooldown": 0.5
     }
   ]
 };
