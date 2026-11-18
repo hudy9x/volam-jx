@@ -462,11 +462,14 @@ export class SkillEngine {
       if (!m.def.autoExplode) this.collide(m);
       else if (m.last >= m.pulseNext && m.last < m.dies) { // lingering area (ice rain…): blasts every DmgInterval
         m.pulseNext += (m.def.dmgInterval ?? 1) * JX_TICK_MS;
-        this.area(m);
+        if (this.area(m)) {
+          this.event(m, 'collide');
+          if (m.def.fx?.collide) this.port.emit({ t: 'mend', m: 0, k: m.def.id, x: Math.round(m.x), y: Math.round(m.y), c: 1 });
+        }
       }
     }
     if (!m.done && now >= m.dies) {
-      if (m.def.autoExplode) this.area(m);
+      if (m.def.autoExplode && this.area(m)) this.event(m, 'collide');
       this.end(m, !!m.def.autoExplode);
     }
   }
@@ -479,7 +482,8 @@ export class SkillEngine {
       return;
     }
     if (!m.speed) return;
-    if ((move === MoveKind.Follow || move === MoveKind.SingleLine) && m.targetId) {
+    const homingReady = m.last - m.born >= (m.def.homingDelay ?? 0) * JX_TICK_MS;
+    if (homingReady && (move === MoveKind.Follow || move === MoveKind.SingleLine) && m.targetId) {
       const t = this.port.get(m.targetId);
       if (t && !t.dead) {
         const want = logicAngle(m.x, m.y, t.a.x, t.a.y);
@@ -521,6 +525,7 @@ export class SkillEngine {
       this.area(m);
       this.event(m, 'collide');
       if (m.def.colVanish) this.end(m, true);
+      else if (m.def.fx?.collide) this.port.emit({ t: 'mend', m: 0, k: m.def.id, x: Math.round(m.x), y: Math.round(m.y), c: 1 });
       return;
     }
     let best: Combatant | undefined, bestD = Infinity;
@@ -537,14 +542,19 @@ export class SkillEngine {
     else if (m.def.fx?.collide) this.port.emit({ t: 'mend', m: 0, k: m.def.id, x: Math.round(best.a.x), y: Math.round(best.a.y), c: 1 });
   }
 
-  /** Range damage around the missile (DmgRange cells). */
-  private area(m: Missile): void {
+  /** Range damage around the missile (DmgRange cells); returns whether any target was hit. */
+  private area(m: Missile): boolean {
     const owner = this.port.get(m.src.id);
-    if (!owner) return;
+    if (!owner) return false;
     const r = cellRadius(m.def.dmgRange ?? m.def.collide ?? 1);
+    let hit = false;
     for (const t of [...this.port.combatants()]) {
-      if (this.affects(m, owner, t) && isoDistance(m.x, m.y, t.a.x, t.a.y) <= r + reachOf(t)) this.strike(m, owner, t);
+      if (this.affects(m, owner, t) && isoDistance(m.x, m.y, t.a.x, t.a.y) <= r + reachOf(t)) {
+        this.strike(m, owner, t);
+        hit = true;
+      }
     }
+    return hit;
   }
 
   private end(m: Missile, collided: boolean): void {

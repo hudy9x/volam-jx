@@ -157,6 +157,8 @@ export interface MissileDef {
   p1?: number;
   p2?: number;
   p3?: number;
+  /** Ticks to fly straight before homing (`MoveKind.Follow` / `SingleLine`). */
+  homingDelay?: number;
   fx?: { wait?: FxRef; fly?: FxRef; vanish?: FxRef; collide?: FxRef };
 }
 

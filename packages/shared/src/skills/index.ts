@@ -1,7 +1,9 @@
 // Skill system: data packs (one folder per faction + common + monsters, generated from the original client by
 // apps/client/tools/gen-skills.ts) and the engine that runs them for any owner.
-import { registerMissiles, registerPack } from './core/registry.js';
+import { registerMissiles, registerPack, getMissile, getSkill } from './core/registry.js';
 import { MISSILES } from './common/missiles.gen.js';
+import { MISSILE_OVERRIDES } from './common/missile-tuning.js';
+import { SKILL_OVERRIDES } from './common/skill-overrides.js';
 import { validateCastingTuning } from './core/casting.js';
 import { common } from './common/index.js';
 import { monsters } from './monsters/index.js';
@@ -18,8 +20,16 @@ import { wudang } from './factions/wudang/index.js';
 import { kunlun } from './factions/kunlun/index.js';
 
 registerMissiles(MISSILES);
+for (const [id, patch] of Object.entries(MISSILE_OVERRIDES)) {
+  const m = getMissile(Number(id));
+  if (m) Object.assign(m, patch);
+}
 for (const pack of [shaolin, tianwang, tangmen, wudu, emei, cuiyan, gaibang, tianren, wudang, kunlun, huashan, common, monsters]) {
   registerPack(pack);
+}
+for (const [id, patch] of Object.entries(SKILL_OVERRIDES)) {
+  const s = getSkill(Number(id));
+  if (s) Object.assign(s, patch);
 }
 
 for (const pack of [tianwang]) validateCastingTuning(Object.keys(pack.tuning ?? {}).map(Number));

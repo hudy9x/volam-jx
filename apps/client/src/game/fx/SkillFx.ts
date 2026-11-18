@@ -165,6 +165,9 @@ export class SkillFx {
       if (f.from && f.to) { // lobbed: arc over the flight
         const k = Math.min(1, (now - f.born) / Math.max(1, f.dies - f.born));
         z += 4 * Math.min(140, isoDistance(f.from.x, f.from.y, f.to.x, f.to.y) / 3) * k * (1 - k);
+      } else if (f.def.zSpeed && f.def.zSpeed < 0 && f.height > 0) { // falling meteor (Thiên Ngoại Lưu Tinh…)
+        const k = Math.min(1, (now - f.born) / Math.max(1, f.dies - f.born));
+        z = Math.max(0, f.height * (1 - k));
       }
       showFx(f.img, f.fx.key, fxRow(f.fx.key, f.angle), col, f.x, f.y - z);
       f.img.setDepth(f.y + 1).setVisible(true);
@@ -195,7 +198,8 @@ export class SkillFx {
       return;
     }
     if (!f.speed) return;
-    if (f.follow) {
+    const homingReady = f.last - f.born >= (f.def.homingDelay ?? 0) * JX_TICK_MS;
+    if (homingReady && f.follow) {
       const t = this.anchorOf(f.follow);
       if (t) {
         const want = logicAngle(f.x, f.y, t.x, t.y);
