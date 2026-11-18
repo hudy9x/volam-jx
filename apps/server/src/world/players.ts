@@ -141,6 +141,11 @@ export function updatePlayer(w: World, sim: Sim, dt: number): void {
   }
   if (sim.slotAura) holdSlotAura(w, sim, sim.slotAura);
   if (w.now < sim.castUntil) return;
+  if (sim.queuedMove && !sim.pending && !sim.pickup) {
+    const move = sim.queuedMove;
+    sim.queuedMove = undefined;
+    setPath(w, sim, move);
+  }
   if (!sim.pending && !sim.pickup && sim.lockedAttack) sim.pending = { ...sim.lockedAttack, repathAt: 0 };
   if (sim.pending) processPending(w, sim);
   if (w.now < sim.castUntil) return;

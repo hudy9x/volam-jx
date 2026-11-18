@@ -36,6 +36,8 @@ export interface Sim {
   mp: number;
   dead: boolean;
   path: Point[];
+  /** Click-move queued while a cast pose is still finishing (world/commands.ts). */
+  queuedMove?: Point;
   pending: PendingCast | null;
   /** Persistent offensive intent, separate from the action interrupted by control or temporary skills. */
   lockedAttack?: PendingCast;

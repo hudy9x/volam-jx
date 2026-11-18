@@ -16,7 +16,8 @@ export function commandMove(w: World, sim: Sim, x: number, y: number): void {
   sim.pickup = undefined;
   sim.path = [];
   sim.a.attackTarget = '';
-  if (w.now < sim.castUntil) return; // finish the current pose first
+  if (w.now < sim.castUntil) { sim.queuedMove = { x, y }; return; }
+  sim.queuedMove = undefined;
   setPath(w, sim, { x, y });
 }
 
@@ -24,6 +25,7 @@ export function commandMove(w: World, sim: Sim, x: number, y: number): void {
 export function commandCast(w: World, sim: Sim, skillId: number, targetId: string | undefined, x: number, y: number, lock = false,
   reach?: number): void {
   if (sim.dead || !Number.isFinite(x) || !Number.isFinite(y)) return;
+  sim.queuedMove = undefined;
   if (sim.slotAura && getSkill(skillId)?.aura) {
     w.hooks.notify(sim, 'Hào quang đang đặt ở ô tay trái / phải: tự bật, đổi chiêu ở ô đó để thay hoặc tắt.');
     return;

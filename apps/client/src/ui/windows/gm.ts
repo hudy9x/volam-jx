@@ -14,6 +14,7 @@ import {
   type SpeedConfiguration,
   type SpeedPhase,
 } from '@vltk/shared';
+import { SERVER_URL } from '../../net/api';
 import { progress } from '../../state/progress';
 import type { HudContext } from '../hud/context';
 import { dialogs } from '../kit/dialog';
@@ -216,13 +217,13 @@ export class GmToolWindow {
       const special = Math.max(1, Number(specialInput.value) || 2);
       const status = $('gm-exp-status')!;
       try {
-        const res = await fetch('/api/exp-elixir', {
+        const res = await fetch(`${SERVER_URL}/api/exp-elixir`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ normal, special }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Lỗi lưu hệ số EXP');
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Lỗi máy chủ (${res.status})`);
         setExpElixirConfig(data.config);
         status.textContent = `Đã lưu: Tiên Thảo Lộ ×${data.config.normal}, Đặc biệt ×${data.config.special}.`;
         status.classList.remove('error');
@@ -235,9 +236,9 @@ export class GmToolWindow {
 
   private async loadExpConfig(): Promise<void> {
     try {
-      const res = await fetch('/api/exp-elixir');
+      const res = await fetch(`${SERVER_URL}/api/exp-elixir`);
       if (!res.ok) return;
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (data.config) {
         setExpElixirConfig(data.config);
         ($('gm-exp-normal') as HTMLInputElement).value = String(data.config.normal);
@@ -809,7 +810,7 @@ export class GmToolWindow {
         this.currentConfig = cfg;
         localStorage.setItem('vltk.dev_speed', JSON.stringify(cfg));
 
-        const res = await fetch('/api/dev/speed', {
+        const res = await fetch(`${SERVER_URL}/api/dev/speed`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ config: cfg, persist: true }),

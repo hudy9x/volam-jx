@@ -104,15 +104,13 @@ const RELOCK_MS = 2000;
 /** With rotation: next skill of the bar this often. */
 const ROTATE_MS = 1200;
 /** One buff per this long, and the same buff not again within BUFF_RETRY_MS when its state cannot be seen. */
-const BUFF_GAP_MS = 800;
+const BUFF_GAP_MS = 350;
 const BUFF_RETRY_MS = 15000;
 /** Bùa hại: the same curse on the same target not again within this long; only on bosses or with this many monsters near. */
 const CURSE_RETRY_MS = 10000;
 const CURSE_RANGE = 420;
 const CURSE_CROWD = 3;
 const RETURN_GAP_MS = 1500;
-/** Manual orders pause auto-fight this long (not the potions). */
-const MANUAL_PAUSE_MS = 3000;
 /** After an auto potion: wait until it has pumped (+ this) before the next one, unless the bar is below half the threshold. */
 const POTION_SLACK_MS = 300;
 const POTION_RUSH_GAP_MS = 500;
@@ -125,20 +123,20 @@ export const AUTO_NEAR_RADIUS = 600;
  * server gives a lock up beyond 1600), the walk re-sent every WALK_GAP_MS.
  */
 const WALK_BEYOND = 1200;
-const WALK_GAP_MS = 700;
+const WALK_GAP_MS = 300;
 /**
  * Stuck ("điểm kẹt"): we should be walking to the target but have not moved STALL_STEP in STALL_MS (no path, wall, cliff),
  * with no action/control/resource wait; only an unengaged destination is left alone for BAN_MS. Two stalls
  * within NUDGE_WINDOW_MS: step NUDGE_STEP aside to get off the stuck spot.
  */
-const STALL_MS = 6000;
+const STALL_MS = 2500;
 const STALL_STEP = 12;
 const BAN_MS = 10000;
 const NUDGE_WINDOW_MS = 8000;
 const NUDGE_STEP = 240;
 /** Loot (jx-web-main equipment-02.js hp): with a live target only drops this near; give up a drop after a try. */
 const LOOT_NEAR = 220;
-const PICKUP_WAIT_MS = 4000;
+const PICKUP_WAIT_MS = 1500;
 const PICKUP_RETRY_MS = 6000;
 const PICKUP_TRIES = 2;
 const FULL_NOTICE_MS = 60000;
@@ -187,11 +185,12 @@ export class AutoPlay {
   private nextTick = 0;
   private lastBuff = -Infinity;
   /** Do not overwrite a queued buff / curse before the server has applied it. */
-  private utility: { skill: number; target?: string; until: number } | null = null;
+  private utility: { skill: number; target?: string; until: number; startedAt: number; actionMs: number; seenBusy: boolean } | null = null;
   private buffTried = new Map<number, number>();
   private curseTried = new Map<string, number>();
   private lastReturn = -Infinity;
-  private pausedUntil = 0;
+  private manualPauseAt = -Infinity;
+  private manualMoving = false;
   private bans = new Map<string, number>();
   /** Movement and uninterrupted approach windows, independent of enemy HP. */
   private moved = { x: 0, y: 0, at: 0 };
@@ -219,7 +218,8 @@ export class AutoPlay {
   start(): void {
     const self = this.host.self();
     this.running = true;
-    this.pausedUntil = 0;
+    this.manualPauseAt = -Infinity;
+    this.manualMoving = false;
     // Started before the own character is known (new map): the spot is taken on the first update.
     this.anchor = self ? { x: self.x, y: self.y } : null;
     this.target = null;
@@ -254,11 +254,12 @@ export class AutoPlay {
     this.utility = null;
   }
 
-  /** The player clicked / cast by hand: let them, then carry on. */
+  /** The player clicked / cast by hand: let them finish moving, then carry on. */
   pause(now: number, targetId?: string | null): void {
     // undefined: a temporary skill / pickup; null: explicit movement releases the enemy.
     if (targetId !== undefined) this.manualFocus = targetId;
-    this.pausedUntil = now + MANUAL_PAUSE_MS;
+    this.manualPauseAt = now;
+    this.manualMoving = targetId === null;
     this.utility = null;
     this.target = null;
     this.focus = null;
@@ -310,7 +311,11 @@ export class AutoPlay {
       ? skillHpReserve(resource, self.state.maxHp) + resource.amount : 0;
     this.drink(now, self, 'hp', opts.autoHp, opts, 0, hpNeed);
     this.drink(now, self, 'mp', opts.autoMp, opts, resource?.resource === 'hp' ? 0 : this.costOf(main));
-    if (now < this.pausedUntil) return;
+    if (now - this.manualPauseAt < opts.autoManualPauseMs) return;
+    if (this.manualMoving) {
+      if (self.state.anim === 'run') return;
+      this.manualMoving = false;
+    }
     if (this.host.prepareCombat?.(now)) return;
     if ((opts.autoJunk || opts.autoSellBlue) && now - this.lastJunk > JUNK_GAP_MS) { this.lastJunk = now; this.sellJunk(opts); }
 
@@ -437,13 +442,20 @@ export class AutoPlay {
     const skill = getSkill(pending.skill);
     const active = new Set(actor?.state.states ?? []);
     const applied = [pending.skill, skill?.events?.start, skill?.child].some(id => id !== undefined && active.has(id));
-    if (!actor || actor.state.hp <= 0 || applied || now >= pending.until) { this.utility = null; return false; }
+    if (self.state.anim && self.state.anim !== 'idle') pending.seenBusy = true;
+    const poseDone = (pending.seenBusy && self.state.anim === 'idle')
+      || (pending.actionMs > 0 && now - pending.startedAt >= pending.actionMs + 200);
+    if (!actor || actor.state.hp <= 0 || applied || poseDone || now >= pending.until) { this.utility = null; return false; }
     return true;
   }
 
   private waitForApplied(now: number, self: AutoActor, skill: number, target?: string): void {
-    // Allow the current action to finish and the queued utility to reach its release frame, including slow poses.
-    this.utility = { skill, target, until: now + Math.max(3000, 2 * (self.state.actionMs ?? 0) + 1000) };
+    // Allow the current action to finish and the queued utility to reach its release frame, without stalling full 3s after idle.
+    const actionMs = self.state.actionMs ?? 0;
+    this.utility = {
+      skill, target, startedAt: now, actionMs, seenBusy: false,
+      until: now + Math.max(3000, 2 * actionMs + 1000),
+    };
   }
 
   private mainSkill(): number {
@@ -531,7 +543,7 @@ export class AutoPlay {
       this.moved.at = this.pursuit.at = now;
       return false;
     }
-    if (now - this.moved.at <= STALL_MS || now - Math.max(this.pursuit.at, this.pausedUntil) <= STALL_MS) return false;
+    if (now - this.moved.at <= STALL_MS || now - Math.max(this.pursuit.at, this.manualPauseAt) <= STALL_MS) return false;
 
     if (this.engaged !== target.id && this.manualFocus !== target.id) {
       this.ban(now, target.id);

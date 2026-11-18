@@ -1,3 +1,16 @@
+## 2026-11-18 · Tối ưu tốc độ Auto, `autoManualPauseMs` (150ms) & sửa URL GM Tool
+
+- USER yêu cầu sửa lỗi Lưu hệ số EXP trong GM Tool, tối ưu độ trễ Auto đánh quái/buff/nhặt đồ, thêm biến `autoManualPauseMs` (150 ms + chờ chạy tới đích), và commit (không push).
+- Cập nhật `gm.ts` (`SERVER_URL`), `entity.ts`/`commands.ts`/`players.ts` (`queuedMove`), `AutoPlay.ts`/`settings.ts`/`auto.ts`/`BotPanel.ts` và `tests/auto-behavior.test.ts`.
+- Kiểm tra: `npm run test:auto` (63/63 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công). Không push theo quy định.
+
+## 2026-11-18 · Demo redesign gỗ mun – son đỏ (chưa commit)
+
+- USER yêu cầu khảo sát code hiện tại và tạo demo HTML/CSS đủ login/chọn/tạo nhân vật/gameplay trong `demo/`, tái sử dụng asset gốc. HEAD `0b82438` khớp checkpoint; giữ nguyên sửa `gm.ts` có sẵn.
+- Demo độc lập buildless, cổng5198; asset subset riêng, animation idle theo metadata/anchor; tạo theo hệ/giới tính, phái lọc từ FACTIONS; HUD trên mỏng, thuốc trái/chat-tiện ích giữa/chiêu phải, minimap footer tọa độ/nút. README ghi nguồn, review UI, lệnh chạy/tái tạo và giới hạn.
+- Chromium headless đủ 4 màn: login mẫu, chọn/tạo nữ Thủy, tạo tên/chuyển gameplay, Auto, chat textContent và dialog; 390/768/1280 không tràn ngang, 0 pageerror/HTTP lỗi; đã xem ảnh desktop. JS syntax và typecheck đạt. Gameplay DOM minh họa khung1280×720fit, chưa gameplay/server/native/mobile thật, mobile HUD chưa tối ưu chạm.
+- Không sửa code game/DB/assets gốc, không commit/push. Chờ USER xem và góp ý demo, chưa duyệt tích hợp.
+
 ## 2026-11-18 · Xếp chồng vật phẩm, Auto sắp xếp hành trang & Tiên Thảo Lộ
 
 - USER yêu cầu bổ sung xếp chồng thuốc (trần 50 bình toàn hành trang), cấu hình xếp chồng dễ mở rộng, tách chồng, kéo đè gộp, Auto tự sắp xếp hành trang khi nhặt đồ, thêm Tiên Thảo Lộ & Tiên Thảo Lộ đặc biệt với hệ số nhân EXP lưu DB và icon đếm ngược HUD, sau đó commit từng phần (không push).

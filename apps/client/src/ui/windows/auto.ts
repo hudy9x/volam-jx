@@ -26,8 +26,9 @@ const HTML = `
   <div class="auto-h">Tiếp cận quái</div>
   <label class="slider">Chiêu tầm xa: đứng cách quái (% tầm chiêu) <input type="range" min="30" max="100" step="5" data-set="autoReachPct" /><span></span></label>
   <label class="check"><input type="checkbox" data-set="autoMeleeClose" /> Chiêu cận chiến: áp sát quái</label>
+  <label class="slider">Độ trễ sau khi thao tác tay (ms) <input type="range" min="0" max="3000" step="50" data-set="autoManualPauseMs" /><span></span></label>
   <div class="muted" id="auto-reach"></div>
-  <p class="muted">Ưu tiên boss: chọn bậc cao nhất rồi con gần nhất, giữ đánh đến khi hạ mục tiêu; nhặt đồ giữa các lượt đánh. Chế độ Gần nhất có thể đổi sang con gần hơn hẳn. Bấm đất hoặc ra chiêu bằng tay sẽ tạm dừng 3 giây.</p>
+  <p class="muted">Ưu tiên boss: chọn bậc cao nhất rồi con gần nhất, giữ đánh đến khi hạ mục tiêu; nhặt đồ giữa các lượt đánh. Chế độ Gần nhất có thể đổi sang con gần hơn hẳn. Click di chuyển sẽ chờ đi tới đích (tối thiểu độ trễ đã cài) rồi tự đánh ngay.</p>
   </div>
   <div id="auto-panel-training" role="tabpanel" aria-labelledby="auto-tab-training" tabindex="0" hidden>
   <div class="auto-h">Tìm quái và bãi luyện công</div>

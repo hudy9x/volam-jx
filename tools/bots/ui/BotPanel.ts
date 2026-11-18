@@ -28,6 +28,7 @@ const AUTO_LABELS: Record<keyof AutoSettings, string> = {
   autoSeek: 'Tìm quái ở xa', autoPickup: 'Tự nhặt đồ', autoSort: 'Tự sắp xếp hành trang khi hết chỗ', autoPriority: 'Mục tiêu ưu tiên', autoRotate: 'Xoay chiêu',
   autoCurse: 'Tự dùng bùa hại', autoMap: 'Tự đổi bãi luyện công theo cấp', autoReturnTraining: 'Tự quay lại bãi luyện công trước đó', autoRevive: 'Tự hồi sinh khi trọng thương',
   autoBuyPotion: 'Hết thuốc về thành mua', autoJunk: 'Tự bán đồ trắng không mặc được', autoLoot: 'Lọc đồ nhặt',
+  autoManualPauseMs: 'Độ trễ thao tác tay (ms)',
   autoReachPct: 'Tầm xa: đứng ở % tầm chiêu', autoMeleeClose: 'Cận chiến áp sát', autoHp: 'Uống thuốc khi Sinh lực < %',
   autoMp: 'Uống thuốc khi Nội lực < %',
 };

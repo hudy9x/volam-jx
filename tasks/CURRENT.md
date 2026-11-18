@@ -1,3 +1,19 @@
+## 2026-11-18 · Demo redesign gỗ mun – son đỏ (chưa commit)
+
+- USER yêu cầu khảo sát code hiện tại và tạo demo HTML/CSS đủ login/chọn/tạo nhân vật/gameplay trong `demo/`, tái sử dụng asset gốc. HEAD `0b82438` khớp checkpoint; giữ nguyên sửa `gm.ts` có sẵn.
+- Demo độc lập buildless, cổng5198; asset subset riêng, animation idle theo metadata/anchor; tạo theo hệ/giới tính, phái lọc từ FACTIONS; HUD trên mỏng, thuốc trái/chat-tiện ích giữa/chiêu phải, minimap footer tọa độ/nút. README ghi nguồn, review UI, lệnh chạy/tái tạo và giới hạn.
+- Chromium headless đủ 4 màn: login mẫu, chọn/tạo nữ Thủy, tạo tên/chuyển gameplay, Auto, chat textContent và dialog; 390/768/1280 không tràn ngang, 0 pageerror/HTTP lỗi; đã xem ảnh desktop. JS syntax và typecheck đạt. Gameplay DOM minh họa khung1280×720fit, chưa gameplay/server/native/mobile thật, mobile HUD chưa tối ưu chạm.
+- Không sửa code game/DB/assets gốc, không commit/push. Chờ USER xem và góp ý demo, chưa duyệt tích hợp.
+
+## 2026-11-18 · Tối ưu tốc độ phản hồi Auto, `autoManualPauseMs` (150ms) & sửa URL GM Tool (đã commit)
+
+- **USER yêu cầu commit** phần sửa lỗi URL `/api/exp-elixir` trong GM Tool, tối ưu tốc độ đánh quái/buff/nhặt đồ và biến `autoManualPauseMs` (không push).
+- **Nội dung gồm:**
+  1. `apps/client/src/ui/windows/gm.ts`: Dùng `SERVER_URL` (`:2567`) cho `/api/exp-elixir` và `/api/dev/speed` kèm parse JSON an toàn, sửa lỗi `Unexpected end of JSON input` khi bấm Lưu hệ số EXP.
+  2. `apps/server/src/world/{entity,commands,players}.ts`: Thêm `Sim.queuedMove` để `commandMove` lúc `w.now < sim.castUntil` không bị rớt lệnh, chạy ngay khi hết pose đánh.
+  3. `packages/shared/src/auto/{AutoPlay,settings}.ts`, `apps/client/src/ui/windows/auto.ts`, `tools/bots/ui/BotPanel.ts`, `tests/auto-behavior.test.ts`: Giảm `WALK_GAP_MS` (`300ms`), `STALL_MS` (`2500ms`), `BUFF_GAP_MS` (`350ms`), `PICKUP_WAIT_MS` (`1500ms`), mở khóa `waitForUtility` ngay khi hết pose/idle; thêm `autoManualPauseMs` (mặc định `150ms`) chờ đi tới đích (`anim !== 'run'`) rồi đánh ngay.
+- **Kiểm tra:** `npm run test:auto` (63/63 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công). Cần restart server và reload client.
+
 ## 2026-11-18 · Xếp chồng thuốc, Auto sắp xếp hành trang & Tiên Thảo Lộ (đã commit)
 
 - **USER yêu cầu commit từng phần code** (không push).

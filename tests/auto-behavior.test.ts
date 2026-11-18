@@ -376,3 +376,24 @@ test('a rejected utility times out without forgetting the enemy, and a manual co
   t.auto.pause(1100,null);t.auto.start();t.auto.update(1101,opts);
   assert.equal(skillCategory(getSkill(t.casts.at(-1)!)!),'attack');
 });
+
+test('manual move waits autoManualPauseMs (150ms) and until running stops, then attacks immediately', () => {
+  const r = rig();
+  assert.equal(DEFAULT_AUTO.autoManualPauseMs, 150);
+  r.auto.start();
+  r.auto.update(1000, r.opts);
+  const initialCasts = r.casts.length;
+
+  r.auto.pause(1100, null);
+  r.self.state.anim = 'run';
+  // Within 150ms: still paused
+  r.auto.update(1200, r.opts);
+  assert.equal(r.casts.length, initialCasts);
+  // After 150ms, still running to destination: still waits
+  r.auto.update(1300, r.opts);
+  assert.equal(r.casts.length, initialCasts);
+  // Arrived (idle): attacks immediately on that tick
+  r.self.state.anim = 'idle';
+  r.auto.update(1350, r.opts);
+  assert.ok(r.casts.length > initialCasts);
+});

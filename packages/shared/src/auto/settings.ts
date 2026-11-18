@@ -39,6 +39,8 @@ export interface AutoSettings {
   /** Uống thuốc khi Sinh lực / Nội lực dưới bao nhiêu % (0 = không uống). */
   autoHp: number;
   autoMp: number;
+  /** Độ trễ (ms) nhường thao tác tay sau khi click chuột (mặc định 150 ms). */
+  autoManualPauseMs: number;
 }
 
 export const DEFAULT_AUTO: AutoSettings = {
@@ -46,6 +48,7 @@ export const DEFAULT_AUTO: AutoSettings = {
   autoPriority: 'boss', autoRotate: true, autoCurse: true, autoMap: true, autoReturnTraining: true, autoRevive: true, autoBuyPotion: true, autoJunk: true,
   autoMoney: true, autoSellBlue: false, autoKeepValuable: true,
   autoLoot: 'all', autoHp: 50, autoMp: 20, autoReachPct: 60, autoMeleeClose: true,
+  autoManualPauseMs: 150,
 };
 
 /** Auto-fight approach: "áp sát" distance, and the range up to which a skill counts as close combat. */
@@ -69,7 +72,7 @@ export function normalizeAuto(raw: unknown): AutoSettings {
   for (const key of Object.keys(out) as (keyof AutoSettings)[]) {
     if (typeof out[key] === 'boolean' && typeof v[key] === 'boolean') (out as unknown as Record<string, unknown>)[key] = v[key];
   }
-  for (const [key, min, max] of [['autoRadius',200,1200],['autoReachPct',30,100],['autoHp',0,90],['autoMp',0,90]] as const) {
+  for (const [key, min, max] of [['autoRadius',200,1200],['autoReachPct',30,100],['autoHp',0,90],['autoMp',0,90],['autoManualPauseMs',0,3000]] as const) {
     if (typeof v[key] === 'number' && Number.isFinite(v[key])) out[key] = Math.max(min, Math.min(max, Math.round(v[key])));
   }
   if (v.autoPriority === 'boss' || v.autoPriority === 'near' || v.autoPriority === 'blue') out.autoPriority = v.autoPriority;
