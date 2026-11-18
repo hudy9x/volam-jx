@@ -1,5 +1,5 @@
 import { equipSkillBonus, wornActiveCount, itemNeeds, planPotential, planSkills, pointsAtLevel,
-  BASIC_SKILLS, FACTIONS, LEVEL, POTENTIALS, addAttr, addExp, mergeBag, moveFactor, passiveBag, playerCombat, resolveSpeed, skillBonuses, stateBag, baseValue, characterStats, expAfterGap, expShare,
+  BASIC_SKILLS, FACTIONS, LEVEL, POTENTIALS, addAttr, addExp, getExpElixirMultiplier, mergeBag, moveFactor, passiveBag, playerCombat, resolveSpeed, skillBonuses, stateBag, baseValue, characterStats, expAfterGap, expShare,
   expToNext, getSkill, isoDistance, itemDef, joinFactionError, learnableSkills, levelCap, monsterExp, newProgress, practicePerHit,
   TIER_BOOKS, learnTiers, raiseError, skillExpToNext, skillGrowth, startLevel, tierOf, weaponBaseDamage, weaponTypeOf,
   QUALITY, activeLines, bossMultiplier, seriesOf, passiveVisualSkills,
@@ -177,8 +177,12 @@ export function shareKillExp(w: World, monster: Sim, killer?: Sim): void {
   const who = `${tag}${monster.a.name} (cấp ${monster.a.level})`;
   // Kênh Hệ thống (USER 2026-11-13): the killer sees the kill (with its exp), the others the exp they got.
   const give = (p: Sim, exp: number, kill = false) => {
-    const gain = expAfterGap(exp, p.progress!.prog.level, monster.a.level);
-    const pts = gain > 0 ? `+${gain.toLocaleString('vi-VN')} kinh nghiệm` : '';
+    const baseGain = expAfterGap(exp, p.progress!.prog.level, monster.a.level);
+    const buff = p.expBuff && p.expBuff.until > Date.now() ? p.expBuff : undefined;
+    const mul = buff ? Math.max(1, getExpElixirMultiplier(buff.tier)) : 1;
+    const gain = Math.round(baseGain * mul);
+    const mulTag = mul > 1 ? ` (×${mul})` : '';
+    const pts = gain > 0 ? `+${gain.toLocaleString('vi-VN')} kinh nghiệm${mulTag}` : '';
     if (kill) w.hooks.log(p, 'kill', `Đánh bại ${who}${pts ? `: ${pts}` : ' (chênh cấp, không có kinh nghiệm)'}.`);
     else if (pts) w.hooks.log(p, 'exp', `${who}: ${pts}.`);
     if (gain > 0) gainExp(w, p, gain);

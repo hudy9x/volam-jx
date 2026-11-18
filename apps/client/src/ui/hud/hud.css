@@ -1,3 +1,3 @@
 /* ---------- HUD ---------- */
 #hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; transform-origin: 0 0; container-type: size; overflow: hidden; }
-#hud .frame, #hud .dlg, #quickbar, #hud-states, #hud button { pointer-events: auto; }
+#hud .frame, #hud .dlg, #quickbar, #hud-top-status, #hud button { pointer-events: auto; }

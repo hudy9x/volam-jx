@@ -8,12 +8,14 @@ import { GEN_GOLD, type GoldData } from './gold.gen.js';
 import { EXTRA_GOLD, EXCLUDED_GOLD_IDS } from './gold-extra.js';
 import { EXTRA_ITEMS } from './extra-items.js';
 import { BOOK_ITEMS, CANKHON_RING, TOKEN_ITEM, TOWN_PORTAL_ITEM, type BookEffect } from './books.js';
+import { ELIXIR_ITEMS, type ExpElixirEffect } from './elixirs.js';
+import { MAX_BAG_POTIONS, POTION_STACK_MAX, resolveMaxStack } from './stack-config.js';
 import type { Gender } from '../characters/factions.js';
 import type { MagicLine } from './magic.js';
 
 export type ItemKind =
   | 'armor' | 'helm' | 'melee' | 'range' | 'amulet' | 'ring' | 'pendant' | 'boot' | 'belt' | 'cuff' | 'horse'
-  | 'mask' | 'mantle' | 'signet' | 'ornament' | 'potion' | 'book' | 'token' | 'portal';
+  | 'mask' | 'mantle' | 'signet' | 'ornament' | 'potion' | 'elixir' | 'book' | 'token' | 'portal';
 export type EquipSlot =
   | 'helm' | 'amulet' | 'armor' | 'weapon' | 'ring1' | 'ring2' | 'pendant' | 'belt' | 'cuff' | 'boot' | 'horse'
   | 'mask' | 'mantle' | 'signet' | 'ornament';
@@ -31,13 +33,13 @@ export const SLOT_NAMES: Record<EquipSlot, string> = {
 export const KIND_NAMES: Record<ItemKind, string> = {
   armor: 'Áo', helm: 'Mũ', melee: 'Vũ khí', range: 'Ám khí', amulet: 'Dây chuyền', ring: 'Nhẫn',
   pendant: 'Ngọc bội', boot: 'Giày', belt: 'Đai lưng', cuff: 'Bao tay', horse: 'Ngựa',
-  mask: 'Mặt nạ', mantle: 'Phi phong', signet: 'Ấn', ornament: 'Trang sức', potion: 'Dược phẩm', book: 'Bí kíp', token: 'Lệnh bài', portal: 'Bùa',
+  mask: 'Mặt nạ', mantle: 'Phi phong', signet: 'Ấn', ornament: 'Trang sức', potion: 'Dược phẩm', elixir: 'Linh dược', book: 'Bí kíp', token: 'Lệnh bài', portal: 'Bùa',
 };
 /** Slots an item kind can go into (rings: upper first); none = not worn (thuốc). */
 export const KIND_SLOTS: Record<ItemKind, EquipSlot[]> = {
   armor: ['armor'], helm: ['helm'], melee: ['weapon'], range: ['weapon'], amulet: ['amulet'], ring: ['ring1', 'ring2'],
   pendant: ['pendant'], boot: ['boot'], belt: ['belt'], cuff: ['cuff'], horse: ['horse'],
-  mask: ['mask'], mantle: ['mantle'], signet: ['signet'], ornament: ['ornament'], potion: [], book: [], token: [], portal: [],
+  mask: ['mask'], mantle: ['mantle'], signet: ['signet'], ornament: ['ornament'], potion: [], elixir: [], book: [], token: [], portal: [],
 };
 
 /** One row of an original item table. */
@@ -45,10 +47,13 @@ export const KIND_SLOTS: Record<ItemKind, EquipSlot[]> = {
 export type ItemDef = GenItem & {
   gold?: GoldData;
   book?: BookEffect;
+  elixir?: ExpElixirEffect;
   /** Fixed magic lines of a hand-made piece: [attribute, P1, P3] (Càn Khôn Giới Chỉ, items/books.ts). */
   fixedMagic?: [string, number, number][];
   /** Worn: every hidden line of every worn piece is on (Càn Khôn Giới Chỉ, USER 2026-11-13). */
   revealHidden?: boolean;
+  /** Optional per-item stack limit override (takes precedence over stack-config.ts). */
+  maxStack?: number;
 };
 
 /** Horses are items too (same id as in HORSES); `look` = horse part row. */
@@ -58,7 +63,7 @@ const HORSE_ITEMS: ItemDef[] = GEN_HORSES.map(h => ({
 }));
 
 export const ITEMS: Record<string, ItemDef> = Object.fromEntries(
-  [...GEN_ITEMS, ...EXTRA_ITEMS, ...HORSE_ITEMS, ...GEN_GOLD.filter(it => !EXCLUDED_GOLD_IDS.has(it.id)), ...EXTRA_GOLD, ...BOOK_ITEMS, TOKEN_ITEM, CANKHON_RING, TOWN_PORTAL_ITEM].map(it => [it.id, it]),
+  [...GEN_ITEMS, ...EXTRA_ITEMS, ...HORSE_ITEMS, ...GEN_GOLD.filter(it => !EXCLUDED_GOLD_IDS.has(it.id)), ...EXTRA_GOLD, ...ELIXIR_ITEMS, ...BOOK_ITEMS, TOKEN_ITEM, CANKHON_RING, TOWN_PORTAL_ITEM].map(it => [it.id, it]),
 );
 export const ITEM_LIST: ItemDef[] = Object.values(ITEMS);
 
@@ -89,7 +94,15 @@ export interface Item {
   gq?: number;
   /** Magic lines in position order: [attribute name, value, 1 = hidden line] (blue: magic.ts; gold: gold.ts). */
   magic?: MagicLine[];
+  /** Stack count (defaults to 1 when omitted; stackable potions up to POTION_STACK_MAX). */
+  qty?: number;
 }
+
+export const isStackablePotion = (def: ItemDef | undefined): boolean => def?.kind === 'potion';
+export const maxStackOf = (def: ItemDef | undefined): number => resolveMaxStack(def);
+export const itemQty = (item: Item | null | undefined): number => (item ? Math.max(1, Math.floor(item.qty ?? 1)) : 0);
+export const bagPotionCount = (bag: readonly (Item | null)[]): number =>
+  bag.reduce((n, it) => n + (isStackablePotion(itemDef(it)) ? itemQty(it) : 0), 0);
 
 /** Cells of one page of the hành trang (the original 6 x 10 grid). */
 export const BAG_PAGE_SIZE = 60;
@@ -147,8 +160,12 @@ export function restoreItem(raw: unknown, newUid: () => string): Item | null {
   }
   if (Number.isInteger(r.series) && r.series! >= 0 && r.series! <= 4) fresh.series = r.series;
   if (Number.isInteger(r.gq) && r.gq! >= 0 && r.gq! <= 10) fresh.gq = r.gq;
+  const maxStack = maxStackOf(def);
+  if (maxStack > 1 && Number.isInteger(r.qty) && r.qty! > 1) fresh.qty = Math.min(maxStack, r.qty!);
   return fresh;
 }
+
+export { MAX_BAG_POTIONS, POTION_STACK_MAX };
 
 /** 'm' / 'f' as in the item tables. */
 export const sexOf = (gender: Gender | string): 'm' | 'f' => (gender === 'female' ? 'f' : 'm');

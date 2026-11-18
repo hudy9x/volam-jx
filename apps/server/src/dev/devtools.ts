@@ -5,12 +5,15 @@ import {
   MAPS,
   MONSTERS,
   DEFAULT_SPEED,
+  formatExpElixirCode,
   formatSpeedCode,
   formatSpawnFile,
   getActiveSpeedConfig,
   getDropConfig,
+  getExpElixirConfig,
   setActiveSpeedConfig,
   setDropConfig,
+  setExpElixirConfig,
   setGoldenBossConfig,
   setSpawns,
   spawnFileError,
@@ -24,6 +27,7 @@ import {
   type SpeedConfiguration,
 } from '@vltk/shared';
 import { requireAuth, type AuthedRequest } from '../account/auth.js';
+import { db } from '../account/db.js';
 import { LIVE_WORLDS } from '../net/MapRoom.js';
 import { devTools } from '../env.js';
 import { reloadSpawns } from '../world/systems/spawner.js';
@@ -129,5 +133,24 @@ export function registerDevRoutes(app: Application, spawnsDir: string): void {
     } catch (e) {
       res.status(400).json({ error: e instanceof Error ? e.message : String(e) });
     }
+  });
+
+  app.get('/api/dev/exp-elixir', (_req, res) => {
+    res.json({ config: getExpElixirConfig() });
+  });
+
+  app.put('/api/dev/exp-elixir', (req, res) => {
+    const body = req.body as { normal?: number; special?: number; persist?: boolean };
+    const next = setExpElixirConfig({ normal: body?.normal, special: body?.special });
+    db.setExpElixir(next);
+    if (body?.persist !== false) {
+      const file = path.resolve(process.cwd(), 'packages/shared/src/items/elixirs.ts');
+      if (fs.existsSync(file)) {
+        const content = fs.readFileSync(file, 'utf8');
+        const replaced = content.replace(/export const EXP_ELIXIR: ExpElixirConfig = \{[\s\S]*?\};\n?/m, formatExpElixirCode(next));
+        fs.writeFileSync(file, replaced, 'utf8');
+      }
+    }
+    res.json({ ok: true, config: next });
   });
 }

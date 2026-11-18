@@ -57,6 +57,7 @@ export interface CharacterRecord {
   money?: number;
   knb?: number;
   trainingReturn?: import('@vltk/shared').TrainingReturnPoint;
+  expBuff?: { until: number; tier: import('@vltk/shared').ExpElixirTier };
   auto?: import('@vltk/shared').CharacterAuto;
   /** Hệ chosen at creation; missing on records before 2026-11-12 (= the faction's ngũ hành). */
   series?: Element;
@@ -70,6 +71,7 @@ export interface CharacterRecord {
 
 interface DbShape {
   marketSales?: import('@vltk/shared').MarketSale[];
+  expElixir?: import('@vltk/shared').ExpElixirConfig;
   users: Record<string, UserRecord>;
   characters: Record<string, CharacterRecord>;
   /** Kênh chat lines (with their reactions), newest last; accounts keep the ids they saw (UserRecord.chat). */
@@ -100,6 +102,12 @@ function scheduleSave(): void {
 }
 
 export const db = {
+  getExpElixir: (): import('@vltk/shared').ExpElixirConfig | undefined =>
+    data.expElixir ? { ...data.expElixir } : undefined,
+  setExpElixir(cfg: import('@vltk/shared').ExpElixirConfig): void {
+    data.expElixir = { ...cfg };
+    scheduleSave();
+  },
   getUser: (username: string): UserRecord | undefined => data.users[username.toLowerCase()],
   addUser(user: UserRecord): void {
     data.users[user.username.toLowerCase()] = user;

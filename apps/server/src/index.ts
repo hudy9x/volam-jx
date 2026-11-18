@@ -4,7 +4,7 @@ import { WebSocketTransport } from '@colyseus/ws-transport';
 import { Encoder } from '@colyseus/schema';
 import fs from 'node:fs';
 import path from 'node:path';
-import { MAP_ROOM, mapAssetSuffix, setNavLoader, setSpawnLoader, type NavFile, type SpawnFile } from '@vltk/shared';
+import { MAP_ROOM, getExpElixirConfig, mapAssetSuffix, setExpElixirConfig, setNavLoader, setSpawnLoader, type NavFile, type SpawnFile } from '@vltk/shared';
 import { registerAuthRoutes } from './account/auth.js';
 import { db } from './account/db.js';
 import { registerDevRoutes } from './dev/devtools.js';
@@ -46,6 +46,20 @@ const server = new Server({
     });
     registerDevRoutes(app, SPAWNS_DIR);
     registerBotRoutes(app);
+    const savedElixir = db.getExpElixir();
+    if (savedElixir) setExpElixirConfig(savedElixir);
+    app.get('/api/exp-elixir', (_req, res) => { res.json({ config: getExpElixirConfig() }); });
+    app.put('/api/exp-elixir', (req, res) => {
+      const body = req.body as { normal?: number; special?: number };
+      const next = setExpElixirConfig({ normal: body?.normal, special: body?.special });
+      db.setExpElixir(next);
+      for (const world of LIVE_WORLDS.values()) {
+        for (const sim of world.sims.values()) {
+          if (sim.kind === 'player' && sim.expBuff && sim.expBuff.until > Date.now()) world.hooks.progress(sim);
+        }
+      }
+      res.json({ ok: true, config: next });
+    });
     app.get('/api/maps', (_req, res) => { refreshMapRegistry(true); res.setHeader('Cache-Control', 'no-store'); res.json(registrySnapshot()); });
     app.get('/api/health', (_req, res) => { res.json({ ok: true }); });
   },

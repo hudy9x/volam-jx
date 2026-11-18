@@ -5,7 +5,11 @@
 import { formatAttr, richText, type TipLine } from '../skills/core/describe.js';
 import { MAGIC_DESC } from '../skills/core/magicdesc.gen.js';
 import { missesReq, type ItemViewer } from './equip.js';
-import { KIND_NAMES, KIND_SLOTS, QUALITY, QUALITY_NAMES, SLOT_NAMES, type EquipSlot, type Equipment, type Item, type ItemDef } from './items.js';
+import { getExpElixirMultiplier } from './elixirs.js';
+import {
+  KIND_NAMES, KIND_SLOTS, QUALITY, QUALITY_NAMES, SLOT_NAMES, itemQty, maxStackOf,
+  type EquipSlot, type Equipment, type Item, type ItemDef,
+} from './items.js';
 import { SUITE_SIZE, lineParam3, suiteOf } from './gold.js';
 import { ACTIVATED_BY, GENERATES, MAGIC_KINDS, SERIES_NAMES, activeLines, isHidden, magicRange } from './magic.js';
 import { POTION_PULSE_MS, potionPumps } from './potions.js';
@@ -99,6 +103,14 @@ function potionLines(def: ItemDef): TipLine[] {
 export function describeItem(def: ItemDef, item?: Item, viewer?: ItemViewer, ctx: ItemTipContext = {}): ItemTooltip {
   const q = item?.q ?? 0;
   const base: TipLine[] = def.kind === 'potion' ? potionLines(def) : [];
+  if (def.elixir) {
+    const mul = getExpElixirMultiplier(def.elixir.tier);
+    const hours = Math.round((def.elixir.durationMs / 3_600_000) * 10) / 10;
+    base.push([{ text: `Nhân ${mul} lần kinh nghiệm đánh quái trong ${hours} giờ`, color: TIP_COLORS.green }]);
+  }
+  if (item && maxStackOf(def) > 1) {
+    base.push([{ text: `Số lượng: ${itemQty(item)} / ${maxStackOf(def)}`, color: TIP_COLORS.text }]);
+  }
   def.base.forEach(([name, lo, hi], i) => {
     if (name === 'fastwalkrun_p' || name === 'attackratingenhance_p') { if (!lo && !hi) return; }
     const value = item?.base?.[i] ?? lo;
@@ -139,7 +151,7 @@ export function describeItem(def: ItemDef, item?: Item, viewer?: ItemViewer, ctx
     const bad = !!viewer && missesReq(name, value, viewer);
     return line(name, value, undefined, bad ? RED : TIP_COLORS.text).map(l => ({ line: l, bad }));
   });
-  const sub = [KIND_NAMES[def.kind], def.kind === 'horse' || def.kind === 'mask' || def.kind === 'potion' ? '' : `Cấp ${def.level}`, q ? QUALITY_NAMES[q] : '']
+  const sub = [KIND_NAMES[def.kind], def.kind === 'horse' || def.kind === 'mask' || def.kind === 'potion' || def.kind === 'elixir' ? '' : `Cấp ${def.level}`, q ? QUALITY_NAMES[q] : '']
     .filter(Boolean).join(' · ');
   const s = item?.series ?? def.gold?.series;
   const series: TipLine[] = s !== undefined && SERIES_NAMES[s] ? [[

@@ -32,6 +32,7 @@ export interface PlayerRecord {
   /** Tiền túi; missing (saved before money existed) = START_MONEY. */
   money?: number;
   knb?: number;
+  expBuff?: { until: number; tier: 'normal' | 'special' };
   /** Hệ (missing on old records: the faction's), progress, its format version, practice exp of skills. */
   series?: Element; progress?: Partial<Progress>; progressVersion?: number; skillExp?: Record<string, number>;
 }
@@ -76,6 +77,7 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
   sim.knb = Number.isSafeInteger(char.knb) ? Math.max(0, Math.min(MAX_MONEY, char.knb!)) : 0;
   const money = Number(char.money ?? START_MONEY);
   sim.money = Number.isFinite(money) ? Math.max(0, Math.min(MAX_MONEY, Math.floor(money))) : START_MONEY;
+  sim.expBuff = char.expBuff && char.expBuff.until > Date.now() ? { ...char.expBuff } : undefined;
   sim.equip = char.equip ? restoreEquipment(char.equip) : outfitItems(starterEquipment(faction, char.gender));
   // Older builds kept the horse outside the equipment.
   const legacy = char.horse ? (HORSES[char.horse] ? char.horse : LEGACY_HORSES[char.horse]) : undefined;

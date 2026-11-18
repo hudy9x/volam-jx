@@ -101,6 +101,8 @@ export interface BagStashTransferMsg { from: number; to?: number; page?: number 
 export interface StashCurrencyMsg { op: 'deposit' | 'withdraw'; currency: 'money' | 'knb'; amount: number }
 /** Sort / compact one page of bag or stash. */
 export interface BagSortMsg { page: number; target?: 'bag' | 'stash' }
+/** Split `qty` units out of a stacked item at `from` into `to` or the next free slot. */
+export interface BagSplitMsg { from: number; qty: number; target?: 'bag' | 'stash'; to?: number }
 /** Throw away the item in bag slot `index`. */
 export interface DiscardMsg { index: number }
 /** Auto-play: go to the bãi luyện công of the own level (maps/training.ts; the server picks the map). */
@@ -154,6 +156,7 @@ export const C2S = {
   forge: 'forge',
   bagMove: 'bagMove',
   bagSort: 'bagSort',
+  bagSplit: 'bagSplit',
   stashMove: 'stashMove',
   stashCurrency: 'stashCurrency',
   bagToStash: 'bagToStash',
@@ -231,6 +234,8 @@ export interface LogMsg { kind: LogKind; text: string }
 export interface StatsMsg {
   /** Owner-only last field departure point. */
   trainingReturn?: TrainingReturnPoint;
+  /** Active Tiên Thảo Lộ EXP buff. */
+  expBuff?: { until: number; tier: 'normal' | 'special'; mul: number };
   series: Element; faction: string; progress: Progress; expNext: number; stats: CharacterStats;
   /** Combat stats (attribute bag, skill bonuses): F3 shows the lực tay of the skills on the bar with formulas/damage.ts. */
   combat?: CombatStats;

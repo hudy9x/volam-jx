@@ -3,9 +3,10 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, STASH_SIZE, TOKEN_ITEM_ID, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF, addToBag, bagValid, createGold, createItem,
-  equipError, findPlace, fitsAt, forgeError, forgePrice, forgedMagic, itemDef, lookOf, moveOrSwapInGrid, overlappingAt, packBag, restoreItem,
-  roomFor, sellPrice, sortGridPage, usableItem, weaponTypeOf,
+  BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, MAX_BAG_POTIONS, STASH_SIZE, TOKEN_ITEM_ID, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF,
+  addToBag, bagPotionCount, bagValid, createGold, createItem, equipError, findPlace, fitsAt, forgeError, forgePrice, forgedMagic,
+  getExpElixirMultiplier, isStackablePotion, itemDef, itemQty, lookOf, maxStackOf, moveOrSwapInGrid, overlappingAt, packBag, restoreItem, roomFor, sellPrice,
+  sortGridPage, splitStackInGrid, usableItem, weaponTypeOf,
   type Bag, type EquipSlot, type Equipment, type ForgeLines, type Item, type Outfit,
 } from '@vltk/shared';
 import type { Sim } from './entity.js';
@@ -63,8 +64,8 @@ export function unequipItem(w: World, sim: Sim, slot: string): boolean {
 }
 
 /**
- * Buy `count` new pieces of a row an NPC shop sells (items/shops.ts), at its table price, in town only. Each piece takes
- * its own bag cell (the original potions do not stack: potion.txt "是否叠放" = 0).
+ * Buy `count` new pieces of a row an NPC shop sells (items/shops.ts), at its table price, in town only.
+ * Stackable potions automatically merge into existing stacks and respect MAX_BAG_POTIONS.
  */
 export function buyItem(w: World, sim: Sim, defId: string, count = 1): boolean {
   const def = ITEMS[defId];
@@ -74,6 +75,15 @@ export function buyItem(w: World, sim: Sim, defId: string, count = 1): boolean {
   const cost = def.price * n;
   // Original NPC line (stringresource.txt 10089).
   if (cost > (sim.money ?? 0)) { w.hooks.notify(sim, 'Khách quan hình như chưa đủ tiền.'); return false; }
+  if (isStackablePotion(def)) {
+    const can = Math.max(0, MAX_BAG_POTIONS - bagPotionCount(sim.bag!));
+    if (n > can) {
+      w.hooks.notify(sim, can
+        ? `Hành trang chỉ mang tối đa ${MAX_BAG_POTIONS} bình thuốc (còn chứa được ${can} bình).`
+        : `Hành trang đã đạt tối đa ${MAX_BAG_POTIONS} bình thuốc.`);
+      return false;
+    }
+  }
   const room = roomFor(sim.bag!, def, n);
   if (room < n) { w.hooks.notify(sim, room ? `Hành trang chỉ còn chỗ cho ${room} món.` : 'Hành trang không đủ chỗ.'); return false; }
   if (SHOP_OF[defId] === 'gold' && !devTools()) return false; // dev-only shop
@@ -119,6 +129,11 @@ export function sortGrid(grid: Bag, page: number, size: number): boolean {
   return sortGridPage(grid, page, size);
 }
 
+/** Split `qty` units from a stacked item in bag or stash into a free slot. */
+export function splitGridItem(grid: Bag, from: number, qty: number, size: number, to = -1): boolean {
+  return splitStackInGrid(grid, from, qty, newItemUid, to, size);
+}
+
 /** Restore an account's shared stash (STASH_SIZE slots). */
 export function restoreStash(raw: unknown): Bag {
   const list = Array.isArray(raw) ? raw : [];
@@ -144,6 +159,12 @@ export function transferBetweenGrids(
   const item = src[from];
   const def = itemDef(item);
   if (!item || !def || from < 0 || from >= srcSize) return false;
+  if (dst === sim.bag && src !== sim.bag && isStackablePotion(def)) {
+    if (bagPotionCount(dst) + itemQty(item) > MAX_BAG_POTIONS) {
+      w.hooks.notify(sim, `Hành trang chỉ mang tối đa ${MAX_BAG_POTIONS} bình thuốc.`);
+      return false;
+    }
+  }
 
   if (to !== undefined && Number.isInteger(to) && to >= 0 && to < dstSize) {
     if (fitsAt(dst, def, to, -1, undefined, dstSize)) {
@@ -156,6 +177,14 @@ export function transferBetweenGrids(
       const otherIdx = hits[0];
       const other = dst[otherIdx];
       const otherDef = itemDef(other);
+      const maxStack = maxStackOf(def);
+      if (other && other.def === item.def && maxStack > 1 && itemQty(other) < maxStack) {
+        const take = Math.min(itemQty(item), maxStack - itemQty(other));
+        other.qty = itemQty(other) + take;
+        const rem = itemQty(item) - take;
+        if (rem <= 0) src[from] = null; else item.qty = rem;
+        return true;
+      }
       if (other && otherDef && fitsAt(src, otherDef, from, from, undefined, srcSize)) {
         src[from] = other;
         dst[otherIdx] = null;
@@ -168,6 +197,14 @@ export function transferBetweenGrids(
   }
 
   const targetPage = page !== undefined && Number.isInteger(page) && page >= 0 ? page : -1;
+  if (targetPage < 0 && maxStackOf(def) > 1) {
+    if (!addToBag(dst, item, dstSize)) {
+      w.hooks.notify(sim, `${dstName.charAt(0).toUpperCase() + dstName.slice(1)} không đủ chỗ.`);
+      return false;
+    }
+    src[from] = null;
+    return true;
+  }
   const place = findPlace(dst, def, -1, targetPage, dstSize);
   if (place < 0) {
     w.hooks.notify(sim, `${dstName.charAt(0).toUpperCase() + dstName.slice(1)} không đủ chỗ.`);
@@ -223,11 +260,12 @@ export function sellItem(w: World, sim: Sim, index: number): boolean {
   const item = sim.bag?.[index];
   const def = itemDef(item);
   if (!item || !def || sim.dead) return false;
-  const gain = sellPrice(def);
+  const qty = itemQty(item);
+  const gain = sellPrice(def) * qty;
   sim.bag![index] = null;
   addMoney(sim, gain);
-  w.hooks.notify(sim, `Bán ${def.name}: ${moneyText(gain)} lượng.`);
-  w.hooks.log(sim, 'sell', `Bán ${def.name}: +${moneyText(gain)} lượng.`);
+  w.hooks.notify(sim, `Bán ${qty > 1 ? `${qty} ` : ''}${def.name}: ${moneyText(gain)} lượng.`);
+  w.hooks.log(sim, 'sell', `Bán ${qty > 1 ? `${qty} ` : ''}${def.name}: +${moneyText(gain)} lượng.`);
   return true;
 }
 
@@ -244,7 +282,18 @@ export function useItem(w: World, sim: Sim, index: number): boolean {
     sim.bag![index] = null;
     return true;
   }
-  sim.bag![index] = null;
+  if (def.elixir) {
+    const qty = itemQty(item);
+    if (qty > 1) item.qty = qty - 1; else sim.bag![index] = null;
+    sim.expBuff = { until: Date.now() + def.elixir.durationMs, tier: def.elixir.tier };
+    const mul = getExpElixirMultiplier(def.elixir.tier);
+    const hours = Math.round((def.elixir.durationMs / 3_600_000) * 10) / 10;
+    w.hooks.notify(sim, `Đã dùng ${def.name}: nhân ${mul} lần kinh nghiệm trong ${hours} giờ.`);
+    w.hooks.progress(sim);
+    return true;
+  }
+  const qty = itemQty(item);
+  if (qty > 1) item.qty = qty - 1; else sim.bag![index] = null;
   drinkPotion(sim, def);
   return true;
 }

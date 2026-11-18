@@ -92,6 +92,8 @@ export interface Sim {
   knb?: number;
   /** Thuốc being pumped (systems/potions.ts): points per pulse, pulses left, time of the next one. */
   potions?: { stat: 'hp' | 'mp'; per: number; left: number; next: number }[];
+  /** Active Tiên Thảo Lộ EXP buff (wall-clock expiry). */
+  expBuff?: { until: number; tier: 'normal' | 'special' };
   // monsters (ai/monster.ts)
   def?: MonsterDef;
   /** Damage each player dealt (exp is shared by it when the monster dies). */

@@ -5,9 +5,9 @@ import { buyKnb, marketOnline, marketOffline, marketPost, marketBuy } from '../w
 import { Room, ServerError, type Client } from 'colyseus';
 import {
   bestTrainingMap, trainingMaps, type TrainingMap, type TrainMsg, type TeamOrderMsg, type SuggestMsg, type TokenMsg,
-  BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, expToNext, TICK_MS, TOWN_MAP_ID, getGrid,
+  BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, expToNext, TICK_MS, TOWN_MAP_ID, combatRulesAt, getExpElixirMultiplier, getGrid,
   DEFAULT_SPEED, setActiveSpeedConfig,
-  type BagMoveMsg, type BagSortMsg, type BagStashTransferMsg, type StashCurrencyMsg, type StashMoveMsg, type StashMsg,
+  type BagMoveMsg, type BagSortMsg, type BagSplitMsg, type BagStashTransferMsg, type StashCurrencyMsg, type StashMoveMsg, type StashMsg,
   type BuyMsg, type CastMsg, type DevMoneyMsg, type DevLevelMsg, type DevSpeedMsg, type DiscardMsg, type EquipMsg, type ForgeMsg, type InventoryMsg, type MountMsg, type AuraMsg, type ChatMsg, type ChatMoreMsg, type ChatReactMsg, type MoveMsg,
   type AddPotentialMsg, type PickupMsg, type JoinFactionMsg, type Potential, type RaiseSkillMsg, type StatsMsg, type LogMsg, type NoticeMsg, type OnlineMsg, type PkMsg, type SellMsg, type SkillLevelMsg, type SkillsMsg, type TeleportMsg, type TransferMsg,
   type UnequipMsg, type UseMsg,
@@ -17,7 +17,7 @@ import { db } from '../account/db.js';
 import { commandCast, commandMove, setMounted, setPk, setSkillLevel, setSlotAura } from '../world/commands.js';
 import type { Sim } from '../world/entity.js';
 import {
-  addMoney, buyItem, discardItem, equipItem, forgeItem, moveBagItem, moveStashItem, restoreStash, sellItem, sortGrid, transferBetweenGrids, transferStashCurrency, unequipItem, useItem,
+  addMoney, buyItem, discardItem, equipItem, forgeItem, moveBagItem, moveStashItem, restoreStash, sellItem, sortGrid, splitGridItem, transferBetweenGrids, transferStashCurrency, unequipItem, useItem,
 } from '../world/inventory.js';
 import { useToken } from '../world/token.js';
 import { teamOffline, teamOnline, teamOrder } from '../world/teams.js';
@@ -256,6 +256,20 @@ export class MapRoom extends Room<{ state: MapState }> {
       }
       if (sim.bag && sortGrid(sim.bag, page, BAG_SIZE)) { this.sendInventory(client, sim); this.saveCharacter(sim); }
     });
+    this.onMessage(C2S.bagSplit, (client, msg: BagSplitMsg) => {
+      const sim = this.simOf(client);
+      if (!sim || sim.dead) return;
+      const from = Number(msg?.from);
+      const qty = Number(msg?.qty);
+      const to = msg?.to !== undefined ? Number(msg.to) : -1;
+      if (msg?.target === 'stash') {
+        if (!combatRulesAt(this.world.meta, sim.a, this.world.rules).safe) return;
+        const stash = accountStash(sim);
+        if (stash && splitGridItem(stash, from, qty, STASH_SIZE, to)) { db.touch(); sendStash(client, sim); }
+        return;
+      }
+      if (sim.bag && splitGridItem(sim.bag, from, qty, BAG_SIZE, to)) { this.sendInventory(client, sim); this.saveCharacter(sim); }
+    });
     this.onMessage(C2S.stashMove, (client, msg: StashMoveMsg) => {
       const sim = this.simOf(client);
       const stash = sim ? accountStash(sim) : null;
@@ -489,6 +503,9 @@ export class MapRoom extends Room<{ state: MapState }> {
       series: sim.progress.series, faction: sim.a.faction, progress: sim.progress.prog, expNext: expNext(sim), stats: sim.stats,
       combat: sim.combat,
       trainingReturn: sim.charId ? db.getCharacter(sim.charId)?.trainingReturn : undefined,
+      expBuff: sim.expBuff && sim.expBuff.until > Date.now()
+        ? { ...sim.expBuff, mul: getExpElixirMultiplier(sim.expBuff.tier) }
+        : undefined,
     } satisfies StatsMsg);
   }
 
@@ -570,6 +587,7 @@ export class MapRoom extends Room<{ state: MapState }> {
         ...at, gender: sim.a.gender as never, horse: sim.a.horse || null, mounted: sim.a.mounted, bag: sim.bag?.slice(),
         bagSpill: sim.bagSpill?.length ? sim.bagSpill.slice() : undefined, equip: { ...sim.equip },
         skills: Object.fromEntries(sim.skills), money: sim.money ?? 0, knb: sim.knb ?? 0,
+        expBuff: sim.expBuff && sim.expBuff.until > Date.now() ? sim.expBuff : undefined,
         ...(sim.progress ? {
           faction: sim.a.faction, series: sim.progress.series, level: sim.progress.prog.level, progress: sim.progress.prog,
           progressVersion: PROGRESS_VERSION, skillExp: Object.fromEntries(sim.progress.skillExp),

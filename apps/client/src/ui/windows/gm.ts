@@ -3,9 +3,11 @@ import {
   attrOf,
   formatSpeedCode,
   getActiveSpeedConfig,
+  getExpElixirConfig,
   resetSpeedConfig,
   resolveSpeed,
   setActiveSpeedConfig,
+  setExpElixirConfig,
   speedPoints,
   trackBasePercent,
   validateSpeedConfiguration,
@@ -63,8 +65,10 @@ export class GmToolWindow {
 <section id="${ID}" class="dlg hidden" data-title="GM Tool · Thử Nghiệm Tốc Độ">
   <div class="gm-tabs" role="tablist">
     <button type="button" class="gm-tab on" id="gm-tab-speed">Tốc độ Di chuyển & Đánh</button>
+    <button type="button" class="gm-tab" id="gm-tab-exp">Tiên Thảo Lộ (EXP)</button>
   </div>
 
+  <div id="gm-panel-speed">
   <!-- Live Player Controls Box -->
   <div class="gm-box">
     <div class="gm-box-title">
@@ -136,6 +140,40 @@ export class GmToolWindow {
     <button type="button" class="gm-btn-reset" id="gm-act-reset">↺ Khôi phục gốc (Reset)</button>
     <button type="button" class="gm-btn-copy" id="gm-act-copy">📋 Sao chép mã TS</button>
   </div>
+  </div>
+
+  <div id="gm-panel-exp" hidden>
+    <div class="gm-box">
+      <div class="gm-box-title">
+        <span>Hệ số nhân kinh nghiệm Tiên Thảo Lộ</span>
+        <span style="font-size:10px; color:#86c8ff; text-transform:none;">Áp dụng khi đánh quái (vd: 2, 10, 100)</span>
+      </div>
+      <div class="gm-live-grid">
+        <div class="gm-live-card">
+          <h4>Tiên Thảo Lộ (1 giờ)</h4>
+          <div class="gm-row">
+            <label>Nhân lần: <input type="number" id="gm-exp-normal" min="1" max="10000" step="1" value="${getExpElixirConfig().normal}" /></label>
+          </div>
+          <div class="gm-row">
+            ${[2, 5, 10, 50, 100].map(m => `<button type="button" class="gm-preset-btn gm-exp-preset" data-tier="normal" data-val="${m}">×${m}</button>`).join('')}
+          </div>
+        </div>
+        <div class="gm-live-card">
+          <h4>Tiên Thảo Lộ đặc biệt (8 giờ)</h4>
+          <div class="gm-row">
+            <label>Nhân lần: <input type="number" id="gm-exp-special" min="1" max="10000" step="1" value="${getExpElixirConfig().special}" /></label>
+          </div>
+          <div class="gm-row">
+            ${[2, 5, 10, 50, 100].map(m => `<button type="button" class="gm-preset-btn gm-exp-preset" data-tier="special" data-val="${m}">×${m}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="gm-status-bar" id="gm-exp-status">Có thể đặt hệ số tùy ý (×2, ×10, ×100...) và lưu áp dụng ngay.</div>
+    <div class="gm-global-bar">
+      <button type="button" class="gm-btn-save" id="gm-exp-save">💾 Lưu hệ số EXP</button>
+    </div>
+  </div>
 </section>`;
 
     mount(parent, HTML);
@@ -145,6 +183,69 @@ export class GmToolWindow {
     this.initTuningTables();
     this.bindLiveControls();
     this.bindGlobalActions();
+    this.bindExpControls();
+  }
+
+  private bindExpControls(): void {
+    const tabSpeed = $('gm-tab-speed')!;
+    const tabExp = $('gm-tab-exp')!;
+    const panelSpeed = $('gm-panel-speed')!;
+    const panelExp = $('gm-panel-exp')!;
+    const selectMainTab = (which: 'speed' | 'exp') => {
+      tabSpeed.classList.toggle('on', which === 'speed');
+      tabExp.classList.toggle('on', which === 'exp');
+      panelSpeed.hidden = which !== 'speed';
+      panelExp.hidden = which !== 'exp';
+      if (which === 'exp') void this.loadExpConfig();
+    };
+    tabSpeed.addEventListener('click', () => selectMainTab('speed'));
+    tabExp.addEventListener('click', () => selectMainTab('exp'));
+
+    const normalInput = $('gm-exp-normal') as HTMLInputElement;
+    const specialInput = $('gm-exp-special') as HTMLInputElement;
+    panelExp.querySelectorAll<HTMLButtonElement>('.gm-exp-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.dataset.val ?? '2';
+        if (btn.dataset.tier === 'special') specialInput.value = val;
+        else normalInput.value = val;
+      });
+    });
+
+    $('gm-exp-save')?.addEventListener('click', async () => {
+      const normal = Math.max(1, Number(normalInput.value) || 2);
+      const special = Math.max(1, Number(specialInput.value) || 2);
+      const status = $('gm-exp-status')!;
+      try {
+        const res = await fetch('/api/exp-elixir', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ normal, special }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Lỗi lưu hệ số EXP');
+        setExpElixirConfig(data.config);
+        status.textContent = `Đã lưu: Tiên Thảo Lộ ×${data.config.normal}, Đặc biệt ×${data.config.special}.`;
+        status.classList.remove('error');
+      } catch (e) {
+        status.textContent = e instanceof Error ? e.message : String(e);
+        status.classList.add('error');
+      }
+    });
+  }
+
+  private async loadExpConfig(): Promise<void> {
+    try {
+      const res = await fetch('/api/exp-elixir');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.config) {
+        setExpElixirConfig(data.config);
+        ($('gm-exp-normal') as HTMLInputElement).value = String(data.config.normal);
+        ($('gm-exp-special') as HTMLInputElement).value = String(data.config.special);
+      }
+    } catch {
+      // ignore
+    }
   }
 
   toggle(open?: boolean): void {

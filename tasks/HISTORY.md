@@ -1,3 +1,9 @@
+## 2026-11-18 · Xếp chồng vật phẩm, Auto sắp xếp hành trang & Tiên Thảo Lộ
+
+- USER yêu cầu bổ sung xếp chồng thuốc (trần 50 bình toàn hành trang), cấu hình xếp chồng dễ mở rộng, tách chồng, kéo đè gộp, Auto tự sắp xếp hành trang khi nhặt đồ, thêm Tiên Thảo Lộ & Tiên Thảo Lộ đặc biệt với hệ số nhân EXP lưu DB và icon đếm ngược HUD, sau đó commit từng phần (không push).
+- Chia 3 commit: (1) xếp chồng / tách / gộp & UI hành trang, (2) `autoSort` trong `AutoPlay` / client / bot, (3) Tiên Thảo Lộ + API `/api/exp-elixir` lưu DB + HUD đếm ngược + tracking & test.
+- Kiểm tra: `tests/potion-stack-and-autosort.test.ts` (6/6 pass), `npm run test:auto` (62/62 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công). Không push theo quy định.
+
 ## 2026-11-17 · Trích xuất và hiển thị sprite vật phẩm rơi trên mặt đất
 
 - USER yêu cầu trích xuất sprite đồ rơi trên mặt đất từ `Client_VLTK_SHXT` (`objdata.txt`, `moneyobj.txt`, `ObjID`) và commit (không push).

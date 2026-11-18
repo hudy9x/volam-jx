@@ -1,3 +1,12 @@
+## 2026-11-18 · Xếp chồng thuốc, Auto sắp xếp hành trang & Tiên Thảo Lộ (đã commit)
+
+- **USER yêu cầu commit từng phần code** (không push).
+- **Nội dung gồm 3 phần:**
+  1. **Xếp chồng vật phẩm, giới hạn 50 bình thuốc, tách & kéo đè gộp (`stack-config.ts`, `bag.ts`, `drops.ts`, `inventory.ts`, `stash.ts`, `tradeConfirm.ts`, `slot.ts`, `ports.ts`)**: Cấu hình xếp chồng tập trung (`STACK_LIMITS_BY_KIND`, `STACK_LIMITS_BY_ID`, `ItemDef.maxStack`), trần 50 bình thuốc toàn hành trang, `splitStackInGrid` / `C2S.bagSplit` (nút `Tách` & `Shift+Click`), kéo đè cùng loại tự động cộng dồn, hiển thị `.qty` ở ô hành trang/rương và thanh `1–9`.
+  2. **Auto tự động sắp xếp hành trang (`AutoPlay.ts`, `settings.ts`, `auto.ts`, `WorldScene.ts`, `BotClient.ts`, `BotPanel.ts`)**: Thêm tùy chọn `autoSort` (mặc định bật) để tự gộp/sắp xếp toàn hành trang (`page: -1`) khi túi phân mảnh không đủ chỗ nhặt đồ hoặc sau khi bán đồ thừa.
+  3. **Tiên Thảo Lộ & Tiên Thảo Lộ đặc biệt (`elixirs.ts`, `items.ts`, `shops.ts`, `describe.ts`, `db.ts`, `index.ts`, `MapRoom.ts`, `progress.ts`, `gm.ts`, `status.ts`)**: Thêm 2 vật phẩm với sprite gốc (`xiancaolu.webp`, `xiancaolu-sp.webp`, gitignore) vào Kỳ Trân Các, nhân EXP đánh quái theo hệ số cấu hình (`EXP_ELIXIR` lưu bền vững trong `db.json` qua `/api/exp-elixir` và tab GM Tool), và hiển thị icon đếm ngược dưới danh sách skill góc trên bên trái (`#hud-elixir`).
+- **Kiểm tra:** `tests/potion-stack-and-autosort.test.ts` (6/6 pass), `npm run test:auto` (62/62 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công). Cần restart server và reload client.
+
 ## 2026-11-17 · Bổ sung 10 cấp vũ khí Triền Thủ thường/xanh vào bảng rơi đồ & sprite mặt đất (đã commit)
 
 - **USER yêu cầu commit** phần bổ sung vũ khí Triền Thủ (`melee-6-1..10`) vào vật phẩm thường/xanh rơi từ quái và sprite rơi mặt đất (không push), nền `20d35a3`.
