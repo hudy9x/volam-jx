@@ -1,3 +1,19 @@
+## 2026-11-19 · Hoàn tất commit từng phần trên main
+
+- USER yêu cầu commit từng phần, không branch mới; đã hoàn tất trên **main**, không push.
+- `1030f6e` — runtime Boss: HP, pose/nhịp, home radius, cấp kỹ năng chính xác, hệ số sát thương/độc và giảm hiệu ứng; validation/Apply response; test combat/damage và docs công thức.
+- `5b55356` — công cụ: chọn riêng/phái/kết quả lọc, chỉnh chung/giữ riêng, picker kỹ năng và thêm150đúngphái, HP/nhịp/hệ số/giảm hiệu ứng; xác nhận server và test Apply.
+- `a147e85` — snapshot config USER đã lưu (44boss có nhịp,2HPriêng,4bộchiêucấpcốđịnh), JSON/TS khớp và validation đạt, không tự đổi giá trị.
+- **Mốc nghiệp vụ cuối `a147e85`; commit checkpoint tài liệu này đứng ngay sau mốc đó.** Đây là ngoại lệ có chủ ý khi đối chiếu git log với CURRENT: tài liệu không tự ghi hash của chính nó.
+- Kiểm cuối đạt: typecheck/build,16test Boss+20effects+12speed (48test), git diff --check; graph staged cho từng phần không partial/truncated trong kết quả, runtime/tool critical do engine/apply chung và đã có test/browser trước. Index có giới hạn phủ luồng nên không coi nó là bằng chứng đầy đủ; config có1symbol/0flow đã đối chiếu nguồn/parity/test.
+- Thư mục làm việc dự kiến sạch sau checkpoint; không còn code chờ commit của lượt này. Không áp dụng/reset server/DB/asset thật. Chưa kiểm native/gameplayWS trong lượt commit; browser desktop/mobile đã kiểm ở các lượt triển khai dưới đây.
+
+## 2026-11-19 · Đã commit công cụ Boss
+
+- `1030f6e` runtime/shared/server và test combat/damage; `5b55356` tool chọn riêng/nhóm, picker kỹ năng150, hệ số sát thương, giảm hiệu ứng, kiểm xác nhận Apply và test integration.
+- main, không branch/push. Đã làm mới index và phân tích staged tool45symbol/24flow, không partial/truncated trong kết quả detect_changes; index có giới hạn truy vết luồng nên kiểm chứng thêm bằng test/browser đã ghi ở dưới.48test/typecheck/build đạt.
+- Còn commit riêng config USER:44boss có nhịpđánh,2HPriêng,4bộchiêucấpcốđịnh; không sửa giá trị.
+
 ## 2026-11-19 · Đã commit phần runtime Boss
 
 - Commit `1030f6e`: cấu hình HP/nhịp/phạm vi/kỹ năng/hệ số sát thương/giảm hiệu ứng, server thực thi và trả thông số Apply, test combat/damage cùng docs công thức. Commit trên main, không tạo branch/push.
