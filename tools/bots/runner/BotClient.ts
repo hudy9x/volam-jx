@@ -364,6 +364,7 @@ export class BotClient {
       use: index => this.send(C2S.use, { index }),
       sell: index => this.send(C2S.sell, { index }),
       buy: (item, count) => this.send(C2S.buy, { item, count }),
+      sortBag: () => this.send(C2S.bagSort, { page: -1, target: 'bag' }),
       wearable: def => {
         const me = this.me();
         if (!me || !this.stats) return false;

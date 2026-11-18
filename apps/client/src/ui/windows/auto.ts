@@ -42,6 +42,7 @@ const HTML = `
   <div id="auto-panel-loot" role="tabpanel" aria-labelledby="auto-tab-loot" tabindex="0" hidden>
   <div class="auto-h">Nhặt đồ và bán đồ</div>
   <label class="check"><input type="checkbox" data-set="autoPickup" /> Tự nhặt đồ rơi (của mình hoặc không chủ)</label>
+  <label class="check"><input type="checkbox" data-set="autoSort" /> Tự động sắp xếp hành trang khi hết chỗ trống để nhặt đồ</label>
   <label class="check"><input type="checkbox" data-set="autoMoney" /> Tự nhặt ngân lượng (kể cả khi túi đầy)</label>
   <label class="check"><input type="checkbox" data-set="autoSellBlue" /> Tự bán đồ xanh trong túi (mỗi 30 giây)</label>
   <label class="check"><input type="checkbox" data-set="autoKeepValuable" /> Giữ đồ xanh trên 5 dòng hoặc có dòng ẩn hiếm / cao để rao bán</label>

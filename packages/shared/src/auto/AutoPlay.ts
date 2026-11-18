@@ -1,8 +1,10 @@
-import { findPlace } from '../items/bag.js';
 import { botTradeReasons } from '../bots/social.js';
 import { isoDistance } from '../geometry.js';
 import type { Point } from '../maps/nav/types.js';
-import { KIND_SLOTS, QUALITY, SHOP_ITEMS, itemDef, potionMs, potionTotal, type Item, type ItemDef, type PotionStat } from '../items/index.js';
+import {
+  KIND_SLOTS, MAX_BAG_POTIONS, QUALITY, SHOP_ITEMS, bagPotionCount, isStackablePotion, itemDef, itemQty,
+  potionMs, potionTotal, roomFor, sortGridPage, type Item, type ItemDef, type PotionStat,
+} from '../items/index.js';
 import { MONSTERS } from '../monsters/index.js';
 import { getSkill, isCastable, skillCategory, canPaySkillCost, skillHpReserve, type SkillResourceCost } from '../skills/index.js';
 import { CLOSE_REACH, approachDistance, type AutoSettings } from './settings.js';
@@ -82,6 +84,7 @@ export interface AutoHost {
   use(index: number): void;
   sell(index: number): void;
   buy(defId: string, count: number): void;
+  sortBag?(): void;
   /** The own character may wear this row (sex, faction, level, potentials). */
   wearable(def: ItemDef): boolean;
   /** Drops on the ground of this map and picking one up (the server walks there first). */
@@ -139,6 +142,7 @@ const PICKUP_WAIT_MS = 4000;
 const PICKUP_RETRY_MS = 6000;
 const PICKUP_TRIES = 2;
 const FULL_NOTICE_MS = 60000;
+const SORT_GAP_MS = 1500;
 /** Selling junk (jx-web-main every 30 s) and the town round (buy potions, then back to training). */
 const JUNK_GAP_MS = 30000;
 const TOWN_STEP_MS = 400;
@@ -197,6 +201,7 @@ export class AutoPlay {
   private picking: { id: string; until: number } | null = null;
   private pickTried = new Map<string, { n: number; at: number }>();
   private fullNoticeAt = -Infinity;
+  private lastSort = -Infinity;
   private lastJunk = 0;
   private level = 0;
   private townStep = 0;
@@ -368,7 +373,7 @@ export class AutoPlay {
   }
 
   private potionCount(stat: PotionStat): number {
-    return this.host.bag().reduce((n, it) => n + (potionTotal(itemDef(it), stat) > 0 ? 1 : 0), 0);
+    return this.host.bag().reduce((n, it) => n + (potionTotal(itemDef(it), stat) > 0 ? itemQty(it) : 0), 0);
   }
 
   /** Up to POTION_BUY of the best potion of the drug store whose cost stays within POTION_BUDGET of the money. */
@@ -653,12 +658,25 @@ export class AutoPlay {
 
   // ======================= loot =======================
 
+  private canFitOrSort(def: ItemDef | undefined, opts: Settings): { fits: boolean; needsSort: boolean } {
+    if (!def) return { fits: false, needsSort: false };
+    const bag = this.host.bag();
+    if (isStackablePotion(def) && bagPotionCount(bag) >= MAX_BAG_POTIONS) return { fits: false, needsSort: false };
+    const copy = [...bag];
+    if (roomFor(copy, def, 1) > 0) return { fits: true, needsSort: false };
+    if (opts.autoSort && this.host.sortBag) {
+      const sorted = bag.map(it => (it ? { ...it } : null));
+      if (sortGridPage(sorted, -1) && roomFor(sorted, def, 1) > 0) return { fits: true, needsSort: true };
+    }
+    return { fits: false, needsSort: false };
+  }
+
   private wanted(d: AutoDrop, opts: Settings): boolean {
     if (d.def === 'money') return opts.autoMoney;
-    if (!opts.autoPickup || findPlace([...this.host.bag()], itemDef({ def: d.def, uid: d.id })) < 0) return false;
+    if (!opts.autoPickup) return false;
     if (opts.autoLoot === 'money') return false;
-    if (opts.autoLoot === 'magic') return d.q >= QUALITY.magic;
-    return true;
+    if (opts.autoLoot === 'magic' && d.q < QUALITY.magic) return false;
+    return this.canFitOrSort(itemDef({ def: d.def, uid: d.id }), opts).fits;
   }
 
   /**
@@ -687,6 +705,16 @@ export class AutoPlay {
       if (dist < bestD) { best = d; bestD = dist; }
     }
     if (!best) return false;
+    if (best.def !== 'money') {
+      const check = this.canFitOrSort(itemDef({ def: best.def, uid: best.id }), opts);
+      if (check.needsSort) {
+        if (now - this.lastSort >= SORT_GAP_MS) {
+          this.lastSort = now;
+          this.host.sortBag?.();
+        }
+        return true;
+      }
+    }
     const tried = this.pickTried.get(best.id);
     this.pickTried.set(best.id, { n: (tried?.n ?? 0) + 1, at: now });
     if (this.pickTried.size > 200) this.pickTried.clear();
@@ -697,12 +725,14 @@ export class AutoPlay {
 
   /** Tự bán đồ thừa: white pieces of equipment the character cannot wear (optionally ordinary blue gear; never gold, potions, books, the token). */
   private sellJunk(opts: Settings): void {
+    let sold = false;
     this.host.bag().forEach((it, i) => {
       const def = itemDef(it);
       if (!it || !def || !KIND_SLOTS[def.kind].length || def.kind === 'horse') return;
       if ((it.q ?? QUALITY.normal) === QUALITY.magic) {
-        if (opts.autoSellBlue && (!opts.autoKeepValuable || !botTradeReasons(it).length)) this.host.sell(i);
-      } else if (opts.autoJunk && (it.q ?? QUALITY.normal) === QUALITY.normal && !this.host.wearable(def)) this.host.sell(i);
+        if (opts.autoSellBlue && (!opts.autoKeepValuable || !botTradeReasons(it).length)) { this.host.sell(i); sold = true; }
+      } else if (opts.autoJunk && (it.q ?? QUALITY.normal) === QUALITY.normal && !this.host.wearable(def)) { this.host.sell(i); sold = true; }
     });
+    if (sold && opts.autoSort) this.host.sortBag?.();
   }
 }

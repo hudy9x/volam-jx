@@ -9,6 +9,8 @@ export interface AutoSettings {
   /** Tự tìm quái ở xa khi quanh đây hết quái; tự nhặt đồ / tiền rơi. */
   autoSeek: boolean;
   autoPickup: boolean;
+  /** Tự động sắp xếp lại hành trang khi hết chỗ trống để nhặt đồ. */
+  autoSort: boolean;
   /**
    * (jx-web-main auto-play) mục tiêu ưu tiên ('near' gần nhất / 'boss' Hoàng Kim→Xanh→thường / 'blue' Xanh→thường, bỏ Hoàng Kim), xoay chiêu phím 1–9, tự dùng bùa hại,
    * tự đổi bãi luyện công theo cấp, tự hồi sinh rồi quay lại, tự về thành mua thuốc khi hết, tự bán đồ trắng không mặc được,
@@ -40,7 +42,7 @@ export interface AutoSettings {
 }
 
 export const DEFAULT_AUTO: AutoSettings = {
-  autoRadius: 500, autoSkipBoss: false, autoBuff: true, autoReturn: true, autoSeek: true, autoPickup: true,
+  autoRadius: 500, autoSkipBoss: false, autoBuff: true, autoReturn: true, autoSeek: true, autoPickup: true, autoSort: true,
   autoPriority: 'boss', autoRotate: true, autoCurse: true, autoMap: true, autoReturnTraining: true, autoRevive: true, autoBuyPotion: true, autoJunk: true,
   autoMoney: true, autoSellBlue: false, autoKeepValuable: true,
   autoLoot: 'all', autoHp: 50, autoMp: 20, autoReachPct: 60, autoMeleeClose: true,
