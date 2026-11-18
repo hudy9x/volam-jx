@@ -1,3 +1,19 @@
+## 2026-11-18 · Sửa hiệu ứng & tầng chiêu 80/150 các môn phái (đã commit)
+
+- **USER yêu cầu commit** phần sửa animation/FX, tầng chiêu 2/3 và tuning chiêu 80/150 (không tạo branch mới, không push).
+- **Nội dung:** `missile-tuning.ts`, `skill-overrides.ts`, `SkillEngine.ts` (`rangeDmg` collide FX, `autoExplode` collide/layer2, `homingDelay`), `SkillFx.ts` (`zSpeed` rơi thẳng, `homingDelay`). Chi tiết trong `tasks/CURRENT.md`.
+
+## 2026-11-18 · Demo restyle Hành trang / Trang bị & Thuộc tính
+
+- USER yêu cầu restyle hai dialog theo ảnh. Chỉ sửa `demo/`: khung gỗ mun, viền đồng mảnh, header/close thống nhất, tab son đỏ, nền ô trung tính. Hành trang5trang/6×10, ví và4action; nhân vật chia thuộc tính/trang bị, giữ các số liệu mẫu để xem thiết kế.
+- Đọc inventory.ts/css và character.ts, trích subset icon trang bị từ ITEMS bằng prepare-game-data.ts. Demo có chọn món/chuyển trang/Xếp phản hồi, nút cộng điểm khóa khi0, nút Vật phẩm chuyển dialog. Chưa drag-drop/tooltip đầy đủ hoặc nối game thật.
+- JS syntax đạt; Chromium kiểm mở2dialog,5tab,chọnmón,nútVậtphẩm,màn390 không tràn rộng;0JS/HTTPerrors; đã xem ảnh desktop. Không sửa UI/game/assets gốc, không commit/push. Chờ USER góp ý.
+
+## 2026-11-18 · Demo gameplay toàn cửa sổ
+
+- Theo USER: bỏ thanh menu chuyển màn ngoài game, gameplay phủ kín cửa sổ; menu Hệ thống/Esc có Tiếp tục, Đổi nhân vật, Thoát về đăng nhập. Chỉ đổi demo, không đổi preset renderer game thật.
+- Chromium kiểm phủ đúng viewport1440×900/1280×720/390×844, không tràn ngang; kiểm chuyển về chọn nhân vật/đăng nhập qua Hệ thống. Sửa ánh xạ Escape cho demo; không commit/push.
+
 ## 2026-11-18 · Tối ưu tốc độ Auto, `autoManualPauseMs` (150ms) & sửa URL GM Tool
 
 - USER yêu cầu sửa lỗi Lưu hệ số EXP trong GM Tool, tối ưu độ trễ Auto đánh quái/buff/nhặt đồ, thêm biến `autoManualPauseMs` (150 ms + chờ chạy tới đích), và commit (không push).

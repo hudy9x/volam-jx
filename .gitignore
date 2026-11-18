@@ -23,3 +23,5 @@ tools/map-creator/projects/
 
 # Local bot scenario assignments
 tools/bots/data/.assignments.json*
+
+demo

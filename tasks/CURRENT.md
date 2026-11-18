@@ -1,3 +1,22 @@
+## 2026-11-18 · Sửa hiệu ứng & tầng chiêu 80/150 các môn phái (đã commit)
+
+- **USER yêu cầu commit** phần sửa animation/FX, tầng chiêu 2/3 và tuning chiêu 80/150 (không tạo branch mới, không push).
+- **Nội dung gồm:**
+  1. `packages/shared/src/skills/core/types.ts`, `engine/SkillEngine.ts`, `index.ts`, `common/missile-tuning.ts`, `common/skill-overrides.ts`: Thêm `homingDelay` (bay song song 5 tick trước khi bẻ góc vào quái cho Cái Bang `#357`, `#359`, `#1074`); nhánh `rangeDmg` phát `mend` (`c: 1`) khi chạm mục tiêu (khắc phục mất FX va chạm `#1055` Đại Lực Kim Cang Chưởng); `autoExplode` khi `area()` trúng mục tiêu phát `event('collide')` và `mend` (`c: 1`) (Côn Lôn `#372`, `#1080` mở tầng 2, `#1108`/`#370` dùng cột lốc `skill/fx/ac0e461d`, `#375`/`#387` bổ sung `vanish` FX); Thiên Vương `#1060` (`childNum: 2, genData: 5`, đạn `#350` `speed: 24, life: 6`); Đường Môn `#302`/`#1070` tăng tốc xoay (`tpf: 1` / `0.5`); Ngũ Độc `#1067` (`move: 1, colVanish: false` bay thẳng xuyên quái); Cái Bang `#1074` (3 tia song song); Võ Đang `#365`, `#1078` (`wait: 1`, `life: 36`/`45`); Thúy Yên `#1063` (3 tia tỏa góc ~10° `form: 2, childNum: 3, p1: 1.8`).
+  2. `apps/client/src/game/fx/SkillFx.ts`: Tính độ cao `z(t)` cho đạn rơi thẳng (`zSpeed < 0`, khắc phục Thiên Nhẫn `#362` đứng trên không) và đồng bộ `homingDelay` trong `move()`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run build` (thành công), `SkillEngine` harness kiểm tra các kịch bản đạt. Cần restart server và reload client.
+
+## 2026-11-18 · Demo restyle Hành trang / Trang bị & Thuộc tính
+
+- USER yêu cầu restyle hai dialog theo ảnh. Chỉ sửa `demo/`: khung gỗ mun, viền đồng mảnh, header/close thống nhất, tab son đỏ, nền ô trung tính. Hành trang5trang/6×10, ví và4action; nhân vật chia thuộc tính/trang bị, giữ các số liệu mẫu để xem thiết kế.
+- Đọc inventory.ts/css và character.ts, trích subset icon trang bị từ ITEMS bằng prepare-game-data.ts. Demo có chọn món/chuyển trang/Xếp phản hồi, nút cộng điểm khóa khi0, nút Vật phẩm chuyển dialog. Chưa drag-drop/tooltip đầy đủ hoặc nối game thật.
+- JS syntax đạt; Chromium kiểm mở2dialog,5tab,chọnmón,nútVậtphẩm,màn390 không tràn rộng;0JS/HTTPerrors; đã xem ảnh desktop. Không sửa UI/game/assets gốc, không commit/push. Chờ USER góp ý.
+
+## 2026-11-18 · Demo gameplay toàn cửa sổ
+
+- Theo USER: bỏ thanh menu chuyển màn ngoài game, gameplay phủ kín cửa sổ; menu Hệ thống/Esc có Tiếp tục, Đổi nhân vật, Thoát về đăng nhập. Chỉ đổi demo, không đổi preset renderer game thật.
+- Chromium kiểm phủ đúng viewport1440×900/1280×720/390×844, không tràn ngang; kiểm chuyển về chọn nhân vật/đăng nhập qua Hệ thống. Sửa ánh xạ Escape cho demo; không commit/push.
+
 ## 2026-11-18 · Demo redesign gỗ mun – son đỏ (chưa commit)
 
 - USER yêu cầu khảo sát code hiện tại và tạo demo HTML/CSS đủ login/chọn/tạo nhân vật/gameplay trong `demo/`, tái sử dụng asset gốc. HEAD `0b82438` khớp checkpoint; giữ nguyên sửa `gm.ts` có sẵn.

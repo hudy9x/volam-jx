@@ -13,7 +13,7 @@ export const KEYS = {
   char: { code: 'Q', label: 'Q' },
   travel: { code: 'T', label: 'T' },
   bigmap: { code: 'TAB', label: 'Tab' },
-  mount: { code: 'R', label: 'R' },
+  mount: { code: 'M', label: 'M' },
   pk: { code: 'A', label: 'A' },
   auto: { code: 'Z', label: 'Z' },
   /** Tổ đội, Kỳ Trân Các, Thợ rèn (USER 2026-11-12: phím tắt cho thanh dưới). */

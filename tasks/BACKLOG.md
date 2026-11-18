@@ -375,3 +375,9 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 - 🟡 Băng cố định2026-11-16: phươngán60iso/s +4FPSchuẩn/2giây/sải120 đã ghi nghiêncứu; chưa duyệt triểnkhai.
 - ✅ Băng cố địnhUSER2026-11-16:60iso/s,4FPSchuẩn/2giây,sải120 chungngười/quái/boss/ngựa;36test/typecheck/build đạt,chưacommit;chưabrowserWS/native.
 - ✅ Commit riêng băng60iso/s,4FPSchuẩn theo USER2026-11-16; giữ bot/team ngoài commit, chưa push.
+
+- ✅ 2026-11-18: Demo redesign độc lập `demo/` đủ login/chọn/tạo/gameplay, asset gốc, màu gỗ mun–son đỏ; kiểm browser/typecheck. Chưa tích hợp UI game, chờ USER góp ý.
+
+- ✅ 2026-11-18: Demo bỏ menu ngoài game, gameplay toàn cửa sổ, Hệ thống/Esc đổi nhân vật và về đăng nhập.
+
+- ✅ 2026-11-18: Restyle demo khung Hành trang/Trang bị & Thuộc tính gỗ mun–son đỏ, asset trang bị thật, browser kiểm. Chưa tích hợp game.
