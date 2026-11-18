@@ -12,6 +12,8 @@ import { EFFECTS, RESIST } from './tuning.js';
 
 export interface CombatStats {
   kind: 'player' | 'monster';
+  /** Skill damage multiplier; absent means 1. Does not scale reflected damage. */
+  outgoingDamageMultiplier?: number;
   level: number;
   /** Ngũ hành of the fighter (skills without their own series use it). */
   series: Element;

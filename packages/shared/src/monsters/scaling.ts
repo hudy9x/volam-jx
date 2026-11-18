@@ -31,5 +31,5 @@ export function monsterAt(def: MonsterDef, level = def.level, bossTier?: boolean
     const sc = def.skillScale?.[i];
     return [id, Math.max(1, Math.round(sc ? sc[0] + sc[1] * level : lvl))];
   });
-  return { level, hp: Math.max(1, monsterHp(level, tier)), damage: monsterDamage(level), skills };
+  return { level, hp: Math.max(1, def.hpOverride ?? monsterHp(level, tier)), damage: monsterDamage(level), skills };
 }

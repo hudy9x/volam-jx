@@ -23,6 +23,10 @@ export function updateMonster(w: World, sim: Sim, dt: number): void {
   if (w.now < sim.castUntil) return;
 
   if (sim.returning) {
+    if (def.boundedHome && !sim.path.length && isoDistance(sim.a.x, sim.a.y, home.x, home.y) > 8) {
+      setPath(w, sim, home, true);
+      return;
+    }
     followPath(sim, dt);
     if (!sim.path.length) {
       sim.returning = false;
@@ -39,14 +43,17 @@ export function updateMonster(w: World, sim: Sim, dt: number): void {
     sim.target = target?.id ?? null;
   }
 
+  const outsideHome = isoDistance(sim.a.x, sim.a.y, home.x, home.y) > def.leash;
+  const targetOutsideHome = def.boundedHome && target && isoDistance(target.a.x, target.a.y, home.x, home.y) > def.leash;
+  if ((target || def.boundedHome) && leashes(def, sim) && (outsideHome || targetOutsideHome)) {
+    sim.target = null;
+    sim.plan = null;
+    sim.returning = true;
+    setPath(w, sim, home, true);
+    return;
+  }
+
   if (target) {
-    if (leashes(def, sim) && isoDistance(sim.a.x, sim.a.y, home.x, home.y) > def.leash) {
-      sim.target = null;
-      sim.plan = null;
-      sim.returning = true;
-      setPath(w, sim, home, true);
-      return;
-    }
     const dist = isoDistance(sim.a.x, sim.a.y, target.a.x, target.a.y);
     // Same skills and engine as players; the AI only picks which one (bosses: a random one each attack).
     sim.plan ??= chooseSkill(w.engine, sim, dist, w.random);

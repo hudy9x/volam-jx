@@ -94,3 +94,7 @@ Kiểm tra bổ sung `tests/fixed-cold-movement.test.ts` và renderer tests: cù
 (`ignoreskill_p`, `returnskill_p`), kháng tổ đội (`team_resist_effect.ini`).
 
 - Status50 được generator thu riêng vào `CONTROL_FX.stun`, preload khi tạo bộ vẽ trạng thái. Vòng sáng chạy độc lập khi thân đóng băng và mất ngay khi hết choáng/chết; không giữ vòng sáng giả sau khi nhân vật đã hồi phục.
+
+## 5. Giảm thời gian chịu hiệu ứng của Boss — USER2026-11-19
+
+GoldenBossEntry.controlReduction (từng boss/nhóm trong tool): hurt0–100 mặc định60 ánh xạ MonsterDef.hitRecover; cold0–77/stun0–95/poison0–95 mặc định0 cộng lần lượt freezetimereduce_p/stuntimereduce_p/poisontimereduce_p vào bag trước passive/state. Công thức, trần và giảm độc mỗi nhịp giữ nguyên. Phục hồi chỉ giảm co giật/thọ thương, không hồiHP; poison ở đây chỉ giảm thời gian, không giảm tick. Mặc định/thiếu cấu hình không đổi gameplay; không sửa BossXanh/quái thường.

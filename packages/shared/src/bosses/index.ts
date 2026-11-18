@@ -1,3 +1,4 @@
+import { getSkill, maxLevelOf, isCastable, skillCategory } from '../skills/index.js';
 import { dropTableFor, rollEquipmentFromTable } from '../formulas/drops.js';
 import { ITEMS, type ItemDef } from '../items/items.js';
 import { GOLDEN_BOSS_CONFIG } from './config.js';
@@ -223,6 +224,36 @@ export function validateGoldenBossConfig(raw: unknown): string | null {
 
   for (const b of cfg.bosses) {
     if (!b || typeof b !== 'object') return 'Mục Boss không hợp lệ.';
+    for (const [key, min, max, integer] of [
+      ['hp', 1, 2_000_000_000, true],
+      ['damagePercent', 1, 10000, false],
+      ['attackCooldown', 0.05, 60, false],
+      ['leash', 50, 10000, false],
+    ] as const) {
+      const value = b[key];
+      if (value !== undefined && (!Number.isFinite(value) || value < min || value > max || (integer && !Number.isInteger(value)))) {
+        return `Boss #${b.id}: ${key} phải từ ${min} đến ${max}${integer ? ' (số nguyên)' : ''}.`;
+      }
+    }
+    if (b.controlReduction !== undefined) {
+      if (!b.controlReduction || typeof b.controlReduction !== 'object' || Array.isArray(b.controlReduction)) return `Boss #${b.id}: mức giảm hiệu ứng không hợp lệ.`;
+      for (const [key,max] of [['hurt',100],['cold',77],['stun',95],['poison',95]] as const) {
+        const value=b.controlReduction[key];
+        if (value !== undefined && (!Number.isFinite(value) || value < 0 || value > max)) return `Boss #${b.id}: giảm ${key} phải từ 0 đến ${max}%.`;
+      }
+    }
+    if (b.skillLevelsFixed !== undefined && typeof b.skillLevelsFixed !== 'boolean') return `Boss #${b.id}: chế độ cấp kỹ năng không hợp lệ.`;
+    if (!Array.isArray(b.skills) || b.skills.length < 1 || b.skills.length > 32) return `Boss #${b.id}: cần từ 1 đến 32 kỹ năng.`;
+    const skillIds = new Set<number>();
+    for (const pair of b.skills) {
+      if (!Array.isArray(pair) || pair.length !== 2) return `Boss #${b.id}: kỹ năng phải gồm mã và cấp.`;
+      const [id, level] = pair;
+      const skill = getSkill(id);
+      if (!Number.isInteger(id) || !skill || skillIds.has(id)) return `Boss #${b.id}: kỹ năng không tồn tại hoặc bị trùng (#${id}).`;
+      if (!Number.isInteger(level) || level < 1 || level > maxLevelOf(skill)) return `Boss #${b.id}: cấp ${skill.name} phải từ 1 đến ${maxLevelOf(skill)}.`;
+      skillIds.add(id);
+    }
+    if (!b.skills.some(([id]) => isCastable(getSkill(id)!) && skillCategory(getSkill(id)!) === 'attack')) return `Boss #${b.id}: cần ít nhất một chiêu tấn công chủ động.`;
     const resistanceError = validateBossResistance(b.resistance);
     if (resistanceError) return resistanceError;
     if (!Number.isInteger(b.id) || b.id <= 0) return `ID Boss không hợp lệ: ${b.id}`;

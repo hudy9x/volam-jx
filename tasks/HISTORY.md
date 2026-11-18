@@ -1,3 +1,43 @@
+## 2026-11-19 · Đóng gói commit theo phần trên main
+
+- USER yêu cầu commit từng phần, không tạo branch. Nhánh main, mốc trước commit3186ae7 khớp checkpoint.
+- Chia phạm vi: (1) runtime/shared/server + test combat/damage và tài liệu công thức; (2) tool UI chọn riêng/nhóm/kỹ năng + xác nhận Apply và test/tool docs; (3) config.json/config.ts do USER đã chỉnh. Không push.
+- Kiểm cuối: typecheck/build,16Boss+20effects+12speed; cấu hình JSON/TS phải khớp và hợp lệ. Giữ thay đổi USER, không tự đổi số liệu hoặc áp dụng lại game.
+
+## 2026-11-19 · Hệ số sát thương và giảm thời gian chịu hiệu ứng của Boss
+
+- USER duyệt damagePercent riêng/nhóm nhưHP/tốc; mặc định100%,1–10000%. Owner multiplier qua refreshMonsterCombat→SkillEngine.strike cho direct/child, độc nhân tick một lần lúcgắn trướcgiảm/trần, khôngnhânlạikhi tick/không tăng heal/phảnđòn/duration.
+- USER xác nhận chỉ chỉnh hiệu ứng boss phải chịu. controlReduction hurt0–100(default60),cold0–77,stun/poison0–95(default0); hurt→hitRecover, các mức khác cộng bag rồi passive/state, giữ công thức/trần. Tool có riêng từngboss và chếđộGiữ/Đặtchung4mức, vẫn sửa riêng saubatch. Apply kiểm hệ số/mứcgiảm server trả, tránh success với servercũ.
+- 16test Boss damage/combat/apply/resistance đạt (realengine skill1/1055/1066 ở50/100/150/200, poisonthật, cácduration50%, giới hạn/olddefault);20effects+12speed/typecheck/build đạt. Chromium1440/390 batch2boss,invalidcold78,riêngdamage200/hurt100,lưu/reload,giữbosskhác/0JSerrors/khôngtrànngang, ảnhđãxem. Configtest riêng /tmp/jx-boss-controls-check, khôngsửa configthật hoặc apply2567; chưa gameplayWS/native.
+- Cập nhật README/formulas/AGENTS, HEAD3186ae7 khớp checkpoint. Chưa commit/push, giữ thay đổi và config USER có sẵn.
+
+## 2026-11-18 · Cài kỹ năng Boss riêng/nhóm và thêm chiêu150 đúng phái
+
+- USER yêu cầu thêm cài skill do chưa thấy boss dùng chiêu150. Xác minh0boss trong config hiện tại có chiêu150; AI chỉ chọn attack đã gán, không có chặn cấp150 riêng cho monster. Không tự sửa config thật (USER đang chỉnh song song).
+- Tool thêm dialog chọn chiêu/icon/tìm tên/lọc phái/150/cấp luyện, thêm/bỏ và Hủy/Esc không đổi. Chỉnh riêng hoặc thay cùng danh sách cho nhóm; preset thêm150theophái giữ chiêu/cấp đã có, không trùng, báo skip phái thiếu. Lưu/Áp dụng cũ, vẫn chỉnh riêng sau cập nhật nhóm.
+- skillLevelsFixed:true cho danh sách chỉnh qua editor/preset để monsterAt không tự scale cấp đã chọn. Boss cũ chưa sửa giữ scale cũ. Backend kiểm1–32chiêu, mã/cấp/trùng/ít nhất1attack; API apply xác nhận lại danh sách và cấp thực nhận để chặn game cũ.
+- 11test Boss combat/apply/resistance đạt: World/spawn/SkillEngine thật sinh1055/1056/1057 đúng cấp20/16/11 và AI phát cast1055; chặn invalid/level/trùng và phản hồi game sai skill. Typecheck/build đạt. Chromium1440/390 kiểm edit/cancel/Esc/invalidlevel/lưu/reload, batch150đúngphái/giữcấpcũ, batchthaylist/giữbosskhác;0JSerror/khôngtrànngang, ảnh đã xem. Navtest tổnghợp/configtest riêng /tmp/jx-boss-skills-check; chưa gameplayWS/native. HEAD3186ae7, chưa commit/push.
+
+## 2026-11-18 · Chọn nhiều Boss theo từng con/môn phái và chỉnh chung HP/nhịp đánh
+
+- USER xác nhận HP/nhịp đã hoạt động; yêu cầu checkbox từng boss/phái và giữ chỉnh riêng. Thêm lựa chọn độc lập ô bật xuất hiện, chọn môn phái trong kết quả hiển thị/chọn kết quả lọc, trạng thái một phần, bộ đếm cả boss ẩn và bỏ chọn tất cả. Lọc giữ lựa chọn, không làm dirty cấu hình.
+- Panel chung cho HP/attackCooldown, mặc định Giữ từng Boss; HP có xóa override về Theo cấp. Cập nhật chỉ chép giá trị đã chọn vào bản nháp của các ID tích chọn (kể cả bị ẩn), vẫn chỉnh riêng ở từng dòng. Giữ Lưu/Áp dụng, không đổi config thật/server/gameplay. Giữ mở phần combat khi render lại.
+- Chromium1440×1000/390×844: chọn riêng/phái/lọc, trạng thái một phần, giữ IDẩn, chặn số sai, cập nhật đúng2boss/giữ enabled và boss khác, chỉnh riêng sau cập nhật nhóm, lưu file thử, xóa HP về theo cấp/giữ tốc riêng đều đạt;0JSerror/không tràn ngang, ảnh đã xem. Typecheck/build đạt. Cấu hình thử riêng /tmp/jx-boss-combat-check, chưa kiểm native. HEAD3186ae7, chưa commit/push.
+
+## 2026-11-18 · Khắc phục nhịp đánh Boss không đổi sau Áp dụng
+
+- USER báo HP/nhịp đánh chưa thấy đổi. Config thật đã có Huyền Giác #740 HP500000/attackCooldown0,2; giữ nguyên giá trị USER. HP mặc định cấp150 là426600. Xác minh HP đi đúng qua reloadSpawns→updateSlots→Actor.hp/maxHp; chưa kết luận trạng thái bản game USER trước lúc sửa.
+- Lỗi nhịp đánh: AI nextAttack đọc0,2s nhưng castTiming/SkillEngine vẫn khóa pose1250ms. Thêm attackCycleMs chỉ khi boss có cấu hình attackCooldown rõ ràng, dùng cho pose/primary release/actionMs; giữ multiplier tốc độ/băng và cooldown riêng, player/BossXanh/boss thiếu override không đổi timing.
+- API reload trả combatTuningVersion và thông số định nghĩa thực nhận; tool chặn server cũ hoặc HP/chu kỳ/phạm vi sai, hiện HP/chu kỳ xác nhận và nhắc boss sinh lại theo lịch. Không bấm áp dụng vào server2567 của USER. Browser dùng mock game/cấu hình riêng4588/4589; hình1440/390 đã xem, kiểm xác nhận500000/200ms và servercũ báo restart đạt.
+- Kiểm:10test Boss combat/apply/resistance,12test speed,20test effects, typecheck/build đạt. Test effects-render vốn thiếu hai dependency trackBasePercent/getActiveSpeedConfig trong VM; bổ sung đúng helper để kiểm hồi quy, không sửa renderer. Test mới dùng World/spawn/SkillEngine thật trên nav tổng hợp, đo AI200ms và Actor.actionMs200, HP500000; chưa kiểm gameplay qua WebSocket/native. Không commit/push. HEAD3186ae7.
+
+## 2026-11-18 · Boss Hoàng Kim: HP riêng, nhịp đánh và phạm vi hoạt động
+
+- USER duyệt bổ sung trong công cụ Boss. Thêm hp/attackCooldown/leash tùy chọn, xác minh phía server; dữ liệu cũ giữ HP theo cấp, nhịp1,2giây và radius1100. HP riêng đi xuyên monsterAt vào spawn, không bị công thức cấp ghi đè.
+- AI trước đây bỏ leash với mọi boss. Boss cấu hình Hoàng Kim nay quay về khi bản thân hoặc mục tiêu ngoài bán kính isometric tính từ home, giữ returning tới gần home; không thay Boss Xanh. Cần restart server/tool và reload trang để nhận mã mới, sau đó Lưu/Áp dụng theo luồng cũ. Chưa áp dụng vào game thật/đổi config boss thật.
+- 8 test boss combat/resistance đạt; typecheck/build đạt. Chromium1440×1000 và390×844 kiểm nhập/lưu/reload/xóa HP tùy chọn, không tràn ngang/không JSerror; config/drop file thử riêng /tmp/jx-boss-combat-check, ảnhdesktop/mobile đã xem. Chưa kiểm native hoặc trận đánh gameplay thật. README tool cập nhật, chưa commit/push.
+- HEAD hiện3186ae7 (đã đổi từ9d9b4e0 trong lúc phiên chạy bởi công việc khác); giữ mọi thay đổi đồng thời.
+
 ## 2026-11-18 · Sửa hiệu ứng & tầng chiêu 80/150 các môn phái (đã commit)
 
 - **USER yêu cầu commit** phần sửa animation/FX, tầng chiêu 2/3 và tuning chiêu 80/150 (không tạo branch mới, không push).

@@ -52,10 +52,22 @@ export interface GoldenBossEntry {
   sprite: string;
   /** Cấp độ của Boss khi xuất hiện. */
   level: number;
+  /** HP cố định; bỏ trống để tính theo cấp. */
+  hp?: number;
+  /** Outgoing skill damage percent, default 100 (1..10000). */
+  damagePercent?: number;
+  /** Base reductions for effects suffered by this boss, in percent. */
+  controlReduction?: { hurt?: number; cold?: number; stun?: number; poison?: number };
+  /** Khoảng cách tối thiểu giữa hai đòn (giây). */
+  attackCooldown?: number;
+  /** Bán kính hoạt động từ điểm xuất hiện, đơn vị isometric. */
+  leash?: number;
   /** Cho phép Boss xuất hiện trong game hay tạm tắt. */
   enabled: boolean;
   /** Danh sách kỹ năng Boss sử dụng: [skillId, skillLevel]. */
   skills: [number, number][];
+  /** Editor-selected levels are exact; legacy configs keep level scaling. */
+  skillLevelsFixed?: boolean;
   /**
    * Danh sách ID trang bị Hoàng Kim ('gold-1' .. 'gold-140') rơi ra từ Boss này.
    * Ràng buộc: Mỗi ID trang bị Hoàng Kim chỉ được gắn cho tối đa 1 Boss duy nhất.

@@ -100,3 +100,7 @@ Thiếu Lâm cấp 20 (Sức mạnh 35, côn) đánh quái cấp 15 (Né 65): Ki
 Boss Xanh theo tier của instance: năm kháng gốc50, trần95 (CHỌN dựa mẫu Lãnh tụ SHXT). Boss Hoàng Kim dùng43hồ sơ NPC PAK/makeboss, mỗi loại `floor(A×cấp+B)`, trần theo nguồn; NPC tự tạo10031 tạm25/trần75. Tool cho phép override năm giá trị cố định và trần. Bùa/bị động vẫn cộng vào hồ sơ mỗi lần refresh, không mutate MonsterDef của quái thường. Công thức ở `formulas/boss-resistance.ts`, núm Xanh ở `formulas/tuning.ts BLUE_BOSS_RESISTANCE`.
 
 Lượt này giữ nguyên thứ tự kẹp kháng và ngũ hành/PvP đang có: kháng trước đòn bị kẹp trong trần rồi effectiveResist xử lý như cũ. Đề xuất giữ kháng dư và trần cuốiPvP95 chưa triển khai. Giá trị gốc243 không đồng nghĩa kháng thực dụng243.
+
+## Hệ số sát thương Boss Hoàng Kim — USER2026-11-19
+
+`GoldenBossEntry.damagePercent` mặc định100,1–10000%; chuyển vào MonsterDef rồi CombatStats.outgoingDamageMultiplier khi refresh. SkillEngine.strike nhân kết quả sát thương trực tiếp sau resolveHit với hệ số này, giữ DAMAGE_SCALE/tuning chiêu. Chiêu con dùng stats cùng owner nên chỉ nhân một lần mỗi hit. Độc nhân hit.poison.tick một lần trước hitEffects/poisonFromHit để vẫn giữ giảm độc/trần gộp và snapshot khi gắn; tick không nhân lần nữa. Không tăng hồi máu, phản đòn hoặc thời gian khống chế; min1/làmtròn sát thương giữ luật cũ. Công cụ chỉnh riêng/nhóm, Apply kiểm lại hệ số server nhận.

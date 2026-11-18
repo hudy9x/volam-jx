@@ -16,6 +16,13 @@ export interface MonsterDef {
   level: number;
   element: Element;
   hp: number;
+  /** HP riêng chỉ dành cho Boss Hoàng Kim cấu hình. */
+  hpOverride?: number;
+  damagePercent?: number;
+  controlReduction?: GoldenBossEntry['controlReduction'];
+  /** Explicit boss cycle, including the cast pose (milliseconds). */
+  attackCycleMs?: number;
+  boundedHome?: boolean;
   /** Base (ngoại công) damage the skills scale from. */
   damage: [number, number];
   resist: number;
@@ -62,12 +69,12 @@ export function goldenBossFromEntry(b: GoldenBossEntry): MonsterDef {
   const lv = Math.max(1, b.level || 90);
   return {
     id: b.id, name: b.name, sprite: b.sprite, level: lv, element: b.element,
-    hp: monsterHp(lv, 2), damage: monsterDamage(lv), resist: 0.25, resistance: b.resistance,
+    hp: b.hp ?? monsterHp(lv, 2), hpOverride: b.hp, damagePercent: b.damagePercent ?? 100, controlReduction: b.controlReduction, attackCycleMs: b.attackCooldown === undefined ? undefined : b.attackCooldown * 1000, boundedHome: true, damage: monsterDamage(lv), resist: 0.25, resistance: b.resistance,
     speed: 210,
     skills: b.skills.map(([sid, slv]) => [sid, slv]),
-    skillScale: b.skills.map(([, slv]) => [Math.max(1, Math.round(slv * 0.4)), 0.1]),
-    attackCooldown: 1.2, vision: 420, leash: 1100, scale: 1,
-    hitRecover: 60, boss: 2,
+    skillScale: b.skillLevelsFixed ? undefined : b.skills.map(([, slv]) => [Math.max(1, Math.round(slv * 0.4)), 0.1]),
+    attackCooldown: b.attackCooldown ?? 1.2, vision: 420, leash: b.leash ?? 1100, scale: 1,
+    hitRecover: b.controlReduction?.hurt ?? 60, boss: 2,
   };
 }
 

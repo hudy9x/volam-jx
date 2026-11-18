@@ -381,3 +381,13 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 - ✅ 2026-11-18: Demo bỏ menu ngoài game, gameplay toàn cửa sổ, Hệ thống/Esc đổi nhân vật và về đăng nhập.
 
 - ✅ 2026-11-18: Restyle demo khung Hành trang/Trang bị & Thuộc tính gỗ mun–son đỏ, asset trang bị thật, browser kiểm. Chưa tích hợp game.
+
+- [x] USER2026-11-18: Công cụ Boss Hoàng Kim chỉnh HP riêng/nhịp đánh/phạm vi home; server dùng override khi spawn, bật leash Hoàng Kim (không đổi Xanh). 8 test/typecheck/build và Chromium1440/390 lưu/reload đạt; chưa áp dụng config game thật, chưa commit/push.
+
+- [x] USER2026-11-18: Sửa nhịp đánh Boss override bị pose cũ chặn; xác nhận HP/chu kỳ/phạm vi từ game khi Áp dụng, chặn server cũ.10test Boss+12speed+20effects/typecheck/build và browser1440/390 đạt; giữ config HP500000/0,2s của USER, chưa áp dụng vào server thật/commit/push.
+
+- [x] USER2026-11-18: Checkbox chọn từng Boss/môn phái/kết quả lọc; chỉnh HP/nhịp chung theo nhóm tích chọn, giữ tùy chỉnh riêng. Chromium1440/390 chọn/lọc/partial/giữẩn/cậpnhật/giữbosskhác/sửariêng/lưu đạt; typecheck/build đạt, chưa commit/push.
+
+- [x] USER2026-11-18: Tool Boss chọn skill/cấp riêng hoặc nhóm; preset thêm150đúngphái/giữchiêucũ, server giữ cấp đã chọn và xác nhận quaApply.11test/typecheck/build+Chromium1440/390 đạt; chưa tự gán150config thật/commit/push.
+
+- [x] USER2026-11-19: Tool Boss hệ số sát thương riêng/nhóm và giảm thời gian chịu hurt/cold/stun/poison, giữ cấu hình riêng và xác nhậnApply.16Boss+20effects+12speed/typecheck/build và Chromium1440/390 đạt; chưa applygame thật/commit/push.

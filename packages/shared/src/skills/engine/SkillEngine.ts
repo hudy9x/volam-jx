@@ -609,7 +609,11 @@ export class SkillEngine {
     const hit = resolveHit(skillDamage(s, lv, m.root, atk), {
       skill: s, level: lv, attacker: atk, target: def, targetLife: t.hp, pvp: owner.kind === 'player' && t.kind === 'player',
     }, r);
-    const scale = DAMAGE_SCALE * (tuningOf(m.root).damage ?? 1);
+    const ownerScale = atk.outgoingDamageMultiplier ?? 1;
+    const scale = DAMAGE_SCALE * (tuningOf(m.root).damage ?? 1) * ownerScale;
+    // Snapshot scaled poison once at application; later ticks must not scale it again.
+    // hitEffects still applies poison reduction and the existing merge caps.
+    if (hit.poison) hit.poison = { ...hit.poison, tick: hit.poison.tick * ownerScale };
     this.port.damage(owner, t, {
       dmg: hit.dmg > 0 ? Math.max(1, Math.round(hit.dmg * scale)) : 0, crit: hit.crit, miss: hit.miss, fatal: hit.fatal,
       effects: hitEffects(s, lv, atk, def, hit, r), skill: m.root,

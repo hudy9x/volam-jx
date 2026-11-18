@@ -27,8 +27,13 @@ const slowed = (w: World, sim: Sim) => (sim.effects?.slowUntil ?? 0) > w.now;
 /** Monster combat stats: level curve + flat resist + its states (and passives). */
 export function refreshMonsterCombat(sim: Sim): void {
   const def = sim.def!;
-  const bag = mergeBag(passiveBag(sim.skills, -1), stateBag(sim.states, -1));
+  const bag = mergeBag(mergeBag({
+    freezetimereduce_p: [def.controlReduction?.cold ?? 0, 0, 0],
+    stuntimereduce_p: [def.controlReduction?.stun ?? 0, 0, 0],
+    poisontimereduce_p: [def.controlReduction?.poison ?? 0, 0, 0],
+  }, passiveBag(sim.skills, -1)), stateBag(sim.states, -1));
   sim.combat = monsterCombat(sim.a.level, def.element, Math.round(def.resist * 100), def.hitRecover ?? 0, bag, skillBonuses(sim.skills));
+  sim.combat.outgoingDamageMultiplier = (def.damagePercent ?? 100) / 100;
   if (sim.a.boss > 0) applyBossResistance(sim.combat, sim.a.boss, def.id, sim.a.level, def.resistance);
 }
 
@@ -54,6 +59,11 @@ export function castTiming(w: World, sim: Sim, skillId: number) {
   const timing = sim.devAttackPercent !== undefined
     ? resolveSpeed('attack', sim.devAttackPercent)
     : attackTiming(combatOf(sim).bag, !!s && isExternal(s, levelOf(sim, skillId) ?? 1), cold);
+  // An explicit boss cycle controls the pose and primary release too, not just AI idle time.
+  // Keep speed buffs/cold via the same resolved multiplier; player/dev timing stays unchanged.
+  if (sim.kind === 'monster' && sim.def?.attackCycleMs !== undefined && sim.devAttackPercent === undefined) {
+    return { ...timing, cycleMs: sim.def.attackCycleMs / timing.multiplier };
+  }
   return s ? { ...timing, cycleMs: skillActionMs(s, timing.cycleMs, cold) } : timing;
 }
 
