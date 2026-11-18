@@ -1,6 +1,6 @@
 import { initMarket, openMarketPost } from './market';
 import {
-  BAG_CELL_PX, BAG_COLS, BAG_PAGES, BAG_PAGE_SIZE, BAG_ROWS, BAG_SIZE, KIND_SLOTS, bagCover, bagPage, canWear, equipError, findPlace, itemDef,
+  BAG_CELL_PX, BAG_COLS, BAG_PAGES, BAG_PAGE_SIZE, BAG_ROWS, BAG_SIZE, KIND_SLOTS, bagCover, bagPage, canWear, equipError, findPlace, itemDef, itemQty,
   itemSize, moneyText, overlappingAt, sellPrice, usableItem, type InventoryMsg, type Item, type ItemViewer,
 } from '@vltk/shared';
 import { itemViewer, progress } from '../../state/progress';
@@ -29,6 +29,7 @@ const HTML = `
   <div id="bag-grid" style="--cell: ${BAG_CELL_PX}px; --cols: ${BAG_COLS}; --rows: ${BAG_ROWS}"></div>
   <div class="bag-money">${moneyHtml('bag-money')}</div><div id="bag-knb">0 Kim nguyên bảo</div>
   <div class="row bag-actions">
+    <button type="button" class="btn sm" id="bag-split" title="Bật rồi click vào chồng vật phẩm để tách (hoặc Shift+Click)">Tách</button>
     <button type="button" class="btn sm" id="bag-throw" title="Bật rồi click vào món để vứt xuống đất (nhặt lại được trong 60 giây)">Vứt</button>
     <button type="button" class="btn sm" id="bag-announce">Rao bán</button>
     <button type="button" class="btn sm" id="bag-sell" title="Bật rồi click vào món để bán (1/4 giá)">Bán</button>
@@ -48,7 +49,7 @@ export class InventoryWindow {
   /** Page shown: 0 = hành trang, 1–4 = rương mở rộng (items/bag.ts). */
   private page = 0;
   /** Click mode of the bag's own buttons: throw on the ground / sell (USER 2026-11-12). */
-  private mode: 'none' | 'throw' | 'sell' | 'announce' = 'none';
+  private mode: 'none' | 'throw' | 'sell' | 'announce' | 'split' = 'none';
   private pendingRender = false;
 
   constructor(parent: HTMLElement, private ctx: HudContext, private confirm: TradeConfirm) {
@@ -84,6 +85,7 @@ export class InventoryWindow {
       });
     });
     $('bag-sort').addEventListener('click', () => this.ctx.actions()?.bagSort(this.page, 'bag'));
+    $('bag-split').addEventListener('click', () => this.setMode(this.mode === 'split' ? 'none' : 'split'));
     $('bag-throw').addEventListener('click', () => this.setMode(this.mode === 'throw' ? 'none' : 'throw'));
     $('bag-sell').addEventListener('click', () => this.setMode(this.mode === 'sell' ? 'none' : 'sell'));
     inventory.watch(inv => {
@@ -117,15 +119,19 @@ export class InventoryWindow {
     this.renderBag();
   }
 
-  private setMode(mode: 'none' | 'throw' | 'sell' | 'announce'): void {
+  private setMode(mode: 'none' | 'throw' | 'sell' | 'announce' | 'split'): void {
     this.mode = mode;
     $('bag-announce').classList.toggle('on', mode === 'announce');
     $('bag-grid').classList.toggle('announcing', mode === 'announce');
+    $('bag-split').classList.toggle('on', mode === 'split');
     $('bag-throw').classList.toggle('on', mode === 'throw');
     $('bag-sell').classList.toggle('on', mode === 'sell');
     $('bag-grid').classList.toggle('throwing', mode === 'throw');
     $('bag-grid').classList.toggle('selling-own', mode === 'sell');
-    $('bag-mode-hint').textContent = mode === 'announce' ? 'Click vào vật phẩm muốn rao bán' : mode === 'throw' ? 'Click vào món để vứt xuống đất' : mode === 'sell' ? 'Click vào món để bán' : 'Vật phẩm';
+    $('bag-mode-hint').textContent = mode === 'announce' ? 'Click vào vật phẩm muốn rao bán'
+      : mode === 'split' ? 'Click vào chồng vật phẩm muốn tách'
+      : mode === 'throw' ? 'Click vào món để vứt xuống đất'
+      : mode === 'sell' ? 'Click vào món để bán' : 'Vật phẩm';
   }
 
   private viewer(): ItemViewer | null {
@@ -190,7 +196,7 @@ export class InventoryWindow {
     el.style.width = `${w * BAG_CELL_PX}px`;
     el.style.height = `${h * BAG_CELL_PX}px`;
     const viewer = this.viewer();
-    setSlotIcon(el, def, { quality: item.q, wearable: usableItem(def) || !KIND_SLOTS[def.kind].length || canWear(def, viewer) });
+    setSlotIcon(el, def, { quality: item.q, wearable: usableItem(def) || !KIND_SLOTS[def.kind].length || canWear(def, viewer), qty: itemQty(item) });
     el.draggable = true;
     // Wear / use: click or right click (USER 2026-11-12, the original uses items with the right button).
     const wearOrUse = () => {
@@ -202,7 +208,17 @@ export class InventoryWindow {
       if (err) { this.ctx.notice(err); return; }
       this.ctx.actions()?.equip(i);
     };
-    el.addEventListener('click', () => {
+    el.addEventListener('click', e => {
+      const qty = itemQty(item);
+      if (this.mode === 'split' || (e.shiftKey && qty > 1)) {
+        tooltip.hide();
+        if (qty <= 1) { this.ctx.notice('Vật phẩm này chỉ có 1 cái, không thể tách.'); return; }
+        this.confirm.open({
+          mode: 'split', def, unit: 0, max: qty - 1, initial: Math.max(1, Math.floor(qty / 2)),
+          ok: count => { this.ctx.actions()?.bagSplit(i, count, 'bag'); if (this.mode === 'split') this.setMode('none'); },
+        });
+        return;
+      }
       if (this.mode === 'announce') {
         tooltip.hide();
         if (item.def === TOKEN_ITEM_ID) { this.ctx.notice('Lệnh bài không thể rao bán.'); return; }
@@ -224,9 +240,11 @@ export class InventoryWindow {
       if (this.pendingRender) { this.pendingRender = false; this.renderBag(); }
     });
     el.addEventListener('mouseenter', () => {
-      const hint = this.mode === 'throw' ? 'Click: vứt xuống đất'
+      const qty = itemQty(item);
+      const hint = this.mode === 'split' ? 'Click: tách vật phẩm'
+        : this.mode === 'throw' ? 'Click: vứt xuống đất'
         : this.selling() ? `Click: bán (${moneyText(sellPrice(def))} lượng)`
-          : '';
+          : qty > 1 ? 'Shift+Click: tách · Kéo đè lên cùng loại: gộp' : '';
       this.tip(item, el, hint);
     });
     el.addEventListener('mouseleave', () => showItemTip(null));

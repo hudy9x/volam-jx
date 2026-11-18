@@ -3,13 +3,17 @@ import {
   DROPS,
   GOLDEN_BOSS_SPECIAL_ITEMS,
   ITEMS,
+  MAX_BAG_POTIONS,
   addToBag,
+  bagPotionCount,
   createGold,
   createItem,
   dropTableFor,
   getGoldenBossConfig,
+  isStackablePotion,
   isoDistance,
   itemDef,
+  itemQty,
   nearestWalkable,
   resolveDropProfile,
   rollEquipmentFromTable,
@@ -184,6 +188,10 @@ export function pickup(w: World, sim: Sim, id: string): boolean {
     return false;
   }
   if (d.item) {
+    if (isStackablePotion(itemDef(d.item)) && bagPotionCount(sim.bag!) + itemQty(d.item) > MAX_BAG_POTIONS) {
+      w.hooks.notify(sim, `Hành trang đã đạt tối đa ${MAX_BAG_POTIONS} bình thuốc.`);
+      return false;
+    }
     if (!addToBag(sim.bag!, d.item)) { w.hooks.notify(sim, 'Hành trang không đủ chỗ.'); return false; }
     sim.pickedUp = d.item;
     w.hooks.log(sim, 'item', `Nhặt được ${itemDef(d.item)?.name ?? 'vật phẩm'}.`);

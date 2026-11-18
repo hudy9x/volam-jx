@@ -1,6 +1,6 @@
 import {
   BAG_CELL_PX, BAG_COLS, BAG_PAGE_SIZE, BAG_ROWS, KIND_SLOTS, STASH_PAGES, STASH_SIZE,
-  bagCover, bagPage, canWear, findPlace, itemDef, itemSize, overlappingAt, usableItem,
+  bagCover, bagPage, canWear, findPlace, itemDef, itemQty, itemSize, overlappingAt, usableItem,
   type Item, type ItemViewer, type StashMsg,
 } from '@vltk/shared';
 import { itemViewer, progress } from '../../state/progress';
@@ -175,7 +175,7 @@ export class StashWindow {
     el.style.width = `${w * BAG_CELL_PX}px`;
     el.style.height = `${h * BAG_CELL_PX}px`;
     const viewer = this.viewer();
-    setSlotIcon(el, def, { quality: item.q, wearable: usableItem(def) || !KIND_SLOTS[def.kind].length || canWear(def, viewer) });
+    setSlotIcon(el, def, { quality: item.q, wearable: usableItem(def) || !KIND_SLOTS[def.kind].length || canWear(def, viewer), qty: itemQty(item) });
     el.draggable = true;
     el.addEventListener('dragstart', e => {
       tooltip.hide();

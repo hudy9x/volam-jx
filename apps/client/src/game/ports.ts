@@ -38,6 +38,7 @@ export interface WorldActions {
   bagMove: (from: number, to: number) => void;
   /** Sort/compact one page of bag or stash. */
   bagSort: (page: number, target?: 'bag' | 'stash') => void;
+  bagSplit: (from: number, qty: number, target?: 'bag' | 'stash', to?: number) => void;
   /** Move/swap a piece inside the account stash. */
   stashMove: (from: number, to: number) => void;
   /** Transfer a piece from bag to account stash. */

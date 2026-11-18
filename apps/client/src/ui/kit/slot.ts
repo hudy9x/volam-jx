@@ -9,6 +9,8 @@ export interface SlotLook {
   quality?: number;
   /** Background like the original bag: true = can wear / use (green), false = cannot (dark red), undefined = plain. */
   wearable?: boolean;
+  /** Stack quantity (> 1 renders a badge). */
+  qty?: number;
 }
 
 /**
@@ -21,6 +23,15 @@ export function setSlotIcon(el: HTMLElement, item: ItemDef | undefined, look: Sl
     const q = QUALITY_CLASS[look.quality ?? 0];
     if (q) el.classList.add(q);
     if (look.wearable !== undefined) el.classList.add(look.wearable ? 'wear-ok' : 'wear-no');
+  }
+  const existingQty = el.querySelector('.qty');
+  if (item && look.qty && look.qty > 1) {
+    const badge = existingQty ?? document.createElement('span');
+    badge.className = 'qty';
+    badge.textContent = String(look.qty);
+    if (!existingQty) el.append(badge);
+  } else {
+    existingQty?.remove();
   }
   const want = item ? itemIconUrl(item) : '';
   const img = el.querySelector('img');

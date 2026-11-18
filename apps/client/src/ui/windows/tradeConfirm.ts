@@ -26,12 +26,14 @@ const HTML = `
 </section>`;
 
 export interface TradeAsk {
-  mode: 'buy' | 'sell';
+  mode: 'buy' | 'sell' | 'split';
   def: ItemDef;
-  /** Price of one piece (buy: table price; sell: what the NPC pays). */
+  /** Price of one piece (buy: table price; sell: what the NPC pays; split: unused). */
   unit: number;
-  /** Most pieces at once (buy: BUY_MAX and the free bag cells; sell: 1). */
+  /** Most pieces at once (buy: BUY_MAX and the free bag cells; sell: 1; split: curQty - 1). */
   max: number;
+  /** Initial quantity (defaults to 1). */
+  initial?: number;
   /** Called with the quantity on Đồng ý. */
   ok: (count: number) => void;
 }
@@ -55,12 +57,15 @@ export class TradeConfirm {
   }
 
   open(ask: TradeAsk): void {
-    this.ask = { ...ask, max: Math.max(1, Math.min(ask.max, BUY_MAX)) };
-    this.count = 1;
-    dialogs.setTitle(ID, ask.mode === 'buy' ? 'Mua vào' : 'Bán ra');
+    this.ask = { ...ask, max: ask.mode === 'split' ? Math.max(1, ask.max) : Math.max(1, Math.min(ask.max, BUY_MAX)) };
+    const start = Math.max(1, Math.min(this.ask.max, Math.floor(ask.initial ?? 1)));
+    this.count = start;
+    $<HTMLInputElement>('trade-qty').maxLength = ask.mode === 'split' ? 4 : 2;
+    dialogs.setTitle(ID, ask.mode === 'buy' ? 'Mua vào' : ask.mode === 'sell' ? 'Bán ra' : 'Tách vật phẩm');
     $('trade-qty-row').classList.toggle('hidden', ask.mode === 'sell' || this.ask.max <= 1);
+    $('trade-price').parentElement!.classList.toggle('hidden', ask.mode === 'split');
     $('trade-name').textContent = ask.def.name;
-    this.setCount(1);
+    this.setCount(start);
     dialogs.open(ID);
     $('trade-ok').focus();
   }
@@ -81,7 +86,11 @@ export class TradeConfirm {
     const price = $('trade-price');
     price.textContent = moneyText(total);
     price.classList.toggle('short', short);
-    $('trade-left').textContent = a.mode === 'buy' ? `Tiền túi: ${moneyText(money)} lượng` : '';
+    $('trade-left').textContent = a.mode === 'buy'
+      ? `Tiền túi: ${moneyText(money)} lượng`
+      : a.mode === 'split'
+        ? `Tách ${this.count} · Còn lại ${a.max + 1 - this.count}`
+        : '';
     $<HTMLButtonElement>('trade-ok').disabled = short;
   }
 
