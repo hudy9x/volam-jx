@@ -1,10 +1,11 @@
 import { mount } from './dom';
 import './tooltip.css';
+import { computeTooltipPosition } from './tooltip-position';
 import { hudSize, localPoint } from './viewport';
 
 /**
- * The one floating tooltip of the HUD (#item-tip): items, skills, states. Shown next to the hovered element — above it
- * when there is room, otherwise below — and kept inside the window. Builders of the content: ui/tips/.
+ * The one floating tooltip of the HUD (#item-tip): items, skills, states. Shown next to the hovered element — above,
+ * below, or beside it without covering the anchor — and kept inside the window. Builders of the content: ui/tips/.
  */
 let el: HTMLElement | null = null;
 const BOX_CLASSES = ['skill-tip', 'item-tip'];
@@ -20,16 +21,18 @@ export const tooltip = {
     el.replaceChildren();
     el.classList.remove(...BOX_CLASSES);
     if (cls) el.classList.add(cls);
+    el.style.left = '0px';
+    el.style.top = '0px';
     fill(el);
     const r = anchor.getBoundingClientRect();
     el.classList.remove('hidden');
     const w = el.offsetWidth, h = el.offsetHeight;
     const parent = el.parentElement!;
-    const [x, top] = localPoint(parent, r.left + r.width / 2, r.top);
-    const [, bottom] = localPoint(parent, r.left, r.bottom);
-    const { width, height } = hudSize();
-    el.style.left = `${Math.max(8, Math.min(width - w - 8, x - w / 2))}px`;
-    el.style.top = `${Math.max(8, Math.min(height - h - 8, top - h - 8 >= 8 ? top - h - 8 : bottom + 8))}px`;
+    const [left, top] = localPoint(parent, r.left, r.top);
+    const [right, bottom] = localPoint(parent, r.right, r.bottom);
+    const pos = computeTooltipPosition({ left, top, right, bottom }, { width: w, height: h }, hudSize());
+    el.style.left = `${pos.left}px`;
+    el.style.top = `${pos.top}px`;
   },
 
   hide(): void {
