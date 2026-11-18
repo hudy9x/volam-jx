@@ -1,3 +1,8 @@
+## 2026-11-19 · Đã commit phần runtime Boss
+
+- Commit `1030f6e`: cấu hình HP/nhịp/phạm vi/kỹ năng/hệ số sát thương/giảm hiệu ứng, server thực thi và trả thông số Apply, test combat/damage cùng docs công thức. Commit trên main, không tạo branch/push.
+- Graph staged đủ53symbol/18flow (không partial/truncated), critical do engine chung;48test/typecheck/build đạt. Tiếp theo commit tool rồi cấu hình USER.
+
 ## 2026-11-19 · Đóng gói commit theo phần trên main
 
 - USER yêu cầu commit từng phần, không tạo branch. Nhánh main, mốc trước commit3186ae7 khớp checkpoint.

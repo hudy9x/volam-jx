@@ -1329,3 +1329,52 @@ dialog::backdrop {
 .resistance-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
 .resistance-fields input { width:100%; box-sizing:border-box; }
 .boss-resistance select { width:100%; }
+
+.boss-combat { min-width: 190px; max-width: 260px; margin-bottom: 12px; }
+.boss-combat label { display: grid; gap: 6px; margin-top: 12px; }
+.boss-combat input { width: 100%; min-height: 44px; box-sizing: border-box; }
+.boss-combat small { display: block; margin-top: 4px; }
+.boss-combat summary { min-height: 44px; align-content: center; cursor: pointer; }
+
+.tool-page .boss-bulk { margin: 20px 0; padding: 18px; border: 1px solid #303832; border-radius: 10px; background: #181c19; }
+.tool-page .boss-bulk h3 { margin: 0 0 12px; font-size: 16px; }
+.tool-page .bulk-selection { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 14px; }
+.tool-page .boss-select-label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; }
+.tool-page .boss-select-label input { width: 18px; height: 18px; margin: 0; accent-color: #b9d8bf; }
+.tool-page .bulk-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 720px; }
+.tool-page .bulk-fields label { display: block; margin-bottom: 6px; }
+.tool-page .bulk-fields .bulk-value { margin-top: 12px; }
+.tool-page .bulk-fields :is(input, select) { width: 100%; min-height: 44px; }
+.tool-page .bulk-fields [hidden] { display: none; }
+.tool-page .boss-table .boss-selected > :is(th, td) { background: #263a2c; }
+.tool-page #bulk-status { margin-bottom: 0; }
+@media (max-width: 760px) { .tool-page .bulk-fields { grid-template-columns: 1fr; } }
+
+.tool-page .bulk-skill-actions { display:flex; flex-wrap:wrap; gap:12px; margin:14px 0; }
+.tool-page #dlg-skills { width:min(1000px, calc(100vw - 32px)); }
+.tool-page #dlg-skills .picker-content { display:flex; flex-direction:column; max-height:calc(100dvh - 110px); overflow:auto; padding:16px; gap:14px; }
+.tool-page .skill-picker-filters { display:grid; grid-template-columns:2fr 1fr 1fr; gap:12px; }
+.tool-page .skill-picker-filters label { display:grid; gap:6px; }
+.tool-page .skill-picker-filters :is(input,select) { width:100%; min-width:0; min-height:44px; }
+.tool-page .skill-picker-columns { display:grid; grid-template-columns:1fr 1fr; gap:16px; min-height:0; }
+.tool-page .skill-picker-columns section { min-width:0; }
+.tool-page .skill-picker-list { max-height:44vh; overflow:auto; }
+.tool-page .skill-option { display:flex; align-items:center; gap:10px; min-height:44px; padding:8px; cursor:pointer; }
+.tool-page .skill-option img { width:32px; height:32px; }
+.tool-page .skill-option small, .tool-page .skill-picked-row small { display:block; }
+.tool-page .skill-picked-row { display:grid; grid-template-columns:minmax(0,1fr) 80px auto; gap:8px; align-items:center; padding:8px 0; }
+.tool-page .skill-picked-row input { width:100%; min-height:44px; }
+@media(max-width:760px) { .tool-page .skill-picker-filters,.tool-page .skill-picker-columns { grid-template-columns:1fr; } .tool-page .skill-picker-list { max-height:30vh; } }
+
+.tool-page #dlg-skills .picker-head { display:none; }
+.tool-page #dlg-skills .picker-content { overflow:hidden; }
+.tool-page #dlg-skills .skill-picker-filters { flex-shrink:0; }
+.tool-page #dlg-skills .skill-picker-columns { overflow:auto; flex:1 1 auto; }
+@media(max-width:760px) { .tool-page #dlg-skills .skill-picker-columns { display:block; } }
+.tool-page #dlg-skills > .dlg-body { overflow:hidden; display:flex; flex-direction:column; }
+.tool-page #dlg-skills .picker-content { min-height:0; }
+
+.tool-page .bulk-control-fields { margin:14px 0; }
+.tool-page .bulk-control-fields label { display:grid; gap:6px; }
+.tool-page .bulk-control-fields select { min-height:44px; max-width:350px; }
+.tool-page .bulk-control-fields [hidden] { display:none; }

@@ -33,7 +33,7 @@
       <div class="panel-header spread">
         <div>
           <h2 id="boss-list-title">Danh sách Boss</h2>
-          <p class="muted">Bật hoặc tắt xuất hiện, chỉnh cấp, chọn vật phẩm rơi và vị trí cho từng Boss. Chỉnh sửa tạo bản nháp; Lưu ghi cấu hình, Áp dụng gửi bản đã lưu tới game.</p>
+          <p class="muted">Bật hoặc tắt xuất hiện, chỉnh cấp, HP, khoảng cách đòn đánh, phạm vi hoạt động, vật phẩm rơi và vị trí cho từng Boss. Chỉnh sửa tạo bản nháp; Lưu ghi cấu hình, Áp dụng gửi bản đã lưu tới game.</p>
         </div>
         <div class="filter-bar">
           <label>Tìm Boss
@@ -51,6 +51,42 @@
       <!-- Tabs lọc theo 10 môn phái -->
       <div class="faction-tabs" id="faction-tabs" role="group" aria-label="Lọc theo hệ phái"></div>
 
+      <div class="boss-bulk" id="boss-bulk" aria-labelledby="bulk-title">
+        <h3 id="bulk-title">Cài đặt cho Boss đã chọn</h3>
+        <div class="bulk-selection">
+          <label class="boss-select-label"><input type="checkbox" id="select-visible-bosses" /> Chọn kết quả lọc</label>
+          <span id="boss-selection-count" role="status" aria-live="polite"></span>
+          <button type="button" class="btn" id="clear-boss-selection">Bỏ chọn tất cả</button>
+        </div>
+        <div class="bulk-fields">
+          <div><label for="bulk-hp-mode">HP</label><select id="bulk-hp-mode"><option value="keep">Giữ từng Boss</option><option value="custom">Đặt HP chung</option><option value="auto">Theo cấp từng Boss</option></select>
+            <label for="bulk-hp" class="bulk-value" hidden>HP chung<input id="bulk-hp" type="number" min="1" max="2000000000" step="1" disabled /></label>
+          </div>
+          <div><label for="bulk-attack-mode">Tốc độ đánh</label><select id="bulk-attack-mode"><option value="keep">Giữ từng Boss</option><option value="custom">Đặt khoảng cách đòn chung</option></select>
+            <label for="bulk-attack" class="bulk-value" hidden>Khoảng cách đòn chung (giây)<input id="bulk-attack" type="number" min="0.05" max="60" step="any" disabled /></label>
+          </div>
+          <div><label for="bulk-damage-mode">Hệ số sát thương</label><select id="bulk-damage-mode"><option value="keep">Giữ từng Boss</option><option value="custom">Đặt hệ số chung</option></select>
+            <label for="bulk-damage" class="bulk-value" hidden>Hệ số sát thương chung (%)<input id="bulk-damage" type="number" min="1" max="10000" step="any" value="100" disabled /></label>
+          </div>
+        </div>
+        <div class="bulk-control-fields">
+          <label>Giảm hiệu ứng phải chịu<select id="bulk-control-mode"><option value="keep">Giữ từng Boss</option><option value="custom">Đặt mức giảm chung</option></select></label>
+          <div id="bulk-control-values" class="bulk-fields" hidden>
+            <label>Phục hồi (%)<input type="number" id="bulk-control-hurt" min="0" max="100" step="any" value="60" disabled /></label>
+            <label>Giảm làm chậm (%)<input type="number" id="bulk-control-cold" min="0" max="77" step="any" value="0" disabled /></label>
+            <label>Giảm choáng (%)<input type="number" id="bulk-control-stun" min="0" max="95" step="any" value="0" disabled /></label>
+            <label>Giảm trúng độc (%)<input type="number" id="bulk-control-poison" min="0" max="95" step="any" value="0" disabled /></label>
+          </div>
+          <small class="muted">Mức giảm càng cao, Boss chịu hiệu ứng càng ngắn. Phục hồi chỉ giảm co giật/thọ thương, không hồi HP.</small>
+        </div>
+        <p class="muted">Chỉ cập nhật Boss đã chọn, kể cả những Boss đang bị bộ lọc ẩn. Giữ từng Boss sẽ giữ giá trị riêng. Sau cập nhật, vẫn chỉnh riêng được ở mỗi dòng.</p>
+        <div class="bulk-skill-actions">
+          <button type="button" class="btn" id="edit-selected-skills" disabled>Chọn kỹ năng chung cho nhóm</button>
+          <button type="button" class="btn" id="add-selected-150" disabled>Thêm chiêu 150 theo phái cho nhóm</button>
+        </div>
+        <button type="button" class="btn btn-primary" id="update-selected-bosses" disabled>Cập nhật Boss đã chọn</button>
+        <p id="bulk-status" class="muted" role="status" aria-live="polite">Chọn Boss và thông số muốn đổi. Cập nhật chỉ sửa bản nháp; sau đó Lưu và Áp dụng vào game.</p>
+      </div>
       <!-- Bảng danh sách Boss theo từng phái -->
       <p id="filter-count" class="muted" role="status"></p><div id="faction-sections"></div>
     </section>
@@ -305,6 +341,22 @@
     </div>
   </dialog>
 
+  <dialog id="dlg-skills" aria-labelledby="dlg-skills-title">
+    <div class="picker-content">
+      <header class="dlg-head"><h2 id="dlg-skills-title">Kỹ năng Boss</h2></header>
+      <p class="muted" id="dlg-skills-scope"></p>
+      <div class="skill-picker-filters">
+        <label>Tìm kỹ năng<input type="search" id="skill-search" placeholder="Tên kỹ năng hoặc mã" /></label>
+        <label>Môn phái<select id="skill-pack"></select></label>
+        <label>Cấp học<select id="skill-tier"><option value="all">Tất cả</option><option value="150">Chiêu 150</option></select></label>
+      </div>
+      <div class="skill-picker-columns">
+        <section><h3>Chiêu tấn công có thể chọn</h3><div id="skill-catalog" class="skill-picker-list"></div></section>
+        <section><h3>Kỹ năng đã chọn</h3><p class="muted">Nhập cấp luyện của chiêu, không phải cấp học 150. AI chọn ngẫu nhiên chiêu tấn công dùng được; giữ hồi chiêu riêng.</p><div id="skill-picked" class="skill-picker-list"></div></section>
+      </div>
+      <footer class="dlg-foot"><span id="skill-picker-status" role="status" aria-live="polite"></span><div class="dlg-foot-btns"><button type="button" id="cancel-skills" class="btn">Hủy</button><button type="button" id="confirm-skills" class="btn btn-primary">Xác nhận kỹ năng</button></div></footer>
+    </div>
+  </dialog>
   <script type="module" src="app.js"></script>
 </body>
 </html>

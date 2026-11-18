@@ -20,7 +20,7 @@ import {
   formatAttr,
   formatGoldenBossConfigTs,
   getDropConfig,
-  getSkill,
+  getSkill, allPacks, learnableSkills, maxLevelOf, isCastable, skillCategory,
   isWalkable,
   getGrid,
   mapLevelBand,
@@ -145,16 +145,17 @@ function buildBootstrap() {
   for (const b of config.bosses) {
     for (const [sid] of b.skills) skillIds.add(sid);
   }
-  for (let id = 1; id <= 1500; id++) {
-    if (getSkill(id)) skillIds.add(id);
-  }
-  const skills: Record<number, { id: number; name: string; icon: string }> = {};
+  for (const pack of allPacks()) for (const skill of pack.skills) skillIds.add(skill.id);
+  const learnable = new Set(allPacks().flatMap(p => learnableSkills(p.id)));
+  const skills: Record<number, { id: number; name: string; icon: string; pack: string; maxLevel: number; reqLevel: number; selectable: boolean }> = {};
   for (const id of skillIds) {
     const s = getSkill(id);
     if (!s) continue;
     skills[id] = {
       id: s.id,
       name: s.name,
+      pack: s.pack ?? 'monsters', maxLevel: maxLevelOf(s), reqLevel: s.reqLevel ?? 0,
+      selectable: isCastable(s) && skillCategory(s) === 'attack' && (learnable.has(id) || s.pack === 'common' || s.pack === 'monsters'),
       icon: s.icon ? assetUrl(`${s.icon}.webp`) : '',
     };
   }
@@ -212,6 +213,7 @@ function buildBootstrap() {
   return {
     config,
     resistanceSources: SHXT_BOSS_RESISTANCE,
+    skillPacks: allPacks().map(p => ({id:p.id, name:p.name})),
     factions: BOSS_FACTIONS.map(f => ({
       ...f,
       elementLabel: ELEMENT_NAMES[f.element],
@@ -351,8 +353,23 @@ export async function handleBossRequest(req: http.IncomingMessage, res: http.Ser
         body: JSON.stringify(config), signal: AbortSignal.timeout(3000),
       });
       if (!resp.ok) throw new Error('Game từ chối cấu hình. Kiểm tra server dev và thử lại.');
+      const result = await resp.json() as { combatTuningVersion?: number; appliedBosses?: {id: number; name: string; hp: number; damagePercent?: number; controlReduction?: {hurt:number;cold:number;stun:number;poison:number}; attackCycleMs?: number; leash: number; skills?: [number, number][]; skillLevelsFixed?: boolean}[] };
+      if (result.combatTuningVersion !== 1 || !Array.isArray(result.appliedBosses)) {
+        throw new Error('Game từ chối xác nhận HP và nhịp đánh mới. Hãy khởi động lại server game rồi Áp dụng lại.');
+      }
+      for (const b of config.bosses) {
+        const applied = result.appliedBosses.find(a => a.id === b.id);
+        if (!applied || (b.hp !== undefined && applied.hp !== b.hp)
+          || (b.attackCooldown !== undefined && applied.attackCycleMs !== b.attackCooldown * 1000)
+          || applied.leash !== (b.leash ?? 1100)
+          || applied.damagePercent !== (b.damagePercent ?? 100)
+          || (b.controlReduction && (['hurt','cold','stun','poison'] as const).some(key => applied.controlReduction?.[key] !== (b.controlReduction?.[key] ?? (key==='hurt'?60:0))))
+          || (b.skillLevelsFixed && (!applied.skillLevelsFixed || JSON.stringify(applied.skills) !== JSON.stringify(b.skills)))) {
+          throw new Error(`Game từ chối xác nhận thông số của ${b.name}. Hãy khởi động lại server game rồi Áp dụng lại.`);
+        }
+      }
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: true }));
+      res.end(JSON.stringify({ ok: true, appliedBosses: result.appliedBosses }));
     } catch (error) {
       res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ error: error instanceof Error && error.message.startsWith('Game từ chối') ? error.message : 'Không kết nối được game. Hãy kiểm tra server dev đang chạy.' }));

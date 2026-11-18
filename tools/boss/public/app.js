@@ -70,6 +70,9 @@ let bootstrap = null;
 let state = null;
 let originalSnapshot = '';
 let activeFactionFilter = 'all';
+const selectedBossIds = new Set();
+let skillTargetIds = [];
+let skillDraft = new Map();
 let editingBossIdForGold = null;
 let tempSelectedGold = new Set();
 let activeGoldDialogFaction = 'all';
@@ -87,6 +90,7 @@ const $ = (id) => document.getElementById(id);
 async function init() {
   setupToolDialog('dlg-gold');
   setupToolDialog('dlg-map');
+  setupToolDialog('dlg-skills');
   $('dlg-map').addEventListener('toolclose', () => { mapRequest++; mapPending = false; });
 
   for (const input of document.querySelectorAll('input[type=number]')) {
@@ -100,6 +104,7 @@ async function init() {
   state = structuredClone(bootstrap.config);
 
   bindGlobalEvents();
+  bindSkillEditor();
   bindGoldDialogEvents();
   bindMapDialogEvents();
   renderAll();
@@ -121,6 +126,147 @@ function markDirty() {
   $('btn-apply').disabled = isDirty || saving || applying;
   $('btn-apply').title = isDirty ? 'Lưu thiết lập trước khi áp dụng vào game.' : 'Áp dụng bản đã lưu vào game đang chạy.';
   renderHeaderStats();
+}
+
+function visibleBossIds() {
+  return [...document.querySelectorAll('[data-boss-row]')].map(row => Number(row.dataset.bossRow));
+}
+
+function updateSelectionControls() {
+  const visible = visibleBossIds();
+  const sync = (input, ids) => {
+    const count = ids.filter(id => selectedBossIds.has(id)).length;
+    input.checked = ids.length > 0 && count === ids.length;
+    input.indeterminate = count > 0 && count < ids.length;
+    input.disabled = ids.length === 0;
+  };
+  sync($('select-visible-bosses'), visible);
+  for (const input of document.querySelectorAll('[data-select-faction]')) {
+    sync(input, visible.filter(id => state.bosses.find(b => b.id === id)?.faction === input.dataset.selectFaction));
+  }
+  for (const input of document.querySelectorAll('[data-select-boss]')) {
+    input.checked = selectedBossIds.has(Number(input.dataset.selectBoss));
+    input.closest('tr').classList.toggle('boss-selected', input.checked);
+  }
+  const shown = visible.filter(id => selectedBossIds.has(id)).length;
+  $('boss-selection-count').textContent = `Đã chọn ${selectedBossIds.size} Boss (${shown} đang hiển thị, ${selectedBossIds.size - shown} đang ẩn)`;
+  $('clear-boss-selection').disabled = selectedBossIds.size === 0;
+  $('edit-selected-skills').disabled = selectedBossIds.size === 0;
+  $('add-selected-150').disabled = selectedBossIds.size === 0;
+  const hpCustom = $('bulk-hp-mode').value === 'custom';
+  const attackCustom = $('bulk-attack-mode').value === 'custom';
+  const damageCustom = $('bulk-damage-mode').value === 'custom';
+  const controlCustom = $('bulk-control-mode').value === 'custom';
+  $('bulk-control-values').hidden = !controlCustom;
+  for (const key of ['hurt','cold','stun','poison']) { const input = $(`bulk-control-${key}`); input.disabled = !controlCustom; input.required = controlCustom; }
+  for (const [id, custom] of [['bulk-hp', hpCustom], ['bulk-attack', attackCustom], ['bulk-damage', damageCustom]]) {
+    $(id).disabled = !custom;
+    $(id).required = custom;
+    $(id).closest('.bulk-value').hidden = !custom;
+  }
+  $('update-selected-bosses').disabled = selectedBossIds.size === 0 || ($('bulk-hp-mode').value === 'keep' && !attackCustom && !damageCustom && !controlCustom);
+}
+
+function selectBosses(ids, checked) {
+  for (const id of ids) checked ? selectedBossIds.add(id) : selectedBossIds.delete(id);
+  updateSelectionControls();
+}
+
+function updateSelectedBosses() {
+  if (!selectedBossIds.size) return;
+  const hpMode = $('bulk-hp-mode').value;
+  const attackMode = $('bulk-attack-mode').value;
+  const damageMode = $('bulk-damage-mode').value;
+  const controlCustom = $('bulk-control-mode').value === 'custom';
+  if (controlCustom) for (const key of ['hurt','cold','stun','poison']) if (!$(`bulk-control-${key}`).reportValidity()) return;
+  if (hpMode === 'keep' && attackMode === 'keep' && damageMode === 'keep' && !controlCustom) return;
+  for (const [id, mode] of [['bulk-hp', hpMode], ['bulk-attack', attackMode], ['bulk-damage', damageMode]]) {
+    if (mode === 'custom' && !$(id).reportValidity()) return;
+  }
+  let count = 0;
+  for (const boss of state.bosses) {
+    if (!selectedBossIds.has(boss.id)) continue;
+    if (hpMode === 'custom') boss.hp = Number($('bulk-hp').value);
+    else if (hpMode === 'auto') delete boss.hp;
+    if (attackMode === 'custom') boss.attackCooldown = Number($('bulk-attack').value);
+    if (damageMode === 'custom') boss.damagePercent = Number($('bulk-damage').value);
+    if (controlCustom) boss.controlReduction = Object.fromEntries(['hurt','cold','stun','poison'].map(key => [key, Number($(`bulk-control-${key}`).value)]));
+    count++;
+  }
+  markDirty();
+  renderBossSections();
+  $('bulk-status').textContent = `Đã cập nhật bản nháp của ${count} Boss. Có thể chỉnh riêng ở từng dòng; Lưu thiết lập rồi Áp dụng vào game khi hoàn tất.`;
+}
+
+function attackSkillOptions() {
+  return Object.values(bootstrap.skills).filter(s => s.selectable);
+}
+
+function openSkillEditor(ids) {
+  skillTargetIds = [...ids];
+  if (!skillTargetIds.length) return;
+  const boss = state.bosses.find(b => b.id === skillTargetIds[0]);
+  skillDraft = new Map(skillTargetIds.length === 1 ? boss.skills.map(([id, lv]) => [id, lv]) : []);
+  $('dlg-skills-title').textContent = skillTargetIds.length === 1 ? `Kỹ năng · ${boss.name}` : `Kỹ năng chung · ${skillTargetIds.length} Boss`;
+  $('dlg-skills-scope').textContent = skillTargetIds.length === 1
+    ? 'Xác nhận thay danh sách và dùng đúng cấp luyện đã nhập cho Boss này. Hủy giữ nguyên.'
+    : `Xác nhận thay toàn bộ danh sách kỹ năng của ${skillTargetIds.length} Boss đã chọn bằng cùng danh sách này. Các Boss khác giữ nguyên. Sau đó vẫn chỉnh riêng được.`;
+  $('skill-search').value = '';
+  $('skill-tier').value = 'all';
+  $('skill-pack').innerHTML = '<option value="all">Tất cả môn phái</option>' + bootstrap.skillPacks.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  $('skill-pack').value = skillTargetIds.length === 1 && bootstrap.skillPacks.some(p => p.id === boss.faction) ? boss.faction : 'all';
+  $('skill-picker-status').textContent = '';
+  renderSkillEditor();
+  $('dlg-skills').showModal();
+}
+
+function renderSkillEditor() {
+  const query = $('skill-search').value.trim().toLowerCase();
+  const options = attackSkillOptions().filter(s => ($('skill-pack').value === 'all' || s.pack === $('skill-pack').value)
+    && ($('skill-tier').value === 'all' || s.reqLevel === 150) && `${s.name} ${s.id}`.toLowerCase().includes(query));
+  $('skill-catalog').innerHTML = options.length ? options.map(s => `<label class="skill-option"><input type="checkbox" data-pick-skill="${s.id}" ${skillDraft.has(s.id) ? 'checked' : ''} />${s.icon ? `<img src="${s.icon}" alt="" />` : ''}<span>${s.name}<small class="muted">${bootstrap.skillPacks.find(p => p.id === s.pack)?.name ?? s.pack} · cấp học ${s.reqLevel} · #${s.id}</small></span></label>`).join('') : '<p class="muted">Không có kỹ năng khớp bộ lọc.</p>';
+  $('skill-picked').innerHTML = [...skillDraft].map(([id, lv]) => {
+    const s = bootstrap.skills[id];
+    return `<div class="skill-picked-row"><span>${s.name}${!s.selectable ? '<small class="muted">Kỹ năng cũ: bị động/hỗ trợ; AI chỉ chủ động dùng chiêu tấn công.</small>' : ''}</span><label>Cấp luyện<input type="number" min="1" max="${s.maxLevel}" step="1" required value="${lv}" data-skill-level="${id}" aria-label="Cấp luyện ${s.name}" /></label><button type="button" class="btn" data-remove-skill="${id}" aria-label="Bỏ ${s.name}">Bỏ</button></div>`;
+  }).join('') || '<p class="muted">Chưa chọn kỹ năng. Chọn chiêu trong danh sách bên trái.</p>';
+  $('confirm-skills').disabled = ![...skillDraft.keys()].some(id => bootstrap.skills[id]?.selectable) || skillDraft.size > 32;
+  for (const input of $('skill-catalog').querySelectorAll('[data-pick-skill]')) input.addEventListener('change', () => {
+    const id = Number(input.dataset.pickSkill);
+    if (input.checked && skillDraft.size >= 32) { input.checked = false; $('skill-picker-status').textContent = 'Tối đa 32 kỹ năng mỗi Boss.'; return; }
+    if (input.checked) skillDraft.set(id, Math.min(20, bootstrap.skills[id].maxLevel));
+    else skillDraft.delete(id);
+    renderSkillEditor();
+  });
+  for (const input of $('skill-picked').querySelectorAll('[data-skill-level]')) input.addEventListener('input', () => { skillDraft.set(Number(input.dataset.skillLevel), Number(input.value)); });
+  for (const button of $('skill-picked').querySelectorAll('[data-remove-skill]')) button.addEventListener('click', () => { skillDraft.delete(Number(button.dataset.removeSkill)); renderSkillEditor(); });
+}
+
+function bindSkillEditor() {
+  for (const id of ['skill-search', 'skill-pack', 'skill-tier']) $(id).addEventListener(id === 'skill-search' ? 'input' : 'change', renderSkillEditor);
+  $('cancel-skills').addEventListener('click', () => $('dlg-skills').close());
+  $('confirm-skills').addEventListener('click', () => {
+    for (const input of $('skill-picked').querySelectorAll('input')) if (!input.reportValidity()) return;
+    if (!skillDraft.size || skillDraft.size > 32) return;
+    for (const b of state.bosses) if (skillTargetIds.includes(b.id)) { b.skills = [...skillDraft].map(([id,lv]) => [id,lv]); b.skillLevelsFixed = true; }
+    markDirty(); renderBossSections(); $('dlg-skills').close();
+  });
+  $('edit-selected-skills').addEventListener('click', () => openSkillEditor(selectedBossIds));
+  $('add-selected-150').addEventListener('click', () => {
+    const changes = [];
+    let skipped = 0;
+    for (const b of state.bosses) {
+      if (!selectedBossIds.has(b.id)) continue;
+      const skills = attackSkillOptions().filter(s => s.pack === b.faction && s.reqLevel === 150);
+      if (!skills.length) { skipped++; continue; }
+      const next = new Map(b.skills);
+      for (const s of skills) if (!next.has(s.id)) next.set(s.id, Math.min(20, s.maxLevel));
+      if (next.size > 32) { $('bulk-status').textContent = `${b.name} sẽ vượt 32 kỹ năng. Hãy bớt kỹ năng trước; chưa cập nhật nhóm.`; return; }
+      changes.push([b,next]);
+    }
+    for (const [b,next] of changes) { b.skills = [...next]; b.skillLevelsFixed = true; }
+    if (changes.length) { markDirty(); renderBossSections(); }
+    $('bulk-status').textContent = `Đã thêm chiêu 150 theo đúng môn phái cho ${changes.length} Boss vào bản nháp (chiêu mới cấp luyện 20 hoặc tối đa hợp lệ, giữ cấp chiêu đã có). ${skipped ? `${skipped} Boss không có bộ chiêu 150 theo phái, giữ nguyên. ` : ''}Vẫn chỉnh riêng được; Lưu rồi Áp dụng vào game.`;
+  });
 }
 
 function renderHeaderStats() {
@@ -243,9 +389,15 @@ function bindGlobalEvents() {
   $('inp-search').addEventListener('input', () => renderBossSections());
   $('sel-tier').addEventListener('change', () => renderBossSections());
 
+  $('select-visible-bosses').addEventListener('change', e => selectBosses(visibleBossIds(), e.target.checked));
+  $('clear-boss-selection').addEventListener('click', () => { selectedBossIds.clear(); updateSelectionControls(); });
+  for (const id of ['bulk-hp-mode', 'bulk-attack-mode', 'bulk-damage-mode', 'bulk-control-mode']) $(id).addEventListener('change', updateSelectionControls);
+  $('update-selected-bosses').addEventListener('click', updateSelectedBosses);
+
   // Lưu & Hoàn tác
   $('btn-reset').addEventListener('click', () => {
     state = JSON.parse(originalSnapshot);
+    $('bulk-status').textContent = 'Đã khôi phục bản đã lưu. Lựa chọn Boss được giữ lại.';
     markDirty();
     renderAll();
   });
@@ -396,6 +548,7 @@ function renderBossSections() {
   const tierFilter = $('sel-tier').value;
   const goldMap = getGoldItemMap();
   const container = $('faction-sections');
+  const openCombat = new Set([...container.querySelectorAll('[data-boss-row] .boss-combat[open]')].map(el => el.closest('[data-boss-row]').dataset.bossRow));
   const openResistance = new Set([...container.querySelectorAll('[data-boss-row] .boss-resistance[open]')].map(el => el.closest('[data-boss-row]').dataset.bossRow));
 
   const factionsToShow = activeFactionFilter === 'all'
@@ -458,6 +611,7 @@ function renderBossSections() {
         <tr class="${b.enabled ? '' : 'boss-disabled'}" data-boss-row="${b.id}">
           <th scope="row">
             <div class="boss-name-cell">
+              <label class="boss-select-label"><input type="checkbox" data-select-boss="${b.id}" aria-label="Chọn ${b.name} để cài đặt chung" /> Chọn Boss</label>
               <label class="boss-name-top">
                 <input type="checkbox" data-toggle-boss="${b.id}" ${b.enabled ? 'checked' : ''} aria-label="Bật xuất hiện ${b.name}" />
                 <span class="boss-gold-name">${b.name}<span class="boss-state"> · ${b.enabled ? 'Đang bật' : 'Đã tắt'}</span></span>
@@ -481,9 +635,24 @@ function renderBossSections() {
             </label>
           </td>
           <td>
+            <details class="boss-combat"><summary>HP · Tốc độ đánh · Sát thương · Phạm vi</summary>
+              <label>HP riêng<input type="number" data-combat="hp:${b.id}" value="${b.hp ?? ''}" min="1" max="2000000000" step="1" placeholder="Theo cấp" /></label>
+              <small class="muted">Để trống: HP theo cấp boss.</small>
+              <label>Khoảng cách đòn (giây)<input type="number" data-combat="attackCooldown:${b.id}" value="${b.attackCooldown ?? 1.2}" min="0.05" max="60" step="any" required /></label>
+              <small class="muted">Số nhỏ đánh nhanh hơn, gồm cả động tác ra chiêu; vẫn giữ hồi chiêu kỹ năng.</small>
+              <label>Hệ số sát thương (%)<input type="number" data-combat="damagePercent:${b.id}" value="${b.damagePercent ?? 100}" min="1" max="10000" step="any" required /></label>
+              <small class="muted">100% giữ nguyên, 150% tăng 50%. Áp dụng cả chiêu con và độc; vẫn giữ trần độc hiện có.</small>
+              <details><summary>Giảm hiệu ứng phải chịu</summary>
+              ${[['hurt','Phục hồi',100,60],['cold','Giảm làm chậm',77,0],['stun','Giảm choáng',95,0],['poison','Giảm trúng độc',95,0]].map(([key,name,max,fallback]) => `<label>${name} (%)<input type="number" data-control="${b.id}:${key}" value="${b.controlReduction?.[key] ?? fallback}" min="0" max="${max}" step="any" required /></label>`).join('')}
+              <small class="muted">Mức giảm càng cao, chịu hiệu ứng càng ngắn. Phục hồi giảm co giật/thọ thương, không hồi HP.</small></details>
+              <label>Phạm vi hoạt động<input type="number" data-combat="leash:${b.id}" value="${b.leash ?? 1100}" min="50" max="10000" step="any" required /></label>
+              <small class="muted">Bán kính isometric từ điểm xuất hiện. Boss hoặc mục tiêu ra ngoài: quay về.</small>
+            </details>
             <div class="skills-inline">
               ${skillsHtml}
             </div>
+            <button type="button" class="btn" data-open-skills="${b.id}">Chọn kỹ năng</button>
+            <small class="muted">${b.skillLevelsFixed ? 'Dùng đúng cấp luyện đã chọn' : 'Cấp chiêu cũ được tăng theo cấp Boss'}</small>
           </td>
           <td>
             <div class="gold-cell-wrap">
@@ -521,6 +690,7 @@ function renderBossSections() {
       <div class="faction-block">
         <div class="faction-block-head">
           <h3 id="${captionId}">Phái ${faction.name} · Hệ ${faction.elementLabel} (${bosses.length} Boss)</h3>
+          <label class="boss-select-label"><input type="checkbox" data-select-faction="${faction.id}" /> Chọn ${bosses.length} Boss ${faction.name} đang hiển thị</label>
         </div>
         <div tabindex="0" role="region" aria-labelledby="${captionId}" class="table-wrapper">
           <table class="boss-table">
@@ -548,6 +718,14 @@ function renderBossSections() {
     ? htmlBlocks.join('')
     : '<p class="muted" style="text-align:center;padding:30px;">Không tìm thấy Boss Hoàng Kim nào khớp bộ lọc.</p>';
 
+  updateSelectionControls();
+  for (const button of container.querySelectorAll('[data-open-skills]')) button.addEventListener('click', () => openSkillEditor([Number(button.dataset.openSkills)]));
+  for (const input of container.querySelectorAll('[data-select-boss]')) input.addEventListener('change', () => selectBosses([Number(input.dataset.selectBoss)], input.checked));
+  for (const input of container.querySelectorAll('[data-select-faction]')) input.addEventListener('change', () => {
+    const ids = visibleBossIds().filter(id => state.bosses.find(b => b.id === id)?.faction === input.dataset.selectFaction);
+    selectBosses(ids, input.checked);
+  });
+  for (const el of container.querySelectorAll('[data-boss-row] .boss-combat')) el.open = openCombat.has(el.closest('[data-boss-row]').dataset.bossRow);
   for (const el of container.querySelectorAll('[data-boss-row] .boss-resistance')) el.open = openResistance.has(el.closest('[data-boss-row]').dataset.bossRow);
   for (const input of container.querySelectorAll('[data-res-mode], [data-res-value], [data-res-cap]')) input.addEventListener('change', () => {
     const mode=input.dataset.resMode;
@@ -557,6 +735,24 @@ function renderBossSections() {
     if(mode) {const p=resistancePreview(b); b.resistance=input.value==='custom'?{mode:'custom',...p}:{mode:'shxt'};markDirty();renderBossSections();}
     else if(b.resistance?.mode==='custom') {b.resistance[input.dataset.resValue?'values':'caps'][k]=Number(input.value);markDirty();}
   });
+  for (const input of container.querySelectorAll('[data-control]')) input.addEventListener('change', () => {
+    if (!input.reportValidity()) return;
+    const [id,key] = input.dataset.control.split(':'); const b = state.bosses.find(b => b.id === Number(id));
+    if (b) { b.controlReduction ??= {}; b.controlReduction[key] = Number(input.value); markDirty(); }
+  });
+  for (const input of container.querySelectorAll('[data-combat]')) {
+    input.addEventListener('change', () => {
+      if (!input.reportValidity()) return;
+      const [key, id] = input.dataset.combat.split(':');
+      const boss = state.bosses.find(b => b.id === Number(id));
+      if (!boss) return;
+      if (key === 'hp' && input.value === '') delete boss.hp;
+      else if (input.value === '') { input.setCustomValidity('Vui lòng nhập giá trị.'); input.reportValidity(); return; }
+      else boss[key] = Number(input.value);
+      markDirty();
+    });
+    input.addEventListener('input', () => input.setCustomValidity(''));
+  }
   // Gắn sự kiện trên bảng
   for (const chk of container.querySelectorAll('[data-toggle-boss]')) {
     chk.addEventListener('change', () => {
@@ -1076,8 +1272,8 @@ function drawMinimapCanvas(mapMeta, img) {
 function validateInputs() {
   renderDropRatesSummary();
   for (const field of document.querySelectorAll('input[type=number]:not(:disabled)')) {
-    if (field.closest('.dlg') || field.id === 'inp-add-minute') continue;
-    if (field.value === '') field.setCustomValidity('Vui lòng nhập giá trị.');
+    if (field.closest('.dlg, #boss-bulk') || field.id === 'inp-add-minute') continue;
+    if (field.value === '' && !field.dataset.combat?.startsWith('hp:')) field.setCustomValidity('Vui lòng nhập giá trị.');
     else if (field.id !== 'inp-rate-gold') field.setCustomValidity('');
     if (!field.reportValidity()) return false;
   }
@@ -1123,7 +1319,9 @@ async function applyConfig() {
     if (!res.ok) throw new Error(data.error || 'Game chưa nhận cấu hình.');
     applying = false;
     markDirty();
-    $('save-status').textContent = 'Game đã nhận cấu hình đã lưu.';
+    const tuned = (data.appliedBosses ?? []).filter(a => state.bosses.some(b => b.id === a.id && (b.hp !== undefined || b.attackCooldown !== undefined || b.damagePercent !== undefined)));
+    const summary = tuned.slice(0, 3).map(a => `${a.name}: HP ${a.hp.toLocaleString('vi-VN')} · sát thương ${a.damagePercent}%${a.attackCycleMs !== undefined ? ` · chu kỳ nền ${a.attackCycleMs / 1000} giây` : ''}`).join('; ');
+    $('save-status').textContent = `Game đã xác nhận cấu hình đã lưu.${summary ? ` ${summary}.` : ''} Boss sinh lại theo lịch xuất hiện.`;
   } catch (error) {
     applying = false;
     markDirty();

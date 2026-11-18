@@ -30,7 +30,7 @@ export function setupToolDialog(id) {
   el.querySelector('.dlg-title').id = `${id}-title-bar`;
   el.showModal = () => {
     opener = document.activeElement;
-    openerSelector = opener?.dataset.openGold ? `[data-open-gold="${opener.dataset.openGold}"]` : opener?.dataset.openMap ? `[data-open-map="${opener.dataset.openMap}"]` : null;
+    openerSelector = opener?.dataset.openSkills ? `[data-open-skills="${opener.dataset.openSkills}"]` : opener?.id === 'edit-selected-skills' ? '#edit-selected-skills' : opener?.dataset.openGold ? `[data-open-gold="${opener.dataset.openGold}"]` : opener?.dataset.openMap ? `[data-open-map="${opener.dataset.openMap}"]` : null;
     manager.setTitle(id, el.querySelector('.picker-head h2').textContent);
     overlay.classList.remove('hidden');
     for (const root of document.querySelectorAll('body > .topbar,body > .tool-nav,body > main')) root.inert = true;
