@@ -301,7 +301,7 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "tier": "newboss",
       "element": "kim",
       "sprite": "boss046",
-      "level": 150,
+      "level": 200,
       "enabled": true,
       "skills": [
         [
@@ -315,6 +315,10 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
         [
           325,
           15
+        ],
+        [
+          1060,
+          20
         ]
       ],
       "goldDrops": [
@@ -324,7 +328,8 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "mapId": 68,
       "x": 6832,
       "y": 5528,
-      "attackCooldown": 0.5
+      "attackCooldown": 0.5,
+      "skillLevelsFixed": true
     },
     {
       "id": 517,
