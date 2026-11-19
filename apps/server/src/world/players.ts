@@ -25,7 +25,7 @@ import type { World } from './World.js';
 
 /** What the world needs from a stored character. */
 export interface PlayerRecord {
-  id: string; owner?: string; name: string; faction: string; gender: string; level: number; x: number; y: number;
+  id: string; owner?: string; name: string; faction: string; graduated?: boolean; gender: string; level: number; x: number; y: number;
   horse?: string | null; mounted?: boolean;
   /** Stored hành trang / worn items: concrete items, or table ids from older builds (restored by inventory.ts). */
   bag?: unknown; bagSpill?: unknown; equip?: unknown; skills?: Record<string, number>;
@@ -46,6 +46,7 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
   const fresh = char.progressVersion !== PROGRESS_VERSION;
   const series: Element = char.series ?? FACTIONS[char.faction]?.element ?? 'kim';
   const faction = !fresh && FACTIONS[char.faction] ? char.faction : '';
+  const graduated = !fresh && !!faction && !!char.graduated;
   const prog = restoreProgress(char.progress, fresh);
   // A stored spot that is not standable (e.g. saved before the maps were rebuilt from the original client,
   // whose coordinates differ) goes to the map entry instead of the nearest random cell.
@@ -56,13 +57,14 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
     kind: 'player', name: char.name, sprite: '', faction, series, gender: char.gender, level: prog.level,
     x: Math.round(x), y: Math.round(y), dir: 0, anim: 'idle', animSeq: 0, attackTarget: '', jumpMs: 0, moveScale: 1,
     hp: 1, maxHp: 1, mp: 0, maxMp: 0,
-    pk: 0, camp: campOf(faction), team: '', boss: 0, scale: 1, protectedUntil: Date.now() + SPAWN_PROTECTION * 1000,
+    pk: 0, camp: campOf(faction, graduated), team: '', boss: 0, scale: 1, protectedUntil: Date.now() + SPAWN_PROTECTION * 1000,
     horse: '', mounted: false, mantle: -1,
   });
   const sim = makeSim(sessionId, 'player', a, series, PLAYER_SPEED);
   updateSpeed(sim);
   sim.charId = char.id;
   sim.owner = char.owner;
+  sim.graduated = graduated;
   sim.sessionId = sessionId;
   sim.progress = {
     series, prog,

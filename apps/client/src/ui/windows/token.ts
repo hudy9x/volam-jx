@@ -14,6 +14,7 @@ const HTML = `
     <button type="button" class="btn" data-op="money">Nhận ${TOKEN.money / 10_000} vạn lượng</button>
     <button type="button" class="btn" data-op="gold">Nhận bộ hoàng kim môn phái…</button>
     <button type="button" class="btn" data-op="faction">Đổi môn phái…</button>
+    <button type="button" class="btn" data-op="graduate">Xuất sư / Về trận doanh phái (màu đỏ ↔ màu phái)</button>
     <button type="button" class="btn" data-op="forge">Nhận đồ xanh (mở Chế tạo, miễn phí, ở mọi nơi)</button>
     <button type="button" class="btn" data-op="ring">Nhận Càn Khôn Giới Chỉ (kích hoạt toàn bộ thuộc tính ẩn)</button>
     <button type="button" class="btn" data-op="gender">Đổi giới tính</button>
@@ -47,7 +48,7 @@ export class TokenWindow {
       else if (op === 'gender') { if (confirm('Đổi giới tính? Điểm tiềm năng và kỹ năng sẽ trả về mặc định.')) this.send({ op: 'gender' }); }
       else if (op === 'washPotential' || op === 'washSkills') {
         if (confirm(op === 'washPotential' ? 'Tẩy tủy toàn bộ điểm tiềm năng?' : 'Tẩy tủy toàn bộ điểm kỹ năng (chiêu luyện / bí kíp giữ nguyên)?')) this.send({ op });
-      } else this.send({ op: op as 'level' | 'exp' | 'skills' | 'money' | 'ring' });
+      } else this.send({ op: op as 'level' | 'exp' | 'skills' | 'money' | 'ring' | 'graduate' });
     }));
     $('token-back').addEventListener('click', () => this.back());
   }

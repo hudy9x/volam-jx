@@ -34,6 +34,8 @@ export interface CharacterRecord {
   owner: string;
   name: string;
   faction: string;
+  /** Xuất sư (camp 'free', red name colour); false / missing uses the faction's own camp. */
+  graduated?: boolean;
   gender: Gender;
   level: number;
   mapId: number;

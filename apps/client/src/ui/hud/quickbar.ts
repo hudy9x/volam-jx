@@ -28,6 +28,7 @@ const HTML = `
   <button class="fn b-pk" id="pk-toggle" style="left:584px" title="Chế độ PK (${keyLabel('pk')})"><kbd class="fn-key">${keyLabel('pk')}</kbd></button>
   <button class="fn b-trade" id="shop-open" style="left:615px" title="Thợ rèn: trang bị cấp 1–10 (giao dịch trong thành) (${keyLabel('shop')})"><kbd class="fn-key">${keyLabel('shop')}</kbd></button>
   <button class="fn b-team" id="team-open" style="left:677px" title="Tổ đội (${keyLabel('team')})"><kbd class="fn-key">${keyLabel('team')}</kbd></button>
+  <button type="button" class="fn b-bazaar" id="bazaar-open" style="left:554px" title="Chợ thành thị (Bày bán & Mua hàng)" aria-label="Chợ thành thị"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 12l2-6h20l2 6M4 12h24v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0v-2Zm3 5v10h18V17M13 27v-6h6v6"/></svg></button>
   <button type="button" class="fn b-rankings" id="rankings-open" style="left:610px" title="Bảng xếp hạng" aria-label="Bảng xếp hạng"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10 4h12v9c0 5-3 7-6 7s-6-2-6-7V4Zm0 2H5v5c0 4 2 6 6 6M22 6h5v5c0 4-2 6-6 6M16 20v6m-6 2h12"/></svg></button>
   <button class="fn b-gm" id="gm-open" style="left:666px" title="GM Tool: Kiểm tra & Trích xuất tốc độ chạy/đánh">GM</button>
   <button class="fn b-kytran" id="kytran-open" style="left:722px" title="Kỳ Trân Các: bí kíp kỹ năng (${keyLabel('kytran')})"><kbd class="fn-key">${keyLabel('kytran')}</kbd></button>
@@ -54,6 +55,8 @@ export interface QuickbarHandlers {
   /** GM Tool window. */
   gm(): void;
   rankings(): void;
+  /** Chợ bày bán theo thành thị. */
+  bazaar(): void;
   /** Tổ đội window. */
   team(): void;
   notice(text: string): void;
@@ -108,6 +111,7 @@ export class Quickbar {
     $('menu-open').addEventListener('click', () => h.system());
     $('kytran-open').addEventListener('click', () => h.kytran());
     $('rankings-open').addEventListener('click', () => h.rankings());
+    $('bazaar-open').addEventListener('click', () => h.bazaar());
     $('gm-open')?.addEventListener('click', () => h.gm());
     $('team-open').addEventListener('click', () => h.team());
     $('auto-toggle').addEventListener('click', () => h.auto());

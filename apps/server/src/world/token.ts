@@ -1,5 +1,5 @@
 import {
-  CANKHON_RING_ID, FACTIONS, LEVEL, factionAllowsGender, pointsAtLevel, type Element, MAX_MONEY, TOKEN, TOKEN_ITEM, TOKEN_ITEM_ID, TOWN_PORTAL_ID, addToBag, createGold, expToNext, factionSuites, findPlace, getSkill,
+  CAMP_NAMES, CANKHON_RING_ID, FACTIONS, LEVEL, campOf, factionAllowsGender, pointsAtLevel, type Element, MAX_MONEY, TOKEN, TOKEN_ITEM, TOKEN_ITEM_ID, TOWN_PORTAL_ID, addToBag, createGold, expToNext, factionSuites, findPlace, getSkill,
   learnTiers, levelCap, type Item, type TokenOp,
 } from '@vltk/shared';
 import type { Sim } from './entity.js';
@@ -64,6 +64,22 @@ export function useToken(w: World, sim: Sim, op: TokenOp, suite?: number, factio
     case 'washSkills':
       washPoints(w, sim, op === 'washPotential' ? 'potential' : 'skills');
       return false;
+    case 'graduate':
+      return toggleGraduate(w, sim);
+  }
+  return false;
+}
+
+/** Xuất sư (camp 'free', red name colour) / trở về trận doanh môn phái. */
+function toggleGraduate(w: World, sim: Sim): boolean {
+  if (!sim.a.faction) { w.hooks.notify(sim, 'Phải gia nhập môn phái trước.'); return false; }
+  sim.graduated = !sim.graduated;
+  refreshCamp(sim);
+  if (sim.graduated) {
+    w.hooks.notify(sim, 'Đã xuất sư (màu đỏ — trận doanh Xuất sư).');
+  } else {
+    const camp = campOf(sim.a.faction, false);
+    w.hooks.notify(sim, `Đã trở về trận doanh ${CAMP_NAMES[camp]} (${FACTIONS[sim.a.faction]?.name ?? sim.a.faction}).`);
   }
   return false;
 }
@@ -140,6 +156,7 @@ function changeFaction(w: World, sim: Sim, faction: string): boolean {
   if (sim.progress!.prog.level < LEVEL.factionJoin) { w.hooks.notify(sim, `Cần đạt cấp ${LEVEL.factionJoin}.`); return false; }
   if (!factionAllowsGender(faction, sim.a.gender as never)) { w.hooks.notify(sim, `${f.name} chỉ nhận đệ tử ${f.gender === 'male' ? 'nam' : 'nữ'}.`); return false; }
   sim.a.faction = faction;
+  sim.graduated = false;
   sim.progress!.series = f.element as Element;
   refreshCamp(sim);
   resetPoints(sim);

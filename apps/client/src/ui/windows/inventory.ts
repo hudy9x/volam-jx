@@ -1,6 +1,6 @@
 import { initMarket, openMarketPost } from './market';
 import {
-  BAG_CELL_PX, BAG_COLS, BAG_PAGES, BAG_PAGE_SIZE, BAG_ROWS, BAG_SIZE, KIND_SLOTS, bagCover, bagPage, canWear, equipError, findPlace, itemDef, itemQty,
+  BAG_CELL_PX, BAG_COLS, BAG_PAGES, BAG_PAGE_SIZE, BAG_ROWS, BAG_SIZE, KIND_SLOTS, bagCover, bagPage, canWear, equipError, findPlace, fitsAt, itemDef, itemQty,
   itemSize, moneyText, overlappingAt, sellPrice, usableItem, type InventoryMsg, type Item, type ItemViewer,
 } from '@vltk/shared';
 import { itemViewer, progress } from '../../state/progress';
@@ -8,7 +8,7 @@ import { inventory } from '../../state/inventory';
 import { trade } from '../../state/trade';
 import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
-import { getActiveGridDrag, gridCellAt, setActiveGridDrag } from '../kit/itemGrid';
+import { clearGridDropPreview, getActiveGridDrag, gridCellAt, setActiveGridDrag, updateGridDropPreview } from '../kit/itemGrid';
 import { moneyHtml, setMoney } from '../kit/money';
 import { setSlotIcon } from '../kit/slot';
 import { tooltip } from '../kit/tooltip';
@@ -76,6 +76,10 @@ export class InventoryWindow {
         e.stopPropagation();
         if (drag.source === 'stash') {
           this.ctx.actions()?.stashToBag(drag.index, undefined, page);
+          return;
+        }
+        if (drag.source === 'stall') {
+          this.ctx.actions()?.stallTake(drag.index, undefined, page);
           return;
         }
         const from = drag.index;
@@ -159,17 +163,24 @@ export class InventoryWindow {
       const drag = getActiveGridDrag();
       if (!drag) return;
       e.preventDefault();
-      if (drag.source === 'stash') {
+      const to = this.cellAt(e, drag.grab);
+      const def = drag.source === 'bag' ? itemDef(this.inv.bag[drag.index]) : drag.def;
+      if (drag.source === 'stash' || drag.source === 'stall') {
+        const ok = to >= 0 && !!def && fitsAt(this.inv.bag, def, to, -1);
+        updateGridDropPreview(grid, to, def, ok);
         if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
         return;
       }
-      const to = this.cellAt(e, drag.grab);
-      const def = itemDef(this.inv.bag[drag.index]);
       const hits = to >= 0 ? overlappingAt(this.inv.bag, def, to, drag.index, BAG_SIZE) : null;
       const ok = !!hits && (hits.length === 0 || hits.length === 1);
+      updateGridDropPreview(grid, to, def, ok);
       if (e.dataTransfer) e.dataTransfer.dropEffect = ok ? 'move' : 'none';
     });
+    grid.addEventListener('dragleave', e => {
+      if (!grid.contains(e.relatedTarget as Node | null)) clearGridDropPreview(grid);
+    });
     grid.addEventListener('drop', e => {
+      clearGridDropPreview(grid);
       const drag = getActiveGridDrag();
       if (!drag) return;
       e.preventDefault();
@@ -177,6 +188,10 @@ export class InventoryWindow {
       if (to < 0) return;
       if (drag.source === 'stash') {
         this.ctx.actions()?.stashToBag(drag.index, to);
+        return;
+      }
+      if (drag.source === 'stall') {
+        this.ctx.actions()?.stallTake(drag.index, to);
         return;
       }
       if (to !== drag.index) this.ctx.actions()?.bagMove(drag.index, to);
@@ -226,12 +241,13 @@ export class InventoryWindow {
       }
       if (this.mode === 'throw') { tooltip.hide(); this.ctx.actions()?.discard(i); return; }
       if (this.selling()) { askSell(this.confirm, this.ctx, i, def); return; }
+      if (this.onStallPut?.(i, item)) { tooltip.hide(); return; }
       wearOrUse();
     });
     el.addEventListener('contextmenu', e => { e.preventDefault(); wearOrUse(); });
     el.addEventListener('dragstart', e => {
       tooltip.hide();
-      setActiveGridDrag({ source: 'bag', index: i, grab: localPoint(el, e.clientX, e.clientY) });
+      setActiveGridDrag({ source: 'bag', index: i, grab: localPoint(el, e.clientX, e.clientY), def });
       e.dataTransfer?.setData('text/bag', String(i));
       if (usableItem(def)) e.dataTransfer?.setData('text/item', item.def);
     });
@@ -259,6 +275,8 @@ export class InventoryWindow {
 
   /** Opens the lệnh bài menu (windows/token.ts), set by the HUD. */
   onToken: (() => void) | null = null;
+  /** Optional handler when clicking a bag item while putting items into the bazaar stall. Returns true if consumed. */
+  onStallPut: ((index: number, item: Item) => boolean) | null = null;
 
   private renderBag(): void {
     const pieces: HTMLElement[] = [];

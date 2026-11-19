@@ -116,6 +116,9 @@ export const BAG_SIZE = BAG_PAGE_SIZE * BAG_PAGES;
 /** Pages of the account-shared stash (NPC Rương chứa đồ, USER 2026-11-14). */
 export const STASH_PAGES = 3;
 export const STASH_SIZE = BAG_PAGE_SIZE * STASH_PAGES;
+/** City bazaar stall (2 tabs × 60 cells = 120 slots per character). */
+export const STALL_PAGES = 2;
+export const STALL_SIZE = BAG_PAGE_SIZE * STALL_PAGES;
 export type Equipment = Partial<Record<EquipSlot, Item>>;
 export type Bag = (Item | null)[];
 /** Table rows per slot (starter outfits, previews): no rolled values. */

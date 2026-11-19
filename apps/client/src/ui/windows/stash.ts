@@ -1,6 +1,6 @@
 import {
   BAG_CELL_PX, BAG_COLS, BAG_PAGE_SIZE, BAG_ROWS, KIND_SLOTS, STASH_PAGES, STASH_SIZE,
-  bagCover, bagPage, canWear, findPlace, itemDef, itemQty, itemSize, overlappingAt, usableItem,
+  bagCover, bagPage, canWear, findPlace, fitsAt, itemDef, itemQty, itemSize, overlappingAt, usableItem,
   type Item, type ItemViewer, type StashMsg,
 } from '@vltk/shared';
 import { itemViewer, progress } from '../../state/progress';
@@ -8,7 +8,7 @@ import { inventory } from '../../state/inventory';
 import { stash } from '../../state/stash';
 import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
-import { getActiveGridDrag, gridCellAt, setActiveGridDrag } from '../kit/itemGrid';
+import { clearGridDropPreview, getActiveGridDrag, gridCellAt, setActiveGridDrag, updateGridDropPreview } from '../kit/itemGrid';
 import { moneyHtml, setMoney } from '../kit/money';
 import { setSlotIcon } from '../kit/slot';
 import { tooltip } from '../kit/tooltip';
@@ -139,17 +139,24 @@ export class StashWindow {
       const drag = getActiveGridDrag();
       if (!drag) return;
       e.preventDefault();
+      const to = gridCellAt(grid, e, drag.grab, this.page);
+      const def = drag.source === 'stash' ? itemDef(this.data.stash[drag.index]) : drag.def;
       if (drag.source === 'bag') {
+        const ok = to >= 0 && !!def && fitsAt(this.data.stash, def, to, -1);
+        updateGridDropPreview(grid, to, def, ok);
         if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
         return;
       }
-      const to = gridCellAt(grid, e, drag.grab, this.page);
-      const def = itemDef(this.data.stash[drag.index]);
       const hits = to >= 0 ? overlappingAt(this.data.stash, def, to, drag.index, STASH_SIZE) : null;
       const ok = !!hits && (hits.length === 0 || hits.length === 1);
+      updateGridDropPreview(grid, to, def, ok);
       if (e.dataTransfer) e.dataTransfer.dropEffect = ok ? 'move' : 'none';
     });
+    grid.addEventListener('dragleave', e => {
+      if (!grid.contains(e.relatedTarget as Node | null)) clearGridDropPreview(grid);
+    });
     grid.addEventListener('drop', e => {
+      clearGridDropPreview(grid);
       const drag = getActiveGridDrag();
       if (!drag) return;
       e.preventDefault();
@@ -179,7 +186,7 @@ export class StashWindow {
     el.draggable = true;
     el.addEventListener('dragstart', e => {
       tooltip.hide();
-      setActiveGridDrag({ source: 'stash', index: i, grab: localPoint(el, e.clientX, e.clientY) });
+      setActiveGridDrag({ source: 'stash', index: i, grab: localPoint(el, e.clientX, e.clientY), def });
       e.dataTransfer?.setData('text/stash', String(i));
     });
     el.addEventListener('dragend', () => {

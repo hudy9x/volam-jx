@@ -1,3 +1,30 @@
+## 2026-11-19 · Dời nút Auto tránh che thanh máu (chưa commit)
+
+- USER phản hồi nút Auto chồng HP sau đổi HUD. Sửa notices.css: chuyển left350/top8 → left8/top48, tối thiểu76×44; bỏ override container cũ. Nằm dưới hàng chỉ số kết thúc y40 và trên trạng thái bắt đầu y112, không đổi logic chạy/dừng. Dùng chung tọa độ HUD fit Web/Desktop/Mobile; chưa kiểm native.
+- HEAD cc393f0, giữ các thay đổi song song. Đây là thay đổi vị trí CSS; typecheck/build đạt; kiểm vị trí theo tọa độ CSS, chưa kiểm lại trong gameplay, không commit/push.
+
+## 2026-11-19 · HUD thanh ngang trên cùng và minimap đơn giản (chưa commit)
+
+- USER yêu cầu sửa theo ảnh VLTK: Cấp → HP → MP → EXP → Hạng sát mép trên/căn giữa khung game. Vitals bỏ khung chân dung khỏi hiển thị, thanh ngang rộng840 trong HUD1280, số HP/MP/%EXP ở dưới. Hạng là nút mở bảng xếp hạng hiện có, chưa hiển thị thứ hạng cá nhân bằng số.
+- Minimap sát góc trên phải208×180, ảnh bản đồ phía trên/tên chồng lên ảnh, tọa độ dưới trái; nút cắm cờ, mở rộng bản đồ, zoom1×/2×/4×, chuyển map và thu gọn dưới phải. Giữ click/chạm bản đồ để cắm cờ và di chuyển, nút cờ bật viền chỉ dẫn. Dùng chung HUD fit cho Web/Desktop/Mobile, không đổi preset1280×720/800 hay render2×; mobile native chưa kiểm.
+- Kiểm tra: client build đạt, diff-check đạt; xem bố cục bằng browser với HTML/CSS thật của hai component trên nền trống (không phải gameplay). Typecheck toàn repo còn lỗi đang có trong bazaar.ts150/295 (HudContext.meta), ngoài phần HUD này. Chưa kiểm gameplay/ảnh map thật hoặc tương tác tích hợp, không commit/push. HEAD cc393f0; giữ các thay đổi Chợ bày bán/màu tên đang làm song song.
+
+## 2026-11-19 · Triển khai Chợ Bày Bán theo thành thị (2 tab × 60 ô) (đã commit)
+
+- **USER duyệt kế hoạch** [plan-city-bazaar-stall.md](file:///Users/hudy/.gemini/antigravity/brain/b0d246c1-5d10-47a4-b403-ff1197080435/plan-city-bazaar-stall.md) triển khai Chợ Bày Bán theo thành thị (song song kênh chat Mua bán cũ):
+  1. **Shared (`packages/shared/src/items/items.ts`, `protocol.ts`):** thêm `STALL_PAGES = 2`, `STALL_SIZE = 120` và bộ thông điệp `C2S.stall*` / `S2C.stallList` / `stallDetail` / `stallClosed`.
+  2. **Server (`apps/server/src/world/stalls.ts`, `net/MapRoom.ts`):** quản lý 1 nhân vật = 1 gian hàng (2 tab × 60 ô), tách riêng theo từng thành thị (`meta.safe`), chặn Lệnh bài/Thổ Địa Phù, chỉ hỗ trợ Ngân lượng & KNB, khóa chỉnh sửa khi đang mở bán, giao dịch mua nguyên tử (kiểm tiền, chỗ trống, trần 2 tỷ, tự đóng khi bán hết). Khi chủ sạp thoát game, tự đóng gian hàng và hoàn toàn bộ đồ về `bag`/`bagSpill` (chuyển map giữ grace 30s). Đã ghi chú & thiết kế sẵn `entrustedUntil?: number` cho **Kỹ năng Ủy thác** sau này.
+  3. **Client (`state/stall.ts`, `net/room.ts`, `game/ports.ts`, `game/WorldScene.ts`, `ui/kit/itemGrid.ts`, `ui/tips/itemTip.ts`, `ui/windows/{bazaar.ts,bazaar.css,inventory.ts,inventory.css,stash.ts}`, `ui/hud/{context.ts,quickbar.ts,quickbar.css,Hud.ts}`):** thêm icon **Chợ** cạnh Bảng xếp hạng; dialog danh sách gian hàng theo thành thị (Lời mời chào, Tên người bán tô màu `CAMP_COLORS`, số món, lọc nhanh); dialog Quầy hàng 2 tab **Quầy 1 / Quầy 2** × 60 ô hỗ trợ kéo thả kèm **highlight preview điểm đặt (xanh hợp lệ / đỏ cấn ô)** dùng chung cho Quầy hàng + Hành trang + Rương chứa đồ; chế độ **Định giá** dùng con trỏ bán (`--cur-sell`), món đã định giá hiện **icon dấu tích xanh** nhỏ ở góc trên-phải (không đè số tiền, giữ nguyên hình ảnh và border vàng có beam `.q-gold`); tooltip hiển thị thuộc tính + **Giá bán**, click mở `TradeConfirm` xác nhận mua.
+  4. **Tài liệu & kiểm thử:** cập nhật `docs/rao-ban.md`; thêm `tests/city-bazaar.test.ts` (**3/3 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công). Cần restart server và reload client; chưa kiểm gameplay/mobile thật; chưa commit/push.
+
+## 2026-11-19 · Cập nhật màu tên nhân vật Chính phái & thêm trận doanh Xuất sư (màu đỏ) (đã commit)
+
+- **USER yêu cầu triển khai** màu sắc tên nhân vật trước khi tiếp tục thiết kế Chợ bày bán:
+  1. `packages/shared/src/combat/rules.ts`: đổi màu Chính phái (`justice`) từ `#ffd94e` sang vàng cam dịu `#e8b878` (đo từ ảnh VLTK-SHXT); thêm trận doanh Xuất sư (`free`, `CAMP_NAMES.free = 'Xuất sư'`, `CAMP_COLORS.free = '#ff3333'`); mở rộng `campOf(faction, graduated?)`. Luật PK Chiến đấu (`pvpAllowed`) tự động hỗ trợ phe thứ 5 độc lập.
+  2. `packages/shared/src/items/token.ts`, `apps/server/src/account/db.ts`, `apps/server/src/world/{entity,players,teams,token}.ts`, `apps/server/src/net/MapRoom.ts`: lưu `graduated?: boolean` vào `CharacterRecord` & `Sim`, đồng bộ màu phe của đội trưởng (kể cả khi xuất sư) trong `teams.ts`, thêm `TokenOp = 'graduate'` để bật/tắt Xuất sư trong Lệnh bài (đổi môn phái tự reset `graduated = false`).
+  3. `apps/client/src/ui/windows/token.ts`, `docs/pk-and-team.md`: thêm nút `Xuất sư / Về trận doanh phái (màu đỏ ↔ màu phái)` trong Lệnh bài; dùng chung Web, Desktop và Mobile (mọi nơi vẽ tên/chấm bản đồ đều đọc `CAMP_COLORS`).
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt, kiểm assert `campOf`/`CAMP_COLORS`/`pvpAllowed` đạt. Cần restart server và reload client; chưa commit/push.
+
 ## 2026-11-19 · Nâng cấp biểu tượng ngũ hành quái/Boss sang huy hiệu ngọc vẽ bằng mã (đã commit)
 
 - **USER duyệt triển khai:** sau khi xem preview so sánh `\spr\ui3\npc\series0..4.spr` (18×18 px) của VLTK-SHXT với bản vẽ lại bằng vector/Canvas 2D, USER chọn thay vào bản vẽ lại bằng mã (không cần file ảnh ngoài).

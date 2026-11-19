@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { MAX_TEAM, campOf, type TeamMsg } from '@vltk/shared';
+import { MAX_TEAM, campOf, type Camp, type TeamMsg } from '@vltk/shared';
 import type { Sim } from './entity.js';
 
 // Tổ đội (USER 2026-11-12; like jx-web-main's party: invite by name, accept / refuse, leave, kick, pass the lead).
@@ -54,18 +54,29 @@ export function teamOffline(charId: string, sim: Sim): void {
   broadcast(team);
 }
 
-/** Camp and team id shown on the actor: the leader's camp while in a team (the leader's faction, online or last known). */
+/** Camp and team id shown on the actor: the leader's camp while in a team (online or last known). */
 export function refreshCamp(sim: Sim): void {
   const charId = sim.charId;
+  const ownCamp = campOf(sim.a.faction, !!sim.graduated);
   const team = charId ? teamOf.get(charId) : undefined;
   sim.a.teamLeader = !!team && team.leader === charId;
-  if (!team) { sim.a.team = ''; sim.a.camp = campOf(sim.a.faction); return; }
+  if (!team) { sim.a.team = ''; sim.a.camp = ownCamp; return; }
   sim.a.team = team.id;
-  const leader = seats.get(team.leader)?.sim ?? (team.leader === charId ? sim : undefined);
-  sim.a.camp = campOf(leader?.a.faction ?? lastFaction.get(team.leader) ?? sim.a.faction);
-  if (team.leader === charId) lastFaction.set(charId, sim.a.faction);
+  if (team.leader === charId) {
+    lastCamp.set(charId, ownCamp);
+    sim.a.camp = ownCamp;
+    for (const id of team.members) {
+      if (id === charId) continue;
+      const s = seats.get(id);
+      if (s) s.sim.a.camp = ownCamp;
+    }
+    broadcast(team);
+    return;
+  }
+  const leader = seats.get(team.leader)?.sim;
+  sim.a.camp = leader ? campOf(leader.a.faction, !!leader.graduated) : (lastCamp.get(team.leader) ?? ownCamp);
 }
-const lastFaction = new Map<string, string>();
+const lastCamp = new Map<string, Camp>();
 
 /** One order of the team window. Returns nothing; tells the players what happened. */
 export function teamOrder(charId: string, op: string, name = ''): void {

@@ -24,6 +24,7 @@ import { SuggestWindow } from '../windows/suggest';
 import { NpcTalkWindow } from '../windows/npcTalk';
 import { SettingsWindow } from '../windows/settings';
 import { RankingsWindow } from '../windows/rankings';
+import { BazaarWindow } from '../windows/bazaar';
 import { GmToolWindow } from '../windows/gm';
 import { ShopWindow } from '../windows/shop';
 import { SkillsWindow } from '../windows/skills';
@@ -77,10 +78,12 @@ export class Hud implements WorldUi {
   private readonly system: SystemWindow;
   private readonly settings: SettingsWindow;
   private readonly rankings: RankingsWindow;
+  private readonly bazaar: BazaarWindow;
   private readonly gmTool: GmToolWindow;
   private readonly autoWin: AutoWindow;
   private readonly death: DeathWindow;
   private actions: WorldActions | null = null;
+  private currentMeta: MapMeta | null = null;
   private app: AppActions | null = null;
   /** Last values written to the DOM; `null` / -1 forces the next update to write. */
   private last: Shown = { ...FRESH };
@@ -100,10 +103,11 @@ export class Hud implements WorldUi {
       toggleBag: () => this.bag.toggle(),
       nearbyPlayers: () => this.nearby,
       suggest: kind => this.suggestWin?.open(kind),
+      meta: () => this.currentMeta,
     };
     const root = this.root;
     // DOM order = paint order of the original page: HUD parts, tooltip, then the windows.
-    this.vitals = new Vitals(root);
+    this.vitals = new Vitals(root, () => this.toggleWindow('rankings'));
     this.status = new StatusIcons(root);
     this.minimap = new MinimapPanel(root, {
       moveTo: (x, y) => this.actions?.moveTo(x, y),
@@ -122,6 +126,7 @@ export class Hud implements WorldUi {
       system: () => this.toggleWindow('system'),
       kytran: () => this.toggleWindow('kytran'),
       rankings: () => this.toggleWindow('rankings'),
+      bazaar: () => this.toggleWindow('bazaar'),
       gm: () => this.toggleWindow('gm'),
       team: () => this.toggleWindow('team'),
       notice: text => this.notice(text),
@@ -156,6 +161,9 @@ export class Hud implements WorldUi {
     });
     this.settings = new SettingsWindow(root);
     this.rankings = new RankingsWindow(root, ctx);
+    this.bazaar = new BazaarWindow(root, ctx, trade);
+    this.bazaar.onOpenBag = () => this.bag.toggle(true);
+    this.bag.onStallPut = (index, item) => this.bazaar.handleBagClick(index, item);
     this.gmTool = new GmToolWindow(root, ctx);
     this.autoWin = new AutoWindow(root, on => this.setAuto(on));
     this.notices.onAutoToggle = () => this.setAuto(!this.autoOn);
@@ -181,6 +189,7 @@ export class Hud implements WorldUi {
   }
 
   show(meta: MapMeta, actions: WorldActions): void {
+    this.currentMeta = meta;
     this.actions = actions;
     this.root.classList.remove('hidden');
     this.death.show(false);
@@ -295,6 +304,7 @@ export class Hud implements WorldUi {
       case 'system': this.system.toggle(open); break;
       case 'team': this.team.toggle(open); break;
       case 'rankings': this.rankings.toggle(open); break;
+      case 'bazaar': this.bazaar.toggle(open); break;
       case 'gm': this.gmTool.toggle(open); break;
     }
   }

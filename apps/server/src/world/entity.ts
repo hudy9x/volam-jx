@@ -75,6 +75,8 @@ export interface Sim {
   // players
   charId?: string;
   owner?: string;
+  /** Xuất sư (camp 'free', red name colour). */
+  graduated?: boolean;
   /** Hào quang on a hand slot of the skill bar (C2S.aura): kept on by world/players.ts holdSlotAura. */
   slotAura?: number;
   /** Drop the player is walking to pick up (systems/drops.ts). */

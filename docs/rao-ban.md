@@ -91,6 +91,15 @@ Kiểm chứng mới: `test:market` có thêm `tests/market-pricing.test.mts`, k
 - `TradeCurrency`/`TradePostMsg` chỉ nhận money/knb; `TradeOffer` vẫn đọc được contact của lịch sử cũ. UI chỉ có hai lựa chọn tiền, giá bắt buộc; server chặn contact/đơn vị lạ, kể cả client cũ. `purchaseOffer` từ chối tin contact cũ.
 - `test:market`13ca đạt, gồm từ chối tin mới contact/đơn vị sai và mua tin cũ không đổi ví/túi. WS thật2568/DBriêng `/tmp/jx-bot-team-market/db.json` kiểm từ chối contact + mua lượng/KNB/lưu lịch sử. Chromium1440/390 kiểm form hai tiền/giá bắt buộc/preview contact cũ không nút mua. Chưa native/mobile thật.
 
+## Chợ Bày Bán theo thành thị (2026-11-19)
+
+Song song với kênh chat **Mua bán**, game có **Chợ Bày Bán theo thành thị** (`apps/server/src/world/stalls.ts`, `apps/client/src/ui/windows/bazaar.ts`):
+- Mở bằng icon **Chợ** cạnh Bảng xếp hạng trên thanh dưới; chỉ sử dụng được trong **thành thị** (`meta.safe`). Mỗi thành thị có danh sách gian hàng riêng theo `mapId`.
+- **1 nhân vật = tối đa 1 gian hàng**, gồm **2 tab × 60 ô (`STALL_PAGES = 2`, `STALL_SIZE = 120`)**. Không cho đặt Lệnh bài (`TOKEN_ITEM_ID`) và Thổ Địa Phù (`TOWN_PORTAL_ID`).
+- Chỉ hỗ trợ định giá bằng **Ngân lượng** hoặc **Kim nguyên bảo (KNB)**. Người bán đặt đồ từ Hành trang vào Quầy (kéo thả hoặc bật nút **Đặt đồ** để click nhanh trên Desktop/Mobile), bật **Định giá** để đặt giá từng món, rồi bấm **Bày bán ngay** và nhập **Lời mời chào** (1–48 ký tự).
+- Khi đang bày bán, quầy khóa chỉnh sửa; muốn sửa giá hoặc rút đồ cần bấm **Ngưng bày bán**. Người mua xem danh sách gian hàng → mở Quầy 2 tab → hover (Mobile: chạm lần 1) xem thuộc tính + giá bán → click (Mobile: chạm lần 2) mở `TradeConfirm` xác nhận giá → giao dịch nguyên tử.
+- **Vòng đời online & lưu ý cho Kỹ năng Ủy thác sau này:** hiện gian hàng chỉ hiển thị khi chủ sạp **online** (chuyển map có grace window 30s); khi chủ sạp thoát game, gian hàng tự đóng và hoàn trả toàn bộ vật phẩm về Hành trang (hoặc `bagSpill` nếu đầy). `StallState` đã thiết kế thuần dữ liệu JSON-serializable với trường dự phòng `entrustedUntil?: number` — khi triển khai **Kỹ năng Ủy thác (bán hàng offline)** sau này, cần lưu `StallState` vào DB và bỏ qua bước đóng/hoàn đồ trong `stallOffline()` khi `entrustedUntil > Date.now()`.
+
 ## Tài liệu liên quan
 
 - [Auto theo nhân vật](auto.md): điều khiển, cache/DB, chọn chiêu/boss, nhặt đồ và tự bán NPC.

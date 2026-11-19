@@ -1,7 +1,7 @@
 import { assetUrl } from '../../art/assets';
 import { inventory } from '../../state/inventory';
 import {
-  HORSES, TIP_COLORS, describeItem, moneyText, speedPoints, type Item, type ItemDef, type ItemTipContext, type ItemViewer, type TipLine,
+  HORSES, TIP_COLORS, describeItem, moneyText, speedPoints, type Item, type ItemDef, type ItemTipContext, type ItemViewer, type StallPrice, type TipLine,
 } from '@vltk/shared';
 import { tooltip } from '../kit/tooltip';
 
@@ -13,6 +13,8 @@ export interface ItemTipOptions extends ItemTipContext {
   viewer?: ItemViewer | null;
   /** What a click does. */
   hint?: string;
+  /** Optional bazaar stall sale price shown prominently in the tooltip. */
+  stallPrice?: StallPrice | null;
 }
 
 /**
@@ -98,6 +100,16 @@ export function fillItemTip(tip: HTMLElement, def: ItemDef, opts: ItemTipOptions
   const s4 = section();
   put(s4, t.suite, 'tip-suite');
   flush(s4);
+
+  // Giá bày bán tại Chợ (nếu đang xem trong Quầy hàng)
+  if (opts.stallPrice && opts.stallPrice.price > 0) {
+    const sp = section();
+    const label = opts.stallPrice.currency === 'knb'
+      ? `Giá bán: ${opts.stallPrice.price.toLocaleString('vi-VN')} Kim nguyên bảo`
+      : `Giá bán: ${moneyText(opts.stallPrice.price)} lượng`;
+    text(sp, 'tip-price', label, TIP_COLORS.gold);
+    flush(sp);
+  }
 
   // Section 5: Mô tả khác
   const s5 = section();

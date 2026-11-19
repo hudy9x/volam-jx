@@ -2,6 +2,9 @@ import { rememberTrainingReturn, resolveSavedTrainingReturn } from '../world/tra
 import { mapAvailable, refreshMapRegistry, resolveCharacterMap } from '../mapRegistry.js';
 import { DEFAULT_AUTO, normalizeAuto, normalizeBotTemplate, type CharacterAuto, type TradePostMsg } from '@vltk/shared';
 import { buyKnb, marketOnline, marketOffline, marketPost, marketBuy } from '../world/market.js';
+import {
+  inspectStall, sendStallList, stallBuy, stallClose, stallMove, stallOffline, stallOnline, stallOpen, stallPut, stallSetPrice, stallTake,
+} from '../world/stalls.js';
 import { Room, ServerError, type Client } from 'colyseus';
 import {
   bestTrainingMap, trainingMaps, type TrainingMap, type TrainMsg, type TeamOrderMsg, type SuggestMsg, type TokenMsg,
@@ -11,6 +14,7 @@ import {
   type BuyMsg, type CastMsg, type DevMoneyMsg, type DevLevelMsg, type DevSpeedMsg, type DiscardMsg, type EquipMsg, type ForgeMsg, type InventoryMsg, type MountMsg, type AuraMsg, type ChatMsg, type ChatMoreMsg, type ChatReactMsg, type MoveMsg,
   type AddPotentialMsg, type PickupMsg, type JoinFactionMsg, type Potential, type RaiseSkillMsg, type StatsMsg, type LogMsg, type NoticeMsg, type OnlineMsg, type PkMsg, type SellMsg, type SkillLevelMsg, type SkillsMsg, type TeleportMsg, type TransferMsg,
   type UnequipMsg, type UseMsg,
+  type StallBuyMsg, type StallInspectMsg, type StallMoveMsg, type StallOpenMsg, type StallPriceMsg, type StallPutMsg, type StallTakeMsg,
 } from '@vltk/shared';
 import { verifyToken } from '../account/auth.js';
 import { db } from '../account/db.js';
@@ -327,6 +331,45 @@ export class MapRoom extends Room<{ state: MapState }> {
       const sim = this.simOf(client);
       if (sim?.charId && typeof msg?.op === 'string') teamOrder(sim.charId, msg.op, typeof msg.name === 'string' ? msg.name.slice(0, 32) : '');
     });
+    // Chợ bày bán theo thành thị (world/stalls.ts).
+    this.onMessage(C2S.stallList, client => {
+      const sim = this.simOf(client);
+      if (sim?.charId) sendStallList(sim.charId);
+    });
+    this.onMessage(C2S.stallInspect, (client, msg: StallInspectMsg) => {
+      const sim = this.simOf(client);
+      if (sim?.charId) inspectStall(sim.charId, typeof msg?.charId === 'string' ? msg.charId : '');
+    });
+    this.onMessage(C2S.stallPut, (client, msg: StallPutMsg) => {
+      const sim = this.simOf(client);
+      if (sim?.charId) stallPut(sim.charId, Number(msg?.from), typeof msg?.to === 'number' ? msg.to : undefined, typeof msg?.page === 'number' ? msg.page : undefined);
+    });
+    this.onMessage(C2S.stallTake, (client, msg: StallTakeMsg) => {
+      const sim = this.simOf(client);
+      if (sim?.charId) stallTake(sim.charId, Number(msg?.from), typeof msg?.to === 'number' ? msg.to : undefined, typeof msg?.page === 'number' ? msg.page : undefined);
+    });
+    this.onMessage(C2S.stallMove, (client, msg: StallMoveMsg) => {
+      const sim = this.simOf(client);
+      if (sim?.charId) stallMove(sim.charId, Number(msg?.from), Number(msg?.to));
+    });
+    this.onMessage(C2S.stallPrice, (client, msg: StallPriceMsg) => {
+      const sim = this.simOf(client);
+      if (sim?.charId && typeof msg?.uid === 'string') stallSetPrice(sim.charId, msg.uid, Number(msg?.price), msg?.currency);
+    });
+    this.onMessage(C2S.stallOpen, (client, msg: StallOpenMsg) => {
+      const sim = this.simOf(client);
+      if (sim?.charId) stallOpen(sim.charId, typeof msg?.title === 'string' ? msg.title : '');
+    });
+    this.onMessage(C2S.stallClose, client => {
+      const sim = this.simOf(client);
+      if (sim?.charId) stallClose(sim.charId);
+    });
+    this.onMessage(C2S.stallBuy, (client, msg: StallBuyMsg) => {
+      const sim = this.simOf(client);
+      if (sim?.charId && typeof msg?.sellerCharId === 'string' && typeof msg?.uid === 'string') {
+        stallBuy(sim.charId, msg.sellerCharId, msg.uid, Number(msg?.price), msg?.currency);
+      }
+    });
     // Lệnh bài (world/token.ts). Changing sex rebuilds the character on the clients: rejoin the same map.
     this.onMessage(C2S.token, (client, msg: TokenMsg) => {
       const sim = this.simOf(client);
@@ -482,6 +525,12 @@ export class MapRoom extends Room<{ state: MapState }> {
     teamOnline(char.id, {
       sim, mapId: this.state.mapId, send: (type, msg) => client.send(type, msg), notify: text => this.notify(sim, text),
     });
+    stallOnline(char.id, {
+      sim, mapId: this.state.mapId,
+      send: (type, msg) => client.send(type, msg),
+      notify: text => this.notify(sim, text),
+      syncAndSave: () => { this.sendInventory(client, sim); this.saveCharacter(sim); },
+    });
   }
 
   private sendInventory(client: Client, sim: Sim): void {
@@ -518,6 +567,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     const sim = this.world.sims.get(client.sessionId);
     if (!sim) return; // already transferred
     marketOffline(sim);
+    if (sim.charId) stallOffline(sim.charId, sim, false);
     this.saveCharacter(sim);
     this.world.removeSim(client.sessionId);
     teamOffline(sim.charId!, sim);
@@ -527,7 +577,13 @@ export class MapRoom extends Room<{ state: MapState }> {
   }
 
   onDispose(): void {
-    for (const sim of this.world.sims.values()) if (sim.charId) marketOffline(sim);
+    for (const sim of this.world.sims.values()) {
+      if (sim.charId) {
+        marketOffline(sim);
+        stallOffline(sim.charId, sim, false);
+        this.saveCharacter(sim);
+      }
+    }
     this.closeChat?.();
     if (LIVE_WORLDS.get(this.state.mapId) === this.world) LIVE_WORLDS.delete(this.state.mapId);
     db.flush();
@@ -590,7 +646,7 @@ export class MapRoom extends Room<{ state: MapState }> {
         skills: Object.fromEntries(sim.skills), money: sim.money ?? 0, knb: sim.knb ?? 0,
         expBuff: sim.expBuff && sim.expBuff.until > Date.now() ? sim.expBuff : undefined,
         ...(sim.progress ? {
-          faction: sim.a.faction, series: sim.progress.series, level: sim.progress.prog.level, progress: sim.progress.prog,
+          faction: sim.a.faction, graduated: !!sim.graduated, series: sim.progress.series, level: sim.progress.prog.level, progress: sim.progress.prog,
           progressVersion: PROGRESS_VERSION, skillExp: Object.fromEntries(sim.progress.skillExp),
         } : {}),
       });
@@ -604,6 +660,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     const client = this.clients.find(c => c.sessionId === sim.sessionId);
     this.saveCharacter(sim, { mapId, x, y });
     marketOffline(sim);
+    stallOffline(sim.charId!, sim, true);
     this.world.removeSim(sim.id);
     teamOffline(sim.charId!, sim);
     const owner = db.getCharacter(sim.charId!)?.owner;

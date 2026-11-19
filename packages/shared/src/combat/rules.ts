@@ -6,20 +6,25 @@ export const SPAWN_PROTECTION = 3;
 
 /**
  * Trận doanh (camp) of a character, shown by the colour of its name: tân thủ (no faction yet), chính phái, trung lập,
- * tà phái. Each faction's camp: DATA settings/faction/门派设定.ini `Camp=` (C_JUSTICE / C_BALANCE / C_EVIL).
+ * tà phái, xuất sư (free / C_FREE). Each faction's camp: DATA settings/faction/门派设定.ini `Camp=` (C_JUSTICE / C_BALANCE / C_EVIL).
  */
-export type Camp = 'new' | 'justice' | 'balance' | 'evil';
+export type Camp = 'new' | 'justice' | 'balance' | 'evil' | 'free';
 
 export const FACTION_CAMPS: Record<string, Camp> = {
   shaolin: 'justice', emei: 'justice', gaibang: 'justice', wudang: 'justice',
   tianwang: 'balance', tangmen: 'balance', cuiyan: 'balance', kunlun: 'balance', huashan: 'balance',
   wudu: 'evil', tianren: 'evil',
 };
-export const campOf = (faction: string): Camp => FACTION_CAMPS[faction] ?? 'new';
+export const campOf = (faction: string, graduated = false): Camp =>
+  graduated && faction ? 'free' : (FACTION_CAMPS[faction] ?? 'new');
 
-export const CAMP_NAMES: Record<Camp, string> = { new: 'Tân thủ', justice: 'Chính phái', balance: 'Trung lập', evil: 'Tà phái' };
-/** Name colours (the engine's, not in the client data — CHỌN from the original look: white, yellow, green, purple). */
-export const CAMP_COLORS: Record<Camp, string> = { new: '#ffffff', justice: '#ffd94e', balance: '#7fe08a', evil: '#d58cff' };
+export const CAMP_NAMES: Record<Camp, string> = {
+  new: 'Tân thủ', justice: 'Chính phái', balance: 'Trung lập', evil: 'Tà phái', free: 'Xuất sư',
+};
+/** Name colours matched to VLTK-SHXT: white (tân thủ), warm gold (chính phái), green (trung lập), purple (tà phái), red (xuất sư). */
+export const CAMP_COLORS: Record<Camp, string> = {
+  new: '#ffffff', justice: '#e8b878', balance: '#7fe08a', evil: '#d58cff', free: '#ff3333',
+};
 
 /**
  * PK mode (original: Luyện công / Chiến đấu / Đồ sát): 0 = no player may be hit; 1 = players of another camp (name colour);

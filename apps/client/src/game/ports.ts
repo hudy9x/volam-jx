@@ -71,10 +71,20 @@ export interface WorldActions {
   chatReact: (id: number, emoji: string) => void;
   /** Older lines of the own chat history, before line `before`. */
   chatMore: (before: number) => void;
+  /** City bazaar stall actions (world/stalls.ts). */
+  stallList: () => void;
+  stallInspect: (charId?: string) => void;
+  stallPut: (from: number, to?: number, page?: number) => void;
+  stallTake: (from: number, to?: number, page?: number) => void;
+  stallMove: (from: number, to: number) => void;
+  stallPrice: (uid: string, price: number, currency: import('@vltk/shared').TradeCurrency) => void;
+  stallOpen: (title: string) => void;
+  stallClose: () => void;
+  stallBuy: (sellerCharId: string, uid: string, price: number, currency: import('@vltk/shared').TradeCurrency) => void;
 }
 
 /** Windows the scene opens (keys, NPCs). */
-export type WindowId = 'bag' | 'char' | 'skills' | 'bigmap' | 'travel' | 'shop' | 'drugstore' | 'kytran' | 'horse-shop' | 'system' | 'team' | 'stash' | 'gm' | 'rankings';
+export type WindowId = 'bag' | 'char' | 'skills' | 'bigmap' | 'travel' | 'shop' | 'drugstore' | 'kytran' | 'horse-shop' | 'system' | 'team' | 'stash' | 'gm' | 'rankings' | 'bazaar';
 
 /** Which window each NPC action opens. */
 export const NPC_WINDOWS: Record<NpcAction, WindowId> = { shop: 'shop', drug: 'drugstore', kytran: 'kytran', travel: 'travel', horse: 'horse-shop', stash: 'stash' };

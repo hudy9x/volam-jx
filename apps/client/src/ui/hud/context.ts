@@ -1,3 +1,4 @@
+import type { MapMeta } from '@vltk/shared';
 import type { WorldActions } from '../../game/ports';
 import type { ActorState } from '../../state/actor';
 
@@ -19,4 +20,6 @@ export interface HudContext {
   nearbyPlayers?(): NearbyPlayer[];
   /** Gợi ý cộng điểm window (skill or potential points). */
   suggest?(kind: 'skills' | 'potential'): void;
+  /** Current map metadata (null before entering a map). */
+  meta?(): MapMeta | null;
 }

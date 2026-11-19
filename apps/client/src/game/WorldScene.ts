@@ -358,6 +358,15 @@ export class WorldScene extends Phaser.Scene {
       joinFaction: faction => this.room.send(C2S.joinFaction, { faction }),
       raiseSkill: skill => this.room.send(C2S.raiseSkill, { skill }),
       token: msg => this.room.send(C2S.token, msg),
+      stallList: () => this.room.send(C2S.stallList, {}),
+      stallInspect: (charId = '') => this.room.send(C2S.stallInspect, { charId }),
+      stallPut: (from, to, page) => this.room.send(C2S.stallPut, { from, to, page }),
+      stallTake: (from, to, page) => this.room.send(C2S.stallTake, { from, to, page }),
+      stallMove: (from, to) => this.room.send(C2S.stallMove, { from, to }),
+      stallPrice: (uid, price, currency) => this.room.send(C2S.stallPrice, { uid, price, currency }),
+      stallOpen: title => this.room.send(C2S.stallOpen, { title }),
+      stallClose: () => this.room.send(C2S.stallClose, {}),
+      stallBuy: (sellerCharId, uid, price, currency) => this.room.send(C2S.stallBuy, { sellerCharId, uid, price, currency }),
     };
   }
 

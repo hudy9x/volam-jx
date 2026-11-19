@@ -7,10 +7,11 @@ Người dùng yêu cầu 2026-11-12 (vòng 25). Mã: `packages/shared/src/comba
 
 | Phe | Màu | Môn phái (DATA `settings/faction/门派设定.ini` `Camp=`) |
 |---|---|---|
-| Tân thủ | trắng | chưa vào phái |
-| Chính phái (`C_JUSTICE`) | vàng | Thiếu Lâm, Nga My, Cái Bang, Võ Đang |
-| Trung lập (`C_BALANCE`) | xanh lá | Thiên Vương, Đường Môn, Thúy Yên, Côn Lôn, Hoa Sơn |
-| Tà phái (`C_EVIL`) | tím | Ngũ Độc, Thiên Nhẫn |
+| Tân thủ | trắng (`#ffffff`) | chưa vào phái |
+| Chính phái (`C_JUSTICE`) | vàng cam dịu (`#e8b878`) | Thiếu Lâm, Nga My, Cái Bang, Võ Đang |
+| Trung lập (`C_BALANCE`) | xanh lá (`#7fe08a`) | Thiên Vương, Đường Môn, Thúy Yên, Côn Lôn, Hoa Sơn |
+| Tà phái (`C_EVIL`) | tím (`#d58cff`) | Ngũ Độc, Thiên Nhẫn |
+| Xuất sư (`C_FREE`) | đỏ (`#ff3333`) | nhân vật đã xuất sư (`graduated`, đổi qua Lệnh bài) |
 
 Phe từng phái lấy từ dữ liệu (bảng file rời của bản mod; bảng gốc trong PAK không có cột này). Màu chữ do engine vẽ, không có trong dữ
 liệu: **CHỌN** theo bản gốc (`CAMP_COLORS`).

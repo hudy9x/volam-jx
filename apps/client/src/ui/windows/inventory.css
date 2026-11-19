@@ -161,3 +161,23 @@
   padding-left: 5px;
   padding-right: 5px;
 }
+
+/* Shared drop-target preview footprint for Hành trang, Rương chứa đồ, and Quầy hàng */
+.grid-drop-preview {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.grid-drop-preview.ok {
+  background: rgba(79, 209, 107, 0.28);
+  border: 1px dashed #6bff8b;
+  box-shadow: inset 0 0 8px rgba(79, 209, 107, 0.45);
+}
+
+.grid-drop-preview.bad {
+  background: rgba(220, 64, 48, 0.28);
+  border: 1px dashed #ff6b5b;
+  box-shadow: inset 0 0 8px rgba(220, 64, 48, 0.45);
+}
