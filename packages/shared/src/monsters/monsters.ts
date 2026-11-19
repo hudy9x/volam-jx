@@ -73,7 +73,7 @@ export function goldenBossFromEntry(b: GoldenBossEntry): MonsterDef {
     speed: 210,
     skills: b.skills.map(([sid, slv]) => [sid, slv]),
     skillScale: b.skillLevelsFixed ? undefined : b.skills.map(([, slv]) => [Math.max(1, Math.round(slv * 0.4)), 0.1]),
-    attackCooldown: b.attackCooldown ?? 1.2, vision: 420, leash: b.leash ?? 1100, scale: 1,
+    attackCooldown: b.attackCooldown ?? 1.2, vision: 840, leash: b.leash ?? 1100, scale: 1,
     hitRecover: b.controlReduction?.hurt ?? 60, boss: 2,
   };
 }

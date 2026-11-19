@@ -1,3 +1,10 @@
+## 2026-11-19 · Tăng bán kính phát hiện Boss Hoàng Kim
+
+- USER yêu cầu gấp đôi bán kính phát hiện: goldenBossFromEntry.vision420→840 đơn vị isometric, chung toàn bộ Boss Hoàng Kim. Không đổi leash/phạm vi đuổi, tầm kỹ năng hoặc quái khác. Nguồn shared, server thực thi cho ba nền tảng.
+- Impact graph HIGH do helper dùng khi khởi tạo/nạp config, directcaller syncGoldenBossMonsters; đã đối chiếu mã thật vì index cũ4commit. Sửa đúng một số; USER duyệt commit riêng trên main (mốc trước8e24d33), không branch/push; giữ toàn bộ thay đổi Phi phong song song.
+- Cần nạp lại server để nhận mã mới. git diff --check đạt. Typecheck bị chặn bởi thay đổi Phi phong đang làm song song: formulas/fortune.ts nhập MAGIC_ROWS chưa được export; không liên quan dòng vision. Đã kiểm TypeScript shared trên snapshot staged riêng: đạt (không chứa thay đổi Phi phong). Graph staged9symbol/0flow không partial/truncated; thay đổi chính là literalvision. Chưa kiểm gameplay/native.
+
+
 ## 2026-11-19 · Hoàn tất commit từng phần trên main
 
 - USER yêu cầu commit từng phần, không branch mới; đã hoàn tất trên **main**, không push.

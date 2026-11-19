@@ -393,3 +393,5 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 - [x] USER2026-11-19: Tool Boss hệ số sát thương riêng/nhóm và giảm thời gian chịu hurt/cold/stun/poison, giữ cấu hình riêng và xác nhậnApply.16Boss+20effects+12speed/typecheck/build và Chromium1440/390 đạt; chưa applygame thật/commit/push.
 
 - [x] USER2026-11-19 commit từng phần Boss trên main, không branch/push:1030f6e runtime,5b55356 tool,a147e85 configUSER;48test/typecheck/build/parity/graphstaged đạt, checkpoint tài liệu riêng sau cùng.
+
+- [x] USER2026-11-19: Boss Hoàng Kim vision420→840, giữ leash/tầmchiêu/quáikhác; USER duyệt commit riêng trên main, không branch/push.
