@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  coldMovement, CAMP_COLORS, SPEED, getActiveSpeedConfig, trackBasePercent, resolveSpeed, type Camp, type Element, jumpHeight,
+  coldMovement, CAMP_COLORS, SPEED, getActiveSpeedConfig, trackBasePercent, resolveSpeed, type Camp, jumpHeight,
   attackSpeedPct, castSpeedPct, speedPoints, totalSpeedPercents, attrOf,
 } from '@vltk/shared';
 import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
@@ -10,20 +10,15 @@ import { FRAME_MS, JxSprite, type Source } from './PaperDoll';
 import { ui, uiPx, textResolution, zoomPlate } from '../display';
 import { StateDecor } from '../fx/StateDecor';
 import { controlAppearance } from '../fx/controlEffects';
+import { ensureElementBadgeTexture, isElement } from './elementBadges';
 
 export type { ActorState };
 
 /** Action keys; attacks use the snapshotted actionMs, while hurt/death have fallback playback rates. */
 const ONE_SHOT_FPS: Partial<Record<AssocKey, number>> = { attack1: 18, attack2: 18, magic: 18, wound: 30, die: 18 };
 const DEFAULT_HEIGHT = 90;
-/** Màu hình tròn biểu thị ngũ hành bên trái tên quái vật / Boss Xanh / Boss Hoàng Kim. */
-const ELEMENT_DOT_COLORS: Record<Element, number> = {
-  kim: 0xffdf4a,  // Kim — vàng ánh kim
-  moc: 0x3fd65c,  // Mộc — xanh lá
-  thuy: 0x3ea4ff, // Thủy — xanh dương
-  hoa: 0xff3b30,  // Hỏa — đỏ lửa
-  tho: 0xb5743a,  // Thổ — nâu đất
-};
+/** Kích thước cơ sở (px thế giới ở zoom 100%) của huy hiệu ngũ hành bên trái tên quái / Boss. */
+const ELEMENT_BADGE_SIZE = 18;
 
 /**
  * One actor on screen, drawn from the original client art at 1:1. `peaceful` (town) uses the relaxed stand
@@ -38,6 +33,8 @@ export class ActorView {
   private readonly leaderFlag: Phaser.GameObjects.Graphics;
   private readonly bar: Phaser.GameObjects.Graphics;
   private readonly decor: StateDecor;
+  private elementBadge: Phaser.GameObjects.Image | null = null;
+  private elementBadgeKey = '';
   private jx: JxSprite | null = null;
   private sourceKey = '';
   private shown = false;
@@ -132,6 +129,7 @@ export class ActorView {
     } else {
       this.jx?.hide();
       this.leaderFlag.setVisible(false);
+      this.elementBadge?.setVisible(false);
       this.label.setVisible(false);
       this.bar.setVisible(false);
       const s = this.state;
@@ -342,14 +340,30 @@ export class ActorView {
     if (this.label.text !== text) this.label.setText(text);
     if (this.label.style.color !== color) this.label.setColor(color);
     if (this.label.scaleX !== plate.textScale) this.label.setScale(plate.textScale);
-    const dotColor = s.kind === 'monster' && s.hp > 0 && s.series
-      ? ELEMENT_DOT_COLORS[s.series as Element]
-      : undefined;
-    const dotR = Math.max(2, ui(4.2) * plate.textScale);
-    const dotGap = Math.max(2, ui(4) * plate.textScale);
-    const labelX = dotColor !== undefined ? Math.round(this.x + (dotR * 2 + dotGap) / 2) : Math.round(this.x);
+    const series = s.kind === 'monster' && s.hp > 0 && isElement(s.series) ? s.series : null;
+    const badgeKey = series ? ensureElementBadgeTexture(this.scene, series) : null;
+    const hasBadge = !!badgeKey && typeof this.scene.add?.image === 'function';
+    const badgeSize = Math.max(8, ui(ELEMENT_BADGE_SIZE) * plate.textScale);
+    const badgeGap = Math.max(2, ui(4) * plate.textScale);
+    const labelX = hasBadge ? Math.round(this.x + (badgeSize + badgeGap) / 2) : Math.round(this.x);
     const labelY = top - Math.max(2, ui(plate.gapY));
     this.label.setPosition(labelX, labelY);
+    if (hasBadge) {
+      if (!this.elementBadge) {
+        this.elementBadge = this.scene.add.image(0, 0, badgeKey).setOrigin(0.5, 0.5).setDepth(1e6);
+        this.elementBadgeKey = badgeKey;
+      } else if (this.elementBadgeKey !== badgeKey) {
+        this.elementBadge.setTexture(badgeKey);
+        this.elementBadgeKey = badgeKey;
+      }
+      const labelW = typeof this.label.displayWidth === 'number' ? this.label.displayWidth : 0;
+      const labelH = typeof this.label.displayHeight === 'number' ? this.label.displayHeight : ui(13) * plate.textScale;
+      const badgeX = Math.round(labelX - labelW / 2 - badgeGap - badgeSize / 2);
+      const badgeY = Math.round(labelY - labelH * 0.48);
+      this.elementBadge.setDisplaySize(badgeSize, badgeSize).setPosition(badgeX, badgeY).setVisible(true);
+    } else {
+      this.elementBadge?.setVisible(false);
+    }
     if (s.hp > 0 || s.kind === 'npc') {
       // Under-foot pictures stay on the ground during a jump, the others rise with the body.
       this.decor.update([...(s.states ?? []), ...(s.passiveFx ?? [])], Math.round(this.x), Math.round(this.y), this.headHeight - 8 + this.lift, s.ctl ?? 0);
@@ -357,9 +371,7 @@ export class ActorView {
 
     const w = Math.max(10, ui(s.boss ? plate.barBossW : plate.barW)), bh = Math.max(2, ui(plate.barH));
     const ratio = s.maxHp ? Math.max(0, s.hp / s.maxHp) : 0;
-    const labelW = typeof this.label.displayWidth === 'number' ? this.label.displayWidth : 0;
-    const labelH = typeof this.label.displayHeight === 'number' ? this.label.displayHeight : ui(13) * plate.textScale;
-    const barKey = `${Math.round(this.x)},${top},${ratio.toFixed(3)},${s.pk},${plate.zoom},${dotColor ?? -1},${Math.round(labelW)}`;
+    const barKey = `${Math.round(this.x)},${top},${ratio.toFixed(3)},${s.pk},${plate.zoom}`;
     if (barKey === this.lastBarKey) return;
     this.lastBarKey = barKey;
     this.bar.clear();
@@ -370,13 +382,6 @@ export class ActorView {
     const barColor = s.kind === 'monster' ? 0xd8402f : s.pk > 0 ? 0xd8402f : 0x4fd16b;
     this.bar.fillStyle(barColor, 1)
       .fillRect(bx, top - bh, Math.round(w * ratio), bh);
-    if (dotColor !== undefined) {
-      const dotX = labelX - labelW / 2 - dotGap - dotR;
-      const dotY = labelY - labelH * 0.48;
-      const strokeW = Math.max(1, ui(1.5) * plate.textScale);
-      this.bar.fillStyle(dotColor, 1).fillCircle(dotX, dotY, dotR);
-      this.bar.lineStyle(strokeW, 0x000000, 0.95).strokeCircle(dotX, dotY, dotR);
-    }
   }
 
   /** Point (world) hit test for clicking on the actor. */
@@ -397,6 +402,7 @@ export class ActorView {
 
   destroy(): void {
     this.leaderFlag.destroy();
+    this.elementBadge?.destroy();
     this.label.destroy();
     this.bar.destroy();
     this.decor.destroy();

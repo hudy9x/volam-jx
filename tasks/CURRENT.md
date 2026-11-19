@@ -1,3 +1,11 @@
+## 2026-11-19 · Nâng cấp biểu tượng ngũ hành quái/Boss sang huy hiệu ngọc vẽ bằng mã (đã commit)
+
+- **USER duyệt triển khai:** sau khi xem preview so sánh `\spr\ui3\npc\series0..4.spr` (18×18 px) của VLTK-SHXT với bản vẽ lại bằng vector/Canvas 2D, USER chọn thay vào bản vẽ lại bằng mã (không cần file ảnh ngoài).
+- **Thay đổi:**
+  1. `apps/client/src/game/actors/elementBadges.ts`: vẽ 5 viên ngọc ngũ hành viền bạc, nền radial gradient có phản sáng và chữ Hán **金 / 木 / 水 / 火 / 土** bằng nét vector Canvas 2D thuần (không phụ thuộc font hệ thống), dựng sẵn 1 lần vào Phaser `CanvasTexture` `36×36` (render `2×`).
+  2. `apps/client/src/game/actors/ActorView.ts`: dùng `Phaser.GameObjects.Image` hiển thị huy hiệu `18×18` (scale theo `zoomPlate` 100%/150%/200%) bên trái tên của quái thường, Boss Xanh và Boss Hoàng Kim; căn giữa cả cụm, ẩn khi chết/culling, hủy khi `destroy()`, không tạo cho người chơi/NPC. Dùng chung Web, Desktop và Mobile.
+  3. **Kiểm thử:** cập nhật `tests/monster-element-dot.test.cjs`, `tests/team-leader-render.test.cjs`, `tests/control-effects-render.test.cjs` — **28/28 pass**, `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Chỉ cần reload client (server đã có `Actor.series` từ commit `5babae7`). Đã commit trên `main`, không push.
+
 ## 2026-11-19 · Hiển thị hình tròn ngũ hành bên trái tên Quái vật / Boss Xanh / Boss Hoàng Kim (đã commit)
 
 - **USER yêu cầu triển khai:** hiển thị hệ ngũ hành (`kim`, `moc`, `thuy`, `hoa`, `tho`) bằng hình tròn có màu ở bên trái tên của quái vật, Boss Xanh và Boss Hoàng Kim.

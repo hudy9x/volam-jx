@@ -6,6 +6,7 @@ const ActorView=vm.runInNewContext(code+';ActorView',{
   makeLook:()=>({}),lookKey:()=>'look',hasNpc:()=>true,JxSprite:class{height=80;framesOf(){return 8}intersects(){return true}render(){return true}hide(){}destroy(){}},
   StateDecor:class{update(){}destroy(){}},ui:x=>x,uiPx:x=>x,textResolution:()=>2,zoomPlate:()=>({textScale:1,gapY:2,barW:30,barBossW:40,barH:3,zoom:1}),
   controlAppearance:()=>({loopRate:1,tint:0xffffff}),CAMP_COLORS:{new:'#fff'},resolveSpeed:()=>({cycleMs:800}),trackBasePercent:()=>100,getActiveSpeedConfig:()=>({}),SPEED:{basePercent:100},FRAME_MS:1000/18,
+  isElement:()=>false,ensureElementBadgeTexture:()=>null,
 });
 test('flag follows captain state and head, hides on death/culling, and is destroyed with actor',()=>{
  const scene={time:{now:0},cameras:{main:{worldView:{}}},add:{zone:object,text:object,graphics:object}};
