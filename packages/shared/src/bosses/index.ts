@@ -226,6 +226,7 @@ export function validateGoldenBossConfig(raw: unknown): string | null {
     if (!b || typeof b !== 'object') return 'Mục Boss không hợp lệ.';
     for (const [key, min, max, integer] of [
       ['hp', 1, 2_000_000_000, true],
+      ['exp', 0, 2_000_000_000, true],
       ['damagePercent', 1, 10000, false],
       ['attackCooldown', 0.05, 60, false],
       ['leash', 50, 10000, false],

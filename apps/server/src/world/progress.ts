@@ -178,20 +178,22 @@ export function recordDamage(target: Sim, attacker: Sim, dmg: number): void {
  * (USER 2026-11-13, hit or not); any other player who hurt it gets exp × damage ÷ max Sinh lực. All after the level gap.
  */
 export function shareKillExp(w: World, monster: Sim, killer?: Sim): void {
-  const total = monsterExp(monster.a.level, bossMultiplier(monster.a.boss));
+  const total = monster.def?.expOverride !== undefined
+    ? monster.def.expOverride
+    : monsterExp(monster.a.level, bossMultiplier(monster.a.boss));
   const near = (p: Sim | undefined): p is Sim => !!p && !p.dead && p.kind === 'player' && !!p.progress
     && isoDistance(p.a.x, p.a.y, monster.a.x, monster.a.y) <= LEVEL.expShareRange;
   const tag = monster.a.boss >= 2 ? 'Boss Hoàng Kim ' : monster.a.boss === 1 ? 'Boss Xanh ' : '';
   const who = `${tag}${monster.a.name} (cấp ${monster.a.level})`;
   // Kênh Hệ thống (USER 2026-11-13): the killer sees the kill (with its exp), the others the exp they got.
   const give = (p: Sim, exp: number, kill = false) => {
-    const baseGain = expAfterGap(exp, p.progress!.prog.level, monster.a.level);
+    const baseGain = exp > 0 ? expAfterGap(exp, p.progress!.prog.level, monster.a.level) : 0;
     const buff = p.expBuff && p.expBuff.until > Date.now() ? p.expBuff : undefined;
     const mul = buff ? Math.max(1, getExpElixirMultiplier(buff.tier)) : 1;
     const gain = Math.round(baseGain * mul);
     const mulTag = mul > 1 ? ` (×${mul})` : '';
     const pts = gain > 0 ? `+${gain.toLocaleString('vi-VN')} kinh nghiệm${mulTag}` : '';
-    if (kill) w.hooks.log(p, 'kill', `Đánh bại ${who}${pts ? `: ${pts}` : ' (chênh cấp, không có kinh nghiệm)'}.`);
+    if (kill) w.hooks.log(p, 'kill', `Đánh bại ${who}${pts ? `: ${pts}` : total <= 0 ? ' (0 kinh nghiệm)' : ' (chênh cấp, không có kinh nghiệm)'}.`);
     else if (pts) w.hooks.log(p, 'exp', `${who}: ${pts}.`);
     if (gain > 0) gainExp(w, p, gain);
   };

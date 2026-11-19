@@ -8,6 +8,9 @@ export type GoldenBossSpawnMode = 'continuous' | 'fixedTimes' | 'hourlyMinutes';
 /** Phân nhóm cấp bậc của Boss Hoàng Kim. */
 export type GoldenBossTier = 'major' | 'minor' | 'newboss' | 'special';
 
+/** Điểm kinh nghiệm mặc định khi hạ gục Boss Hoàng Kim (USER 2026-11-19). */
+export const GOLDEN_BOSS_DEFAULT_EXP = 4_000_000;
+
 /** Cài đặt chung ở đầu trang cho toàn bộ Boss Hoàng Kim. */
 export interface GoldenBossGlobalSettings {
   /**
@@ -54,6 +57,8 @@ export interface GoldenBossEntry {
   level: number;
   /** HP cố định; bỏ trống để tính theo cấp. */
   hp?: number;
+  /** Điểm kinh nghiệm cố định khi hạ gục Boss; bỏ trống dùng mặc định GOLDEN_BOSS_DEFAULT_EXP (4.000.000). */
+  exp?: number;
   /** Outgoing skill damage percent, default 100 (1..10000). */
   damagePercent?: number;
   /** Base reductions for effects suffered by this boss, in percent. */

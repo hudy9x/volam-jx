@@ -11,6 +11,7 @@ import {
   ELEMENT_NAMES,
   GEN_GOLD,
   GOLDEN_BOSS_CONFIG,
+  GOLDEN_BOSS_DEFAULT_EXP,
   GOLDEN_BOSS_TIER_LABELS,
   GOLD_SUITES,
   MAGIC_DESC,
@@ -353,13 +354,14 @@ export async function handleBossRequest(req: http.IncomingMessage, res: http.Ser
         body: JSON.stringify(config), signal: AbortSignal.timeout(3000),
       });
       if (!resp.ok) throw new Error('Game từ chối cấu hình. Kiểm tra server dev và thử lại.');
-      const result = await resp.json() as { combatTuningVersion?: number; appliedBosses?: {id: number; name: string; hp: number; damagePercent?: number; controlReduction?: {hurt:number;cold:number;stun:number;poison:number}; attackCycleMs?: number; leash: number; skills?: [number, number][]; skillLevelsFixed?: boolean}[] };
+      const result = await resp.json() as { combatTuningVersion?: number; appliedBosses?: {id: number; name: string; hp: number; exp?: number; damagePercent?: number; controlReduction?: {hurt:number;cold:number;stun:number;poison:number}; attackCycleMs?: number; leash: number; skills?: [number, number][]; skillLevelsFixed?: boolean}[] };
       if (result.combatTuningVersion !== 1 || !Array.isArray(result.appliedBosses)) {
         throw new Error('Game từ chối xác nhận HP và nhịp đánh mới. Hãy khởi động lại server game rồi Áp dụng lại.');
       }
       for (const b of config.bosses) {
         const applied = result.appliedBosses.find(a => a.id === b.id);
         if (!applied || (b.hp !== undefined && applied.hp !== b.hp)
+          || applied.exp !== (b.exp ?? GOLDEN_BOSS_DEFAULT_EXP)
           || (b.attackCooldown !== undefined && applied.attackCycleMs !== b.attackCooldown * 1000)
           || applied.leash !== (b.leash ?? 1100)
           || applied.damagePercent !== (b.damagePercent ?? 100)

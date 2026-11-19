@@ -1932,3 +1932,29 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 
 - USER yêu cầu commit riêng, không push. Commit gồm generator, metadata/cache enemy157, kiểm thử và tracking riêng của lỗi này; giữ thay đổi EXP Boss/HUD và điều tra khác ngoài commit. Nền `2869162`; hash commit mới xem git log.
 - 9 kiểm thử đạt; typecheck/build đã đạt ở lượt triển khai, kiểm staged diff trước commit. Chưa kiểm gameplay/native. Không push.
+
+## 2026-11-19 · Cài đặt điểm kinh nghiệm (EXP) Boss Hoàng Kim trong tool Boss
+
+- USER yêu cầu thêm cài đặt EXP cho Boss Hoàng Kim trong `tools/boss`, mặc định 4.000.000 EXP/con, dùng Tiên Thảo Lộ nhân đôi.
+- Thêm `GOLDEN_BOSS_DEFAULT_EXP = 4_000_000`, `GoldenBossEntry.exp` (`0–2.000.000.000`), `MonsterDef.expOverride`; `shareKillExp` dùng `expOverride` (kể cả `0` không bị nâng lên `1`), giữ chia tổ đội/sát thương và nhân Tiên Thảo Lộ (`EXP_ELIXIR` ×2); `/api/dev/bosses/reload` và `tools/boss/server.ts` xác nhận `exp` khi Áp dụng. UI có ô chỉnh riêng từng Boss và chỉnh nhóm (Giữ / Đặt chung / Mặc định 4.000.000).
+- Kiểm tra: 19/19 test Boss (`tests/golden-boss-exp.test.ts` mới + 4 file cũ), `npm run typecheck`, `npm run build`, API save trên thư mục tạm và ảnh Chrome headless 1440×1000 / 390×844. Không sửa config thật, không commit/push.
+
+## 2026-11-20 · Điều tra không lưu/áp dụng EXP Boss Hoàng Kim (chưa sửa)
+
+- USER yêu cầu kiểm tra; HEAD `a2bacc2` khớp checkpoint gần nhất, giữ toàn bộ thay đổi EXPBoss/theme/tracking có sẵn. GitNexus MCP không khả dụng; đối chiếu trực tiếp nguồn hiện tại.
+- Xác minh `tools/boss/public/app.js:1281`: validateInputs chỉ miễn ô HP trống, còn EXP trống bị setCustomValidity bắt buộc dù UI/backend quy định trống =4.000.000. Chỉ một boss chưa nhập EXP cũng chặn toàn bộ Lưu; bản nháp chưa lưu khiến Áp dụng bị khóa. Chạy chính hàm production với DOM giả lập: HP trống pass, EXP trống fail. GET app.js của tool đang chạy4567 xác nhận có cùng lỗi.
+- 4/4 test golden-boss-exp và golden-boss-apply đạt trên cấu hình/server giả lập cô lập; chưa chứng minh Apply trên game thật vì không gửi reload thay đổi thế giới người dùng. Hướng sửa: cho phép EXP trống như HP, bổ sung kiểm thử luồng validation nhiều boss.
+- Chưa sửa code/config/DB, không restart game/tool, không commit/push; chờ USER duyệt sửa. Không tick BACKLOG vì chưa hoàn tất triển khai. Luật EXP server dùng chung Web/Desktop/Mobile.
+
+## 2026-11-20 · Sửa lưu/áp dụng EXP Boss Hoàng Kim (chưa commit)
+
+- USER duyệt sửa và kiểm tra lại, chưa commit. HEAD `a2bacc2`; giữ toàn bộ thay đổi có sẵn.
+- `tools/boss/public/app.js`: validateInputs cho phép cả HP và EXP để trống; EXP trống dùng mặc định4.000.000, không còn chặn lưu khi boss khác chưa đặt EXP. Giữ giới hạn số nguyên0–2.000.000.000 và các trường bắt buộc khác.
+- Thêm `tests/golden-boss-form.test.cjs` chạy hàm UI production: nhiều boss custom/default/0, giới hạn EXP, trường bắt buộc, chặn Apply trước Lưu, giữ nháp/thử lại khi lưu hoặc áp dụng lỗi. Mở rộng golden-boss-apply: PUT lưu configJSON/TS trong thư mục tạm rồi POST Apply xác nhận custom6triệu/0/default4triệu; server cũ/saiEXP bị từ chối.
+- 8/8 test form/EXP/Apply đạt; npm run typecheck đạt. GET app.js tại tool4567 xác nhận đang phục vụ bản sửa; người dùng cần tải lại trang (lưu ý nháp chưa lưu). Không đổi config/DB thật, không gọi reload game thật, không restart tiến trình; chưa kiểm trình duyệt tương tác hoặc gameplay/native. Luật server chungWeb/Desktop/Mobile. Không commit/push.
+
+## 2026-11-20 · Commit cài đặt và sửa lưu EXP Boss Hoàng Kim theo USER
+
+- USER yêu cầu commit, không push. Nền `a2bacc2`; commit gồm shared/server/tool EXP và sửa validation EXP trống, kiểm thử và tài liệu liên quan.
+- 8/8 kiểm thử form/EXP/lưu/Apply và typecheck đạt ở lượt triển khai; kiểm staged diff trước commit. API kiểm trên cấu hình/server thử riêng, chưa gameplay/native.
+- Giữ ngoài commit thay đổi theme, lịch sử UI khác và cấu hình Boss thật vừa chỉnh (config.json/config.ts).

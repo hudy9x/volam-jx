@@ -154,17 +154,18 @@ function updateSelectionControls() {
   $('edit-selected-skills').disabled = selectedBossIds.size === 0;
   $('add-selected-150').disabled = selectedBossIds.size === 0;
   const hpCustom = $('bulk-hp-mode').value === 'custom';
+  const expCustom = $('bulk-exp-mode').value === 'custom';
   const attackCustom = $('bulk-attack-mode').value === 'custom';
   const damageCustom = $('bulk-damage-mode').value === 'custom';
   const controlCustom = $('bulk-control-mode').value === 'custom';
   $('bulk-control-values').hidden = !controlCustom;
   for (const key of ['hurt','cold','stun','poison']) { const input = $(`bulk-control-${key}`); input.disabled = !controlCustom; input.required = controlCustom; }
-  for (const [id, custom] of [['bulk-hp', hpCustom], ['bulk-attack', attackCustom], ['bulk-damage', damageCustom]]) {
+  for (const [id, custom] of [['bulk-hp', hpCustom], ['bulk-exp', expCustom], ['bulk-attack', attackCustom], ['bulk-damage', damageCustom]]) {
     $(id).disabled = !custom;
     $(id).required = custom;
     $(id).closest('.bulk-value').hidden = !custom;
   }
-  $('update-selected-bosses').disabled = selectedBossIds.size === 0 || ($('bulk-hp-mode').value === 'keep' && !attackCustom && !damageCustom && !controlCustom);
+  $('update-selected-bosses').disabled = selectedBossIds.size === 0 || ($('bulk-hp-mode').value === 'keep' && $('bulk-exp-mode').value === 'keep' && !attackCustom && !damageCustom && !controlCustom);
 }
 
 function selectBosses(ids, checked) {
@@ -175,12 +176,13 @@ function selectBosses(ids, checked) {
 function updateSelectedBosses() {
   if (!selectedBossIds.size) return;
   const hpMode = $('bulk-hp-mode').value;
+  const expMode = $('bulk-exp-mode').value;
   const attackMode = $('bulk-attack-mode').value;
   const damageMode = $('bulk-damage-mode').value;
   const controlCustom = $('bulk-control-mode').value === 'custom';
   if (controlCustom) for (const key of ['hurt','cold','stun','poison']) if (!$(`bulk-control-${key}`).reportValidity()) return;
-  if (hpMode === 'keep' && attackMode === 'keep' && damageMode === 'keep' && !controlCustom) return;
-  for (const [id, mode] of [['bulk-hp', hpMode], ['bulk-attack', attackMode], ['bulk-damage', damageMode]]) {
+  if (hpMode === 'keep' && expMode === 'keep' && attackMode === 'keep' && damageMode === 'keep' && !controlCustom) return;
+  for (const [id, mode] of [['bulk-hp', hpMode], ['bulk-exp', expMode], ['bulk-attack', attackMode], ['bulk-damage', damageMode]]) {
     if (mode === 'custom' && !$(id).reportValidity()) return;
   }
   let count = 0;
@@ -188,6 +190,8 @@ function updateSelectedBosses() {
     if (!selectedBossIds.has(boss.id)) continue;
     if (hpMode === 'custom') boss.hp = Number($('bulk-hp').value);
     else if (hpMode === 'auto') delete boss.hp;
+    if (expMode === 'custom') boss.exp = Number($('bulk-exp').value);
+    else if (expMode === 'default') delete boss.exp;
     if (attackMode === 'custom') boss.attackCooldown = Number($('bulk-attack').value);
     if (damageMode === 'custom') boss.damagePercent = Number($('bulk-damage').value);
     if (controlCustom) boss.controlReduction = Object.fromEntries(['hurt','cold','stun','poison'].map(key => [key, Number($(`bulk-control-${key}`).value)]));
@@ -391,7 +395,7 @@ function bindGlobalEvents() {
 
   $('select-visible-bosses').addEventListener('change', e => selectBosses(visibleBossIds(), e.target.checked));
   $('clear-boss-selection').addEventListener('click', () => { selectedBossIds.clear(); updateSelectionControls(); });
-  for (const id of ['bulk-hp-mode', 'bulk-attack-mode', 'bulk-damage-mode', 'bulk-control-mode']) $(id).addEventListener('change', updateSelectionControls);
+  for (const id of ['bulk-hp-mode', 'bulk-exp-mode', 'bulk-attack-mode', 'bulk-damage-mode', 'bulk-control-mode']) $(id).addEventListener('change', updateSelectionControls);
   $('update-selected-bosses').addEventListener('click', updateSelectedBosses);
 
   // Lưu & Hoàn tác
@@ -635,9 +639,11 @@ function renderBossSections() {
             </label>
           </td>
           <td>
-            <details class="boss-combat"><summary>HP · Tốc độ đánh · Sát thương · Phạm vi</summary>
+            <details class="boss-combat"><summary>HP · EXP · Tốc độ đánh · Sát thương · Phạm vi</summary>
               <label>HP riêng<input type="number" data-combat="hp:${b.id}" value="${b.hp ?? ''}" min="1" max="2000000000" step="1" placeholder="Theo cấp" /></label>
               <small class="muted">Để trống: HP theo cấp boss.</small>
+              <label>Kinh nghiệm khi hạ gục (EXP)<input type="number" data-combat="exp:${b.id}" value="${b.exp ?? ''}" min="0" max="2000000000" step="1" placeholder="Mặc định: 4.000.000" /></label>
+              <small class="muted">Để trống: mặc định 4.000.000 EXP. Nhân đôi khi người chơi dùng Tiên Thảo Lộ.</small>
               <label>Khoảng cách đòn (giây)<input type="number" data-combat="attackCooldown:${b.id}" value="${b.attackCooldown ?? 1.2}" min="0.05" max="60" step="any" required /></label>
               <small class="muted">Số nhỏ đánh nhanh hơn, gồm cả động tác ra chiêu; vẫn giữ hồi chiêu kỹ năng.</small>
               <label>Hệ số sát thương (%)<input type="number" data-combat="damagePercent:${b.id}" value="${b.damagePercent ?? 100}" min="1" max="10000" step="any" required /></label>
@@ -746,7 +752,7 @@ function renderBossSections() {
       const [key, id] = input.dataset.combat.split(':');
       const boss = state.bosses.find(b => b.id === Number(id));
       if (!boss) return;
-      if (key === 'hp' && input.value === '') delete boss.hp;
+      if ((key === 'hp' || key === 'exp') && input.value === '') delete boss[key];
       else if (input.value === '') { input.setCustomValidity('Vui lòng nhập giá trị.'); input.reportValidity(); return; }
       else boss[key] = Number(input.value);
       markDirty();
@@ -1273,7 +1279,8 @@ function validateInputs() {
   renderDropRatesSummary();
   for (const field of document.querySelectorAll('input[type=number]:not(:disabled)')) {
     if (field.closest('.dlg, #boss-bulk') || field.id === 'inp-add-minute') continue;
-    if (field.value === '' && !field.dataset.combat?.startsWith('hp:')) field.setCustomValidity('Vui lòng nhập giá trị.');
+    const optionalCombat = /^(hp|exp):/.test(field.dataset.combat ?? '');
+    if (field.value === '' && !optionalCombat) field.setCustomValidity('Vui lòng nhập giá trị.');
     else if (field.id !== 'inp-rate-gold') field.setCustomValidity('');
     if (!field.reportValidity()) return false;
   }
@@ -1319,8 +1326,8 @@ async function applyConfig() {
     if (!res.ok) throw new Error(data.error || 'Game chưa nhận cấu hình.');
     applying = false;
     markDirty();
-    const tuned = (data.appliedBosses ?? []).filter(a => state.bosses.some(b => b.id === a.id && (b.hp !== undefined || b.attackCooldown !== undefined || b.damagePercent !== undefined)));
-    const summary = tuned.slice(0, 3).map(a => `${a.name}: HP ${a.hp.toLocaleString('vi-VN')} · sát thương ${a.damagePercent}%${a.attackCycleMs !== undefined ? ` · chu kỳ nền ${a.attackCycleMs / 1000} giây` : ''}`).join('; ');
+    const tuned = (data.appliedBosses ?? []).filter(a => state.bosses.some(b => b.id === a.id && (b.hp !== undefined || b.exp !== undefined || b.attackCooldown !== undefined || b.damagePercent !== undefined)));
+    const summary = tuned.slice(0, 3).map(a => `${a.name}: HP ${a.hp.toLocaleString('vi-VN')}${a.exp !== undefined ? ` · EXP ${a.exp.toLocaleString('vi-VN')}` : ''} · sát thương ${a.damagePercent}%${a.attackCycleMs !== undefined ? ` · chu kỳ nền ${a.attackCycleMs / 1000} giây` : ''}`).join('; ');
     $('save-status').textContent = `Game đã xác nhận cấu hình đã lưu.${summary ? ` ${summary}.` : ''} Boss sinh lại theo lịch xuất hiện.`;
   } catch (error) {
     applying = false;

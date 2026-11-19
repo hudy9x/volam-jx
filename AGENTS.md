@@ -119,6 +119,8 @@ tasks/                 CURRENT.md (điểm dừng) · BACKLOG.md · HISTORY.md �
 
 ## 6. Quyết định hiện tại (đừng tự đổi)
 
+- **EXP Boss Hoàng Kim (USER 2026-11-19):** mặc định `GOLDEN_BOSS_DEFAULT_EXP = 4.000.000` cho mọi Boss Hoàng Kim (không cần sửa config cũ); từng boss có trường tùy chọn `exp` (`0–2.000.000.000`, để trống = 4.000.000), chỉnh riêng hoặc hàng loạt trong tool Boss, Apply xác nhận `exp` thực nhận từ server. Khi người chơi dùng Tiên Thảo Lộ, EXP nhận được nhân đôi theo `EXP_ELIXIR` (`normal/special = 2`), giữ luật chia tổ đội/sát thương; Boss Xanh và quái thường giữ công thức cũ.
+
 - **Sát thương/giảm hiệu ứng Boss (USER2026-11-19):** damagePercent100%mặcđịnh,1–10000, nhân direct/chiêucon/độc một lần lúcgắn (giữtrần), không nhânheal/phảnđòn/duration. controlReduction hurt0–100(default60)→hitRecover,cold0–77/stun0–95/poison0–95(default0) cộng bag/passive/state theo côngthứccũ; chỉ giảm thời gianbosschịu, khôngbuffthờigianbossgâylênngười. Tool chỉnh riêng/nhóm,Apply xác nhận thông sốserver; không tựđổiconfigthật.
 
 - **Kỹ năng Boss (USER2026-11-18):** tool chọn chiêu/cấp riêng hoặc thay cùng danh sách cho nhóm, thêm150đúngphái giữ chiêu/cấp cũ/không trùng. Config chỉnh qua editor có skillLevelsFixed:true dùng đúng cấp luyện, config cũ giữ scale; AI chỉ random attack đã gán và ưu tiên đủ tầm, không tự học150. Backend kiểm1–32chiêu/mã/cấp/trùng/ít nhất1attack, Apply xác nhận skill thực nhận; vẫn chỉnh riêng.

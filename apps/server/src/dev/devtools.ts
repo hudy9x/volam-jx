@@ -90,7 +90,7 @@ export function registerDevRoutes(app: Application, spawnsDir: string): void {
       combatTuningVersion: 1,
       appliedBosses: cfg.bosses.map(b => {
         const def = MONSTERS[b.id];
-        return { id: b.id, name: b.name, hp: monsterAt(def, b.level, 2).hp,
+        return { id: b.id, name: b.name, hp: monsterAt(def, b.level, 2).hp, exp: def.expOverride,
           damagePercent: def.damagePercent ?? 100, controlReduction: {hurt:def.hitRecover ?? 0,cold:def.controlReduction?.cold ?? 0,stun:def.controlReduction?.stun ?? 0,poison:def.controlReduction?.poison ?? 0}, attackCooldown: def.attackCooldown, attackCycleMs: def.attackCycleMs, leash: def.leash, skills: monsterAt(def, b.level, 2).skills, skillLevelsFixed: !def.skillScale };
       }),
     });

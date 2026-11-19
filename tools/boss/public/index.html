@@ -33,7 +33,7 @@
       <div class="panel-header spread">
         <div>
           <h2 id="boss-list-title">Danh sách Boss</h2>
-          <p class="muted">Bật hoặc tắt xuất hiện, chỉnh cấp, HP, khoảng cách đòn đánh, phạm vi hoạt động, vật phẩm rơi và vị trí cho từng Boss. Chỉnh sửa tạo bản nháp; Lưu ghi cấu hình, Áp dụng gửi bản đã lưu tới game.</p>
+          <p class="muted">Bật hoặc tắt xuất hiện, chỉnh cấp, HP, kinh nghiệm (EXP), khoảng cách đòn đánh, phạm vi hoạt động, vật phẩm rơi và vị trí cho từng Boss. Chỉnh sửa tạo bản nháp; Lưu ghi cấu hình, Áp dụng gửi bản đã lưu tới game.</p>
         </div>
         <div class="filter-bar">
           <label>Tìm Boss
@@ -61,6 +61,9 @@
         <div class="bulk-fields">
           <div><label for="bulk-hp-mode">HP</label><select id="bulk-hp-mode"><option value="keep">Giữ từng Boss</option><option value="custom">Đặt HP chung</option><option value="auto">Theo cấp từng Boss</option></select>
             <label for="bulk-hp" class="bulk-value" hidden>HP chung<input id="bulk-hp" type="number" min="1" max="2000000000" step="1" disabled /></label>
+          </div>
+          <div><label for="bulk-exp-mode">Kinh nghiệm (EXP)</label><select id="bulk-exp-mode"><option value="keep">Giữ từng Boss</option><option value="custom">Đặt EXP chung</option><option value="default">Mặc định (4.000.000)</option></select>
+            <label for="bulk-exp" class="bulk-value" hidden>EXP chung<input id="bulk-exp" type="number" min="0" max="2000000000" step="1" value="4000000" disabled /></label>
           </div>
           <div><label for="bulk-attack-mode">Tốc độ đánh</label><select id="bulk-attack-mode"><option value="keep">Giữ từng Boss</option><option value="custom">Đặt khoảng cách đòn chung</option></select>
             <label for="bulk-attack" class="bulk-value" hidden>Khoảng cách đòn chung (giây)<input id="bulk-attack" type="number" min="0.05" max="60" step="any" disabled /></label>

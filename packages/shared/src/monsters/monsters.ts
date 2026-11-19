@@ -3,7 +3,7 @@
 // server's AddNpc(id, level, …); hit points and damage follow the level (scaling.ts). Skills are original skill
 // ids with a level, exactly like npcs.txt Skill1–4 / Level1–4; bosses may borrow any faction's skills.
 import type { Element } from '../characters/factions.js';
-import { GOLDEN_BOSS_CONFIG, type GoldenBossConfig, type GoldenBossEntry } from '../bosses/index.js';
+import { GOLDEN_BOSS_CONFIG, GOLDEN_BOSS_DEFAULT_EXP, type GoldenBossConfig, type GoldenBossEntry } from '../bosses/index.js';
 import { monsterDamage, monsterHp } from './scaling.js';
 import { GEN_MONSTERS, type GenMonster } from './monsters.gen.js';
 
@@ -18,6 +18,8 @@ export interface MonsterDef {
   hp: number;
   /** HP riêng chỉ dành cho Boss Hoàng Kim cấu hình. */
   hpOverride?: number;
+  /** Điểm kinh nghiệm cố định khi hạ gục (dành cho Boss Hoàng Kim cấu hình). */
+  expOverride?: number;
   damagePercent?: number;
   controlReduction?: GoldenBossEntry['controlReduction'];
   /** Explicit boss cycle, including the cast pose (milliseconds). */
@@ -69,7 +71,7 @@ export function goldenBossFromEntry(b: GoldenBossEntry): MonsterDef {
   const lv = Math.max(1, b.level || 90);
   return {
     id: b.id, name: b.name, sprite: b.sprite, level: lv, element: b.element,
-    hp: b.hp ?? monsterHp(lv, 2), hpOverride: b.hp, damagePercent: b.damagePercent ?? 100, controlReduction: b.controlReduction, attackCycleMs: b.attackCooldown === undefined ? undefined : b.attackCooldown * 1000, boundedHome: true, damage: monsterDamage(lv), resist: 0.25, resistance: b.resistance,
+    hp: b.hp ?? monsterHp(lv, 2), hpOverride: b.hp, expOverride: b.exp ?? GOLDEN_BOSS_DEFAULT_EXP, damagePercent: b.damagePercent ?? 100, controlReduction: b.controlReduction, attackCycleMs: b.attackCooldown === undefined ? undefined : b.attackCooldown * 1000, boundedHome: true, damage: monsterDamage(lv), resist: 0.25, resistance: b.resistance,
     speed: 210,
     skills: b.skills.map(([sid, slv]) => [sid, slv]),
     skillScale: b.skillLevelsFixed ? undefined : b.skills.map(([, slv]) => [Math.max(1, Math.round(slv * 0.4)), 0.1]),
