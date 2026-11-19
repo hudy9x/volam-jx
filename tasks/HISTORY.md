@@ -1890,3 +1890,25 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - Tácđộng: castNow/timing +SkillEnginecheck/cast, describe/tooltip, clientAuto/botready, AutoHostcost/phầnthuốc và SkillLab. Client dùng actionMsserver; không thay preset/render/asset. Không sửa gameplayAutođộtrễ/giữđích của phiênkhác.
 - Graph skillCost7callertrực tiếp/cảnhbáoCRITICAL; PDGprobeUNKNOWN không coi là antoàn. Graph lúc gọi chậm1commit, metadata sau đó đã đượcphiênkhác làm mới vềHEAD; kếhoạch dựa nguồnthật, không reindex bởi lượt này. File kếhoạch docs/plans/2026-11-16-gitnexus-plan-tianwang-cadence-life-cost.md.
 - Chỉ lưu phươngán/tracking; không code/tests/config/DB/assets/gen/commit/push/restart. Chưa chạy bộkiểmthửtriểnkhai.
+
+## 2026-11-19 · HUD thanh ngang trên cùng và minimap đơn giản (chưa commit)
+
+- USER yêu cầu sửa theo ảnh VLTK: Cấp → HP → MP → EXP → Hạng sát mép trên/căn giữa khung game. Vitals bỏ khung chân dung khỏi hiển thị, thanh ngang rộng840 trong HUD1280, số HP/MP/%EXP ở dưới. Hạng là nút mở bảng xếp hạng hiện có, chưa hiển thị thứ hạng cá nhân bằng số.
+- Minimap sát góc trên phải208×180, ảnh bản đồ phía trên/tên chồng lên ảnh, tọa độ dưới trái; nút cắm cờ, mở rộng bản đồ, zoom1×/2×/4×, chuyển map và thu gọn dưới phải. Giữ click/chạm bản đồ để cắm cờ và di chuyển, nút cờ bật viền chỉ dẫn. Dùng chung HUD fit cho Web/Desktop/Mobile, không đổi preset1280×720/800 hay render2×; mobile native chưa kiểm.
+- Kiểm tra: client build đạt, diff-check đạt; xem bố cục bằng browser với HTML/CSS thật của hai component trên nền trống (không phải gameplay). Typecheck toàn repo còn lỗi đang có trong bazaar.ts150/295 (HudContext.meta), ngoài phần HUD này. Chưa kiểm gameplay/ảnh map thật hoặc tương tác tích hợp, không commit/push. HEAD cc393f0; giữ các thay đổi Chợ bày bán/màu tên đang làm song song.
+
+
+## 2026-11-19 · Dời nút Auto tránh che thanh máu (chưa commit)
+
+- USER phản hồi nút Auto chồng HP sau đổi HUD. Sửa notices.css: chuyển left350/top8 → left8/top48, tối thiểu76×44; bỏ override container cũ. Nằm dưới hàng chỉ số kết thúc y40 và trên trạng thái bắt đầu y112, không đổi logic chạy/dừng. Dùng chung tọa độ HUD fit Web/Desktop/Mobile; chưa kiểm native.
+- HEAD cc393f0, giữ các thay đổi song song. Đây là thay đổi vị trí CSS; kiểm build/typecheck ghi theo kết quả trong trả lời, không commit/push.
+
+## 2026-11-19 · Auto gọn cạnh ô Cấp (chưa commit)
+
+- USER yêu cầu đồng bộ style Auto/play và đặt cạnh mô tả Cấp. Notices chuyển nút vào đầu flex của hud-char, ngay trái Cấp; bỏ tọa độ tuyệt đối, kích thước62×20, viền vuông/nền xanh đen/font cùng thanh chỉ số, chạy xanh lá với pause/dừng play, có focus và tooltip. Không đổi logic Auto. Thay vị trí left8/top48 của lượt trước.
+- HEAD hiện088a8fe (công việc Chợ/màu tên đã commit song song; khác checkpointcc393f0 cũ), giữ các thay đổi khác. Typecheck/build đạt; diff-check đạt. Chưa kiểm gameplay/native; chung HUD Web/Desktop/Mobile, nút gọn còn nhỏ khi fit trên điện thoại, cần bố cục chạm riêng sau. Không commit/push.
+
+## 2026-11-19 · Commit HUD và Auto theo USER
+
+- USER yêu cầu commit: thanh Cấp/HP/MP/EXP/Hạng sát trên căn giữa, minimap đơn giản và nút Auto gọn cạnh Cấp. Commit trên main, không push; mốc trước088a8fe. Checkpoint này nằm cùng commit triển khai (xem git log để lấy hash).
+- Typecheck/build đã đạt ở lượt sửa cuối, git diff --check đạt trước commit. Chưa kiểm gameplay/native. Các ghi chú chưa commit bên dưới là lịch sử trước checkpoint này.

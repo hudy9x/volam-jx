@@ -7,6 +7,7 @@ import { assetUrl } from '../../art/assets';
 const HTML = `
 <div id="hud-char" class="frame">
   <div class="portrait"><img id="hud-portrait" alt="" /></div>
+  <div class="hud-level">Cấp <strong id="hud-level">1</strong></div>
   <div class="info">
     <div class="hud-name" id="hud-name"></div>
     <div class="hud-sub" id="hud-sub"></div>
@@ -14,19 +15,23 @@ const HTML = `
     <div class="vbar mp" title="Nội lực"><i id="hud-mp"></i><span id="hud-mp-text"></span></div>
     <div class="vbar exp" id="hud-exp-bar" title="Kinh nghiệm"><i id="hud-exp"></i><span id="hud-exp-text"></span></div>
   </div>
+  <button type="button" id="hud-rank" title="Bảng xếp hạng">Hạng <span>BXH</span></button>
 </div>`;
 
 /** Top left: portrait, name, faction · level, Sinh lực / Nội lực / Kinh nghiệm bars. */
 export class Vitals {
-  constructor(parent: HTMLElement) {
+  constructor(parent: HTMLElement, openRankings: () => void) {
     mount(parent, HTML);
+    $('hud-rank').addEventListener('click', openRankings);
   }
 
   /** Name, faction (or hệ before joining) · level, portrait; again whenever level / faction change. */
   setCharacter(actor: ActorState, faction: FactionDef | undefined, series?: Element): void {
     $('hud-name').textContent = actor.name;
+    $('hud-level').textContent = String(actor.level);
     const who = faction?.name ?? (series ? `Hệ ${ELEMENT_NAMES[series]}` : '');
-    $('hud-sub').textContent = `${who} · Cấp ${actor.level}`;
+    $('hud-sub').textContent = who;
+    $('hud-char').title = `${actor.name} · ${who} · Cấp ${actor.level}`;
     const portrait = $<HTMLImageElement>('hud-portrait');
     const src = assetUrl(`portraits/${portraitFaction(actor.faction, series ?? faction?.element ?? 'kim', actor.gender as Gender)}.png`);
     if (portrait.getAttribute('src') === src) return;

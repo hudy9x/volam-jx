@@ -1,21 +1,17 @@
-/* bản đồ nhỏ */
-#hud-minimap { position: absolute; top: 4px; right: 4px; padding: 0; }
-.mm-head { display: flex; align-items: center; gap: 4px; height: 24px; padding: 0 4px 0 8px; margin-bottom: 3px;
-  background: url(/assets/ui/stone.webp) center / auto 100%; border: 1px solid #1a2520; }
-#hud-map { flex: 1; min-width: 0; max-width: 150px; color: #141209; font-weight: 700; text-shadow: 0 0 2px #fff3b0, 0 0 2px #fff3b0;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mm-btns { display: flex; gap: 2px; }
-.mm-btn { width: 14px; height: 14px; padding: 0; border: 0; cursor: pointer; background: url(/assets/ui/mm-world.webp) 0 0 / 300% 100%; }
-.mm-btn:hover { background-position: 100% 0; }
-.mm-btn:active { background-position: 50% 0; }
-.mm-btn.switch { background-image: url(/assets/ui/mm-switch.webp); }
-.mm-btn.fold { background: #0d100f; border: 1px solid var(--teal); color: var(--gold); font: 700 11px/12px Tahoma, sans-serif; }
-#minimap { display: block; width: 200px; height: 200px; border: 1px solid #000; cursor: crosshair; }
-.mm-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--muted); margin-top: 3px; white-space: nowrap; max-width: 200px; }
-#hud-minimap.collapsed #minimap, #hud-minimap.collapsed .mm-foot { display: none; }
-#hud-minimap.collapsed .mm-head { margin-bottom: 0; }
-
-@container (max-width: 720px) {
-  #minimap { width: 128px; height: 128px; }
-  #hud-map { max-width: 80px; }
-}
+/* Plain map above a single compact coordinate / action row. */
+#hud-minimap { position: absolute; top: 0; right: 0; width: 208px; padding: 0; background: #030907db;
+  border: 1px solid #687a5c; box-shadow: 0 1px 2px #000; }
+.mm-map { position: relative; }
+#minimap { display: block; width: 206px; height: 156px; cursor: crosshair; }
+#hud-map { position: absolute; top: 2px; left: 4px; right: 4px; text-align: center; color: #76e13e;
+  font-size: 12px; text-shadow: var(--outline); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.mm-foot { display: flex; align-items: center; justify-content: space-between; gap: 2px; height: 23px; padding: 1px 2px;
+  border-top: 1px solid #52664e; }
+#hud-pos { min-width: 0; color: #72df54; font: 11px/18px Tahoma, sans-serif; white-space: nowrap; text-shadow: var(--outline); }
+.mm-btns { display: flex; flex: none; gap: 1px; }
+.mm-btn { display: grid; place-items: center; width: 19px; height: 19px; padding: 0; border: 1px solid #667f65;
+  background: #0b1917; color: #e5dba3; cursor: pointer; font: 16px/1 Tahoma, sans-serif; }
+.mm-btn:hover, .mm-btn:focus-visible, .mm-btn[aria-pressed="true"] { color: #fff0b1; background: #344a32; outline: 1px solid #cfbc7b; }
+#minimap-flag { color: #f47f65; }
+#hud-minimap.planting #minimap { outline: 1px solid #e9ca74; outline-offset: -1px; }
+#hud-minimap.collapsed .mm-map { display: none; }

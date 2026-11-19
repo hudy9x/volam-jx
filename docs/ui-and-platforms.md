@@ -26,9 +26,9 @@ nên phải thử thêm trên WebKit chứ không chỉ Chromium.
 
 | Thành phần | Vị trí |
 |---|---|
-| Khung nhân vật: chân dung, tên, phái·cấp, thanh Sinh lực / Nội lực | Trên trái |
+| Thanh chỉ số: Cấp, Sinh lực, Nội lực, Kinh nghiệm, nút Hạng mở BXH | Sát mép trên, căn giữa khung HUD 1280 |
 | Biểu tượng trạng thái (bùa lợi/hại, số giây còn lại) | Dưới khung nhân vật |
-| Bản đồ nhỏ: tên map, nút Chuyển map / Bản đồ lớn / Thu gọn, tọa độ, số người | Trên phải |
+| Bản đồ nhỏ đơn giản: tên map chồng trên bản đồ; tọa độ dưới trái; Cắm cờ / Mở rộng / Zoom / Chuyển map / Thu gọn dưới phải | Sát góc trên phải |
 | Thanh phím tắt: ô 1–9, chuột trái/phải, hồi chiêu, nút Hành trang, Kỹ năng, Ngựa, PK, Cửa hàng, Hệ thống | Dưới giữa |
 | Thông báo, dòng "Đang tự động đánh", tooltip vật phẩm/kỹ năng (`#item-tip` dùng chung) | Nổi |
 

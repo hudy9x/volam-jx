@@ -36,6 +36,13 @@ class Minimap {
   /** Current window: world x/y of the canvas' top-left corner and canvas px per world px. */
   private win = { x: 0, y: 0, k: 1 };
   private flag: Flag | null = null;
+  private zoom = 1;
+
+  cycleZoom(): number {
+    this.zoom = this.zoom === 4 ? 1 : this.zoom * 2;
+    this.lastDraw = 0;
+    return this.zoom;
+  }
 
   constructor(private readonly canvas: HTMLCanvasElement, onPick: (x: number, y: number) => void) {
     this.ctx = canvas.getContext('2d')!;
@@ -90,7 +97,7 @@ class Minimap {
     const { width: mw, height: mh } = this.meta.raw.size;
 
     // Window centred on the camera, clamped to the map (whole map when it is small enough).
-    const span = Math.min(SPAN, Math.max(mw, mh));
+    const span = Math.min(SPAN / this.zoom, Math.max(mw, mh));
     const k = Math.min(width, height) / span;
     const vw = width / k, vh = height / k;
     const cx = view.x + view.width / 2, cy = view.y + view.height / 2;
@@ -189,17 +196,22 @@ function drawFlag(ctx: CanvasRenderingContext2D, x: number, y: number): void {
 }
 
 const HTML = `
-<div id="hud-minimap" class="frame">
-  <div class="mm-head">
+<div id="hud-minimap">
+  <div class="mm-map">
+    <canvas id="minimap" width="208" height="156" title="Chọn vị trí để cắm cờ và chạy tới"></canvas>
     <span id="hud-map"></span>
-    <span class="mm-btns">
-      <button class="mm-btn world" id="travel-open" title="Chuyển bản đồ (${keyLabel('travel')})"></button>
-      <button class="mm-btn switch" id="bigmap-open" title="Bản đồ lớn (${keyLabel('bigmap')})"></button>
-      <button class="mm-btn fold" id="minimap-toggle" title="Thu gọn bản đồ nhỏ">–</button>
-    </span>
   </div>
-  <canvas id="minimap" width="200" height="200" title="Click để chạy tới vị trí đó (cắm cờ)"></canvas>
-  <div class="mm-foot"><span id="hud-pos"></span><span id="hud-players"></span></div>
+  <div class="mm-foot">
+    <span id="hud-pos"></span>
+    <span class="mm-btns">
+      <button type="button" class="mm-btn" id="minimap-flag" title="Cắm cờ: chọn điểm trên bản đồ" aria-label="Cắm cờ" aria-pressed="false">⚑</button>
+      <button type="button" class="mm-btn switch" id="bigmap-open" title="Bản đồ lớn (${keyLabel('bigmap')})" aria-label="Mở rộng bản đồ">⛶</button>
+      <button type="button" class="mm-btn" id="minimap-zoom" title="Độ phóng minimap: 1×" aria-label="Đổi độ phóng minimap">＋</button>
+      <button type="button" class="mm-btn world" id="travel-open" title="Chuyển bản đồ (${keyLabel('travel')})" aria-label="Chuyển bản đồ">▧</button>
+      <button type="button" class="mm-btn fold" id="minimap-toggle" title="Thu gọn bản đồ nhỏ" aria-label="Thu gọn bản đồ nhỏ">–</button>
+    </span>
+    <span id="hud-players" class="hidden"></span>
+  </div>
 </div>`;
 
 export interface MinimapHandlers {
@@ -214,7 +226,23 @@ export class MinimapPanel {
 
   constructor(parent: HTMLElement, handlers: MinimapHandlers) {
     mount(parent, HTML);
-    this.map = new Minimap($<HTMLCanvasElement>('minimap'), handlers.moveTo);
+    this.map = new Minimap($<HTMLCanvasElement>('minimap'), (x, y) => {
+      handlers.moveTo(x, y);
+      $('minimap-flag').setAttribute('aria-pressed', 'false');
+      $('hud-minimap').classList.remove('planting');
+    });
+    $('minimap-flag').addEventListener('click', () => {
+      settings.set({ minimap: true });
+      const active = $('minimap-flag').getAttribute('aria-pressed') !== 'true';
+      $('minimap-flag').setAttribute('aria-pressed', String(active));
+      $('hud-minimap').classList.toggle('planting', active);
+    });
+    $('minimap-zoom').addEventListener('click', () => {
+      settings.set({ minimap: true });
+      const zoom = this.map.cycleZoom();
+      $('minimap-zoom').title = `Độ phóng minimap: ${zoom}× (bấm để đổi)`;
+      $('minimap-zoom').setAttribute('aria-label', `Độ phóng minimap ${zoom}×, bấm để đổi`);
+    });
     $('travel-open').addEventListener('click', () => handlers.openTravel());
     $('bigmap-open').addEventListener('click', () => handlers.toggleBigMap());
     $('minimap-toggle').addEventListener('click', () => settings.set({ minimap: !settings.get().minimap }));
@@ -223,6 +251,7 @@ export class MinimapPanel {
       const btn = $('minimap-toggle');
       btn.textContent = s.minimap ? '–' : '+';
       btn.title = s.minimap ? 'Thu gọn bản đồ nhỏ' : 'Mở bản đồ nhỏ';
+      btn.setAttribute('aria-label', btn.title);
     });
   }
 

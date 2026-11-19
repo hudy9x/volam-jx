@@ -1,23 +1,21 @@
-/* nhân vật */
-#hud-char { position: absolute; top: 4px; left: 4px; display: flex; gap: 8px; width: 300px; padding: 2px 4px 4px; }
-#hud-char.frame, #hud-minimap.frame {
-  border: solid transparent; border-width: 19px 21px; border-image: url(/assets/ui/jade.webp) 19 21 round;
-  background: var(--body); background-clip: padding-box;
-}
-.portrait { width: 50px; height: 50px; flex: none; border: 1px solid var(--teal); background: #000; overflow: hidden; }
-.portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
-#hud-char .info { flex: 1; min-width: 0; display: grid; gap: 3px; align-content: start; }
-.hud-name { color: var(--gold); font-weight: 700; text-shadow: var(--outline); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hud-sub { color: var(--muted); font-size: 11px; margin-top: -2px; }
-.vbar { --w: 200px; position: relative; height: 12px; background: #050505; border: 1px solid #000; box-shadow: 0 0 0 1px var(--line); }
-.vbar > i { display: block; height: 100%; width: 100%; background: url(/assets/ui/bars.webp) 0 0 / var(--w) 48px; transition: width .15s; }
-.vbar.mp > i { background-position: 0 -12px; }
-.vbar span { position: absolute; inset: 0; text-align: center; font-size: 10px; line-height: 11px; color: #fff; text-shadow: var(--outline); }
-
-@container (max-width: 720px) {
-  #hud-char { width: 210px; }
-  .vbar { --w: 130px; }
-}
-/* kinh nghiệm: the original Kinh nghiệm bar (4th row of bars.webp, gen:ui) under Nội lực, with its percent */
-.vbar.exp { height: 12px; }
-.vbar.exp > i { background-position: 0 -36px; }
+/* Compact original-style strip, in fixed HUD coordinates for both viewport presets. */
+#hud-char.frame { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 840px;
+  height: 40px; padding: 2px 4px; display: flex; align-items: flex-start; gap: 6px;
+  border: 0; background: linear-gradient(#121c18ed, #050807b8 22px, transparent 23px); }
+#hud-char .portrait, #hud-char .hud-name, #hud-char .hud-sub { display: none; }
+.hud-level, #hud-rank { flex: none; height: 20px; color: #ddd8b5; font: 12px/20px Tahoma, sans-serif;
+  white-space: nowrap; text-shadow: var(--outline); }
+.hud-level strong, #hud-rank span { display: inline-block; min-width: 30px; padding: 0 3px; color: #83df79;
+  background: #07140d; box-shadow: inset 0 0 0 1px #506d50; text-align: center; font-weight: 400; }
+#hud-rank { padding: 0; border: 0; background: transparent; cursor: pointer; }
+#hud-rank:hover, #hud-rank:focus-visible { color: #ffe08a; outline: 1px solid #b9a76b; }
+#hud-char .info { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+#hud-char .vbar { position: relative; height: 17px; margin-top: 1px; padding: 2px; background: #030806;
+  border: 1px solid #8b9d8c; box-shadow: inset 0 0 0 1px #19251e, 1px 1px #000; }
+#hud-char .vbar > i { display: block; height: 100%; width: 100%; transition: width .15s; }
+#hud-char .hp > i { background: linear-gradient(#ffb9ae, #f14443 40%, #b52124 55%, #e54a46); }
+#hud-char .mp > i { background: linear-gradient(#a2e3ff, #209af3 40%, #1167ca 55%, #40a5f1); }
+#hud-char .exp > i { background: linear-gradient(#dbe9bb, #9dbb76 40%, #587b43 55%, #9dbb76); }
+#hud-char .vbar span { position: absolute; top: 19px; left: 0; right: 0; text-align: center;
+  font: 11px/14px Tahoma, sans-serif; color: #f2eedc; text-shadow: var(--outline); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { #hud-char .vbar > i { transition: none; } }

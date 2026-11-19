@@ -1,3 +1,13 @@
+## 2026-11-19 · Commit HUD và Auto theo USER
+
+- USER yêu cầu commit: thanh Cấp/HP/MP/EXP/Hạng sát trên căn giữa, minimap đơn giản và nút Auto gọn cạnh Cấp. Commit trên main, không push; mốc trước088a8fe. Checkpoint này nằm cùng commit triển khai (xem git log để lấy hash).
+- Typecheck/build đã đạt ở lượt sửa cuối, git diff --check đạt trước commit. Chưa kiểm gameplay/native. Các ghi chú chưa commit bên dưới là lịch sử trước checkpoint này.
+
+## 2026-11-19 · Auto gọn cạnh ô Cấp (chưa commit)
+
+- USER yêu cầu đồng bộ style Auto/play và đặt cạnh mô tả Cấp. Notices chuyển nút vào đầu flex của hud-char, ngay trái Cấp; bỏ tọa độ tuyệt đối, kích thước62×20, viền vuông/nền xanh đen/font cùng thanh chỉ số, chạy xanh lá với pause/dừng play, có focus và tooltip. Không đổi logic Auto. Thay vị trí left8/top48 của lượt trước.
+- HEAD hiện088a8fe (công việc Chợ/màu tên đã commit song song; khác checkpointcc393f0 cũ), giữ các thay đổi khác. Typecheck/build đạt; diff-check đạt. Chưa kiểm gameplay/native; chung HUD Web/Desktop/Mobile, nút gọn còn nhỏ khi fit trên điện thoại, cần bố cục chạm riêng sau. Không commit/push.
+
 ## 2026-11-19 · Dời nút Auto tránh che thanh máu (chưa commit)
 
 - USER phản hồi nút Auto chồng HP sau đổi HUD. Sửa notices.css: chuyển left350/top8 → left8/top48, tối thiểu76×44; bỏ override container cũ. Nằm dưới hàng chỉ số kết thúc y40 và trên trạng thái bắt đầu y112, không đổi logic chạy/dừng. Dùng chung tọa độ HUD fit Web/Desktop/Mobile; chưa kiểm native.
