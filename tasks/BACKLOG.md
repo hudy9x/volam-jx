@@ -400,3 +400,5 @@ Ghi chú KN10 — 2026-11-15: xác minh tầng2 Đao Côn Lôn372/1080 không ch
 
 - ✅ Dời nút chạy/dừng Auto xuống góc trên trái dưới hàng chỉ số, tránh che HP (USER2026-11-19); giữ vùng bấm76×44.
 - ✅ Auto/play đồng bộ viền vuông với thanh chỉ số, nằm cùng hàng ngay bên trái Cấp (USER2026-11-19), thay vị trí dưới hàng chỉ số trước đó. Typecheck/build đạt.
+
+- [x] USER2026-11-19: Sửa điểm neo Boss Đường Phong enemy157 theo center SPR gốc qua generator/cache phiên bản mới; kiểm toàn bộ frame của7pose×8hướng, tên/HP3zoom và bảng ảnh5action×8hướng đạt; typecheck/build đạt. Chưa kiểm gameplay/native, chưa commit/push.

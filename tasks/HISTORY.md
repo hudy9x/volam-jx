@@ -1912,3 +1912,23 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 
 - USER yêu cầu commit: thanh Cấp/HP/MP/EXP/Hạng sát trên căn giữa, minimap đơn giản và nút Auto gọn cạnh Cấp. Commit trên main, không push; mốc trước088a8fe. Checkpoint này nằm cùng commit triển khai (xem git log để lấy hash).
 - Typecheck/build đã đạt ở lượt sửa cuối, git diff --check đạt trước commit. Chưa kiểm gameplay/native. Các ghi chú chưa commit bên dưới là lịch sử trước checkpoint này.
+
+## 2026-11-19 · Sửa điểm neo Boss Đường Phong theo hình gốc (chưa commit)
+
+- USER duyệt sửa và kiểm đủ tư thế/hướng. HEAD `2869162`; giữ nguyên thay đổi EXP Boss/HUD và các công việc khác.
+- gen-assets.sheet/writeSheet thêm chế độ chuẩn hóa box về chân160/202 bằng centerX/Y SPR, chỉ bật cho enemy157 (cả nhánh bóng nếu có); key cache riêng spr-anchor-v1 tránh dùng metadata cũ. Không sửa công thức tọa độ chung hoặc bù tên/HP riêng. Sinh bằng JX_CLIENT SHXT, chỉ5entry JX_SHEETS và5cacheentry mới thay đổi; metadata sprite khác giữ nguyên.
+- Đứng/idle: box146/135; chạy137/136; chịu đòn136/135; chết98/135; đánh/magic124/113. Gen lại5sheet, pixel giữ nguyên; không sửa asset bằng tay. Generator vẫn báo các tham chiếu thiếu có sẵn ngoài phạm vi.
+- tests/duong-phong-anchor.test.cjs chạy JxSprite/ActorView production với mock Phaser:960tổ hợp pose/hướng/frame, plate ở3zoom=2880tổ hợp; anchor/height/frame/name/bar/death đạt. Tổng9test cùng team-leader-render đạt. Typecheck/build đạt (cảnh báo chunk lớn cũ); diff-check đạt sau chuẩn hóa EOFtracking.
+- Đã xem contact sheet sprite thật5action×8hướng×3frame đại diện tại /tmp/jx-duong-phong/anchor-review.png; đây là bảng rà soát, không phải ảnh gameplay. Chưa kiểm game đang chạy/native. Web/Desktop/Mobile dùng chung renderer; reload client, production build lại. Không restart game/đổi DB/config thật, không commit/push. GitNexus MCP không khả dụng, kiểm phụ thuộc trực tiếp qua generator→metadata→PaperDoll→ActorView.
+
+## 2026-11-19 · Điều tra thanh máu Đường Phong lệch thân (chưa sửa code)
+
+- USER cung cấp ảnh và yêu cầu điều tra. HEAD `2869162` khớp CURRENT; giữ mọi thay đổi EXP Boss/HUD có sẵn. GitNexus MCP không khả dụng; đối chiếu nguồn hiện tại trực tiếp, không dựa index cũ.
+- Boss522 dùng enemy157. SPR nguồn SHXT enemy157_st: canvas50×73, center14/67, frame offset0/0; attack92×104 center36/89, walk58×77 center23/66. Metadata đã sinh giữ box0/0 cho mọi action, không giữ center SPR.
+- writeSheet(gen-assets.ts) chỉ ghi unionBox, bỏ centerX/Y; PaperDoll.place luôn trừ FOOT160/202. Khi đứng, góc sprite=(actor.x−160,actor.y−202), trong khi anchor riêng yêu cầu(actor.x−14,actor.y−67): sai −146X/−135Y. Alpha bounds frame đầu8hướng xác nhận tâm thân nằm trái actor134.5–139.5world units. ActorView.drawPlate đặt tên/thanhHP quanh actor.x, vì vậy thân và plate tách nhau. Height cũng suy từ FOOT_Y−boxY=202 thay vì chiều cao theo anchor riêng.
+- Kết luận xác minh lỗi chuẩn hóa anchor trong pipeline tài nguyên/render, phù hợp lệch ngang trong ảnh; chưa đo runtime phiên USER hoặc giải thích định lượng toàn bộ độ lệch dọc ảnh. Đề xuất chuẩn hóa metadata NPC theo center SPR và tái sinh có vô hiệu cache liên quan, kiểm đủ tư thế/hướng và các sprite cũ; chưa được duyệt triển khai. Chung renderer Web/Desktop/Mobile, chưa kiểm native. Chỉ cập nhật tracking, không sửa code/asset/DB, không commit/push; không thêm/tick BACKLOG vì chỉ điều tra.
+
+## 2026-11-19 · Commit riêng sửa điểm neo Đường Phong theo USER
+
+- USER yêu cầu commit riêng, không push. Commit gồm generator, metadata/cache enemy157, kiểm thử và tracking riêng của lỗi này; giữ thay đổi EXP Boss/HUD và điều tra khác ngoài commit. Nền `2869162`; hash commit mới xem git log.
+- 9 kiểm thử đạt; typecheck/build đã đạt ở lượt triển khai, kiểm staged diff trước commit. Chưa kiểm gameplay/native. Không push.

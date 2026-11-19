@@ -71,21 +71,23 @@ const missing: string[] = [];
  * Queue one sprite -> sheet. Returns the asset key (path under public/assets without .webp) or null.
  * `optional`: a missing file is normal (shadows) and is not reported.
  */
-function sheet(gameFile: string, key: string, optional = false): string | null {
+function sheet(gameFile: string, key: string, optional = false, sprAnchor = false): string | null {
   if (sheets[key] || jobs.has(key)) return key;
   const out = path.join(PUBLIC, `${key}.webp`);
-  if (cache[key] && fs.existsSync(out)) { sheets[key] = cache[key]; return key; }
+  // Separate cache version: old metadata discarded the SPR anchor.
+  const cacheKey = sprAnchor ? `${key}:spr-anchor-v1` : key;
+  if (cache[cacheKey] && fs.existsSync(out)) { sheets[key] = cache[cacheKey]; return key; }
   const file = resolveAny(gameFile);
   if (!file) { if (!optional) missing.push(gameFile); return null; }
   jobs.set(key, async () => {
     const spr = decodeSpr(fs.readFileSync(file));
-    const meta = await writeSheet(spr, out);
-    sheets[key] = cache[key] = meta;
+    const meta = await writeSheet(spr, out, sprAnchor);
+    sheets[key] = cache[cacheKey] = meta;
   });
   return key;
 }
 
-async function writeSheet(spr: Spr, out: string): Promise<Meta> {
+async function writeSheet(spr: Spr, out: string, sprAnchor = false): Promise<Meta> {
   const dirs = spr.directions;
   const per = Math.max(1, Math.floor(spr.frames.length / dirs));
   const box = unionBox(spr.frames.slice(0, per * dirs));
@@ -110,7 +112,10 @@ async function writeSheet(spr: Spr, out: string): Promise<Meta> {
   const info = await sharp(px, { raw: { width: W, height: H, channels: 4 } }).webp({ lossless: true, effort: 4 }).toFile(out);
   encodedBytes += info.size;
   encodedCount++;
-  return [box.w, box.h, box.x, box.y, per, dirs, cols];
+  // Compact NPC sprites use their own foot anchor, unlike the 320×320 paper-doll canvas.
+  const bx = box.x + (sprAnchor ? 160 - spr.centerX : 0);
+  const by = box.y + (sprAnchor ? 202 - spr.centerY : 0);
+  return [box.w, box.h, bx, by, per, dirs, cols];
 }
 
 async function runJobs(): Promise<void> {
@@ -536,6 +541,8 @@ const npcTable = readTable('\\settings\\npcres\\普通npc资源.txt');
 const npcs: Record<string, Partial<Record<(typeof NPC_KEYS)[keyof typeof NPC_KEYS], string>>> = {};
 /** Shadow sheet per body sheet (engine: body sprite name + "b.spr"; many sprites have none, then nothing is drawn). */
 const npcShadows: Record<string, string> = {};
+// Đường Phong uses compact SPR canvases with per-action foot anchors.
+// Keep legacy canvas coordinates for other resources until their source anchors are verified.
 for (const res of NPC_RES) {
   const row = npcTable.rows.find(r => r[0].trim() === res);
   const folder = typeRow(res)?.[typeCol('ResFilePath')].trim();
@@ -545,11 +552,11 @@ for (const res of NPC_RES) {
     const key = NPC_KEYS[h as keyof typeof NPC_KEYS];
     const file = row[c]?.trim();
     if (!key || !file) return;
-    const k = sheet(`\\${folder}\\${file}`, `npc/${res}/${file.toLowerCase().replace(/\.spr$/, '')}`);
+    const k = sheet(`\\${folder}\\${file}`, `npc/${res}/${file.toLowerCase().replace(/\.spr$/, '')}`, false, res === 'enemy157');
     if (!k) return;
     set[key] = k;
     const shadowFile = file.replace(/\.spr$/i, 'b.spr');
-    const sk = sheet(`\\${folder}\\${shadowFile}`, `${k}b`, true);
+    const sk = sheet(`\\${folder}\\${shadowFile}`, `${k}b`, true, res === 'enemy157');
     if (sk) npcShadows[k] = sk;
   });
   npcs[res] = set;
