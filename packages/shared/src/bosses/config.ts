@@ -71,7 +71,14 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "y": 16040,
       "hp": 500000,
       "attackCooldown": 0.5,
-      "skillLevelsFixed": true
+      "skillLevelsFixed": true,
+      "controlReduction": {
+        "stun": 50,
+        "cold": 50,
+        "poison": 80,
+        "hurt": 40
+      },
+      "damagePercent": 300
     },
     {
       "id": 1194,
