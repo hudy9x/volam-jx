@@ -7,7 +7,7 @@ import type { ItemDef, ItemKind } from './items.js';
  */
 export const POTION_STACK_MAX = 50;
 /** Tổng số bình thuốc (`kind === 'potion'`) tối đa được mang trong toàn bộ hành trang. */
-export const MAX_BAG_POTIONS = 50;
+export const MAX_BAG_POTIONS = 60;
 
 export const STACK_LIMITS_BY_KIND: Partial<Record<ItemKind, number>> = {
   potion: POTION_STACK_MAX,

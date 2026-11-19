@@ -3,6 +3,9 @@
 .shop-item { display: flex; gap: 8px; align-items: center; padding: 5px; border: 1px solid var(--line); background: #0b0e0d; cursor: pointer; }
 .shop-item:hover { border-color: var(--teal-hi); background: #121a17; }
 .shop-item .fname { font-size: 12px; }
+#shop-panel[data-shop="drug"] .shop-item .fname,
+#shop-panel[data-shop="kytran"] .shop-item .fname { color: #f0f0f0; font-weight: 400; }
+#shop-panel[data-shop="kytran"] .shop-item.is-gold .fname { color: var(--gold); font-weight: 700; }
 .shop-item .muted { font-size: 11px; }
 /* price colours of the original Mua vào box (ui3/买卖确认.ini): 255,246,108; not enough money 0,135,133 */
 .shop-item .price { font-size: 11px; color: rgb(255, 246, 108); }

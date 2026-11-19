@@ -1,3 +1,11 @@
+## 2026-11-19 · Tăng trần thuốc hành trang lên 60, thông báo rõ & màu chữ cửa hàng (đã commit)
+
+- **USER yêu cầu triển khai:**
+  1. **Tăng trần thuốc (`packages/shared/src/items/stack-config.ts`):** nâng `MAX_BAG_POTIONS` từ `50` → `60` bình (tính gộp toàn hành trang, giữ `POTION_STACK_MAX = 50`/ô).
+  2. **Thông báo rõ khi chạm trần (`apps/client/src/ui/windows/shop.ts`):** kiểm tra `isStackablePotion(def) && bagPotionCount(bag) >= MAX_BAG_POTIONS` trước `roomFor` để hiển thị `"Hành trang đã đạt tối đa 60 bình thuốc (tính chung cả sinh lực và nội lực)."` thay vì `"Hành trang không đủ chỗ."`.
+  3. **Màu tên vật phẩm cửa hàng (`apps/client/src/ui/windows/shop.ts`, `shop.css`):** gắn `data-shop` trên `#shop-panel` và class `is-gold` cho trang bị hoàng kim (`def.gold || def.kind === 'mantle'`). Ở **Chủ dược điếm (`drug`)** và **Kỳ Trân Các (`kytran`)**, tên vật phẩm thường đổi sang màu trắng (`#f0f0f0`), `font-weight: 400`; riêng trang bị hoàng kim/quý hiếm (như Phi phong Hoàng kim) giữ màu vàng đậm (`var(--gold)`, `font-weight: 700`). Áp dụng chung Web, Desktop, Mobile.
+- **Kiểm tra:** `node --import tsx --test tests/potion-stack-and-autosort.test.ts` (6/6 pass), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần restart server và reload client để nhận thay đổi. Đã commit trên `main`, không push.
+
 ## 2026-11-19 · Tăng bán kính phát hiện Boss Hoàng Kim
 
 - USER yêu cầu gấp đôi bán kính phát hiện: goldenBossFromEntry.vision420→840 đơn vị isometric, chung toàn bộ Boss Hoàng Kim. Không đổi leash/phạm vi đuổi, tầm kỹ năng hoặc quái khác. Nguồn shared, server thực thi cho ba nền tảng.

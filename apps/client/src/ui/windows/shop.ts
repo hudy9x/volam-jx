@@ -1,5 +1,5 @@
 import { knbPurchaseResult } from '../../state/market';
-import { KNB_PRICE, BUY_MAX, KIND_NAMES, SHOP_ITEMS, SHOP_NAMES, SMITH_KINDS, moneyText, roomFor, sellPrice, type ItemDef, type ItemKind, type ShopId } from '@vltk/shared';
+import { KNB_PRICE, BUY_MAX, KIND_NAMES, MAX_BAG_POTIONS, SHOP_ITEMS, SHOP_NAMES, SMITH_KINDS, bagPotionCount, isStackablePotion, moneyText, roomFor, sellPrice, type ItemDef, type ItemKind, type ShopId } from '@vltk/shared';
 import { itemViewer } from '../../state/progress';
 import { keyLabel } from '../../input/keymap';
 import { bagIndexOf, inventory } from '../../state/inventory';
@@ -109,6 +109,7 @@ export class ShopWindow {
 
   render(): void {
     const smith = this.shop === 'smith';
+    $(ID).dataset.shop = this.shop;
     $('shop-tabs').classList.toggle('hidden', !smith);
     $('shop-all-row').classList.toggle('hidden', !smith);
     $('shop-forge').classList.toggle('hidden', !smith);
@@ -118,6 +119,7 @@ export class ShopWindow {
     $('shop-list').replaceChildren(...this.rows().map(def => {
       const el = document.createElement('div');
       el.className = 'shop-item';
+      if (def.gold || def.kind === 'mantle') el.classList.add('is-gold');
       const isKnb = !!(def.knbPrice && def.knbPrice > 0);
       el.dataset.price = String(isKnb ? def.knbPrice : def.price);
       el.dataset.currency = isKnb ? 'knb' : 'money';
@@ -156,7 +158,12 @@ export class ShopWindow {
   /** Mua vào box: up to BUY_MAX at once, no more than the bag has room for (by size). */
   private buy(def: ItemDef): void {
     if (trade.get().mode !== 'buy') trade.set({ shop: this.shop, mode: 'buy' });
-    const free = roomFor(inventory.get().bag, def, BUY_MAX);
+    const bag = inventory.get().bag;
+    if (isStackablePotion(def) && bagPotionCount(bag) >= MAX_BAG_POTIONS) {
+      this.ctx.notice(`Hành trang đã đạt tối đa ${MAX_BAG_POTIONS} bình thuốc (tính chung cả sinh lực và nội lực).`);
+      return;
+    }
+    const free = roomFor(bag, def, BUY_MAX);
     if (!free) { this.ctx.notice('Hành trang không đủ chỗ.'); return; }
     const isKnb = !!(def.knbPrice && def.knbPrice > 0);
     this.confirm.open({

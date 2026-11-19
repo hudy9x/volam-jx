@@ -36,12 +36,13 @@ function makeWorld(): { world: World; notices: string[] } {
   return { world, notices };
 }
 
-test('potions stack up to 50 per slot and cap at 50 total across the bag', () => {
+test('potions stack up to 50 per slot and cap at 60 total across the bag', () => {
   const bag = emptyBag();
   const hpDef = ITEMS['potion-0-5'];
   const mpDef = ITEMS['potion-1-5'];
   assert.ok(hpDef && mpDef);
 
+  assert.equal(MAX_BAG_POTIONS, 60);
   assert.equal(roomFor(bag, hpDef, 99), MAX_BAG_POTIONS);
   for (let i = 0; i < 30; i++) {
     assert.equal(addToBag(bag, createItem(hpDef, `hp-${i}`)), true);
@@ -49,13 +50,13 @@ test('potions stack up to 50 per slot and cap at 50 total across the bag', () =>
   assert.equal(bag.filter(Boolean).length, 1);
   assert.equal(itemQty(bag[0]), 30);
   assert.equal(bagPotionCount(bag), 30);
-  assert.equal(roomFor(bag, mpDef, 99), 20);
+  assert.equal(roomFor(bag, mpDef, 99), 30);
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 30; i++) {
     assert.equal(addToBag(bag, createItem(mpDef, `mp-${i}`)), true);
   }
   assert.equal(bag.filter(Boolean).length, 2);
-  assert.equal(bagPotionCount(bag), 50);
+  assert.equal(bagPotionCount(bag), 60);
   assert.equal(roomFor(bag, hpDef, 10), 0);
   assert.equal(roomFor(bag, mpDef, 10), 0);
 });
@@ -70,13 +71,13 @@ test('buyItem, useItem, sellItem, moveOrSwapInGrid and restoreItem handle stacke
   assert.equal(bag.filter(Boolean).length, 1);
   assert.equal(itemQty(bag[0]), 40);
 
-  // Exceeding 50 total potions in bag is rejected.
-  assert.equal(buyItem(world, sim, 'potion-1-5', 11), false);
-  assert.ok(notices.at(-1)?.includes('50 bình thuốc'));
+  // Exceeding 60 total potions in bag is rejected.
+  assert.equal(buyItem(world, sim, 'potion-1-5', 21), false);
+  assert.ok(notices.at(-1)?.includes(`${MAX_BAG_POTIONS} bình thuốc`));
 
-  // Buying remaining 10 succeeds.
-  assert.equal(buyItem(world, sim, 'potion-1-5', 10), true);
-  assert.equal(bagPotionCount(bag), 50);
+  // Buying remaining 20 succeeds.
+  assert.equal(buyItem(world, sim, 'potion-1-5', 20), true);
+  assert.equal(bagPotionCount(bag), 60);
 
   // Drinking 1 decrements stack instead of deleting slot.
   assert.equal(useItem(world, sim, 0), true);
@@ -92,7 +93,7 @@ test('buyItem, useItem, sellItem, moveOrSwapInGrid and restoreItem handle stacke
   const beforeMoney = sim.money!;
   assert.equal(sellItem(world, sim, 1), true);
   assert.equal(bag[1], null);
-  assert.equal(sim.money! - beforeMoney, Math.floor(ITEMS['potion-1-5'].price / 4) * 10);
+  assert.equal(sim.money! - beforeMoney, Math.floor(ITEMS['potion-1-5'].price / 4) * 20);
 
   // restoreItem preserves valid stack qty and clamps at POTION_STACK_MAX.
   const restored = restoreItem({ uid: 'r1', def: 'potion-0-5', qty: 42 }, () => 'new');
