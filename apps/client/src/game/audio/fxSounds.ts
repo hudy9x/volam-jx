@@ -25,7 +25,8 @@ export function fxSound(e: FxEvent, actor: (id: string) => SoundActor | undefine
       const cast = SKILL_CAST[e.skill];
       if (a.kind === 'player') {
         // Skill sound (male / female caster), otherwise the weapon swing of the pose.
-        if (cast) { audio.play(a.gender === 'female' ? cast[1] : cast[0], a.x, a.y); return; }
+        const voice = cast?.[a.gender === 'female' ? 1 : 0];
+        if (voice) { audio.play(voice, a.x, a.y); return; }
         const p = sex(a), w = s.weapon ?? -1;
         const swing = w >= 100 ? p.throw
           : s.melee ? (a.mounted ? p.rideCut : w === 3 ? p.puncture : w === 2 || w === 4 ? p.pound : p.cut)

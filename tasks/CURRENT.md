@@ -1,3 +1,10 @@
+## 2026-11-20 · Sửa SFX nam Hoa Sơn dùng nhầm giọng nữ (commit riêng theo USER)
+
+- USER yêu cầu sửa; HEAD `37300d9` nối tiếp commit EXP Boss trong checkpoint. Giữ thay đổi theme, cấu hình Boss thật và tracking có sẵn. GitNexus MCP không khả dụng; đối chiếu trực tiếp nguồn hiện tại và bảng SHXT.
+- Bảng gốc skills.txt: 1363/1364/1368/1369 có ManCastSnd=0, FMCastSnd=sound_k009.wav. gen-sounds trước đây điền chéo giới tính `[m || f, f || m]`, khiến nam phát giọng nữ. Generator nay giữ `[m, f]`; fxSound chỉ phát cast khi đúng giới có âm thanh, nếu thiếu dùng nhánh âm thanh động tác/vũ khí đúng giới có sẵn. Quy tắc áp dụng chung tránh cùng lỗi ở các phái khác; không tự gán giọng kỹ năng mới.
+- Chạy gen:sounds với JX_CLIENT SHXT: sinh lại sounds.gen.ts, không chuyển đổi thêm file âm thanh, manifest không đổi; các tham chiếu thiếu có sẵn vẫn được báo. Ba test chạy fxSound production kiểm bốn chiêu lỗi nam/nữ, bảy chiêu Hoa Sơn có đủ hai giọng và fallback đánh/cưỡi ngựa đều đạt; npm run typecheck đạt. Chưa nghe thử gameplay/native. Web/Desktop/Mobile dùng chung đường âm thanh, reload client; production cần build lại. USER yêu cầu commit riêng phần SFX và kiểm thử; không push. Commit nền `37300d9`; hash mới xem git log.
+
+
 ## 2026-11-20 · Commit cài đặt và sửa lưu EXP Boss Hoàng Kim theo USER
 
 - USER yêu cầu commit, không push. Nền `a2bacc2`; commit gồm shared/server/tool EXP và sửa validation EXP trống, kiểm thử và tài liệu liên quan.

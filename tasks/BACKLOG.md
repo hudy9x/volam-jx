@@ -115,7 +115,7 @@ Hai nghĩa (xem `docs/architecture.md` §3): **trạng thái** = luật chơi (`
 
 | | Mã | Việc | Ghi chú / phụ thuộc |
 |---|---|---|---|
-| ✅ | | Giao diện từ ảnh gốc `spr/ui3`, một loại cửa sổ kéo thả, Esc, Hệ thống / Tùy chỉnh, con trỏ chuột gốc, âm thanh + nhạc gốc | |
+| ✅ | | Giao diện từ ảnh gốc `spr/ui3`, một loại cửa sổ kéo thả, Esc, Hệ thống / Tùy chỉnh, con trỏ chuột gốc, âm thanh + nhạc gốc | 2026-11-20: sửa SFX nam Hoa Sơn; thiếu cast đúng giới dùng âm thanh động tác, không mượn giọng giới khác. 3 test + typecheck đạt; chưa nghe gameplay. |
 | ✅ | | Tách giao diện khỏi game (`game/ports.ts`), mỗi cửa sổ một cặp .ts + .css, bảng phím chung | `docs/architecture.md` |
 | 🟡 | GD1 | Bảng thuộc tính nhân vật (F3): tiềm năng, lực tay, kháng… | 2026-11-12 (vòng 15): cửa sổ **Trang bị và Thuộc tính** (`ui/windows/character.ts`, F3 + nút `b-char` trên thanh dưới) như bản ghép SHXT: thuộc tính theo `玩家装备与人物状态_属性.ini`, ô trang bị theo `_装备.ini`; hành trang tách cửa sổ riêng (nút Vật phẩm). Có số: tên, cấp, sinh lực, nội lực, hệ, lực tay (sát thương vũ khí), né tránh (tổng `armordefense_v`); còn lại "—" — cần GP1, GP2, GP3, TB8 |
 | ⬜ | GD2 | Chat (kênh gần, thế giới, đội, bang, riêng) | Mobile: bàn phím ảo |

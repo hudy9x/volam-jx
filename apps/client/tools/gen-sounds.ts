@@ -69,7 +69,8 @@ const skillCast: Record<number, [string, string]> = {};
     const n = Number(r[id]);
     if (!Number.isFinite(n) || skillCast[n]) continue;
     const m = sound(r[man]), f = sound(r[lady]);
-    if (m || f) skillCast[n] = [m || f, f || m];
+    // Keep missing genders empty: borrowing the other voice makes male/female casts sound wrong.
+    if (m || f) skillCast[n] = [m, f];
   }
 }
 
