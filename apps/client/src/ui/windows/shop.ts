@@ -118,14 +118,16 @@ export class ShopWindow {
     $('shop-list').replaceChildren(...this.rows().map(def => {
       const el = document.createElement('div');
       el.className = 'shop-item';
-      el.dataset.price = String(def.price);
+      const isKnb = !!(def.knbPrice && def.knbPrice > 0);
+      el.dataset.price = String(isKnb ? def.knbPrice : def.price);
+      el.dataset.currency = isKnb ? 'knb' : 'money';
       el.innerHTML = '<div class="slot"></div><div class="grow"><div class="fname"></div><div class="muted"></div><div class="price"></div></div>';
       setSlotIcon(el.querySelector('.slot') as HTMLElement, def);
       (el.querySelector('.fname') as HTMLElement).textContent = def.name;
       const sub = [def.gold ? `Bộ ${def.gold.suite}` : def.kind === 'mask' || def.kind === 'potion' || def.kind === 'book' || def.kind === 'token' ? '' : `Cấp ${def.level}`, def.sex ? (def.sex === 'm' ? 'Nam' : 'Nữ') : '']
         .filter(Boolean).join(' · ');
       (el.querySelector('.muted') as HTMLElement).textContent = sub;
-      (el.querySelector('.price') as HTMLElement).textContent = `${moneyText(def.price)} lượng`;
+      (el.querySelector('.price') as HTMLElement).textContent = isKnb ? `${def.knbPrice!.toLocaleString('vi-VN')} KNB` : `${moneyText(def.price)} lượng`;
       el.addEventListener('click', () => this.buy(def));
       el.addEventListener('mouseenter', () => showItemTip(def, el, { viewer, hint: 'Click: mua' }));
       el.addEventListener('mouseleave', () => showItemTip(null));
@@ -136,8 +138,11 @@ export class ShopWindow {
 
   /** Prices the character cannot pay in the original "not enough money" colour. */
   private renderPrices(): void {
-    const money = inventory.get().money;
-    document.querySelectorAll<HTMLElement>('#shop-list .shop-item').forEach(el => el.classList.toggle('short', Number(el.dataset.price) > money));
+    const inv = inventory.get();
+    document.querySelectorAll<HTMLElement>('#shop-list .shop-item').forEach(el => {
+      const bal = el.dataset.currency === 'knb' ? (inv.knb ?? 0) : inv.money;
+      el.classList.toggle('short', Number(el.dataset.price) > bal);
+    });
   }
 
   private renderMode(mode: 'buy' | 'sell'): void {
@@ -153,7 +158,11 @@ export class ShopWindow {
     if (trade.get().mode !== 'buy') trade.set({ shop: this.shop, mode: 'buy' });
     const free = roomFor(inventory.get().bag, def, BUY_MAX);
     if (!free) { this.ctx.notice('Hành trang không đủ chỗ.'); return; }
-    this.confirm.open({ mode: 'buy', def, unit: def.price, max: free, ok: n => this.ctx.actions()?.buy(def.id, n) });
+    const isKnb = !!(def.knbPrice && def.knbPrice > 0);
+    this.confirm.open({
+      mode: 'buy', def, unit: isKnb ? def.knbPrice! : def.price, currency: isKnb ? 'knb' : 'money', max: free,
+      ok: n => this.ctx.actions()?.buy(def.id, n),
+    });
   }
 }
 

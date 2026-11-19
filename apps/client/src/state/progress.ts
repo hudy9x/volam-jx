@@ -16,6 +16,6 @@ export function itemViewer(self: ActorState | null): ItemViewer | null {
   const p = progress.get();
   return {
     gender: self.gender, faction: self.faction, series: ownSeries(self),
-    level: p?.progress.level, str: p?.stats.str, dex: p?.stats.dex,
+    level: p?.progress.level, str: p?.stats.str, dex: p?.stats.dex, fortune: p?.fortune,
   };
 }

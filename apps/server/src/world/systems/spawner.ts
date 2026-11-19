@@ -123,7 +123,7 @@ export function updateSlots(w: World): void {
     Object.assign(a, {
       kind: 'monster', name: def.name, sprite: def.sprite, faction: '', level: stats.level,
       x: Math.round(slot.x), y: Math.round(slot.y), dir: def.dummy ? 1 : Math.floor(Math.random() * 8), anim: 'idle', animSeq: 0, jumpMs: 0, moveScale: 1,
-      hp: stats.hp, maxHp: stats.hp, mp: 0, maxMp: 0, pk: 0, camp: '', team: '', boss: bossTier, scale: def.scale, protectedUntil: 0,
+      hp: stats.hp, maxHp: stats.hp, mp: 0, maxMp: 0, pk: 0, camp: '', team: '', boss: bossTier, scale: def.scale, protectedUntil: 0, mantle: -1,
     });
     const sim = makeSim(id, 'monster', a, def.element, def.speed);
     sim.hp = stats.hp;

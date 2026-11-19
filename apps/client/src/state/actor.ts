@@ -43,10 +43,11 @@ export interface ActorState {
   /** Horse in the horse slot ('' = none). */
   horse: string;
   mounted: boolean;
-  /** Part-table rows of the equipped helm / armor / weapon (see shared lookOf). */
+  /** Part-table rows of the equipped helm / armor / weapon / mantle (see shared lookOf). */
   helm: number;
   armor: number;
   weapon: number;
+  mantle?: number;
   /** Bùa lợi / bùa hại (skill ids) and their ends (epoch seconds); recorded only. */
   states?: Iterable<number>;
   stateEnds?: Iterable<number>;

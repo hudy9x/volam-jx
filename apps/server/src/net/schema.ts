@@ -33,10 +33,11 @@ export const Actor = schema({
   protectedUntil: t.float64(), // server time (ms) until which the actor can't be hit
   horse: t.string(),         // horse in the horse slot, '' = none
   mounted: t.boolean(),
-  // paper-doll rows of the equipped helm / armor / weapon (shared lookOf)
+  // paper-doll rows of the equipped helm / armor / weapon / mantle (shared lookOf)
   helm: t.int16(),
   armor: t.int16(),
   weapon: t.int16(),
+  mantle: t.int16(),
   // bùa lợi / bùa hại (skill ids) and when each ends (epoch seconds, 0 = while refreshed)
   states: t.array('uint16'),
   stateEnds: t.array('uint32'),

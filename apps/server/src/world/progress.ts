@@ -1,4 +1,4 @@
-import { equipSkillBonus, wornActiveCount, itemNeeds, planPotential, planSkills, pointsAtLevel,
+import { equipSkillBonus, equipmentFortune, isMantleActive, lookOf, wornActiveCount, itemNeeds, planPotential, planSkills, pointsAtLevel,
   BASIC_SKILLS, FACTIONS, LEVEL, POTENTIALS, addAttr, addExp, getExpElixirMultiplier, mergeBag, moveFactor, passiveBag, playerCombat, resolveSpeed, skillBonuses, stateBag, baseValue, characterStats, expAfterGap, expShare,
   expToNext, getSkill, isoDistance, itemDef, joinFactionError, learnableSkills, levelCap, monsterExp, newProgress, practicePerHit,
   TIER_BOOKS, learnTiers, raiseError, skillExpToNext, skillGrowth, startLevel, tierOf, weaponBaseDamage, weaponTypeOf,
@@ -18,7 +18,10 @@ import type { World } from './World.js';
 /** Who wears / looks at items (equip requirements, items/equip.ts): sex, faction, hệ, level, Sức mạnh / Thân pháp now. */
 export function viewerOf(sim: Sim): ItemViewer {
   const st = sim.stats;
-  return { gender: sim.a.gender, faction: sim.a.faction, series: sim.progress?.series, level: sim.progress?.prog.level, str: st?.str, dex: st?.dex };
+  return {
+    gender: sim.a.gender, faction: sim.a.faction, series: sim.progress?.series,
+    level: sim.progress?.prog.level, str: st?.str, dex: st?.dex, fortune: sim.fortune,
+  };
 }
 
 /** Learned levels + the levels worn pieces add (sim.skillBonus): what skills are used at. */
@@ -61,6 +64,8 @@ export function equipmentBag(equip: Equipment, charSeries = -1, mounted = true):
     if (!def || !item) continue;
     // The horse (its tốc độ chạy fastwalkrun_p…) counts only while riding it (USER 2026-11-13).
     if (slot === 'horse' && !mounted) continue;
+    // Phi phong chỉ có hiệu lực khi nhân vật đang đủ mốc Tài phú Binh giáp (chống tài phú ảo).
+    if (slot === 'mantle' && !isMantleActive(equip, charSeries)) continue;
     for (const [name] of def.base) {
       if (name === 'weapondamagemin_v' || name === 'weapondamagemax_v' || name === 'durability_v') continue;
       addAttr(bag, name, baseValue(def, item, name) ?? 0);
@@ -93,7 +98,10 @@ export function refreshStats(sim: Sim, fresh = false): void {
   const levels = effectiveSkills(sim);
   const visuals = passiveVisualSkills(levels);
   if (visuals.join() !== [...sim.a.passiveFx].join()) sim.a.passiveFx = new ArraySchema<number>(...visuals);
-  const bag = mergeBag(mergeBag(equipmentBag(equip, seriesOf(pp.series), sim.a.mounted), passiveBag(levels, wtype)), stateBag(sim.states, wtype));
+  const seriesIdx = seriesOf(pp.series);
+  sim.fortune = equipmentFortune(equip, seriesIdx);
+  sim.a.mantle = isMantleActive(equip, seriesIdx) ? lookOf(equip).mantle : -1;
+  const bag = mergeBag(mergeBag(equipmentBag(equip, seriesIdx, sim.a.mounted), passiveBag(levels, wtype)), stateBag(sim.states, wtype));
   const stats = characterStats({
     series: pp.series, level: pp.prog.level, added: pp.prog.added, bag,
     weapon: { kind: !equip.weapon ? 'none' : wtype >= 100 ? 'ranged' : 'melee', min, max },

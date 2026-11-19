@@ -83,6 +83,8 @@ export interface Sim {
   progress?: PlayerProgress;
   /** Derived stats from the shared formulas (formulas/character.ts). */
   stats?: CharacterStats;
+  /** Tài phú Binh giáp hiện tại tính từ trang bị đang mặc (formulas/fortune.ts). */
+  fortune?: number;
   sessionId?: string;
   /** Hành trang (BAG_SIZE slots) and worn items; server-authoritative, sent to the owner only. */
   bag?: Bag;

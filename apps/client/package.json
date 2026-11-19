@@ -17,6 +17,7 @@
     "gen:player": "tsx tools/gen-player.ts",
     "gen:drops": "tsx tools/gen-drops.ts",
     "gen:gold": "tsx tools/gen-gold.ts",
+    "gen:mantles": "tsx tools/gen-mantles.ts",
     "gen:ground-objs": "tsx tools/gen-ground-objs.ts",
     "gen:manifest": "tsx tools/gen-manifest.ts"
   },

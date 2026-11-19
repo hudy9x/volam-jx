@@ -5,6 +5,7 @@ import { HORSE_IDS } from './horses.js';
 import { ITEMS, ITEM_LIST, type ItemDef, type ItemKind } from './items.js';
 import { TOKEN_ITEM } from './books.js';
 import { ELIXIR_ITEMS } from './elixirs.js';
+import { MANTLE_ITEMS } from './mantles.js';
 import { usableItem } from './potions.js';
 
 /**
@@ -46,8 +47,8 @@ export const SHOP_ITEMS: Record<ShopId, ItemDef[]> = {
   drug: GEN_DRUG_SHOP.map(id => ITEMS[id]).filter(it => usableItem(it)),
   horse: HORSE_IDS.map(id => ITEMS[id]).filter(Boolean),
   gold: ITEM_LIST.filter(it => it.gold),
-  /** Kỳ Trân Các: bí kíp (items/books.ts) + Tiên Thảo Lộ + the GM lệnh bài for 1 lượng (USER 2026-11-13). */
-  kytran: [...ELIXIR_ITEMS, ...ITEM_LIST.filter(it => it.book), TOKEN_ITEM],
+  /** Kỳ Trân Các: bí kíp (items/books.ts) + Tiên Thảo Lộ + Phi phong (100 KNB) + the GM lệnh bài for 1 lượng. */
+  kytran: [...MANTLE_ITEMS, ...ELIXIR_ITEMS, ...ITEM_LIST.filter(it => it.book), TOKEN_ITEM],
 };
 
 /** Shop that sells a table row (server check for buying). */

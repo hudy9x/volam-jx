@@ -9,6 +9,7 @@ import { EXTRA_GOLD, EXCLUDED_GOLD_IDS } from './gold-extra.js';
 import { EXTRA_ITEMS } from './extra-items.js';
 import { BOOK_ITEMS, CANKHON_RING, TOKEN_ITEM, TOWN_PORTAL_ITEM, type BookEffect } from './books.js';
 import { ELIXIR_ITEMS, type ExpElixirEffect } from './elixirs.js';
+import { MANTLE_ITEMS } from './mantles.js';
 import { MAX_BAG_POTIONS, POTION_STACK_MAX, resolveMaxStack } from './stack-config.js';
 import type { Gender } from '../characters/factions.js';
 import type { MagicLine } from './magic.js';
@@ -54,6 +55,8 @@ export type ItemDef = GenItem & {
   revealHidden?: boolean;
   /** Optional per-item stack limit override (takes precedence over stack-config.ts). */
   maxStack?: number;
+  /** Optional Kỳ Trân Các price in KNB (Kim nguyên bảo) instead of silver (`price`). */
+  knbPrice?: number;
 };
 
 /** Horses are items too (same id as in HORSES); `look` = horse part row. */
@@ -63,7 +66,7 @@ const HORSE_ITEMS: ItemDef[] = GEN_HORSES.map(h => ({
 }));
 
 export const ITEMS: Record<string, ItemDef> = Object.fromEntries(
-  [...GEN_ITEMS, ...EXTRA_ITEMS, ...HORSE_ITEMS, ...GEN_GOLD.filter(it => !EXCLUDED_GOLD_IDS.has(it.id)), ...EXTRA_GOLD, ...ELIXIR_ITEMS, ...BOOK_ITEMS, TOKEN_ITEM, CANKHON_RING, TOWN_PORTAL_ITEM].map(it => [it.id, it]),
+  [...GEN_ITEMS, ...EXTRA_ITEMS, ...HORSE_ITEMS, ...GEN_GOLD.filter(it => !EXCLUDED_GOLD_IDS.has(it.id)), ...EXTRA_GOLD, ...MANTLE_ITEMS, ...ELIXIR_ITEMS, ...BOOK_ITEMS, TOKEN_ITEM, CANKHON_RING, TOWN_PORTAL_ITEM].map(it => [it.id, it]),
 );
 export const ITEM_LIST: ItemDef[] = Object.values(ITEMS);
 

@@ -57,7 +57,7 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
     x: Math.round(x), y: Math.round(y), dir: 0, anim: 'idle', animSeq: 0, attackTarget: '', jumpMs: 0, moveScale: 1,
     hp: 1, maxHp: 1, mp: 0, maxMp: 0,
     pk: 0, camp: campOf(faction), team: '', boss: 0, scale: 1, protectedUntil: Date.now() + SPAWN_PROTECTION * 1000,
-    horse: '', mounted: false,
+    horse: '', mounted: false, mantle: -1,
   });
   const sim = makeSim(sessionId, 'player', a, series, PLAYER_SPEED);
   updateSpeed(sim);

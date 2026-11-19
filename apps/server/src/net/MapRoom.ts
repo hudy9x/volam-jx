@@ -501,6 +501,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     if (!sim.progress || !sim.stats) return;
     client.send(S2C.stats, {
       series: sim.progress.series, faction: sim.a.faction, progress: sim.progress.prog, expNext: expNext(sim), stats: sim.stats,
+      fortune: sim.fortune ?? 0,
       combat: sim.combat,
       trainingReturn: sim.charId ? db.getCharacter(sim.charId)?.trainingReturn : undefined,
       expBuff: sim.expBuff && sim.expBuff.until > Date.now()

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, MAX_BAG_POTIONS, STASH_SIZE, TOKEN_ITEM_ID, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF,
-  addToBag, bagPotionCount, bagValid, createGold, createItem, equipError, findPlace, fitsAt, forgeError, forgePrice, forgedMagic,
+  addToBag, bagPotionCount, bagValid, createGold, createItem, equipError, findPlace, fitsAt, forgeError, forgePrice, forgedMagic, fortuneRequirement,
   getExpElixirMultiplier, isStackablePotion, itemDef, itemQty, lookOf, maxStackOf, moveOrSwapInGrid, overlappingAt, packBag, restoreItem, roomFor, sellPrice,
   sortGridPage, splitStackInGrid, usableItem, weaponTypeOf,
   type Bag, type EquipSlot, type Equipment, type ForgeLines, type Item, type Outfit,
@@ -72,6 +72,25 @@ export function buyItem(w: World, sim: Sim, defId: string, count = 1): boolean {
   if (!def || !SHOP_OF[defId] || sim.dead) return false;
   if (!w.rules.safe) { w.hooks.notify(sim, 'Chỉ mua được đồ trong thành.'); return false; }
   const n = Math.max(1, Math.min(BUY_MAX, Math.floor(count) || 1));
+  if (def.knbPrice && def.knbPrice > 0) {
+    const reqFortune = fortuneRequirement(def);
+    if (reqFortune > 0 && (sim.fortune ?? 0) < reqFortune) {
+      w.hooks.notify(sim, `Cần đạt Tài phú binh giáp ${reqFortune.toLocaleString('vi-VN')} để mua ${def.name}.`);
+      return false;
+    }
+    const knbCost = def.knbPrice * n;
+    if (knbCost > (sim.knb ?? 0)) {
+      w.hooks.notify(sim, `Không đủ Kim nguyên bảo (cần ${knbCost.toLocaleString('vi-VN')} KNB).`);
+      return false;
+    }
+    const room = roomFor(sim.bag!, def, n);
+    if (room < n) { w.hooks.notify(sim, room ? `Hành trang chỉ còn chỗ cho ${room} món.` : 'Hành trang không đủ chỗ.'); return false; }
+    for (let k = 0; k < n; k++) addToBag(sim.bag!, makeItem(defId)!);
+    sim.knb = (sim.knb ?? 0) - knbCost;
+    w.hooks.notify(sim, `Mua ${n > 1 ? `${n} ` : ''}${def.name}: ${knbCost.toLocaleString('vi-VN')} KNB.`);
+    w.hooks.log(sim, 'buy', `Mua ${n > 1 ? `${n} ` : ''}${def.name}: −${knbCost.toLocaleString('vi-VN')} KNB.`);
+    return true;
+  }
   const cost = def.price * n;
   // Original NPC line (stringresource.txt 10089).
   if (cost > (sim.money ?? 0)) { w.hooks.notify(sim, 'Khách quan hình như chưa đủ tiền.'); return false; }
@@ -334,6 +353,7 @@ export function applyEquipment(sim: Sim, fresh = false): void {
   sim.a.helm = look.helm;
   sim.a.armor = look.armor;
   sim.a.weapon = look.weapon;
+  sim.a.mantle = look.mantle;
   // The horse slot: taking the horse off also dismounts.
   const horse = equip.horse?.def;
   sim.a.horse = horse && HORSES[horse] ? horse : '';

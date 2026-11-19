@@ -1,3 +1,4 @@
+import { assetUrl } from '../../art/assets';
 import { inventory } from '../../state/inventory';
 import {
   HORSES, TIP_COLORS, describeItem, moneyText, speedPoints, type Item, type ItemDef, type ItemTipContext, type ItemViewer, type TipLine,
@@ -56,10 +57,29 @@ export function fillItemTip(tip: HTMLElement, def: ItemDef, opts: ItemTipOptions
   const s1 = section();
   put(s1, [t.name], 'tip-name');
   text(s1, 'tip-sub', t.sub, '');
-  if (t.price) text(s1, 'tip-price', `Giá: ${moneyText(t.price)} lượng`);
+  if (def.knbPrice && def.knbPrice > 0) text(s1, 'tip-price', `Giá: ${def.knbPrice.toLocaleString('vi-VN')} KNB`, TIP_COLORS.gold);
+  else if (t.price) text(s1, 'tip-price', `Giá: ${moneyText(t.price)} lượng`);
   put(s1, t.series, 'tip-series');
   put(s1, t.desc, 'tip-desc');
   flush(s1);
+
+  // Preview ảnh nhân vật mặc Phi phong khi hover (USER 2026-11-19)
+  if (def.kind === 'mantle' && def.look !== undefined && def.look >= 0) {
+    const sp = section();
+    const wrap = document.createElement('div');
+    wrap.className = 'tip-mantle-preview';
+    const sx = opts.viewer?.gender === 'female' ? 'f' : 'm';
+    const img = document.createElement('img');
+    img.src = assetUrl(`mantles/preview-${sx}-${def.look}.webp`);
+    img.alt = def.name;
+    const cap = document.createElement('div');
+    cap.className = 'tip-mantle-cap';
+    cap.textContent = 'Mặt trước / Mặt sau khi mặc';
+    wrap.appendChild(img);
+    wrap.appendChild(cap);
+    sp.appendChild(wrap);
+    flush(sp);
+  }
 
   // Section 2: Giá trị mặc định & yêu cầu
   const s2 = section();

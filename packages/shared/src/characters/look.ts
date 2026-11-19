@@ -2,9 +2,14 @@
 import { DEFAULT_LOOK, ITEMS, type EquipSlot, type Equipment, type Outfit } from '../items/items.js';
 
 /** Part-table rows the paper-doll draws for these table rows (starter outfit, previews). */
-export function lookOfOutfit(outfit: Outfit): { helm: number; armor: number; weapon: number } {
+export function lookOfOutfit(outfit: Outfit): { helm: number; armor: number; weapon: number; mantle: number } {
   const row = (slot: EquipSlot, fallback: number) => ITEMS[outfit[slot] ?? '']?.look ?? fallback;
-  return { helm: row('helm', DEFAULT_LOOK.helm), armor: row('armor', DEFAULT_LOOK.armor), weapon: row('weapon', DEFAULT_LOOK.weapon) };
+  return {
+    helm: row('helm', DEFAULT_LOOK.helm),
+    armor: row('armor', DEFAULT_LOOK.armor),
+    weapon: row('weapon', DEFAULT_LOOK.weapon),
+    mantle: row('mantle', -1),
+  };
 }
 
 /** Table rows of worn items. */

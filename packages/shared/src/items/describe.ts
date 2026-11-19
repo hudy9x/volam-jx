@@ -101,7 +101,7 @@ function potionLines(def: ItemDef): TipLine[] {
 
 /** Tooltip of a piece (`item`) or of a bare table row (shops: min ~ max of rolled values). */
 export function describeItem(def: ItemDef, item?: Item, viewer?: ItemViewer, ctx: ItemTipContext = {}): ItemTooltip {
-  const q = item?.q ?? 0;
+  const q = item?.q ?? (def.fixedMagic ? QUALITY.gold : 0);
   const base: TipLine[] = def.kind === 'potion' ? potionLines(def) : [];
   if (def.elixir) {
     const mul = getExpElixirMultiplier(def.elixir.tier);
@@ -123,7 +123,8 @@ export function describeItem(def: ItemDef, item?: Item, viewer?: ItemViewer, ctx
   });
   const lineColor = q >= QUALITY.gold ? TIP_COLORS.gold : TIP_COLORS.blue;
   const on = item && ctx.active ? activeLines(item, ctx.active) : new Set<number>();
-  const magic = (item?.magic ?? []).flatMap((l, i) =>
+  const magicSrc = item?.magic ?? (def.fixedMagic ? def.fixedMagic.map(([name, v]): [string, number] => [name, v]) : []);
+  const magic = magicSrc.flatMap((l, i) =>
     magicLine(l[0], l[1], !isHidden(l), isHidden(l) && !on.has(i) ? GRAY : lineColor, l[0] === 'allskill_v' ? lineParam3(def, i) : l[1]));
   const set = suiteOf(def);
   const suite: TipLine[] = [];

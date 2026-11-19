@@ -8,7 +8,7 @@ import type { SkillDef } from '../skills/core/types.js';
 import { attrOf, type AttrBag } from './attrs.js';
 import type { ResistKind } from './character.js';
 import type { CombatStats } from './combat.js';
-import { CRIT, HIT, PVP, RESIST, STEAL } from './tuning.js';
+import { CRIT, HEAVY_HIT, HIT, PVP, RESIST, STEAL } from './tuning.js';
 
 export type Range = [number, number];
 export type ElementPart = 'cold' | 'fire' | 'light';
@@ -56,7 +56,7 @@ export const isExternal = (s: SkillDef, level: number): boolean => !!attr(s, 'ph
  * SRC KPlayer::GetEchoDamage, docs/formulas/damage.md §1.
  */
 export function skillDamage(s: SkillDef, level: number, root: number, a: CombatStats): DamageParts {
-  const bonus = (a.skillBonus[root] ?? 0) + (root !== s.id ? a.skillBonus[s.id] ?? 0 : 0);
+  const bonus = (a.skillBonus[root] ?? 0) + (root !== s.id ? a.skillBonus[s.id] ?? 0 : 0) + attrOf(a.bag, 'skill_enhance');
   const k = (100 + bonus) / 100;
   const external = isExternal(s, level);
   const adds = external ? ADD_EXTERNAL : ADD_INTERNAL;
@@ -116,6 +116,8 @@ export interface HitOutcome {
   /** Damage dealt now (độc comes later, `poison`). */
   dmg: number;
   crit: boolean;
+  /** Trọng kích (enhancehit_rate): scales all direct damage parts by HEAVY_HIT.multiplier. */
+  heavy?: boolean;
   fatal: boolean;
   /** Damage of each part after resists (cold > 0 = the hit can slow). */
   parts: Record<'phys' | ElementPart, number>;
@@ -148,6 +150,8 @@ export function resolveHit(parts: DamageParts, ctx: HitContext, rng: () => numbe
   }
   const critPct = (attr(skill, 'deadlystrike_p', level)?.[0] ?? 0) + attrOf(a.bag, 'deadlystrikeenhance_p') + attrOf(a.bag, 'deadlystrike_p');
   out.crit = rng() * 100 < Math.min(CRIT.maxCritPct, critPct);
+  const heavyPct = attrOf(a.bag, 'enhancehit_rate') - attrOf(t.bag, 'anti_enhancehit_rate');
+  out.heavy = heavyPct > 0 && rng() * 100 < Math.min(HEAVY_HIT.maxPct, heavyPct);
   const fatalPct = (attr(skill, 'fatallystrike_p', level)?.[0] ?? 0) - attrOf(t.bag, 'fatallystrikeres_p');
   out.fatal = fatalPct > 0 && rng() * 100 < fatalPct;
   const roll = ([lo, hi]: Range) => lo + (hi - lo) * rng();
@@ -155,10 +159,12 @@ export function resolveHit(parts: DamageParts, ctx: HitContext, rng: () => numbe
 
   let phys = roll(parts.phys);
   if (out.crit) phys *= CRIT.physMultiplier;
+  if (out.heavy) phys *= HEAVY_HIT.multiplier;
   out.parts.phys = after('phys', phys);
   for (const el of ELEMENT_PARTS) {
     if (parts[el][1] <= 0) continue;
-    const v = out.fatal ? ctx.targetLife * (CRIT.fatalMinPct + (CRIT.fatalMaxPct - CRIT.fatalMinPct) * rng()) / 100 : roll(parts[el]);
+    let v = out.fatal ? ctx.targetLife * (CRIT.fatalMinPct + (CRIT.fatalMaxPct - CRIT.fatalMinPct) * rng()) / 100 : roll(parts[el]);
+    if (out.heavy) v *= HEAVY_HIT.multiplier;
     out.parts[el] = after(el, v);
   }
   let dmg = out.parts.phys + out.parts.cold + out.parts.fire + out.parts.light;

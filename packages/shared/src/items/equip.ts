@@ -11,6 +11,8 @@ import { SERIES_KEYS } from './magic.js';
 export interface ItemViewer {
   gender: Gender | string; faction: string;
   series?: string; level?: number; str?: number; dex?: number;
+  /** Tài phú Binh giáp hiện tại của nhân vật (formulas/fortune.ts). */
+  fortune?: number;
 }
 
 /** Faction order of the original tables (requiremenpai). */
@@ -24,6 +26,7 @@ export function missesReq(name: string, value: number, viewer: ItemViewer): bool
   if (name === 'requirelevel') return viewer.level !== undefined && viewer.level < value;
   if (name === 'requirestr') return viewer.str !== undefined && viewer.str < value;
   if (name === 'requiredex') return viewer.dex !== undefined && viewer.dex < value;
+  if (name === 'require_fortune_value') return viewer.fortune !== undefined && viewer.fortune < value;
   return false;
 }
 
@@ -31,6 +34,7 @@ const REQ_TEXT: Record<string, (v: number) => string> = {
   requirelevel: v => `Cần đạt cấp ${v}.`,
   requirestr: v => `Cần ${v} Sức mạnh.`,
   requiredex: v => `Cần ${v} Thân pháp.`,
+  require_fortune_value: v => `Cần đạt Tài phú binh giáp ${v.toLocaleString('vi-VN')}.`,
 };
 
 /** Why an item can't be worn, or null when it can. */

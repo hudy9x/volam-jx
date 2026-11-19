@@ -237,6 +237,8 @@ export interface StatsMsg {
   /** Active Tiên Thảo Lộ EXP buff. */
   expBuff?: { until: number; tier: 'normal' | 'special'; mul: number };
   series: Element; faction: string; progress: Progress; expNext: number; stats: CharacterStats;
+  /** Tài phú Binh giáp hiện tại tính từ trang bị đang mặc (formulas/fortune.ts). */
+  fortune?: number;
   /** Combat stats (attribute bag, skill bonuses): F3 shows the lực tay of the skills on the bar with formulas/damage.ts. */
   combat?: CombatStats;
 }

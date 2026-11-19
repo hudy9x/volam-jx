@@ -74,6 +74,30 @@
   font-size: 11px;
 }
 
+#item-tip .tip-mantle-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 215, 128, 0.25);
+  border-radius: 4px;
+}
+
+#item-tip .tip-mantle-preview img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 150px;
+  display: block;
+}
+
+#item-tip .tip-mantle-cap {
+  font-size: 10px;
+  color: #9aa49e;
+}
+
 /* skill tooltip: 3 main colours — gold (title/warn), blue (stats), soft white-gray (details/limits/notes) + white subheading */
 #item-tip.skill-tip {
   max-width: 340px;

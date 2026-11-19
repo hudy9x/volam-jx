@@ -18,6 +18,7 @@ import {
   resolveDropProfile,
   rollEquipmentFromTable,
   rollGoldenBossItemWithRates,
+  rollMajorBossMantle,
   rollMagicLines,
   rollMoneyWithProfile,
   type DropProfile,
@@ -126,6 +127,11 @@ export function dropLoot(w: World, monster: Sim, killer: Sim | undefined): void 
   const moneyTable = t.moneyRate > 0 ? t : (levelTable ?? t);
   const money = rollMoneyWithProfile(level, moneyTable.moneyScale, profile.moneyRatePct, profile.moneyMul, Math.random);
   if (money) out.push({ item: null, money });
+  // Boss Đại Hoàng Kim (tier 'major'): có tỉ lệ rơi Phi phong Hoàng kim (USER 2026-11-19).
+  if (goldenEntry?.tier === 'major' && Math.random() < 0.25) {
+    const mantleDef = rollMajorBossMantle(Math.random);
+    out.push({ item: createItem(mantleDef, newItemUid()), money: 0 });
+  }
   const total = out.length;
   out.forEach((d, i) => put(w, monster.a.x, monster.a.y, i, total, d.item, d.money, killer.id));
 }

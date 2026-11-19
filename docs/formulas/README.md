@@ -13,6 +13,7 @@ không sửa rải rác.
 | [effects.md](effects.md) | `status/states.ts`, `formulas/effects.ts`, `formulas/effects/` | Bùa lợi / bùa hại / hào quang / bị động (thuộc tính, thời gian riêng), choáng / chậm / độc / co giật |
 | [drops.md](drops.md) | `formulas/drops.ts` | Bảng rơi, cấp món, tiền, quyền nhặt, dòng xanh + may mắn, chỉ số đồ (TB8) |
 | [speed.md](speed.md) | `formulas/tuning.ts SPEED`, `formulas/speed.ts`, `SkillEngine.ts`, `ActorView.ts` | Mốc volamidle25–300%, chuẩn hóa đánh/chạy đi chân/cưỡi, cấu hình và trang thử `?skills` (§10); phần trước là lịch sử điều tra |
+| [fortune.md](fortune.md) | `formulas/fortune.ts`, `formulas/tuning.ts FORTUNE` | Công thức **Tài phú Binh giáp** từ trang bị đang mặc, làm điều kiện mua/đeo Phi phong |
 
 ## Ký hiệu nguồn (dùng trong `tuning.ts` và mọi tài liệu ở đây)
 

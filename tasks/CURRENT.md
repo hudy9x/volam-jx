@@ -4,6 +4,14 @@
 - Impact graph HIGH do helper dùng khi khởi tạo/nạp config, directcaller syncGoldenBossMonsters; đã đối chiếu mã thật vì index cũ4commit. Sửa đúng một số; USER duyệt commit riêng trên main (mốc trước8e24d33), không branch/push; giữ toàn bộ thay đổi Phi phong song song.
 - Cần nạp lại server để nhận mã mới. git diff --check đạt. Typecheck bị chặn bởi thay đổi Phi phong đang làm song song: formulas/fortune.ts nhập MAGIC_ROWS chưa được export; không liên quan dòng vision. Đã kiểm TypeScript shared trên snapshot staged riêng: đạt (không chứa thay đổi Phi phong). Graph staged9symbol/0flow không partial/truncated; thay đổi chính là literalvision. Chưa kiểm gameplay/native.
 
+## 2026-11-19 · Triển khai Phi phong Hoàng kim & Tài phú Binh giáp (đã commit)
+
+- **USER duyệt triển khai** theo 4 quyết định đã chốt:
+  1. **Tài nguyên (`apps/client/tools/gen-mantles.ts`, `gen:mantles`):** trích xuất 11 icon (`items/pifeng_01..11.webp`), 22 ảnh preview mặc lên nhân vật (`mantles/preview-{m,f}-{0..10}.webp`), 792 spritesheets áo choàng (`char/{man,woman}/*`) và metadata `apps/client/src/art/jx/mantles.gen.ts`.
+  2. **Shared (`items/mantles.ts`, `items.ts`, `shops.ts`, `equip.ts`, `describe.ts`, `characters/look.ts`, `formulas/fortune.ts`, `formulas/tuning.ts`, `formulas/damage.ts`, `protocol.ts`):** 11 bậc Phi phong Hoàng kim (`mantle-1..11`, đồng giá `100 KNB` tại Kỳ Trân Các, yêu cầu `require_fortune_value` 200→280.000, không làm 3 nhánh kỹ năng); công thức Tài phú Binh giáp `equipmentFortune` (loại trừ `mantle` chống vòng lặp); sát thương `skill_enhance` (+% mọi kỹ năng tấn công) và Trọng kích `enhancehit_rate` (`HEAVY_HIT` ×1.5 toàn đòn trực tiếp).
+  3. **Server (`net/schema.ts`, `net/MapRoom.ts`, `world/entity.ts`, `world/progress.ts`, `world/inventory.ts`, `world/players.ts`, `world/systems/spawner.ts`, `world/systems/drops.ts`):** đồng bộ `Actor.mantle` & `StatsMsg.fortune`, mua Phi phong bằng `100 KNB` kiểm Tài phú, rơi Phi phong từ Boss Đại Hoàng Kim (`tier: 'major'`, 25%), tạm ẩn/vô hiệu hóa Phi phong nếu tụt Tài phú.
+  4. **Client (`art/jx/index.ts`, `game/actors/ActorView.ts`, `state/{actor,progress}.ts`, `ui/tips/itemTip.ts`, `ui/kit/tooltip.css`, `ui/windows/{shop,tradeConfirm,character}.ts`):** vẽ lớp áo choàng `Mantle` (part 16 theo `JX_SORT`), hiển thị **Tài phú** trên F3, click/chuột phải trong hành trang tự mặc vào ô `mantle` F3 + cập nhật thuộc tính, **hover** (Mobile chạm) hiện ảnh preview mặt trước/sau mặc lên nhân vật; hộp xác nhận mua hỗ trợ `KNB`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run build` (thành công), `node --import tsx --test tests/mantle-fortune.test.ts` (3/3 pass). Cần restart server và reload client để nhận tính năng mới; chưa kiểm gameplay/native/mobile thật. Không commit/push.
 
 ## 2026-11-19 · Hoàn tất commit từng phần trên main
 

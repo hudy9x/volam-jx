@@ -137,7 +137,7 @@ export class ActorView {
     const s = this.state;
     let source: Source | null = null, key = '';
     if (s.kind === 'player') {
-      const look = makeLook(s.gender, s.helm, s.armor, s.weapon, s.horse, s.mounted);
+      const look = makeLook(s.gender, s.helm, s.armor, s.weapon, s.horse, s.mounted, s.mantle ?? -1);
       source = { kind: 'look', look };
       key = lookKey(look);
     } else if (hasNpc(s.sprite)) {

@@ -197,3 +197,39 @@ export { default as MARKET_PRICING } from './data/market-pricing.json';
 
 /** CHỌN: SHXT Lãnh tụ template values applied as replacement to spawned blue instances. */
 export const BLUE_BOSS_RESISTANCE = { base: 50, cap: 95 } as const;
+
+/**
+ * CHỌN / USER 2026-11-19: Công thức Tài phú Binh giáp (docs/formulas/fortune.md).
+ * Dùng làm điều kiện mua (100 KNB) và mặc Phi phong; loại trừ ô `mantle` để tránh tự kích hoạt.
+ */
+export const FORTUNE = {
+  base: {
+    normalPerLevel: 2,
+    magicPerLevel: 6,
+    goldBase: 180,
+    goldPerQuality: 18,
+    revealHidden: 400,
+    horsePerLevel: 15,
+    mask: 10,
+    specialSlotPerLevel: 25,
+  },
+  line: {
+    magic: 12,
+    gold: 35,
+  },
+  inactiveHiddenMul: 0.35,
+  slotMul: {
+    weapon: 1.5,
+    armor: 1.2,
+  } as Partial<Record<string, number>>,
+  fullGoldSuiteBonus: 600,
+} as const;
+
+/**
+ * CHỌN: Trọng kích (`enhancehit_rate` trên Phi phong, docs/phi-phong-va-tai-phu.md §5.2).
+ * Tách biệt với Chí mạng (`CRIT`, chỉ nhân ×2 vật lý): Trọng kích nhân toàn bộ lực tay trực tiếp.
+ */
+export const HEAVY_HIT = {
+  maxPct: 75,
+  multiplier: 1.5,
+} as const;

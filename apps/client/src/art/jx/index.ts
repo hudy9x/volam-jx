@@ -2,6 +2,7 @@ import { HORSES, type Gender } from '@vltk/shared';
 import {
   JX_ASSOC, JX_FOOT, JX_PARTS, JX_SHADOWS, JX_SHEETS, JX_SORT, NPC_SHADOWS, NPC_SHEETS, type AssocKey, type NpcAction, type Sx,
 } from './data.gen';
+import { MANTLE_PARTS, MANTLE_SHEETS } from './mantles.gen';
 import { assetUrl } from '../assets';
 
 /**
@@ -23,6 +24,8 @@ export interface Look {
   weapon: number;
   /** Horse row when mounted, -1 on foot. */
   horse: number;
+  /** Mantle (Phi phong) row when worn & active, -1 when none. */
+  mantle?: number;
 }
 
 export interface Layer {
@@ -54,13 +57,13 @@ const BODY = 5;
 export const FOOT_X = JX_FOOT[0];
 export const FOOT_Y = JX_FOOT[1];
 
-export function makeLook(gender: Gender | string, helm: number, armor: number, weapon: number, horseId: string, mounted: boolean): Look {
+export function makeLook(gender: Gender | string, helm: number, armor: number, weapon: number, horseId: string, mounted: boolean, mantle = -1): Look {
   const sx: Sx = gender === 'female' ? 'f' : 'm';
   const horse = mounted && horseId ? HORSES[horseId]?.jxRow ?? -1 : -1;
-  return { sx, helm, armor, weapon: JX_ASSOC[sx][weapon] ? weapon : 0, horse };
+  return { sx, helm, armor, weapon: JX_ASSOC[sx][weapon] ? weapon : 0, horse, mantle };
 }
 
-export const lookKey = (l: Look) => `${l.sx}|${l.helm}|${l.armor}|${l.weapon}|${l.horse}`;
+export const lookKey = (l: Look) => `${l.sx}|${l.helm}|${l.armor}|${l.weapon}|${l.horse}|${l.mantle ?? -1}`;
 const poseCache = new Map<string, Pose | null>();
 
 /** Layers of one game action for a look; falls back to the fighting stance when an action is missing. */
@@ -78,6 +81,12 @@ export function poseFor(look: Look, key: AssocKey): Pose | null {
       const row = look[PART_SLOT[part]];
       const sheet = row >= 0 ? rows[row]?.[action] : undefined;
       if (sheet) layers.push({ part, key: sheet, meta: JX_SHEETS[sheet] });
+    }
+    const mantleRow = look.mantle ?? -1;
+    if (mantleRow >= 0) {
+      const mKey = MANTLE_PARTS[look.sx][mantleRow]?.[action];
+      const mMeta = mKey ? MANTLE_SHEETS[mKey] : undefined;
+      if (mKey && mMeta) layers.push({ part: 16, key: mKey, meta: mMeta });
     }
     const body = layers.find(l => l.part === BODY);
     if (body) pose = { action, layers, body, shadow: shadowLayer(JX_SHADOWS[look.sx][action]) };

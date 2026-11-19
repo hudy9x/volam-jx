@@ -30,6 +30,8 @@ export interface TradeAsk {
   def: ItemDef;
   /** Price of one piece (buy: table price; sell: what the NPC pays; split: unused). */
   unit: number;
+  /** Currency unit for buy/sell (defaults to 'money'). */
+  currency?: 'money' | 'knb';
   /** Most pieces at once (buy: BUY_MAX and the free bag cells; sell: 1; split: curQty - 1). */
   max: number;
   /** Initial quantity (defaults to 1). */
@@ -81,13 +83,17 @@ export class TradeConfirm {
     const a = this.ask;
     if (!a) return;
     const total = a.unit * this.count;
-    const money = inventory.get().money;
-    const short = a.mode === 'buy' && total > money;
+    const isKnb = a.currency === 'knb';
+    const inv = inventory.get();
+    const bal = isKnb ? (inv.knb ?? 0) : inv.money;
+    const short = a.mode === 'buy' && total > bal;
     const price = $('trade-price');
-    price.textContent = moneyText(total);
+    price.textContent = isKnb ? total.toLocaleString('vi-VN') : moneyText(total);
     price.classList.toggle('short', short);
+    const curEl = price.parentElement?.querySelector('.trade-cur');
+    if (curEl) curEl.textContent = isKnb ? 'KNB' : 'lượng';
     $('trade-left').textContent = a.mode === 'buy'
-      ? `Tiền túi: ${moneyText(money)} lượng`
+      ? (isKnb ? `Kim nguyên bảo: ${bal.toLocaleString('vi-VN')} KNB` : `Tiền túi: ${moneyText(bal)} lượng`)
       : a.mode === 'split'
         ? `Tách ${this.count} · Còn lại ${a.max + 1 - this.count}`
         : '';

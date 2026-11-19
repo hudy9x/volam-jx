@@ -53,7 +53,7 @@ const HTML = `
           ${cell('Thể lực', 'ca-sta', 'green')}${cell('Thuộc tính', 'ca-series', 'green')}
         </div>
       </div>
-      <div class="ca-grid ca-top">${cell('Kinh nghiệm', 'ca-exp')}</div>
+      <div class="ca-grid ca-top">${cell('Kinh nghiệm', 'ca-exp')}${cell('Tài phú', 'ca-fortune', 'green')}</div>
       <div class="row ca-suggest"><button type="button" class="btn sm" id="ca-suggest" title="Gợi ý cộng điểm tiềm năng theo tuyến võ công">Gợi ý</button></div>
       <div class="ca-grid ca-points">
         ${cell('Sức mạnh', 'ca-str')}${plus('ca-add-str')}${cell('Thân pháp', 'ca-dex')}${plus('ca-add-dex')}
@@ -164,6 +164,7 @@ export class CharacterWindow {
     const set = (id: string, v: string) => { const el = $(id); el.textContent = v; el.classList.remove('na'); el.title = ''; };
     set('ca-level', String(pr.level));
     set('ca-exp', Number.isFinite(p.expNext) ? `${pr.exp}/${p.expNext}` : String(pr.exp));
+    set('ca-fortune', String(p.fortune ?? 0));
     set('ca-str', String(st.str)); set('ca-dex', String(st.dex)); set('ca-vit', String(st.vit)); set('ca-ene', String(st.eng));
     set('ca-points', String(pr.potentialPoints));
     set('ca-hit', String(st.ar)); set('ca-def', String(st.def));
