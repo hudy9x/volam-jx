@@ -7,6 +7,8 @@ export interface ActorState {
   /** Monsters / NPCs: original npc res name (e.g. ani052). */
   sprite: string;
   faction: string;
+  /** Ngũ hành: 'kim' | 'moc' | 'thuy' | 'hoa' | 'tho'. */
+  series?: string;
   gender: string;
   level: number;
   x: number;

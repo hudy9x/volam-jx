@@ -157,7 +157,7 @@ export class SkillLabScene extends Phaser.Scene {
 
   private addActor(id: string, kind: 'player' | 'monster', x: number, y: number): LabActor {
     const state: ActorState = {
-      kind, name: kind === 'player' ? '' : 'Cọc gỗ', sprite: kind === 'monster' ? 'enemy178' : '', faction: '', gender: 'male',
+      kind, name: kind === 'player' ? '' : 'Cọc gỗ', sprite: kind === 'monster' ? 'enemy178' : '', faction: '', series: kind === 'monster' ? 'kim' : '', gender: 'male',
       level: 1, x, y, dir: kind === 'player' ? 6 : 2, anim: 'idle', animSeq: 0, jumpMs: 0, hp: 1e6, maxHp: 1e6, mp: 0, maxMp: 0,
       pk: 0, camp: '', team: '', boss: false, scale: 1, protectedUntil: 0, horse: '', mounted: false, helm: 18, armor: 18, weapon: 0,
     };

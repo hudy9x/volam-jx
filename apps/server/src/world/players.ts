@@ -53,7 +53,7 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
   const [x, y] = canStandAt(w.grid, char.x, char.y) ? [char.x, char.y] : nearestWalkable(w.grid, entry.x, entry.y);
   const a = new Actor();
   Object.assign(a, {
-    kind: 'player', name: char.name, sprite: '', faction, gender: char.gender, level: prog.level,
+    kind: 'player', name: char.name, sprite: '', faction, series, gender: char.gender, level: prog.level,
     x: Math.round(x), y: Math.round(y), dir: 0, anim: 'idle', animSeq: 0, attackTarget: '', jumpMs: 0, moveScale: 1,
     hp: 1, maxHp: 1, mp: 0, maxMp: 0,
     pk: 0, camp: campOf(faction), team: '', boss: 0, scale: 1, protectedUntil: Date.now() + SPAWN_PROTECTION * 1000,

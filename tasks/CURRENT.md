@@ -1,3 +1,11 @@
+## 2026-11-19 · Hiển thị hình tròn ngũ hành bên trái tên Quái vật / Boss Xanh / Boss Hoàng Kim (đã commit)
+
+- **USER yêu cầu triển khai:** hiển thị hệ ngũ hành (`kim`, `moc`, `thuy`, `hoa`, `tho`) bằng hình tròn có màu ở bên trái tên của quái vật, Boss Xanh và Boss Hoàng Kim.
+- **Thay đổi:**
+  1. **Server (`apps/server/src/net/schema.ts`, `world/systems/spawner.ts`, `world/players.ts`):** thêm trường `series` vào schema `Actor` và đồng bộ `def.element` cho mọi quái vật, Boss Xanh, Boss Hoàng Kim (cùng `series` cho người chơi).
+  2. **Client (`apps/client/src/state/actor.ts`, `game/actors/ActorView.ts`, `dev/skill-lab/SkillLabScene.ts`):** vẽ hình tròn màu ngũ hành có viền đen sắc nét nằm bên trái tên của `kind === 'monster'` (gồm quái thường `boss=0`, Boss Xanh `boss=1`, Boss Hoàng Kim `boss=2`), tự căn giữa cả cụm `[● Tên (cấp)]`, tự scale theo mức zoom 100%/150%/200%, ẩn khi chết/culling và không vẽ trên người chơi/NPC. Bảng màu: Kim `#ffdf4a` (vàng ánh kim), Mộc `#3fd65c` (xanh lá), Thủy `#3ea4ff` (xanh dương), Hỏa `#ff3b30` (đỏ lửa), Thổ `#b5743a` (nâu đất). Dùng chung renderer cho Web, Desktop và Mobile.
+  3. **Kiểm thử (`tests/monster-element-dot.test.cjs`):** 28/28 test (`monster-element-dot`, `team-leader-render`, `control-effects-render`) pass, `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần restart server và reload client để nhận trường `series` mới trên schema `Actor`. Đã commit trên `main`, không push.
+
 ## 2026-11-19 · Tăng trần thuốc hành trang lên 60, thông báo rõ & màu chữ cửa hàng (đã commit)
 
 - **USER yêu cầu triển khai:**

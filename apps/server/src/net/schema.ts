@@ -9,6 +9,7 @@ export const Actor = schema({
   name: t.string(),
   sprite: t.string(),        // monsters: original npc res (e.g. ani052); '' for players
   faction: t.string(),       // faction id, '' for monsters
+  series: t.string(),        // ngũ hành: 'kim' | 'moc' | 'thuy' | 'hoa' | 'tho'
   gender: t.string(),        // 'male' | 'female' (players: picks the paper-doll set)
   level: t.uint8(),
   x: t.uint16(),
