@@ -1,3 +1,9 @@
+## 2026-11-20 · Nạp 27 bản đồ thành thị, thôn trấn và môn phái từ SHXT (đã commit)
+
+- **USER yêu cầu:** kiểm tra các bản đồ chưa load theo VLTK-SHXT, nạp **5 thành thị** (`11, 78, 80, 162, 176`), **10 thôn trấn** (`20, 53, 54, 99, 100, 101, 121, 153, 174, 175`) và **12 bản đồ chính môn phái** (`13, 25, 45, 59, 81, 103, 115, 131, 154, 183, 332, 333`).
+- **Thay đổi:** chạy `gen:maps` với nguồn `Client_VLTK_SHXT` sinh assets + `nav.json` + `traps.json` trong `apps/client/public/assets/maps/` (nằm trong `.gitignore`) và cập nhật [packages/shared/src/maps/catalog.gen.ts](packages/shared/src/maps/catalog.gen.ts) lên **70 bản đồ gốc**.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `git diff --check` đạt. Giữ ngoài commit các thay đổi có sẵn (`theme.css`, `bosses/config.json`, `bosses/config.ts`). Đã commit trên `main`, không push.
+
 ## 2026-11-20 · Tăng thêm tốc độ rơi Thiên Ngoại Lưu Tinh (đã commit)
 
 - **USER yêu cầu:** tăng tốc độ đạn rơi lên nữa (sau commit `a1489bd`).
