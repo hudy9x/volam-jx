@@ -60,11 +60,16 @@ test('boss focus is retained when another boss of the same tier moves closer', (
   r.auto.update(1250, r.opts);
   assert.equal((r.auto as unknown as {target:string}).target, 'gold');
 });
-test('loot cannot interrupt a living boss lock', () => {
-  const r = rig(); r.auto.start(); r.auto.update(1000, r.opts);
-  r.auto.update(1250, {...r.opts, autoMoney:true});
-  assert.deepEqual(r.pickups, []);
-  assert.equal((r.auto as unknown as {target:string}).target, 'gold');
+test('in-range loot runs in parallel without interrupting a living boss lock; far loot waits', () => {
+  const r = rig();
+  r.host.drops = () => [
+    { id: 'near-money', def: 'money', q: 0, owner: '', x: 5, y: 0 },
+    { id: 'far-money', def: 'money', q: 0, owner: '', x: 150, y: 0 },
+  ];
+  r.auto.start(); r.auto.update(1000, r.opts);
+  r.auto.update(1250, { ...r.opts, autoMoney: true });
+  assert.deepEqual(r.pickups, ['near-money']);
+  assert.equal((r.auto as unknown as { target: string }).target, 'gold');
 });
 test('highest tier then nearest within tier; finish each gold, then each blue, then normal', () => {
   const r=rig(), log:string[]=[];r.host.cast=(_skill,target)=>{if(target){log.push(target.id);r.self.state.attackTarget=target.id;}};
@@ -99,12 +104,12 @@ test('buff and curse replace the server cast but preserve selected enemy and res
     r.auto.update(1500,opts);assert.equal((r.auto as unknown as {target:string}).target,'gold');
   }
 });
-test('pickup after kill completes before next lock; cannot steal focus in the next fight', () => {
-  const r=rig();let ground=[{id:'money',def:'money',q:0,owner:'',x:5,y:0}];r.host.drops=()=>ground;
+test('far pickup after kill completes before next lock; cannot steal focus in the next fight', () => {
+  const r=rig();let ground=[{id:'money',def:'money',q:0,owner:'',x:150,y:0}];r.host.drops=()=>ground;
   const opts={...r.opts,autoMoney:true};r.auto.start();r.auto.update(1000,opts);assert.deepEqual(r.pickups,[]);
   r.actors[2].state.hp=0;r.auto.update(1250,opts);assert.deepEqual(r.pickups,['money']);
   ground=[];r.auto.update(1500,opts);assert.equal((r.auto as unknown as {target:string}).target,'blue');
-  ground=[{id:'new-money',def:'money',q:0,owner:'',x:5,y:0}];r.auto.update(1750,opts);assert.deepEqual(r.pickups,['money']);
+  ground=[{id:'new-money',def:'money',q:0,owner:'',x:150,y:0}];r.auto.update(1750,opts);assert.deepEqual(r.pickups,['money']);
 });
 test('policy changes apply immediately but unchanged HP never abandons a fight', () => {
   const r=rig();r.actors[2].x=600;r.auto.start();r.auto.update(1000,r.opts);
@@ -265,7 +270,7 @@ test('an engaged target moving out of range is retried, never banned; buff, loot
   const r=rig();r.auto.start();r.auto.update(1000,r.opts);r.auto.update(1250,r.opts);
   r.actors[2].x=10000;
   r.auto.update(2000,r.opts);r.auto.update(9000,{...r.opts,autoMoney:true});r.auto.update(16000,r.opts);
-  assert.equal((r.auto as any).focus,'gold');assert.equal((r.auto as any).bans.size,0);assert.deepEqual(r.pickups,[]);
+  assert.equal((r.auto as any).focus,'gold');assert.equal((r.auto as any).bans.size,0);assert.deepEqual(r.pickups,['money']);
 });
 
 test('nearest mode also finishes confirmed combat, but manual input and invalid targets release it', () => {
@@ -396,4 +401,67 @@ test('manual move waits autoManualPauseMs (150ms) and until running stops, then 
   r.self.state.anim = 'idle';
   r.auto.update(1350, r.opts);
   assert.ok(r.casts.length > initialCasts);
+});
+
+test('teammate drops are picked up in parallel during combat and manual pause; outsider drops skipped', () => {
+  const r = rig();
+  r.self.state.team = 'team-1';
+  const def = Object.values(ITEMS).find(d => d.kind === 'melee')!.id;
+  r.actors.push(
+    { id: 'mate', x: 50, y: 0, isSelf: false, state: { kind: 'player', level: 100, hp: 100, maxHp: 100, mp: 100, maxMp: 100, boss: 0, sprite: '', team: 'team-1' } },
+    { id: 'stranger', x: 50, y: 0, isSelf: false, state: { kind: 'player', level: 100, hp: 100, maxHp: 100, mp: 100, maxMp: 100, boss: 0, sprite: '', team: 'team-2' } },
+  );
+  r.host.drops = () => [
+    { id: 'mate-gear', def, q: QUALITY.magic, owner: 'mate', team: 'team-1', x: 30, y: 0 },
+    { id: 'stranger-gear', def, q: QUALITY.magic, owner: 'stranger', team: 'team-2', x: 20, y: 0 },
+    { id: 'mate-no-actor', def, q: QUALITY.magic, owner: 'offline-mate', team: 'team-1', x: 40, y: 0 },
+  ];
+  const opts = { ...r.opts, autoPickup: true, autoMoney: true };
+  r.auto.start();
+  r.auto.pause(1000, null);
+  // Even during manual pause and live boss combat, in-range teammate drops are picked up immediately without delay.
+  r.auto.update(1050, opts);
+  assert.deepEqual(r.pickups, ['mate-gear', 'mate-no-actor']);
+});
+
+test('autoLootPriority detects drops within 1200 and prioritizes looting over bosses and monsters', () => {
+  const r = rig();
+  r.self.state.team = 'team-1';
+  const def = Object.values(ITEMS).find(d => d.kind === 'melee')!.id;
+  r.host.drops = () => [
+    { id: 'far-drop-1100', def, q: QUALITY.magic, owner: 'mate', team: 'team-1', x: 1100, y: 0 },
+    { id: 'too-far-1300', def, q: QUALITY.magic, owner: 'mate', team: 'team-1', x: 1300, y: 0 },
+  ];
+  const opts = { ...r.opts, autoPickup: true, autoLootPriority: true };
+  r.auto.start();
+  r.auto.update(1000, opts);
+  assert.deepEqual(r.pickups, ['far-drop-1100']);
+  assert.equal(r.casts.length, 0);
+  assert.equal((r.auto as unknown as { focus: string | null }).focus, null);
+  // After far-drop-1100 is gone, too-far-1300 (> 1200) does not block fighting the boss.
+  r.host.drops = () => [{ id: 'too-far-1300', def, q: QUALITY.magic, owner: 'mate', team: 'team-1', x: 1300, y: 0 }];
+  r.auto.update(3000, opts);
+  assert.equal((r.auto as unknown as { focus: string | null }).focus, 'gold');
+});
+
+test('autoSellAllBlue sells every blue gear regardless of lines/value, and works in town without autoMap', () => {
+  const r = rig();
+  const def = Object.values(ITEMS).find(d => d.kind === 'melee')!.id;
+  r.setBag([
+    { uid: 'ordinary', def, q: QUALITY.magic },
+    { uid: 'valuable-6lines', def, q: QUALITY.magic, magic: [['lifemax_v', 200], ['allres_p', 20], ['attackspeed_v', 30], ['d', 1], ['e', 1], ['f', 1]] },
+    { uid: 'gold-item', def, q: QUALITY.gold },
+    { uid: 'potion', def: 'potion-2-5' },
+  ]);
+  r.auto.start();
+  // autoSellBlue + autoKeepValuable keeps the 6-line item.
+  r.auto.update(31000, { ...r.opts, autoSellBlue: true, autoKeepValuable: true });
+  assert.deepEqual(r.sold, [0]);
+  // autoSellAllBlue sells all blue items (both 0 and 1), even in town with autoMap & autoReturnTraining off.
+  r.sold.length = 0;
+  r.host.safe = () => true;
+  r.auto.update(62000, { ...r.opts, autoMap: false, autoReturnTraining: false, autoSellAllBlue: true, autoKeepValuable: true });
+  assert.deepEqual(r.sold, [0, 1]);
+  assert.equal(normalizeAuto({ autoLootPriority: true, autoSellAllBlue: true }).autoLootPriority, true);
+  assert.equal(normalizeAuto({ autoLootPriority: true, autoSellAllBlue: true }).autoSellAllBlue, true);
 });

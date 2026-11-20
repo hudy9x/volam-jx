@@ -73,12 +73,12 @@ function line(name: string, value: number, max?: number, color = TIP_COLORS.text
 /** Plain sentence of an attribute at `value` (forge choices). */
 export const attrText = (name: string, value: number): string => line(name, value).map(l => l.map(s => s.text).join('')).join(' ');
 
-/** A magic line in one colour, with the [min-max] of its attribute. */
+/** A magic line in its quality/activation colour, with the [min-max] range in gray. */
 function magicLine(name: string, value: number, prefix: boolean, color: string, p3 = value): TipLine[] {
   const range = name === 'allskill_v' ? null : magicRange(name, prefix);
   return line(name, value, undefined, TIP_COLORS.text, p3).map((l, i, all) => [
     ...l.map(s => ({ text: s.text, color })),
-    ...(range && i === all.length - 1 ? [{ text: ` [${range[0]}-${range[1]}]`, color }] : []),
+    ...(range && i === all.length - 1 ? [{ text: ` [${range[0]}-${range[1]}]`, color: GRAY }] : []),
   ]);
 }
 

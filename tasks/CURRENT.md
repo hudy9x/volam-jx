@@ -1,3 +1,12 @@
+## 2026-11-20 · Auto nhặt đồ tổ đội song song, ưu tiên nhặt 1200, bán toàn bộ đồ xanh & Shift+Z (chưa commit)
+
+- **USER yêu cầu triển khai:**
+  1. **Nhặt đồ đồng đội & nhặt song song không delay/lock:** đồng bộ thêm `Ground.team` (`apps/server/src/net/schema.ts`, `world/systems/drops.ts`); `AutoPlay.canTake` cho phép nhặt đồ của mình, đồng đội cùng `team` hoặc vô chủ; `pickInRange` gửi lệnh nhặt ngay lập tức cho mọi đồ/tiền trong `DROPS.pickupRange = 80` song song với combat, cast và `manualPauseAt`.
+  2. **Ưu tiên nhặt đồ phạm vi 1200 (`autoLootPriority`):** tùy chọn mới trong `AutoSettings` (mặc định `false`), hiển thị trên UI Auto (`apps/client/src/ui/windows/auto.ts`) và UI Bot (`tools/bots/ui/BotPanel.ts`). Khi bật, Auto quét đồ rơi hợp lệ trong bán kính `AUTO_LOOT_PRIORITY_RADIUS = 1200` và ưu tiên nhặt trước mọi giao tranh/quái/boss.
+  3. **Bán toàn bộ đồ xanh (`autoSellAllBlue`):** tùy chọn mới bán mọi trang bị xanh (`QUALITY.magic`) bất kể số dòng hay thuộc tính (vẫn giữ Hoàng Kim/thuốc/bí kíp/ngựa/lệnh bài); đồng thời cho phép `town()` tự bán mỗi 30s ngay cả khi đứng thành mà tắt tự động đi bãi.
+  4. **Phím tắt `Shift + Z` bật/tắt nhanh Auto:** `WorldScene.ts` bắt `keydown-Z` kèm `event.shiftKey` để gọi `this.ui.setAuto(!this.ui.auto)`, giữ `Z` mở hộp thoại; cập nhật hướng dẫn phím tắt trong `keymap.ts`, `auto.ts` và `docs/auto.md`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run test:auto` (**66/66 pass**), `npm run build` thành công, `git diff --check` đạt. Dùng chung Web/Desktop/Mobile; cần restart server và reload client/bot runner để nhận schema `Ground.team` và mã mới. Chưa commit/push.
+
 ## 2026-11-20 · Sửa SFX nam Hoa Sơn dùng nhầm giọng nữ (commit riêng theo USER)
 
 - USER yêu cầu sửa; HEAD `37300d9` nối tiếp commit EXP Boss trong checkpoint. Giữ thay đổi theme, cấu hình Boss thật và tracking có sẵn. GitNexus MCP không khả dụng; đối chiếu trực tiếp nguồn hiện tại và bảng SHXT.

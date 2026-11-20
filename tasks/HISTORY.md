@@ -1,9 +1,26 @@
+## 2026-11-20 · Điều tra Auto nhặt đồ tổ đội và bot bán xanh (chưa sửa)
+
+- USER yêu cầu kiểm tra, chưa duyệt sửa. HEAD `3c333bb` nối tiếp checkpoint SFX; giữ theme/config Boss/tracking đang có. GitNexus CLI query dùng repo hiện tại nhưng index chậm15commit; không dùng graph cũ làm bằng chứng, xác minh trực tiếp nguồn HEAD.
+- AutoPlay.pick loại owner khác self vô điều kiện; server drops.pickup cho cùng tổ đội nhặt. Tái hiện gọi hàm production với money owner=teammate không gửi pickup, đổi owner rỗng gửi pickup. ownerMs20giây; Auto còn trì hoãn loot khi đang đánh mục tiêu sống, sau kill chỉ xét gần220iso. Chưa sửa/chưa kiểm WS gameplay.
+- Đọc snapshot DB200bot:55có Auto lưu (43keep=true,12false; đều enabled=false),145chưa có. Túi bot tổng15mónxanh:14được botTradeReasons bảo vệ,1không. Sở Thanh Trúc14/14được giữ (6dòng hoặc ẩn hiếm/cao), autoSellBlue=true/autoKeepValuable=true/autoPickup=false. Tần Ngọc Lan1mónkhôngbảo vệ, keep=false, Auto lưu đang tắt. DB là snapshot, không khẳng định trạng thái runner/live. Hai scenario san-boss bật bán xanh và giữ giá trị.
+- Bán xanh là mỗi30giây/khi tiếp tế, server sellItem cho bán mọi nơi; không bị chặn vì ngoài thành. Tiêu chí giữ gồm >5dòng khác0, đạt định giá hoặc dòngẩn hiếm/cao; độc lập công tắc rao. 40/40test auto-behavior + bot-social đạt; không có ca hồi quy team-owner hiện có. Không đổi code/DB/config, không restart/commit/push. Chung Auto Web/Desktop/Mobile và bot; chờ USER duyệt sửa lọc owner và/hoặc thay chính sách giữ xanh. Không tick BACKLOG vì chỉ điều tra.
+
 ## 2026-11-20 · Sửa SFX nam Hoa Sơn dùng nhầm giọng nữ (commit riêng theo USER)
 
 - USER yêu cầu sửa; HEAD `37300d9` nối tiếp commit EXP Boss trong checkpoint. Giữ thay đổi theme, cấu hình Boss thật và tracking có sẵn. GitNexus MCP không khả dụng; đối chiếu trực tiếp nguồn hiện tại và bảng SHXT.
 - Bảng gốc skills.txt: 1363/1364/1368/1369 có ManCastSnd=0, FMCastSnd=sound_k009.wav. gen-sounds trước đây điền chéo giới tính `[m || f, f || m]`, khiến nam phát giọng nữ. Generator nay giữ `[m, f]`; fxSound chỉ phát cast khi đúng giới có âm thanh, nếu thiếu dùng nhánh âm thanh động tác/vũ khí đúng giới có sẵn. Quy tắc áp dụng chung tránh cùng lỗi ở các phái khác; không tự gán giọng kỹ năng mới.
 - Chạy gen:sounds với JX_CLIENT SHXT: sinh lại sounds.gen.ts, không chuyển đổi thêm file âm thanh, manifest không đổi; các tham chiếu thiếu có sẵn vẫn được báo. Ba test chạy fxSound production kiểm bốn chiêu lỗi nam/nữ, bảy chiêu Hoa Sơn có đủ hai giọng và fallback đánh/cưỡi ngựa đều đạt; npm run typecheck đạt. Chưa nghe thử gameplay/native. Web/Desktop/Mobile dùng chung đường âm thanh, reload client; production cần build lại. USER yêu cầu commit riêng phần SFX và kiểm thử; không push. Commit nền `37300d9`; hash mới xem git log.
 
+## 2026-11-20 · Auto nhặt đồ tổ đội song song, ưu tiên nhặt 1200 & bán toàn bộ đồ xanh
+
+- Triển khai theo yêu cầu USER: đồng bộ `Ground.team`, `AutoPlay.canTake` cho phép nhặt đồ đồng đội; `pickInRange` nhặt song song trong `DROPS.pickupRange` không bị delay/lock bởi combat; thêm `autoLootPriority` (bán kính 1200 ưu tiên nhặt trước đánh quái/boss) và `autoSellAllBlue` (bán mọi đồ xanh bất kể dòng, chạy cả khi đứng thành tắt đi bãi); thêm phím tắt `Shift + Z` bật/tắt nhanh Auto play.
+- Kiểm tra: `npm run typecheck`, `npm run test:auto` (66/66 pass), `npm run build` đạt. Không commit/push.
+
+## 2026-11-19 · Cài đặt điểm kinh nghiệm (EXP) Boss Hoàng Kim trong tool Boss
+
+- USER yêu cầu thêm cài đặt EXP cho Boss Hoàng Kim trong `tools/boss`, mặc định 4.000.000 EXP/con, dùng Tiên Thảo Lộ nhân đôi.
+- Thêm `GOLDEN_BOSS_DEFAULT_EXP = 4_000_000`, `GoldenBossEntry.exp` (`0–2.000.000.000`), `MonsterDef.expOverride`; `shareKillExp` dùng `expOverride` (kể cả `0` không bị nâng lên `1`), giữ chia tổ đội/sát thương và nhân Tiên Thảo Lộ (`EXP_ELIXIR` ×2); `/api/dev/bosses/reload` và `tools/boss/server.ts` xác nhận `exp` khi Áp dụng. UI có ô chỉnh riêng từng Boss và chỉnh nhóm (Giữ / Đặt chung / Mặc định 4.000.000).
+- Kiểm tra: 19/19 test Boss (`tests/golden-boss-exp.test.ts` mới + 4 file cũ), `npm run typecheck`, `npm run build`, API save trên thư mục tạm và ảnh Chrome headless 1440×1000 / 390×844. Không sửa config thật, không commit/push.
 
 ## 2026-11-19 · Tăng bán kính phát hiện Boss Hoàng Kim
 
@@ -1920,13 +1937,14 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - USER yêu cầu commit: thanh Cấp/HP/MP/EXP/Hạng sát trên căn giữa, minimap đơn giản và nút Auto gọn cạnh Cấp. Commit trên main, không push; mốc trước088a8fe. Checkpoint này nằm cùng commit triển khai (xem git log để lấy hash).
 - Typecheck/build đã đạt ở lượt sửa cuối, git diff --check đạt trước commit. Chưa kiểm gameplay/native. Các ghi chú chưa commit bên dưới là lịch sử trước checkpoint này.
 
-## 2026-11-19 · Sửa điểm neo Boss Đường Phong theo hình gốc (chưa commit)
+## 2026-11-19 · Điều tra nhân vật trượt khi dừng (chưa sửa code)
 
-- USER duyệt sửa và kiểm đủ tư thế/hướng. HEAD `2869162`; giữ nguyên thay đổi EXP Boss/HUD và các công việc khác.
-- gen-assets.sheet/writeSheet thêm chế độ chuẩn hóa box về chân160/202 bằng centerX/Y SPR, chỉ bật cho enemy157 (cả nhánh bóng nếu có); key cache riêng spr-anchor-v1 tránh dùng metadata cũ. Không sửa công thức tọa độ chung hoặc bù tên/HP riêng. Sinh bằng JX_CLIENT SHXT, chỉ5entry JX_SHEETS và5cacheentry mới thay đổi; metadata sprite khác giữ nguyên.
-- Đứng/idle: box146/135; chạy137/136; chịu đòn136/135; chết98/135; đánh/magic124/113. Gen lại5sheet, pixel giữ nguyên; không sửa asset bằng tay. Generator vẫn báo các tham chiếu thiếu có sẵn ngoài phạm vi.
-- tests/duong-phong-anchor.test.cjs chạy JxSprite/ActorView production với mock Phaser:960tổ hợp pose/hướng/frame, plate ở3zoom=2880tổ hợp; anchor/height/frame/name/bar/death đạt. Tổng9test cùng team-leader-render đạt. Typecheck/build đạt (cảnh báo chunk lớn cũ); diff-check đạt sau chuẩn hóa EOFtracking.
-- Đã xem contact sheet sprite thật5action×8hướng×3frame đại diện tại /tmp/jx-duong-phong/anchor-review.png; đây là bảng rà soát, không phải ảnh gameplay. Chưa kiểm game đang chạy/native. Web/Desktop/Mobile dùng chung renderer; reload client, production build lại. Không restart game/đổi DB/config thật, không commit/push. GitNexus MCP không khả dụng, kiểm phụ thuộc trực tiếp qua generator→metadata→PaperDoll→ActorView.
+- USER yêu cầu điều tra. HEAD `2869162` khớp checkpoint; giữ nguyên thay đổi EXP Boss/HUD và các file đang sửa.
+- Xác minh nguồn: ActorView.update làm mượt tọa độ bằng `1-exp(-14*dt)` kể cả khi anim đã idle; wanted/renderSprite chuyển tư thế theo anim server ngay. Server followPath/stepToward chốt đích không vượt bước, resolveAnim chọn idle khi hết path. Camera startFollow tiếp tục làm mượt0.15 mỗi trục.
+- Mô phỏng độc lập công thức production ở60FPS/patch50ms cho thấy khoảng cách hiển thị còn lại sau chạy đều (pha mẫu cuối trước patch kế): tốc120→5.92đơn vị,360→17.76; sai số còn6.1% sau200ms. Đây là minh họa cơ chế, chưa đo phiên người dùng hoặc tái hiện browser; chưa khẳng định camera là nguyên nhân chính.
+- Đề xuất đồng bộ kết thúc nội suy và tư thế đứng, kiểm riêng camera; chưa được duyệt triển khai. Luồng dùng chung Web/Desktop/Mobile, chưa kiểm native. Không sửa gameplay/asset/DB, không commit/push; không thêm/tick đầu việc BACKLOG vì chỉ điều tra. GitNexus MCP không có trong session; đối chiếu nguồn hiện tại trực tiếp.
+
+
 
 ## 2026-11-19 · Điều tra thanh máu Đường Phong lệch thân (chưa sửa code)
 
@@ -1935,16 +1953,34 @@ Theo USER, tách `docs/auto.md` và `docs/rao-ban.md` từ bản gộp; bổ sun
 - writeSheet(gen-assets.ts) chỉ ghi unionBox, bỏ centerX/Y; PaperDoll.place luôn trừ FOOT160/202. Khi đứng, góc sprite=(actor.x−160,actor.y−202), trong khi anchor riêng yêu cầu(actor.x−14,actor.y−67): sai −146X/−135Y. Alpha bounds frame đầu8hướng xác nhận tâm thân nằm trái actor134.5–139.5world units. ActorView.drawPlate đặt tên/thanhHP quanh actor.x, vì vậy thân và plate tách nhau. Height cũng suy từ FOOT_Y−boxY=202 thay vì chiều cao theo anchor riêng.
 - Kết luận xác minh lỗi chuẩn hóa anchor trong pipeline tài nguyên/render, phù hợp lệch ngang trong ảnh; chưa đo runtime phiên USER hoặc giải thích định lượng toàn bộ độ lệch dọc ảnh. Đề xuất chuẩn hóa metadata NPC theo center SPR và tái sinh có vô hiệu cache liên quan, kiểm đủ tư thế/hướng và các sprite cũ; chưa được duyệt triển khai. Chung renderer Web/Desktop/Mobile, chưa kiểm native. Chỉ cập nhật tracking, không sửa code/asset/DB, không commit/push; không thêm/tick BACKLOG vì chỉ điều tra.
 
+## 2026-11-19 · Sửa điểm neo Boss Đường Phong theo hình gốc (chưa commit)
+
+- USER duyệt sửa và kiểm đủ tư thế/hướng. HEAD `2869162`; giữ nguyên thay đổi EXP Boss/HUD và các công việc khác.
+- gen-assets.sheet/writeSheet thêm chế độ chuẩn hóa box về chân160/202 bằng centerX/Y SPR, chỉ bật cho enemy157 (cả nhánh bóng nếu có); key cache riêng spr-anchor-v1 tránh dùng metadata cũ. Không sửa công thức tọa độ chung hoặc bù tên/HP riêng. Sinh bằng JX_CLIENT SHXT, chỉ5entry JX_SHEETS và5cacheentry mới thay đổi; metadata sprite khác giữ nguyên.
+- Đứng/idle: box146/135; chạy137/136; chịu đòn136/135; chết98/135; đánh/magic124/113. Gen lại5sheet, pixel giữ nguyên; không sửa asset bằng tay. Generator vẫn báo các tham chiếu thiếu có sẵn ngoài phạm vi.
+- tests/duong-phong-anchor.test.cjs chạy JxSprite/ActorView production với mock Phaser:960tổ hợp pose/hướng/frame, plate ở3zoom=2880tổ hợp; anchor/height/frame/name/bar/death đạt. Tổng9test cùng team-leader-render đạt. Typecheck/build đạt (cảnh báo chunk lớn cũ); diff-check đạt sau chuẩn hóa EOFtracking.
+- Đã xem contact sheet sprite thật5action×8hướng×3frame đại diện tại /tmp/jx-duong-phong/anchor-review.png; đây là bảng rà soát, không phải ảnh gameplay. Chưa kiểm game đang chạy/native. Web/Desktop/Mobile dùng chung renderer; reload client, production build lại. Không restart game/đổi DB/config thật, không commit/push. GitNexus MCP không khả dụng, kiểm phụ thuộc trực tiếp qua generator→metadata→PaperDoll→ActorView.
+
 ## 2026-11-19 · Commit riêng sửa điểm neo Đường Phong theo USER
 
 - USER yêu cầu commit riêng, không push. Commit gồm generator, metadata/cache enemy157, kiểm thử và tracking riêng của lỗi này; giữ thay đổi EXP Boss/HUD và điều tra khác ngoài commit. Nền `2869162`; hash commit mới xem git log.
 - 9 kiểm thử đạt; typecheck/build đã đạt ở lượt triển khai, kiểm staged diff trước commit. Chưa kiểm gameplay/native. Không push.
 
-## 2026-11-19 · Cài đặt điểm kinh nghiệm (EXP) Boss Hoàng Kim trong tool Boss
+## 2026-11-19 · Thanh dưới, chat và 6 ô skill theo ảnh (chưa commit)
 
-- USER yêu cầu thêm cài đặt EXP cho Boss Hoàng Kim trong `tools/boss`, mặc định 4.000.000 EXP/con, dùng Tiên Thảo Lộ nhân đôi.
-- Thêm `GOLDEN_BOSS_DEFAULT_EXP = 4_000_000`, `GoldenBossEntry.exp` (`0–2.000.000.000`), `MonsterDef.expOverride`; `shareKillExp` dùng `expOverride` (kể cả `0` không bị nâng lên `1`), giữ chia tổ đội/sát thương và nhân Tiên Thảo Lộ (`EXP_ELIXIR` ×2); `/api/dev/bosses/reload` và `tools/boss/server.ts` xác nhận `exp` khi Áp dụng. UI có ô chỉnh riêng từng Boss và chỉnh nhóm (Giữ / Đặt chung / Mặc định 4.000.000).
-- Kiểm tra: 19/19 test Boss (`tests/golden-boss-exp.test.ts` mới + 4 file cũ), `npm run typecheck`, `npm run build`, API save trên thư mục tạm và ảnh Chrome headless 1440×1000 / 390×844. Không sửa config thật, không commit/push.
+- USER duyệt triển khai theo ảnh, yêu cầu mới nhất6ô thay9 và chưa commit. Thanh dưới1280:6ô1–6 hàng trên, icon chức năng hàng giữa, composer nền giấy dài sát đáy và T/P bên phải; log chat nổi trái với tab bên dưới. TG/MB đổi kênh, nút gửi/Enter; Hệ thống khóa nhập/gửi, fold chỉ gập log. Giữ kéo thả/cooldown/tooltip/nút chức năng.
+- Chỉ đăng ký1–6, giữ dữ liệu9ô cũ không xóa,7–9 không có ô/phím trực tiếp. Cập nhật gợi ý cửa sổ kỹ năng. Không đổi server/bot. Chung HUD fit Web/Desktop/Mobile, mobile vẫn cần UI chạm riêng.
+- Typecheck/build đạt sau chỉnh cuối, kiểm hình HTML/CSS component thật trên nền trống đạt bố cục (chưa gameplay/tương tác tích hợp/native). Diff-check đạt. HEAD a2bacc2; khác checkpoint2869162 vì phiên khác đã commit Đường Phong, giữ thay đổi EXPBoss/theme/AGENTS đang làm song song. Không commit/push.
+
+## 2026-11-19 · Chat và hệ thống theo ảnh bổ sung (chưa commit)
+
+- USER yêu cầu tham khảo thêm ảnh chat: log nền trong suốt rộng480, chữ đậm viền đen, hàng kênh dưới tin nhắn màu xanh ngọc/chọn vàng; hệ thống tách dưới hàng kênh và luôn hiện cùng chat, EXP đỏ có dấu!. Tab Hệ thống mở rộng vùng thông báo, composer vẫn gửi Thế giới (hoặc chọn Mua bán), gập ẩn cả hai log. Ẩn timestamp trên dòng, giữ giờ hệ thống trong tooltip. Không thêm kênh chưa hỗ trợ.
+- Giữ6ô skill1–6 theo yêu cầu trước, không commit/push. Typecheck/build và diff-check kiểm sau sửa; chưa kiểm gameplay/native. Chung HUD ba nền tảng, mobile cần UI chạm riêng. Giữ thay đổi EXPBoss song song.
+
+## 2026-11-19 · Hoàn tác thanh dưới/chat theo USER
+
+- USER yêu cầu revert vì không phù hợp. Đã khôi phục keymap, quickbar, chat, gợi ý skills và docs/ui-and-platforms về HEAD a2bacc2: thanh dưới/9ô phím/chat cũ. Giữ nguyên HUD trên cùng/minimap/Auto cạnh Cấp đã commit2869162 và toàn bộ thay đổi EXPBoss/theme/AGENTS song song.
+- Các ghi chú triển khai thanh dưới/chat bên dưới là lịch sử đã hoàn tác; gỡ hai dòng hoàn tất tương ứng ở BACKLOG. Không commit/push.
 
 ## 2026-11-20 · Điều tra không lưu/áp dụng EXP Boss Hoàng Kim (chưa sửa)
 

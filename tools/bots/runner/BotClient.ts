@@ -375,7 +375,7 @@ export class BotClient {
       },
       drops: () => {
         const out: AutoDrop[] = [];
-        (this.room?.state as any)?.ground?.forEach((g: any, id: string) => out.push({ id, x: g.x, y: g.y, owner: g.owner, def: g.def, q: g.q }));
+        (this.room?.state as any)?.ground?.forEach((g: any, id: string) => out.push({ id, x: g.x, y: g.y, owner: g.owner, team: g.team, def: g.def, q: g.q }));
         return out;
       },
       pickup: id => this.send(C2S.pickup, { id }),

@@ -5,7 +5,7 @@ import { ui, uiPx, textResolution, zoomPlate } from '../display';
 import { assetUrl } from '../../art/assets';
 
 /** A drop on the ground as the server syncs it (MapState.ground). */
-export interface GroundState { x: number; y: number; def: string; q: number; amount: number; owner: string; ownerUntil: number }
+export interface GroundState { x: number; y: number; def: string; q: number; amount: number; owner: string; team?: string; ownerUntil: number }
 
 const MONEY_ICON = 'ui/money';
 const MONEY_COLOR = '#ffd94e';

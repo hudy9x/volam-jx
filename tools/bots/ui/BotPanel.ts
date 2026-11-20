@@ -23,7 +23,7 @@ const API = `${SERVER_URL}/api/dev/bots`;
 const LAST_KEY = 'vltk.botPanel.last';
 
 const AUTO_LABELS: Record<keyof AutoSettings, string> = {
-  autoMoney: 'Tự nhặt ngân lượng', autoSellBlue: 'Tự bán đồ xanh trong túi', autoKeepValuable: 'Giữ đồ xanh có giá trị để rao bán',
+  autoMoney: 'Tự nhặt ngân lượng', autoLootPriority: 'Ưu tiên nhặt đồ (phạm vi 1200)', autoSellBlue: 'Tự bán đồ xanh trong túi', autoSellAllBlue: 'Tự bán toàn bộ đồ xanh (bất kể dòng)', autoKeepValuable: 'Giữ đồ xanh có giá trị để rao bán',
   autoRadius: 'Bán kính quanh chỗ bắt đầu', autoSkipBoss: 'Bỏ qua boss', autoBuff: 'Tự động buff kỹ năng đã học và duy trì hào quang', autoReturn: 'Quay về chỗ cũ khi hết quái',
   autoSeek: 'Tìm quái ở xa', autoPickup: 'Tự nhặt đồ', autoSort: 'Tự sắp xếp hành trang khi hết chỗ', autoPriority: 'Mục tiêu ưu tiên', autoRotate: 'Xoay chiêu',
   autoCurse: 'Tự dùng bùa hại', autoMap: 'Tự đổi bãi luyện công theo cấp', autoReturnTraining: 'Tự quay lại bãi luyện công trước đó', autoRevive: 'Tự hồi sinh khi trọng thương',

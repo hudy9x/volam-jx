@@ -25,9 +25,11 @@ export interface AutoSettings {
   autoRevive: boolean;
   autoBuyPotion: boolean;
   autoJunk: boolean;
-  /** Nhặt tiền độc lập với bộ lọc đồ; bán xanh thường, giữ món có giá trị nếu bật bảo vệ. */
+  /** Nhặt tiền độc lập với bộ lọc đồ; ưu tiên nhặt đồ phạm vi 1200; bán xanh thường hoặc toàn bộ đồ xanh. */
   autoMoney: boolean;
+  autoLootPriority: boolean;
   autoSellBlue: boolean;
+  autoSellAllBlue: boolean;
   autoKeepValuable: boolean;
   autoLoot: 'all' | 'magic' | 'money';
   /**
@@ -46,7 +48,7 @@ export interface AutoSettings {
 export const DEFAULT_AUTO: AutoSettings = {
   autoRadius: 500, autoSkipBoss: false, autoBuff: true, autoReturn: true, autoSeek: true, autoPickup: true, autoSort: true,
   autoPriority: 'boss', autoRotate: true, autoCurse: true, autoMap: true, autoReturnTraining: true, autoRevive: true, autoBuyPotion: true, autoJunk: true,
-  autoMoney: true, autoSellBlue: false, autoKeepValuable: true,
+  autoMoney: true, autoLootPriority: false, autoSellBlue: false, autoSellAllBlue: false, autoKeepValuable: true,
   autoLoot: 'all', autoHp: 50, autoMp: 20, autoReachPct: 60, autoMeleeClose: true,
   autoManualPauseMs: 150,
 };

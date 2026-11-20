@@ -55,6 +55,7 @@ export const Ground = schema({
   q: t.uint8(),              // quality (0 white, 1 blue…) for the name colour
   amount: t.uint32(),        // money only
   owner: t.string(),         // session id of who may pick it up first ('' = anyone)
+  team: t.string(),          // team id of the killer ('' = none; allows teammates to pick up)
   ownerUntil: t.uint32(),    // epoch seconds when anyone may pick it up
 }, 'Ground');
 export type Ground = SchemaType<typeof Ground>;

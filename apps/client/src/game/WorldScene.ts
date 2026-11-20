@@ -290,7 +290,7 @@ export class WorldScene extends Phaser.Scene {
       };
       // Shortcuts: input/keymap.ts. Esc is handled by the window manager (ui/kit/dialog.ts).
       SLOT_KEYS.forEach((name, i) => keys.on(`keydown-${name}`, () => atPointer(i)));
-      const bind = (action: KeyAction, run: () => void) => keys.on(`keydown-${KEYS[action].code}`, run);
+      const bind = (action: KeyAction, run: (event: KeyboardEvent) => void) => keys.on(`keydown-${KEYS[action].code}`, run);
       // Tab would move the browser focus: keep it for the big map.
       keys.addCapture(KEYS.bigmap.code);
       bind('skills', () => this.ui.toggleWindow('skills'));
@@ -300,7 +300,10 @@ export class WorldScene extends Phaser.Scene {
       bind('kytran', () => this.ui.toggleWindow('kytran'));
       bind('shop', () => this.ui.toggleWindow('shop'));
       bind('mount', () => this.ui.toggleMount());
-      bind('auto', () => this.ui.openAuto());
+      bind('auto', event => {
+        if (event?.shiftKey) this.ui.setAuto(!this.ui.auto);
+        else this.ui.openAuto();
+      });
       bind('bag', () => this.ui.toggleWindow('bag'));
       bind('char', () => this.ui.toggleWindow('char'));
       bind('travel', () => this.ui.toggleWindow('travel'));
@@ -406,7 +409,7 @@ export class WorldScene extends Phaser.Scene {
       buy: (item, count) => this.actions.buy(item, count),
       sortBag: () => this.actions.bagSort(-1, 'bag'),
       wearable: def => { const v = itemViewer(this.self?.state ?? null); return !!v && !equipError(def, v); },
-      drops: () => [...this.ground.values()].map(v => ({ id: v.id, x: v.g.x, y: v.g.y, owner: v.g.owner, def: v.g.def, q: v.g.q })),
+      drops: () => [...this.ground.values()].map(v => ({ id: v.id, x: v.g.x, y: v.g.y, owner: v.g.owner, team: v.g.team, def: v.g.def, q: v.g.q })),
       pickup: id => this.room.send(C2S.pickup, { id }),
       train: (quiet, returnPrevious) => this.room.send(C2S.train, { quiet, returnPrevious }),
       goTown: () => this.room.send(C2S.teleport, { mapId: TOWN_MAP_ID }),

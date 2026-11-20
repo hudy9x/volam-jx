@@ -1,4 +1,5 @@
 import { botTradeReasons } from '../bots/social.js';
+import { DROPS } from '../formulas/tuning.js';
 import { isoDistance } from '../geometry.js';
 import type { Point } from '../maps/nav/types.js';
 import {
@@ -12,8 +13,8 @@ import { autoAuraSkill, autoBuffSkills } from './buffs.js';
 
 type Settings = AutoSettings;
 
-/** A drop on the ground as auto-fight sees it (`owner` '' = anyone may take it; `def` 'money' for money). */
-export interface AutoDrop { id: string; x: number; y: number; owner: string; def: string; q: number }
+/** A drop on the ground as auto-fight sees it (`owner` '' = anyone may take it; `team` = team id of the killer; `def` 'money' for money). */
+export interface AutoDrop { id: string; x: number; y: number; owner: string; team?: string; def: string; q: number }
 
 /**
  * What auto-fight reads of an actor: the fields of the room's `Actor` schema it needs (the client's decoded ActorState and
@@ -29,6 +30,8 @@ export interface AutoActorState {
   boss: boolean | number;
   /** Monsters: original npc res name (training dummies are skipped by it). */
   sprite: string;
+  /** Players: team id ('' = none). */
+  team?: string;
   /** Bùa lợi / bùa hại (skill ids) on it. */
   states?: Iterable<number>;
   /** Target of the latest attack actually started by the server (not a queued approach). */
@@ -118,6 +121,8 @@ const STAT_NAMES: Record<PotionStat, string> = { hp: 'Sinh lực', mp: 'Nội l�
 const BASIC_ATTACK = 1;
 /** USER: boss rank only competes inside this moving neighbourhood first. */
 export const AUTO_NEAR_RADIUS = 600;
+/** USER 2026-11-20: priority loot mode detects and prioritizes drops within this isometric radius over all combat. */
+export const AUTO_LOOT_PRIORITY_RADIUS = 1200;
 /**
  * Approach (how close: state/settings.ts approachDistance): targets further than WALK_BEYOND are walked to first (the
  * server gives a lock up beyond 1600), the walk re-sent every WALK_GAP_MS.
@@ -311,13 +316,24 @@ export class AutoPlay {
       ? skillHpReserve(resource, self.state.maxHp) + resource.amount : 0;
     this.drink(now, self, 'hp', opts.autoHp, opts, 0, hpNeed);
     this.drink(now, self, 'mp', opts.autoMp, opts, resource?.resource === 'hp' ? 0 : this.costOf(main));
+    // Parallel non-blocking pickup: immediately take any eligible drop already in pickupRange, regardless of combat/cast/pause.
+    if (opts.autoPickup || opts.autoMoney) this.pickInRange(now, self, opts);
     if (now - this.manualPauseAt < opts.autoManualPauseMs) return;
     if (this.manualMoving) {
       if (self.state.anim === 'run') return;
       this.manualMoving = false;
     }
+    if ((opts.autoJunk || opts.autoSellBlue || opts.autoSellAllBlue) && now - this.lastJunk > JUNK_GAP_MS) { this.lastJunk = now; this.sellJunk(opts); }
+    // Priority loot mode (USER 2026-11-20): detect drops within 1200 and prioritize looting over all combat/bosses/buffs.
+    if (opts.autoLootPriority && (opts.autoPickup || opts.autoMoney)) {
+      if (this.pick(now, self, AUTO_LOOT_PRIORITY_RADIUS, true, opts)) {
+        this.target = null;
+        this.focus = null;
+        this.engaged = null;
+        return;
+      }
+    }
     if (this.host.prepareCombat?.(now)) return;
-    if ((opts.autoJunk || opts.autoSellBlue) && now - this.lastJunk > JUNK_GAP_MS) { this.lastJunk = now; this.sellJunk(opts); }
 
     const acknowledged = self.state.attackTarget;
     if (!this.engaged && acknowledged && this.requestedTargets.has(acknowledged)) {
@@ -332,7 +348,7 @@ export class AutoPlay {
     if (this.focus && (!previous || previous.state.hp <= 0)) this.lootAfterKill = true;
     const radius = opts.autoSeek ? Infinity : opts.autoRadius;
     const target = this.pickTarget(now, self, radius, opts);
-    // Never replace a live combat order with a walk-to-loot order. Loot between kills (or while idle).
+    // Walk-to-loot for out-of-range drops between kills (or while idle); in-range drops were already picked in parallel above.
     if ((opts.autoPickup || opts.autoMoney) && (!target || this.lootAfterKill)) {
       const near = target ? LOOT_NEAR : opts.autoSeek ? 600 : opts.autoRadius;
       if (this.pick(now, self, near, !!target, opts)) { this.target = null; return; }
@@ -365,13 +381,17 @@ export class AutoPlay {
    * — one step every TOWN_STEP_MS. With both travel options off, wait in town while retaining the enabled preference.
    */
   private town(now: number, opts: Settings): void {
-    if (!opts.autoMap && !opts.autoReturnTraining) return;
+    const canSell = opts.autoJunk || opts.autoSellBlue || opts.autoSellAllBlue;
+    if (!opts.autoMap && !opts.autoReturnTraining) {
+      if (canSell && now - this.lastJunk > JUNK_GAP_MS) { this.lastJunk = now; this.sellJunk(opts); }
+      return;
+    }
     if (now < this.townNext) return;
     this.townNext = now + TOWN_STEP_MS;
     switch (this.townStep++) {
       case 0: if (opts.autoBuyPotion) this.buyPotions('hp'); return;
       case 1: if (opts.autoBuyPotion) this.buyPotions('mp'); return;
-      case 2: if (opts.autoJunk || opts.autoSellBlue) this.sellJunk(opts); return;
+      case 2: if (canSell) this.sellJunk(opts); return;
       default:
         if (now >= this.nextTravel) { this.nextTravel = now + TRAVEL_GAP_MS; this.host.train(false, !!opts.autoReturnTraining); }
     }
@@ -691,6 +711,37 @@ export class AutoPlay {
     return this.canFitOrSort(itemDef({ def: d.def, uid: d.id }), opts).fits;
   }
 
+  private canTake(d: AutoDrop, self: AutoActor): boolean {
+    if (!d.owner || d.owner === self.id) return true;
+    const myTeam = self.state.team;
+    if (!myTeam) return false;
+    if (d.team && d.team === myTeam) return true;
+    return this.find(d.owner)?.state.team === myTeam;
+  }
+
+  /** Parallel instant pickup: take every eligible drop already within pickupRange without interrupting combat or movement. */
+  private pickInRange(now: number, self: AutoActor, opts: Settings): void {
+    for (const d of this.host.drops()) {
+      if (!this.canTake(d, self) || !this.wanted(d, opts)) continue;
+      if (isoDistance(self.x, self.y, d.x, d.y) > DROPS.pickupRange) continue;
+      const tried = this.pickTried.get(d.id);
+      if (tried && (tried.n >= PICKUP_TRIES || now - tried.at < PICKUP_RETRY_MS)) continue;
+      if (d.def !== 'money') {
+        const check = this.canFitOrSort(itemDef({ def: d.def, uid: d.id }), opts);
+        if (check.needsSort) {
+          if (now - this.lastSort >= SORT_GAP_MS) {
+            this.lastSort = now;
+            this.host.sortBag?.();
+          }
+          continue;
+        }
+      }
+      this.pickTried.set(d.id, { n: (tried?.n ?? 0) + 1, at: now });
+      if (this.pickTried.size > 200) this.pickTried.clear();
+      this.host.pickup(d.id);
+    }
+  }
+
   /**
    * Walk to / take the nearest drop we may take within `near` (of us while fighting, of the spot otherwise); the server walks
    * there. True while busy with one. A drop that stays (bag full, someone else's) is left after PICKUP_TRIES.
@@ -709,7 +760,7 @@ export class AutoPlay {
     const from = fighting ? self : this.anchor!;
     let best: AutoDrop | undefined, bestD = Infinity;
     for (const d of this.host.drops()) {
-      if ((d.owner && d.owner !== self.id) || !this.wanted(d, opts)) continue;
+      if (!this.canTake(d, self) || !this.wanted(d, opts)) continue;
       const tried = this.pickTried.get(d.id);
       if (tried && (tried.n >= PICKUP_TRIES || now - tried.at < PICKUP_RETRY_MS)) continue;
       if (near !== Infinity && isoDistance(from.x, from.y, d.x, d.y) > near) continue;
@@ -735,14 +786,14 @@ export class AutoPlay {
     return true;
   }
 
-  /** Tự bán đồ thừa: white pieces of equipment the character cannot wear (optionally ordinary blue gear; never gold, potions, books, the token). */
+  /** Tự bán đồ thừa: white pieces of equipment the character cannot wear (optionally ordinary blue gear or all blue gear; never gold, potions, books, the token). */
   private sellJunk(opts: Settings): void {
     let sold = false;
     this.host.bag().forEach((it, i) => {
       const def = itemDef(it);
       if (!it || !def || !KIND_SLOTS[def.kind].length || def.kind === 'horse') return;
       if ((it.q ?? QUALITY.normal) === QUALITY.magic) {
-        if (opts.autoSellBlue && (!opts.autoKeepValuable || !botTradeReasons(it).length)) { this.host.sell(i); sold = true; }
+        if (opts.autoSellAllBlue || (opts.autoSellBlue && (!opts.autoKeepValuable || !botTradeReasons(it).length))) { this.host.sell(i); sold = true; }
       } else if (opts.autoJunk && (it.q ?? QUALITY.normal) === QUALITY.normal && !this.host.wearable(def)) { this.host.sell(i); sold = true; }
     });
     if (sold && opts.autoSort) this.host.sortBag?.();

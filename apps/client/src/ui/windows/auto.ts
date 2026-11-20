@@ -11,7 +11,7 @@ const ID = 'auto-dlg';
 const HTML = `
 <section id="${ID}" class="dlg hidden" data-title="Tự động đánh">
   <button type="button" class="btn" id="auto-on">▶ Chạy auto</button>
-  <p class="muted">${keyLabel('auto')} mở cài đặt. Lưu riêng cho nhân vật; tự tiếp tục sau khi tải lại nếu đang bật.</p>
+  <p class="muted">${keyLabel('auto')} mở cài đặt · Shift+${keyLabel('auto')} bật / tắt nhanh. Lưu riêng cho nhân vật; tự tiếp tục sau khi tải lại nếu đang bật.</p>
   <div class="tabs auto-tabs" role="tablist" aria-label="Cài đặt Auto">
     ${[['combat', 'Chiến đấu'], ['training', 'Bãi luyện'], ['loot', 'Nhặt đồ'], ['potions', 'Thuốc']].map(([id, title], i) => `<button type="button" class="tab${i === 0 ? ' on' : ''}" id="auto-tab-${id}" role="tab" aria-controls="auto-panel-${id}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${title}</button>`).join('')}
   </div>
@@ -42,10 +42,12 @@ const HTML = `
   </div>
   <div id="auto-panel-loot" role="tabpanel" aria-labelledby="auto-tab-loot" tabindex="0" hidden>
   <div class="auto-h">Nhặt đồ và bán đồ</div>
-  <label class="check"><input type="checkbox" data-set="autoPickup" /> Tự nhặt đồ rơi (của mình hoặc không chủ)</label>
+  <label class="check"><input type="checkbox" data-set="autoPickup" /> Tự nhặt đồ rơi (của mình, tổ đội hoặc không chủ — nhặt song song khi đánh)</label>
+  <label class="check"><input type="checkbox" data-set="autoLootPriority" /> Ưu tiên nhặt đồ (phạm vi 1200, ưu tiên nhặt trước đánh quái / boss)</label>
   <label class="check"><input type="checkbox" data-set="autoSort" /> Tự động sắp xếp hành trang khi hết chỗ trống để nhặt đồ</label>
   <label class="check"><input type="checkbox" data-set="autoMoney" /> Tự nhặt ngân lượng (kể cả khi túi đầy)</label>
   <label class="check"><input type="checkbox" data-set="autoSellBlue" /> Tự bán đồ xanh trong túi (mỗi 30 giây)</label>
+  <label class="check"><input type="checkbox" data-set="autoSellAllBlue" /> Tự bán toàn bộ đồ xanh (bán mọi đồ xanh bất kể dòng thuộc tính)</label>
   <label class="check"><input type="checkbox" data-set="autoKeepValuable" /> Giữ đồ xanh trên 5 dòng hoặc có dòng ẩn hiếm / cao để rao bán</label>
   <label class="row">Nhặt <select data-set="autoLoot"><option value="all">Tất cả</option><option value="magic">Đồ xanh trở lên + tiền</option><option value="money">Chỉ tiền</option></select></label>
   <label class="check"><input type="checkbox" data-set="autoJunk" /> Tự bán đồ trắng không mặc được (mỗi 30 giây)</label>

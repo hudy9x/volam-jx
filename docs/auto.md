@@ -16,7 +16,7 @@
 
 - Cửa sổ cài đặt rộng tối đa 560px, tự co theo màn hình; chia 4 tab **Chiến đấu / Bãi luyện / Nhặt đồ / Thuốc**. Chạy/Dừng luôn ở phía trên; đổi tab giữ nguyên giá trị. Tab hỗ trợ phím trái/phải, Home/End; nội dung cuộn riêng khi thiếu chiều cao.
 
-- **Z** hoặc nút AUTO trên thanh chức năng mở hộp thoại. **Chạy auto / Dừng auto** trong hộp thoại và nút **▶ / ❚❚ Auto** ngay bên trái ô Cấp, cùng hàng chỉ số trên cùng (nút gọn62×20, viền vuông xanh sẫm; đang chạy màu xanh lá) bật/tắt.
+- **Z** hoặc nút AUTO trên thanh chức năng mở hộp thoại; **Shift + Z** bật/tắt nhanh Auto play. **Chạy auto / Dừng auto** trong hộp thoại và nút **▶ / ❚❚ Auto** ngay bên trái ô Cấp, cùng hàng chỉ số trên cùng (nút gọn62×20, viền vuông xanh sẫm; đang chạy màu xanh lá) bật/tắt.
 - Mỗi nhân vật có `CharacterRecord.auto` gồm cài đặt và trạng thái bật. Server xác thực nhân vật từ kết nối, chuẩn hóa giá trị và lưu DB; không lấy ID nhân vật do client gửi.
 - Cache `vltk.auto.character.<charId>` giúp hiện cài đặt nhanh. Khi vào bản đồ, bản server luôn đối chiếu và thay cache cũ. localStorage bị chặn/hỏng vẫn lấy được server. Không dùng cài đặt Auto toàn máy cho nhân vật khác.
 - Reload/đăng nhập lại tự tiếp tục nếu lần trước bật. Đây là Auto trong phiên chơi, không chạy khi người chơi đã đóng game. Trong thành, nếu tắt cả tự đổi bãi và tự quay lại thì chờ, không tự tắt trạng thái đã lưu.
@@ -58,10 +58,12 @@ WS thật trên2568, DB riêng `/tmp/jx-auto-focus/db.json`: runner Auto đánh 
 
 ## Nhặt đồ và bán cho NPC
 
+- **Nhặt đồ tổ đội và nhặt song song (USER 2026-11-20):** Server đồng bộ thêm `Ground.team` (mã tổ đội của người kết liễu). `AutoPlay` cho phép nhặt đồ rơi của chính mình, của đồng đội cùng tổ đội (`canTake`), hoặc đồ vô chủ. Các vật phẩm/ngân lượng đã nằm trong tầm nhặt (`DROPS.pickupRange = 80`) được gửi lệnh nhặt **song song ngay lập tức** (`pickInRange`), không bị delay hay khóa bởi thao tác đánh quái, combat hoặc `manualPauseAt`.
+- **Ưu tiên nhặt đồ phạm vi 1200 (`autoLootPriority`, mặc định tắt):** Khi bật, Auto quét đồ rơi hợp lệ trong bán kính `AUTO_LOOT_PRIORITY_RADIUS = 1200` đơn vị isometric và ưu tiên chạy tới nhặt trước mọi hành động khác (kể cả đang đánh quái thường hay Boss).
 - Nhặt ngân lượng là tùy chọn riêng, không cần chỗ trong túi và không phụ thuộc bật nhặt trang bị. Trang bị chỉ nhặt khi còn vùng trống đủ kích thước.
 - Lọc đồ: tất cả, xanh trở lên hoặc chỉ tiền; kết hợp công tắc nhặt ngân lượng độc lập.
-- Tự bán đồ trắng không mặc được; tùy chọn **Tự bán đồ xanh trong túi** kiểm tra mỗi 30 giây và khi về thành. Bán xanh mặc định tắt cho cài đặt mới; preset `luyen-cong-30` bật kèm bảo vệ.
-- Bảo vệ đồ xanh có giá trị: món trên 5 dòng hoặc có dòng ẩn hiếm/cao theo tiêu chí đáng chú ý của bot; bổ sung giữ món đạt bộ định giá xanh/hoàng kim trong [Rao bán](rao-ban.md). Không bán hoàng kim, ngựa, thuốc, bí kíp, lệnh bài hoặc đồ đang mặc. Đồ xanh dự trữ trong túi vẫn có thể bị bán nếu bật bán xanh và không thuộc nhóm được bảo vệ.
+- Tự bán đồ trắng không mặc được; tùy chọn **Tự bán đồ xanh trong túi** (`autoSellBlue`, giữ món đạt tiêu chí `autoKeepValuable` nếu bật) và **Tự bán toàn bộ đồ xanh** (`autoSellAllBlue`, bán mọi đồ xanh bất kể số dòng hay thuộc tính) kiểm tra mỗi 30 giây (cả khi đứng trong thành nếu tắt đi bãi) và khi về thành. Mặc định cả hai đều tắt cho cài đặt mới; preset `luyen-cong-30` bật `autoSellBlue` kèm bảo vệ.
+- Bảo vệ đồ xanh có giá trị: món trên 5 dòng hoặc có dòng ẩn hiếm/cao theo tiêu chí đáng chú ý của bot; bổ sung giữ món đạt bộ định giá xanh/hoàng kim trong [Rao bán](rao-ban.md). Không bán hoàng kim, ngựa, thuốc, bí kíp, lệnh bài hoặc đồ đang mặc. Đồ xanh dự trữ trong túi vẫn có thể bị bán nếu bật bán xanh và không thuộc nhóm được bảo vệ (hoặc khi bật `autoSellAllBlue`).
 - Túi toàn món được bảo vệ thì bỏ qua trang bị không vừa, vẫn nhặt tiền; cần dọn túi. Tự bán NPC khác với đăng tin Rao bán, không tự biến thành giao dịch người chơi.
 
 ## Bản đồ mã nguồn

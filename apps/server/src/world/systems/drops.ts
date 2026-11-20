@@ -43,8 +43,9 @@ export interface GroundDrop {
   money: number;
   x: number;
   y: number;
-  /** Sim id of the killer (first pick), and until when. */
+  /** Sim id of the killer (first pick), team id of the killer, and until when. */
   owner: string;
+  team: string;
   ownerUntil: number;
   until: number;
   g: Ground;
@@ -133,7 +134,7 @@ export function dropLoot(w: World, monster: Sim, killer: Sim | undefined): void 
     out.push({ item: createItem(mantleDef, newItemUid()), money: 0 });
   }
   const total = out.length;
-  out.forEach((d, i) => put(w, monster.a.x, monster.a.y, i, total, d.item, d.money, killer.id));
+  out.forEach((d, i) => put(w, monster.a.x, monster.a.y, i, total, d.item, d.money, killer.id, killer.a.team ?? ''));
 }
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
@@ -152,16 +153,16 @@ function dropOffset(i: number, total: number): [number, number] {
   return [Math.cos(a) * clampedR, Math.sin(a) * clampedR * 0.5];
 }
 
-function put(w: World, x: number, y: number, i: number, total: number, item: Item | null, money: number, owner: string): void {
+function put(w: World, x: number, y: number, i: number, total: number, item: Item | null, money: number, owner: string, team = ''): void {
   const [dx, dy] = dropOffset(i, total);
   const [sx, sy] = nearestWalkable(w.grid, x + dx, y + dy);
   const id = `d${nextDrop++}`;
   const g = new Ground();
   Object.assign(g, {
     x: Math.round(sx), y: Math.round(sy), def: item ? item.def : 'money', q: item?.q ?? 0, amount: money,
-    owner, ownerUntil: Math.ceil((w.now + DROPS.ownerMs) / 1000),
+    owner, team, ownerUntil: Math.ceil((w.now + DROPS.ownerMs) / 1000),
   });
-  w.ground.set(id, { id, item, money, x: g.x, y: g.y, owner, ownerUntil: w.now + DROPS.ownerMs, until: w.now + DROPS.lifeMs, g });
+  w.ground.set(id, { id, item, money, x: g.x, y: g.y, owner, team, ownerUntil: w.now + DROPS.ownerMs, until: w.now + DROPS.lifeMs, g });
   w.groundSync?.set(id, g);
 }
 
@@ -170,14 +171,14 @@ function put(w: World, x: number, y: number, i: number, total: number, item: Ite
  * (DROPS.lifeMs) and only its thrower may take it back during DROPS.ownerMs.
  */
 export function throwItem(w: World, sim: Sim, item: Item): void {
-  put(w, sim.a.x, sim.a.y, 1 + Math.floor(Math.random() * 6), 1, item, 0, sim.id);
+  put(w, sim.a.x, sim.a.y, 1 + Math.floor(Math.random() * 6), 1, item, 0, sim.id, sim.a.team ?? '');
 }
 
 /** Every tick: remove drops whose time is over; open them to everyone after the owner time. */
 export function updateDrops(w: World): void {
   for (const [id, d] of w.ground) {
     if (d.until <= w.now) { w.ground.delete(id); w.groundSync?.delete(id); continue; }
-    if (d.owner && d.ownerUntil <= w.now) { d.owner = ''; d.g.owner = ''; }
+    if (d.owner && d.ownerUntil <= w.now) { d.owner = ''; d.g.owner = ''; d.team = ''; d.g.team = ''; }
   }
 }
 
@@ -186,7 +187,8 @@ export function pickup(w: World, sim: Sim, id: string): boolean {
   const d = w.ground.get(id);
   if (!d || sim.dead) return false;
   // The killer and their team mates first (VT7: "người đánh chết quái + tổ đội").
-  if (d.owner && d.owner !== sim.id && !sameTeam(w.sims.get(d.owner), sim)) { w.hooks.notify(sim, 'Vật phẩm này chưa thuộc về bạn.'); return false; }
+  const inTeam = sameTeam(w.sims.get(d.owner), sim) || (!!d.team && d.team === sim.a.team);
+  if (d.owner && d.owner !== sim.id && !inTeam) { w.hooks.notify(sim, 'Vật phẩm này chưa thuộc về bạn.'); return false; }
   if (isoDistance(sim.a.x, sim.a.y, d.x, d.y) > DROPS.pickupRange) {
     sim.pickup = id;
     sim.pending = null;
