@@ -1,3 +1,9 @@
+## 2026-11-20 · Nối 129 cổng chuyển bản đồ cho 64 map theo SHXT (đã commit)
+
+- **USER yêu cầu:** nối cổng đi bộ (`Portal`) giữa các thành thị, thôn trấn, môn phái và bãi luyện công đã nạp dựa theo dữ liệu VLTK-SHXT.
+- **Thay đổi:** đối chiếu `maptraffic.ini`, `traps.json` và `nav.json` để ghi **129 cổng** trên **64 bản đồ** vào [packages/shared/src/maps/map-portals.json](packages/shared/src/maps/map-portals.json) (giữ nguyên vị trí cổng `37 -> 319` tại `30853, 5116`, đặt điểm đáp cách cổng ngược lại `>= 80 px` trên ô đứng được). Dùng chung Web/Desktop/Mobile; cần restart server và tải lại client/Map Manager để nhận cấu hình mới.
+- **Kiểm tra:** `npm run test:map-portals` (**3/3 pass**), `npm run typecheck` (0 lỗi), `git diff --check` đạt. Giữ ngoài commit các thay đổi có sẵn (`theme.css`, `bosses/config.json`, `bosses/config.ts`). Đã commit trên `main`, không push.
+
 ## 2026-11-20 · Nạp 27 bản đồ thành thị, thôn trấn và môn phái từ SHXT (đã commit)
 
 - **USER yêu cầu:** kiểm tra các bản đồ chưa load theo VLTK-SHXT, nạp **5 thành thị** (`11, 78, 80, 162, 176`), **10 thôn trấn** (`20, 53, 54, 99, 100, 101, 121, 153, 174, 175`) và **12 bản đồ chính môn phái** (`13, 25, 45, 59, 81, 103, 115, 131, 154, 183, 332, 333`).
