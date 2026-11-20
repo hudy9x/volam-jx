@@ -46,4 +46,9 @@ export const MISSILE_OVERRIDES: Record<number, Partial<MissileDef>> = {
   // 7. Võ Đang: Thiên Địa Vô Cực (#365 -> #173) & Tạo Hóa Thái Thanh (#1078 -> #340) hiển thị lâu hơn
   173: { life: 36 },
   340: { life: 45 },
+
+  // 8. Thiên Nhẫn: Thiên Ngoại Lưu Tinh (#362 -> #171) rơi nhanh gấp đôi (14 -> 7 tick);
+  //    Nghiệp Hỏa Phàn Thành (#363 -> #170) đứng yên tại điểm nổ thay vì trôi theo hướng đánh
+  170: { move: 0, speed: 0 },
+  171: { life: 7 },
 };

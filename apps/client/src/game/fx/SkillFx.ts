@@ -118,7 +118,9 @@ export class SkillFx {
         if (f) { f.img.destroy(); this.flying.delete(e.m); }
         const def = f?.def ?? getMissile(e.k);
         const end = e.c ? def?.fx?.collide ?? def?.fx?.vanish : def?.fx?.vanish;
-        if (end) this.oneShot(end.key, e.x, e.y, { tpf: end.tpf, angle: f?.angle, height: def?.height });
+        // Falling meteors (zSpeed < 0) start high in the sky (def.height) and land at ground level (z = 0).
+        const height = def?.zSpeed && def.zSpeed < 0 ? 0 : def?.height;
+        if (end) this.oneShot(end.key, e.x, e.y, { tpf: end.tpf, angle: f?.angle, height });
         return true;
       }
       default: return false;
