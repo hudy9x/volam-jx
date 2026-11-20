@@ -1,4 +1,10 @@
-## 2026-11-20 · Sửa tốc độ rơi, điểm nổ & dung nham Thiên Ngoại Lưu Tinh (chưa commit)
+## 2026-11-20 · Tăng thêm tốc độ rơi Thiên Ngoại Lưu Tinh (đã commit)
+
+- **USER yêu cầu:** tăng tốc độ đạn rơi lên nữa (sau commit `a1489bd`).
+- **Thay đổi:** [packages/shared/src/skills/common/missile-tuning.ts](packages/shared/src/skills/common/missile-tuning.ts) giảm `171: { life: 7 }` → `171: { life: 4 }` (`~222 ms` thay vì `~389 ms` ở bản trước và `~778 ms` gốc).
+- **Kiểm tra:** `npm run typecheck` (0 lỗi). Dùng chung Web/Desktop/Mobile; cần restart server và reload client để nhận thông số mới. Đã commit trên `main`, không push.
+
+## 2026-11-20 · Sửa tốc độ rơi, điểm nổ & dung nham Thiên Ngoại Lưu Tinh (đã commit `a1489bd`)
 
 - **USER yêu cầu:** tăng gấp đôi tốc độ rơi của viên đạn skill 90 Thiên Ngoại Lưu Tinh (`#362` -> missile `#171`), sửa hiệu ứng va chạm nổ trên quái (không nổ trên không trung) và giữ hiệu ứng dung nham bắn lên (**Nghiệp Hỏa Phàn Thành** `#363` -> missile `#170`) đứng yên tại cùng 1 điểm.
 - **Thay đổi:**

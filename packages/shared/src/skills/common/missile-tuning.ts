@@ -47,8 +47,8 @@ export const MISSILE_OVERRIDES: Record<number, Partial<MissileDef>> = {
   173: { life: 36 },
   340: { life: 45 },
 
-  // 8. Thiên Nhẫn: Thiên Ngoại Lưu Tinh (#362 -> #171) rơi nhanh gấp đôi (14 -> 7 tick);
+  // 8. Thiên Nhẫn: Thiên Ngoại Lưu Tinh (#362 -> #171) rơi nhanh (14 -> 4 tick ≈ 222ms);
   //    Nghiệp Hỏa Phàn Thành (#363 -> #170) đứng yên tại điểm nổ thay vì trôi theo hướng đánh
   170: { move: 0, speed: 0 },
-  171: { life: 7 },
+  171: { life: 4 },
 };
