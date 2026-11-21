@@ -37,15 +37,15 @@ export const TK_DEFAULT_TIMING = {
   endSec: 60,
 } as const;
 
-/** Hằng số tính điểm gốc (volam-3005 Server/script/header/tongkim.lua). */
+/** Hằng số tính điểm gốc (volam-3005 Server/script/header/tongkim.lua + cân bằng cho trận 10 phút). */
 export const TK_POINTS = {
   killPlayerBase: 60,
-  killNpcSoldier: 6,
-  killNpcCaptain: 30,
-  killNpcCommander: 90,
-  killNpcDeputy: 120,
-  killNpcGeneral: 180,
-  killMarshal: 1000,
+  killNpcSoldier: 25,
+  killNpcCaptain: 80,
+  killNpcCommander: 220,
+  killNpcDeputy: 380,
+  killNpcGeneral: 600,
+  killMarshal: 2500,
   streakBase: 10,
   winBonusPerRank: 400,
   top1Exp: 100_000_000,
@@ -64,9 +64,10 @@ export const TK_CAMP_NAMES: Record<TkCamp, string> = {
   kim: 'Đại Kim',
 };
 
+/** Màu tên giống Chính phái (#e8b878) cho Tống và Tà phái (#d58cff) cho Kim. */
 export const TK_CAMP_COLORS: Record<TkCamp, string> = {
-  tong: '#5cb8ff',
-  kim: '#ff6b57',
+  tong: '#e8b878',
+  kim: '#d58cff',
 };
 
 export interface TkRankInfo {
@@ -154,6 +155,7 @@ export const TK_MAP_LAYOUT: Record<TkCamp, TkCampLayout> = {
       { x: 9400, y: 5500 },
     ],
     npcSpawns: [
+      // Trung lộ Tống
       { role: 'soldier', x: 7600, y: 6200, count: 6, radius: 320 },
       { role: 'soldier', x: 8600, y: 5800, count: 8, radius: 420 },
       { role: 'captain', x: 8100, y: 6000, count: 2, radius: 220 },
@@ -161,6 +163,16 @@ export const TK_MAP_LAYOUT: Record<TkCamp, TkCampLayout> = {
       { role: 'commander', x: 7900, y: 6100, count: 2, radius: 180 },
       { role: 'deputy', x: 6900, y: 6750, count: 2, radius: 180 },
       { role: 'general', x: 6300, y: 7150, count: 1, radius: 80 },
+      // Cánh trái (Tây Bắc) Tống
+      { role: 'soldier', x: 7568, y: 5224, count: 6, radius: 320 },
+      { role: 'captain', x: 7568, y: 5224, count: 2, radius: 200 },
+      { role: 'soldier', x: 9232, y: 4792, count: 6, radius: 320 },
+      { role: 'commander', x: 9232, y: 4792, count: 1, radius: 160 },
+      // Cánh phải (Đông Nam) Tống
+      { role: 'soldier', x: 7800, y: 7200, count: 6, radius: 320 },
+      { role: 'captain', x: 8816, y: 6792, count: 2, radius: 220 },
+      { role: 'soldier', x: 9520, y: 6168, count: 6, radius: 320 },
+      { role: 'commander', x: 8816, y: 6792, count: 1, radius: 160 },
     ],
   },
   kim: {
@@ -178,6 +190,7 @@ export const TK_MAP_LAYOUT: Record<TkCamp, TkCampLayout> = {
       { x: 10800, y: 5200 },
     ],
     npcSpawns: [
+      // Trung lộ Kim
       { role: 'soldier', x: 11400, y: 4800, count: 6, radius: 320 },
       { role: 'soldier', x: 10500, y: 5100, count: 8, radius: 420 },
       { role: 'captain', x: 11000, y: 4900, count: 2, radius: 220 },
@@ -185,6 +198,16 @@ export const TK_MAP_LAYOUT: Record<TkCamp, TkCampLayout> = {
       { role: 'commander', x: 11200, y: 4850, count: 2, radius: 180 },
       { role: 'deputy', x: 12100, y: 4200, count: 2, radius: 180 },
       { role: 'general', x: 12800, y: 3800, count: 1, radius: 80 },
+      // Cánh trái (Tây Bắc) Kim
+      { role: 'soldier', x: 10500, y: 3500, count: 6, radius: 320 },
+      { role: 'captain', x: 11504, y: 3192, count: 2, radius: 220 },
+      { role: 'soldier', x: 12400, y: 3000, count: 6, radius: 320 },
+      { role: 'commander', x: 11504, y: 3192, count: 1, radius: 160 },
+      // Cánh phải (Đông Nam) Kim
+      { role: 'soldier', x: 11200, y: 5800, count: 6, radius: 320 },
+      { role: 'captain', x: 12200, y: 5400, count: 2, radius: 220 },
+      { role: 'soldier', x: 13104, y: 4760, count: 6, radius: 320 },
+      { role: 'commander', x: 12200, y: 5400, count: 1, radius: 160 },
     ],
   },
 };

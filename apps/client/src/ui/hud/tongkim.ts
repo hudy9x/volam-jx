@@ -153,8 +153,8 @@ export class TongKimHud {
     if (act === 'scout') this.send({ op: 'scout' });
     else if (act === 'exitGate') this.send({ op: 'exitGate' });
     else if (act === 'leave') this.send({ op: 'leave' });
-    else if (act === 'devStart1') this.send({ op: 'devStart', mode: 1, signupSec: 20, durationSec: 300, marshalDelaySec: 45 });
-    else if (act === 'devStart2') this.send({ op: 'devStart', mode: 2, signupSec: 20, durationSec: 300 });
+    else if (act === 'devStart1') this.send({ op: 'devStart', mode: 1, signupSec: 20, durationSec: 600, marshalDelaySec: 45 });
+    else if (act === 'devStart2') this.send({ op: 'devStart', mode: 2, signupSec: 20, durationSec: 600 });
     else if (act === 'devStop') this.send({ op: 'devStop' });
     else if (act === 'regTong') this.send({ op: 'register', camp: 'tong' });
     else if (act === 'regKim') this.send({ op: 'register', camp: 'kim' });

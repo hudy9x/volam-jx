@@ -83,11 +83,11 @@ export interface TkStartOptions {
 }
 
 const TK_NPC_STATS: Record<TkNpcRole, { hp: number; level: number; scale: number; boss: 0 | 1 | 2; respawnMs: number; damage: [number, number]; skills: [number, number][] }> = {
-  soldier: { hp: 36_000, level: 80, scale: 1.0, boss: 0, respawnMs: 120_000, damage: [180, 260], skills: [[1, 1]] },
-  captain: { hp: 70_000, level: 90, scale: 1.12, boss: 0, respawnMs: 240_000, damage: [320, 460], skills: [[1, 1], [322, 10]] },
-  commander: { hp: 180_000, level: 95, scale: 1.24, boss: 1, respawnMs: 420_000, damage: [520, 740], skills: [[1, 1], [322, 15], [362, 10]] },
-  deputy: { hp: 320_000, level: 98, scale: 1.32, boss: 1, respawnMs: 480_000, damage: [650, 920], skills: [[1, 1], [322, 18], [362, 14]] },
-  general: { hp: 600_000, level: 100, scale: 1.42, boss: 1, respawnMs: 600_000, damage: [800, 1150], skills: [[1, 1], [322, 20], [362, 18], [365, 12]] },
+  soldier: { hp: 36_000, level: 80, scale: 1.0, boss: 0, respawnMs: 25_000, damage: [180, 260], skills: [[1, 1]] },
+  captain: { hp: 70_000, level: 90, scale: 1.12, boss: 0, respawnMs: 45_000, damage: [320, 460], skills: [[1, 1], [322, 10]] },
+  commander: { hp: 180_000, level: 95, scale: 1.24, boss: 0, respawnMs: 70_000, damage: [520, 740], skills: [[1, 1], [322, 14], [362, 12], [1055, 10]] },
+  deputy: { hp: 320_000, level: 98, scale: 1.32, boss: 0, respawnMs: 90_000, damage: [650, 920], skills: [[1, 1], [322, 18], [362, 15], [365, 12], [1058, 14]] },
+  general: { hp: 600_000, level: 100, scale: 1.42, boss: 1, respawnMs: 120_000, damage: [800, 1150], skills: [[1, 1], [322, 20], [362, 18], [365, 16], [1061, 16], [1070, 14]] },
   marshal: { hp: 5_000_000, level: 100, scale: 1.6, boss: 2, respawnMs: 0, damage: [1100, 1650], skills: [[1, 1], [322, 20], [362, 20], [365, 20], [357, 20]] },
 };
 
@@ -96,22 +96,23 @@ const TK_NPC_TITLES: Record<TkCamp, Record<TkNpcRole, string>> = {
   kim: { soldier: 'Kim Binh', captain: 'Kim Hiệu úy', commander: 'Kim Thống lĩnh', deputy: 'Kim Phó tướng', general: 'Kim Đại tướng', marshal: 'Kim Nguyên Soái' },
 };
 
+/** NpcResType đối chiếu từ volam-3005/Server/Settings/Npcs.txt (dòng 633-644). */
 const TK_NPC_SPRITES: Record<TkCamp, Record<TkNpcRole, string>> = {
   tong: {
-    soldier: 'enemy029',
-    captain: 'enemy130',
-    commander: 'enemy132',
-    deputy: 'enemy134',
-    general: 'enemy136',
-    marshal: 'enemy138',
+    soldier: 'enemy034',
+    captain: 'enemy029',
+    commander: 'enemy026',
+    deputy: 'enemy021',
+    general: 'enemy017',
+    marshal: 'enemy004',
   },
   kim: {
-    soldier: 'enemy031',
-    captain: 'enemy131',
-    commander: 'enemy133',
-    deputy: 'enemy135',
-    general: 'enemy137',
-    marshal: 'enemy139',
+    soldier: 'enemy028',
+    captain: 'enemy031',
+    commander: 'enemy036',
+    deputy: 'enemy024',
+    general: 'enemy023',
+    marshal: 'enemy006',
   },
 };
 
@@ -125,6 +126,7 @@ function makeTkMonsterDef(camp: TkCamp, role: TkNpcRole, element: Element): Mons
   const s = TK_NPC_STATS[role];
   const sprite = TK_NPC_SPRITES[camp][role];
   const isMarshal = role === 'marshal';
+  const isGeneral = role === 'general';
   return {
     id: (camp === 'tong' ? 9000 : 9010) + TK_NPC_ID_OFFSET[role],
     name: TK_NPC_TITLES[camp][role],
@@ -133,7 +135,8 @@ function makeTkMonsterDef(camp: TkCamp, role: TkNpcRole, element: Element): Mons
     element,
     hp: s.hp,
     damage: s.damage,
-    resist: isMarshal ? 0.75 : role === 'general' ? 0.4 : role === 'deputy' ? 0.3 : role === 'commander' ? 0.2 : 0.1,
+    // Chỉ Nguyên Soái và Đại tướng mới có kháng và giảm hiệu ứng (tăng dần theo cấp bậc).
+    resist: isMarshal ? 0.75 : isGeneral ? 0.40 : 0,
     ...(isMarshal ? {
       resistance: {
         mode: 'custom' as const,
@@ -143,16 +146,23 @@ function makeTkMonsterDef(camp: TkCamp, role: TkNpcRole, element: Element): Mons
       controlReduction: { hurt: 95, cold: 77, stun: 95, poison: 90 },
       attackCycleMs: 420,
       boundedHome: true,
+    } : isGeneral ? {
+      resistance: {
+        mode: 'custom' as const,
+        values: { phys: 40, cold: 40, fire: 40, light: 40, poison: 40 },
+        caps: { phys: 40, cold: 40, fire: 40, light: 40, poison: 40 },
+      },
+      controlReduction: { hurt: 60, cold: 45, stun: 60, poison: 50 },
     } : {}),
     boss: s.boss || undefined,
     scale: s.scale,
     speed: isMarshal ? 160 : 180,
     vision: isMarshal ? 800 : 520,
     leash: isMarshal ? 1000 : 1200,
-    attackCooldown: isMarshal ? 0.6 : role === 'general' ? 1.2 : 1.7,
+    attackCooldown: isMarshal ? 0.6 : isGeneral ? 1.2 : 1.7,
     skills: s.skills,
     expOverride: 0,
-    hitRecover: isMarshal ? 95 : role === 'general' ? 65 : 30,
+    hitRecover: isMarshal ? 95 : isGeneral ? 60 : 0,
   };
 }
 
@@ -630,8 +640,19 @@ class TongKimManager {
     if (target.kind === 'monster' && target.tkCamp && target.tkRole) {
       const npcCamp = target.tkCamp;
       const role = target.tkRole;
-      if (killer?.kind === 'player' && killer.charId) {
-        const atk = this.entries.get(killer.charId);
+      let creditPlayer = killer?.kind === 'player' ? killer : undefined;
+      if (!creditPlayer && target.dmgBy?.size) {
+        let bestDmg = 0;
+        for (const [id, dmg] of target.dmgBy) {
+          const cand = w.sims.get(id);
+          if (cand?.kind === 'player' && cand.a.battleCamp && cand.a.battleCamp !== npcCamp && dmg > bestDmg) {
+            bestDmg = dmg;
+            creditPlayer = cand;
+          }
+        }
+      }
+      if (creditPlayer && creditPlayer.charId) {
+        const atk = this.entries.get(creditPlayer.charId);
         if (atk && atk.camp !== npcCamp) {
           atk.npcKills++;
           const pts = role === 'marshal' ? TK_POINTS.killMarshal
@@ -640,7 +661,7 @@ class TongKimManager {
             : role === 'commander' ? TK_POINTS.killNpcCommander
             : role === 'captain' ? TK_POINTS.killNpcCaptain
             : TK_POINTS.killNpcSoldier;
-          this.awardPoints(w, killer, atk, pts, `Hạ gục ${target.a.name} (+${pts} điểm tích lũy).`);
+          this.awardPoints(w, creditPlayer, atk, pts, `Hạ gục ${target.a.name} (+${pts} điểm tích lũy).`);
         }
       }
       if (role === 'marshal') {
@@ -925,7 +946,7 @@ class TongKimManager {
         const res = this.startMatch({
           mode: msg.mode === 2 ? 2 : 1,
           signupSec: msg.signupSec ?? 30,
-          durationSec: msg.durationSec ?? 300,
+          durationSec: msg.durationSec ?? 600,
           marshalDelaySec: msg.marshalDelaySec ?? 60,
           endSec: 60,
           allowSolo: true,

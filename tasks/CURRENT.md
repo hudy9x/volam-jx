@@ -1,3 +1,13 @@
+## 2026-11-21 · Tinh chỉnh Tống Kim (sprite SHXT gốc, màu/vị trí danh hiệu, spawn 2 cánh, kháng Đại tướng/Nguyên Soái & sửa bot) (đã commit)
+
+- **USER yêu cầu:** đồng bộ màu danh hiệu/tên Tống (`#e8b878`) & Kim (`#d58cff`), đặt danh hiệu lên trên đầu và sửa lỗi sót chữ khi chết, trích xuất sprite NPC gốc theo `volam-3005/Server/Settings/Npcs.txt`, spawn quái liên tục cả trung lộ + 2 cánh trái/phải, gán skill cho Thống lĩnh→Đại tướng, chỉ giữ kháng/giảm hiệu ứng cho Đại tướng & Nguyên Soái, tăng thời gian test lên 10 phút, và sửa lỗi bot chạy ngược về kiểm tra Nguyên Soái.
+- **Thay đổi:**
+  - `apps/client/tools/gen-assets.ts`, `src/art/jx/data.gen.ts`: trích xuất đủ 12 sprite NPC Tống Kim gốc (`enemy034/029/026/021/017/004` và `enemy028/031/036/024/023/006`) từ `Client_VLTK_SHXT`.
+  - `packages/shared/src/battle/tongkim.ts`, `apps/server/src/world/tongkim.ts`: cập nhật `TK_CAMP_COLORS`, tăng điểm hạ NPC và cộng công theo sát thương cao nhất (`dmgBy`) khi NPC phe mình kết liễu, rút `respawnMs` (`25s..120s`), thêm cụm spawn cánh trái/phải cho 2 phe, gán skill cho Thống lĩnh→Đại tướng, giới hạn kháng/giảm hiệu ứng cho Đại tướng (`40%`) và Nguyên Soái (`75%`), thời gian test `600s` (10 phút).
+  - `apps/client/src/game/actors/ActorView.ts`, `src/ui/hud/tongkim.{ts,css}`: tách `rankLabel` đặt trên đầu nhân vật cùng màu phe, ẩn `rankLabel` khi actor khuất/chết, đồng bộ CSS & nút test 10 phút.
+  - `tools/bots/runner/TongKimBehavior.ts`: chọn waypoint tiến công từ giữa bản đồ trở lên khi vừa ra khỏi doanh trại (khắc phục lỗi bot nhảy Đặc thám xong chạy ngược về `wpIndex = 0` cạnh Nguyên Soái nhà).
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run build` thành công, `tests/tong-kim.test.ts` (**5/5 pass**), `tests/team-leader-render.test.cjs` (**1/1 pass**), `git diff --check` đạt. Đã commit trên `main`, không push.
+
 ## 2026-11-21 · Đợt 2 Bot Tống Kim (Giai đoạn 1) & nâng cấp Nguyên Soái/Tướng (đã commit)
 
 - **USER yêu cầu:** triển khai Đợt 2 (Bot Tống Kim Giai đoạn 1 trong `tools/bots` dùng 200 profile có sẵn), cố định Nguyên Soái tại `720/469` (Tống) & `1677/224` (Kim) với phạm vi di chuyển `1000`, tách riêng hình ảnh 6 bậc NPC (`Binh sĩ / Hiệu úy / Thống lĩnh / Phó tướng / Đại tướng / Nguyên Soái`) và tăng tốc đánh/kháng/giảm hiệu ứng cho Nguyên Soái.

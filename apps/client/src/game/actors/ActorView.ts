@@ -36,6 +36,7 @@ export class ActorView {
   private stallMid: Phaser.GameObjects.Image | null = null;
   private stallRight: Phaser.GameObjects.Image | null = null;
   private readonly stallText: Phaser.GameObjects.Text;
+  private rankLabel: Phaser.GameObjects.Text | null = null;
   private readonly leaderFlag: Phaser.GameObjects.Graphics;
   private readonly bar: Phaser.GameObjects.Graphics;
   private readonly decor: StateDecor;
@@ -140,6 +141,7 @@ export class ActorView {
       this.jx?.hide();
       this.leaderFlag.setVisible(false);
       this.elementBadge?.setVisible(false);
+      this.rankLabel?.setVisible(false);
       this.label.setVisible(false);
       this.bar.setVisible(false);
       const s = this.state;
@@ -348,10 +350,10 @@ export class ActorView {
       : tkCamp ? (s.kind === 'monster' ? '#ffffff' : TK_CAMP_COLORS[tkCamp])
       : s.kind === 'monster' ? (Number(s.boss) >= 2 || s.boss === true ? '#ffd700' : s.boss === 1 ? '#5cb8ff' : '#ffffff')
       : CAMP_COLORS[(s.camp || 'new') as Camp] ?? '#ffffff';
-    const tkTag = tkCamp && s.kind === 'player' && (s.battleRank ?? 0) > 0 ? `[${tkTitleOf(tkCamp, s.battleRank!)}] ` : '';
+    const tkTag = tkCamp && s.kind === 'player' && (s.battleRank ?? 0) > 0 && s.hp > 0 ? tkTitleOf(tkCamp, s.battleRank!) : '';
     const text = s.kind === 'monster'
       ? (tkCamp ? s.name : `${s.name} (${s.level})`)
-      : `${tkTag}${s.name}${!tkCamp && s.pk === 2 ? ' [Đồ sát]' : !tkCamp && s.pk === 1 ? ' [Chiến đấu]' : ''}`;
+      : `${s.name}${!tkCamp && s.pk === 2 ? ' [Đồ sát]' : !tkCamp && s.pk === 1 ? ' [Chiến đấu]' : ''}`;
     if (this.label.text !== text) this.label.setText(text);
     if (this.label.style.color !== color) this.label.setColor(color);
     if (this.label.scaleX !== plate.textScale) this.label.setScale(plate.textScale);
@@ -363,6 +365,20 @@ export class ActorView {
     const labelX = hasBadge ? Math.round(this.x + (badgeSize + badgeGap) / 2) : Math.round(this.x);
     const labelY = top - Math.max(2, ui(plate.gapY));
     this.label.setPosition(labelX, labelY);
+    if (tkTag) {
+      if (!this.rankLabel) {
+        this.rankLabel = this.scene.add.text(0, 0, '', {
+          resolution: textResolution(), fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(12), fontStyle: 'bold', color, stroke: '#000', strokeThickness: ui(3),
+        }).setOrigin(0.5, 1).setDepth(1e6 + 1);
+      }
+      if (this.rankLabel.text !== tkTag) this.rankLabel.setText(tkTag);
+      if (this.rankLabel.style.color !== color) this.rankLabel.setColor(color);
+      if (this.rankLabel.scaleX !== plate.textScale) this.rankLabel.setScale(plate.textScale);
+      const labelH = typeof this.label.displayHeight === 'number' ? this.label.displayHeight : ui(13) * plate.textScale;
+      this.rankLabel.setPosition(Math.round(this.x), Math.round(labelY - labelH - ui(1) * plate.textScale)).setVisible(true);
+    } else {
+      this.rankLabel?.setVisible(false);
+    }
     const showStall = s.kind === 'player' && !!s.stallTitle && s.hp > 0;
     this.stallBg.clear().setVisible(false);
     this.stallLeft?.setVisible(false);
@@ -444,7 +460,7 @@ export class ActorView {
 
     const w = Math.max(10, ui(s.boss ? plate.barBossW : plate.barW)), bh = Math.max(2, ui(plate.barH));
     const ratio = s.maxHp ? Math.max(0, s.hp / s.maxHp) : 0;
-    const viewerCamp = tkState.get()?.me?.camp || '';
+    const viewerCamp = (typeof tkState !== 'undefined' ? tkState.get()?.me?.camp : '') || '';
     const barKey = `${Math.round(this.x)},${top},${ratio.toFixed(3)},${s.pk},${s.battleCamp ?? ''},${viewerCamp},${plate.zoom}`;
     if (barKey === this.lastBarKey) return;
     this.lastBarKey = barKey;
@@ -484,6 +500,7 @@ export class ActorView {
     this.stallMid?.destroy();
     this.stallRight?.destroy();
     this.stallText.destroy();
+    this.rankLabel?.destroy();
     this.elementBadge?.destroy();
     this.label.destroy();
     this.bar.destroy();

@@ -532,7 +532,10 @@ if (fs.existsSync(SPAWN_DIR)) {
 
 /** NPC res name -> what the game uses it for: town NPCs, the hand-made monsters, Golden Bosses, everything in a spawn file. */
 const NPC_RES = [...new Set([
-  'ani049', 'ani052', 'ani056', 'ani061', 'passerby004_1', 'passerby040_1', 'passerby037_1', 'passerby007', 'passerby023', 'passerby198', 'passerby004_4', 'passerby037_4', 'passerby040_4', 'enemy178', 'enemy029', 'enemy031',
+  'ani049', 'ani052', 'ani056', 'ani061', 'passerby004_1', 'passerby040_1', 'passerby037_1', 'passerby007', 'passerby023', 'passerby198', 'passerby004_4', 'passerby037_4', 'passerby040_4', 'enemy178',
+  // Tống Kim NPCs (Tống: enemy034, enemy029, enemy026, enemy021, enemy017, enemy004; Kim: enemy028, enemy031, enemy036, enemy024, enemy023, enemy006)
+  'enemy034', 'enemy029', 'enemy026', 'enemy021', 'enemy017', 'enemy004',
+  'enemy028', 'enemy031', 'enemy036', 'enemy024', 'enemy023', 'enemy006',
   ...GOLDEN_BOSS_CONFIG.bosses.map(b => b.sprite),
   ...spawnRes,
 ])];

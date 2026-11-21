@@ -50,7 +50,7 @@ export class TongKimBehavior implements Behavior {
   private nextMoveAt = 0;
   private nextCastAt = 0;
   private nextLeaveAt = 0;
-  private wpIndex = 0;
+  private wpIndex = -1;
   private jitter = { x: 0, y: 0 };
   private lastPos = { x: 0, y: 0, at: 0 };
   private atkIndex = 0;
@@ -59,7 +59,7 @@ export class TongKimBehavior implements Behavior {
   constructor(private bot: BotClient, private sc: BotScenario, private botIndex: number) {}
 
   onMap(now: number): void {
-    this.wpIndex = 0;
+    this.wpIndex = -1;
     this.lockedTargetId = '';
     this.lastPos = { x: 0, y: 0, at: now };
     this.rollJitter();
@@ -116,7 +116,7 @@ export class TongKimBehavior implements Behavior {
     // Đang trọng thương -> chờ server tự hồi sinh sau 5s tại Hậu doanh.
     if (me.hp <= 0) {
       this.lockedTargetId = '';
-      this.wpIndex = 0;
+      this.wpIndex = -1;
       return;
     }
 
@@ -132,7 +132,7 @@ export class TongKimBehavior implements Behavior {
     // Đang ở trong Hậu doanh an toàn
     if (inCamp) {
       this.lockedTargetId = '';
-      this.wpIndex = 0;
+      this.wpIndex = -1;
       if (!st || st.phase !== 'fighting' || (st.me?.gateWaitSec ?? 0) > 0) return;
       if (now >= this.nextCampExitAt) {
         this.nextCampExitAt = now + 2200 + this.bot.rand() * 800;
@@ -234,12 +234,23 @@ export class TongKimBehavior implements Behavior {
 
   private advanceWaypoints(me: any, myCamp: TkCamp, now: number): void {
     const list = myCamp === 'tong' ? TONG_WAYPOINTS : KIM_WAYPOINTS;
+    // Khi mới ra khỏi doanh trại (vd: nhảy thẳng qua Đặc thám ra tiền tuyến), chọn waypoint gần nhất từ giữa bản đồ trở lên để không chạy ngược về Nguyên Soái nhà.
+    if (this.wpIndex < 0) {
+      let bestIdx = 2;
+      let bestDist = Infinity;
+      for (let i = 1; i < list.length; i++) {
+        const d = isoDistance(me.x, me.y, list[i].x, list[i].y);
+        if (d < bestDist) { bestDist = d; bestIdx = i; }
+      }
+      this.wpIndex = Math.min(list.length - 1, bestIdx + 1);
+    }
+
     const wp = list[Math.min(this.wpIndex, list.length - 1)];
     const tx = wp.x + this.jitter.x;
     const ty = wp.y + this.jitter.y;
 
-    if (isoDistance(me.x, me.y, wp.x, wp.y) < 320 && this.wpIndex < list.length - 1) {
-      this.wpIndex++;
+    if (isoDistance(me.x, me.y, wp.x, wp.y) < 320) {
+      this.wpIndex = this.wpIndex < list.length - 1 ? this.wpIndex + 1 : 2;
       this.rollJitter();
     }
 
@@ -249,7 +260,7 @@ export class TongKimBehavior implements Behavior {
     } else if (now - this.lastPos.at > 3500) {
       this.lastPos.at = now;
       this.rollJitter();
-      if (this.wpIndex < list.length - 1) this.wpIndex++;
+      this.wpIndex = this.wpIndex < list.length - 1 ? this.wpIndex + 1 : 2;
     }
 
     if (now >= this.nextMoveAt) {
