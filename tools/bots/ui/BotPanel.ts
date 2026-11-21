@@ -63,9 +63,9 @@ const PAGE = `
   <p id="bt-review" class="bp-note">Tự chỉnh thông số bên dưới, rồi cập nhật nhân vật hoặc lưu để dùng lại.</p>
   <fieldset id="bt-fields">
     <div class="bp-grid">
-      ${f('Cấp', sel('bt-level', BOT_LEVEL_BANDS.map(([lo, hi]) => opt(`${lo}-${hi}`, `Cấp ${lo}–${hi}`)).join('')))}
+      ${f('Cấp', sel('bt-level', BOT_LEVEL_BANDS.map(([lo, hi]) => opt(`${lo}-${hi}`, `Cấp ${lo}–${hi}`)).join('')), 'Dải 150–200 tự động dùng kỹ năng 150 và trang bị Hoàng kim môn phái.')}
       ${f('Trang bị', sel('bt-gear', opt('green', 'Đồ xanh') + opt('gold', 'Hoàng kim môn phái')), 'Món chưa đủ điều kiện mặc sẽ ở trong hành trang.')}
-      ${f('Ngựa', '<input id="bt-horse" value="Ngẫu nhiên theo cấp độ" readonly>', 'Dải 110–150 chỉ chọn nhóm ngựa mạnh nhất trong số đủ cấp cưỡi.')}
+      ${f('Ngựa', '<input id="bt-horse" value="Ngẫu nhiên theo cấp độ" readonly>', 'Dải 110–200 chỉ chọn nhóm ngựa mạnh nhất trong số đủ cấp cưỡi.')}
       ${f('Bản đồ xuất hiện', sel('bt-mapmode', opt('training', 'Bãi luyện công') + opt('town', 'Thành thị') + opt('both', 'Bãi luyện công + Thành thị')))}
     </div>
     <p class="bp-note">Chọn bản đồ xuất hiện ban đầu trong Nâng cao. Khi luyện công, Auto vẫn có thể về thành mua thuốc rồi quay lại bãi.</p>
@@ -193,6 +193,12 @@ class BotPanel {
       return f(AUTO_LABELS[k], num(`sc-a-${k}`, 0, 100000));
     }).join('');
     this.setupDialogs = new SetupDialogs(root);
+    this.$('bt-level').addEventListener('change', () => {
+      if (this.val('bt-level').startsWith('150-')) {
+        this.set('bt-gear', 'gold');
+        this.$<HTMLInputElement>('bt-tiers').checked = true;
+      }
+    });
     this.organize();
     this.writeTemplate(DEFAULT_BOT_TEMPLATE);
     void this.loadMaps();

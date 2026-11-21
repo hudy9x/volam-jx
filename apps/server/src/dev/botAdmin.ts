@@ -37,7 +37,7 @@ export function registerBotRoutes(app: Application): void {
     const ids = Array.isArray(req.body?.usernames) ? [...new Set(req.body.usernames)] as string[] : [];
     if (!ids.length || ids.some(id => !BOT_IDENTITIES.has(id))) { res.status(400).json({ error: 'Chọn nhân vật trong danh sách 200 tên.' }); return; }
     const t = normalizeBotTemplate(req.body?.template);
-    if (!BOT_LEVEL_BANDS.some(([lo, hi]) => t.level[0] === lo && t.level[1] === hi)) { res.status(400).json({ error: 'Chọn dải cấp 40–69, 70–90 hoặc 110–150.' }); return; }
+    if (!BOT_LEVEL_BANDS.some(([lo, hi]) => t.level[0] === lo && t.level[1] === hi)) { res.status(400).json({ error: 'Chọn dải cấp 40–69, 70–90, 110–150 hoặc 150–200.' }); return; }
     if (!['green', 'gold'].includes(t.gear) || !['training', 'town', 'both'].includes(t.map.mode)) { res.status(400).json({ error: 'Kiểm tra trang bị và loại bản đồ.' }); return; }
     const allowed = botMapIds(t.map.mode as 'training' | 'town' | 'both').filter(id => fs.existsSync(path.join(MAPS_DIR, String(id), 'nav.json')));
     const requestedMaps: unknown[] = Array.isArray(req.body?.template?.map?.maps) ? req.body.template.map.maps : [];

@@ -23,7 +23,7 @@ export const BOT_PREFIX_RE = /^bot[a-z0-9]{0,8}$/;
 export const BOT_CREATE_MAX = 500;
 
 export type BotPotential = 'suggest' | 'str' | 'dex' | 'vit' | 'eng';
-export const BOT_LEVEL_BANDS: readonly [number, number][] = [[40, 69], [70, 90], [110, 150]];
+export const BOT_LEVEL_BANDS: readonly [number, number][] = [[40, 69], [70, 90], [110, 150], [150, 200]];
 export const botMapIds = (mode: 'town' | 'training' | 'both'): number[] => Object.values(MAPS).filter(m => mode === 'town' ? m.safe : mode === 'both' ? m.safe || ['Field', 'Cave'].includes(m.type) || m.id === 140 : ['Field', 'Cave'].includes(m.type) || m.id === 140).map(m => m.id);
 
 /** CHỌN: high-level bots use only horses within 10 speed points of the strongest eligible mount. */
@@ -179,18 +179,20 @@ export function normalizeBotTemplate(raw: unknown): BotTemplate {
   const lo = num(lv[0], d.level[0], 1, 200), hi = num(lv[1], d.level[1], 1, 200);
   const m = record(r.map);
   const potion = (v: unknown) => (typeof v === 'string' && ITEMS[v]?.kind === 'potion' ? v : '');
+  const levelBand: [number, number] = [Math.min(lo, hi), Math.max(lo, hi)];
+  const highEnd150 = levelBand[0] >= 150;
   return {
     title: typeof r.title === 'string' ? r.title.trim().slice(0, 80) : '',
     prefix: typeof r.prefix === 'string' && BOT_PREFIX_RE.test(r.prefix) ? r.prefix : d.prefix,
     password: typeof r.password === 'string' && r.password.length >= 4 && r.password.length <= 40 ? r.password : d.password,
     faction: r.faction === 'all' || r.faction === '' || (typeof r.faction === 'string' && FACTIONS[r.faction]) ? r.faction as string : d.faction,
     gender: pick(r.gender, ['male', 'female', 'mix'] as const, d.gender),
-    level: [Math.min(lo, hi), Math.max(lo, hi)],
+    level: levelBand,
     potential: pick(r.potential, ['suggest', 'str', 'dex', 'vit', 'eng'] as const, d.potential),
     skills: pick(r.skills, ['suggest', 'none'] as const, d.skills),
-    tiers: bool(r.tiers, d.tiers),
+    tiers: highEnd150 ? true : bool(r.tiers, d.tiers),
     autoBuff: bool(r.autoBuff, true),
-    gear: pick(r.gear, ['starter', 'green', 'gold'] as const, d.gear),
+    gear: highEnd150 ? 'gold' : pick(r.gear, ['starter', 'green', 'gold'] as const, d.gear),
     ring: bool(r.ring, d.ring),
     horse: r.horse === 'random' || (typeof r.horse === 'string' && HORSES[r.horse]) ? r.horse as string : '',
     money: num(r.money, d.money, 0, 2_000_000_000),

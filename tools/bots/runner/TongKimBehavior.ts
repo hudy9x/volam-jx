@@ -21,26 +21,36 @@ import {
 } from '@vltk/shared';
 import type { Behavior, BotClient } from './BotClient.js';
 
-const TONG_WAYPOINTS: readonly { x: number; y: number }[] = [
-  { x: 5648, y: 7472 },
-  { x: 7600, y: 6200 },
-  { x: 9744, y: 5384 },
-  { x: 11400, y: 4800 },
-  TK_MAP_LAYOUT.kim.marshal,
+// 3 mũi tiến công gọng kìm (Trung lộ, Cánh Trái Tây Bắc, Cánh Phải Đông Nam) — tọa độ lấy từ TK_MAP_LAYOUT walkable.
+const TONG_LANES: readonly (readonly { x: number; y: number }[])[] = [
+  // Mũi 0: Trung lộ
+  [{ x: 5648, y: 7472 }, { x: 7600, y: 6200 }, { x: 9744, y: 5384 }, { x: 11400, y: 4800 }, TK_MAP_LAYOUT.kim.marshal],
+  // Mũi 1: Vòng cung Cánh Trái (Tây Bắc)
+  [{ x: 5648, y: 7472 }, { x: 7568, y: 5224 }, { x: 9232, y: 4792 }, { x: 10500, y: 3500 }, { x: 11504, y: 3192 }, TK_MAP_LAYOUT.kim.marshal],
+  // Mũi 2: Vòng cung Cánh Phải (Đông Nam)
+  [{ x: 5648, y: 7472 }, { x: 7800, y: 7200 }, { x: 8816, y: 6792 }, { x: 11200, y: 5800 }, { x: 12200, y: 5400 }, TK_MAP_LAYOUT.kim.marshal],
 ];
 
-const KIM_WAYPOINTS: readonly { x: number; y: number }[] = [
-  { x: 13168, y: 3560 },
-  { x: 11400, y: 4800 },
-  { x: 9744, y: 5384 },
-  { x: 7600, y: 6200 },
-  TK_MAP_LAYOUT.tong.marshal,
+const KIM_LANES: readonly (readonly { x: number; y: number }[])[] = [
+  // Mũi 0: Trung lộ
+  [{ x: 13168, y: 3560 }, { x: 11400, y: 4800 }, { x: 9744, y: 5384 }, { x: 7600, y: 6200 }, TK_MAP_LAYOUT.tong.marshal],
+  // Mũi 1: Vòng cung Cánh Trái (Tây Bắc)
+  [{ x: 13168, y: 3560 }, { x: 11504, y: 3192 }, { x: 10500, y: 3500 }, { x: 9232, y: 4792 }, { x: 7568, y: 5224 }, TK_MAP_LAYOUT.tong.marshal],
+  // Mũi 2: Vòng cung Cánh Phải (Đông Nam)
+  [{ x: 13168, y: 3560 }, { x: 12200, y: 5400 }, { x: 11200, y: 5800 }, { x: 9520, y: 6168 }, { x: 7800, y: 7200 }, TK_MAP_LAYOUT.tong.marshal],
 ];
 
 const OUTGOING_PORTAL: Record<TkCamp, { x: number; y: number }> = {
   tong: { x: 3088, y: 9072 },
   kim: { x: 16480, y: 1904 },
 };
+
+const BACK_PORTAL: Record<TkCamp, { x: number; y: number }> = {
+  tong: { x: 4592, y: 8080 },
+  kim: { x: 14088, y: 3088 },
+};
+
+const KHINH_CONG_ID = 210;
 
 /**
  * Bot PK Chiến trường Tống Kim — Giai đoạn 1 (Non nớt / Naive FSM).
@@ -66,6 +76,13 @@ export class TongKimBehavior implements Behavior {
   private lastPos = { x: 0, y: 0, at: 0 };
   private atkIndex = 0;
   private lockedTargetId = '';
+  private nextEscapeJumpAt = 0;
+  private escapeAngleFlip = 1;
+  private lastHp = -1;
+  private dmgStreakStartAt = 0;
+  private lastHpDropAt = 0;
+  private nextTkItemUseAt = 0;
+  private nextClarionAt = 0;
 
   constructor(private bot: BotClient, private sc: BotScenario, private botIndex: number) {}
 
@@ -73,6 +90,9 @@ export class TongKimBehavior implements Behavior {
     this.wpIndex = -1;
     this.lockedTargetId = '';
     this.lastPos = { x: 0, y: 0, at: now };
+    this.lastHp = -1;
+    this.dmgStreakStartAt = 0;
+    this.lastHpDropAt = 0;
     this.rollJitter();
   }
 
@@ -117,9 +137,9 @@ export class TongKimBehavior implements Behavior {
 
     // 3. Ở chiến trường Xung phong (378):
     const st = this.bot.tkState;
-    if (st?.phase === 'ended') {
+    if (st?.phase === 'ended' || st?.phase === 'closed') {
       if (now >= this.nextLeaveAt) {
-        this.nextLeaveAt = now + 3000;
+        this.nextLeaveAt = now + 1200;
         this.bot.send(C2S.tkAction, { op: 'leave' });
       }
       return;
@@ -129,17 +149,23 @@ export class TongKimBehavior implements Behavior {
     if (me.hp <= 0) {
       this.lockedTargetId = '';
       this.wpIndex = -1;
+      this.lastHp = 0;
+      this.dmgStreakStartAt = 0;
       return;
     }
 
-    // Bơm máu / nội lực (Survival Loop)
-    this.upkeepPotions(me, now);
-
-    // Giữ hào quang & bùa lợi
-    this.upkeepBuffs(me, now);
+    // Theo dõi chuỗi nhận sát thương liên tục
+    this.trackDamageStreak(me, now);
 
     const myCamp = (me.battleCamp || st?.me?.camp || (this.botIndex % 2 === 0 ? 'tong' : 'kim')) as TkCamp;
     const inCamp = !!st?.me?.inCamp || isInTkSafeCamp(TK_BATTLE_MAP_ID, me.x, me.y);
+
+    // Bơm máu / nội lực (Survival Loop) & dùng vật phẩm Tống Kim nhặt được
+    this.upkeepPotions(me, now);
+    this.useTkBagItems(me, inCamp, now);
+
+    // Giữ hào quang & bùa lợi
+    this.upkeepBuffs(me, now);
 
     // Đang ở trong Hậu doanh an toàn
     if (inCamp) {
@@ -159,6 +185,15 @@ export class TongKimBehavior implements Behavior {
     }
 
     if (st && st.phase !== 'fighting') return;
+
+    // 3b. Đang bay Khinh công -> chờ tiếp đất rồi mới hành động tiếp.
+    if ((me.jumpMs ?? 0) > 0 || me.anim === 'jump') return;
+
+    // 3c. Khinh công thoát vây công (>= 3 địch gần) hoặc bị đánh mất máu liên tục trong 2s.
+    if (this.tryEscapeJump(me, myCamp, now)) return;
+
+    // 3d. Còn ít bình máu (<= 2) và có tiền -> chạy về cổng Hậu doanh mua máu rồi quay lại.
+    if (this.retreatToBuyPotions(myCamp, now)) return;
 
     // 4. Giao tranh ngoài tiền tuyến: tìm mục tiêu phe địch ưu tiên.
     const scanRadius = this.sc.tongkim?.scanRadius ?? DEFAULT_BOT_TONGKIM.scanRadius;
@@ -359,7 +394,8 @@ export class TongKimBehavior implements Behavior {
   }
 
   private advanceWaypoints(me: any, myCamp: TkCamp, now: number): void {
-    const list = myCamp === 'tong' ? TONG_WAYPOINTS : KIM_WAYPOINTS;
+    const lanes = myCamp === 'tong' ? TONG_LANES : KIM_LANES;
+    const list = lanes[this.botIndex % lanes.length];
     const lastIdx = list.length - 1;
     // Khi mới ra khỏi doanh trại, chọn waypoint tiếp theo hướng thẳng sang phe địch (không quay lùi).
     if (this.wpIndex < 0) {
@@ -372,11 +408,15 @@ export class TongKimBehavior implements Behavior {
       this.wpIndex = Math.min(lastIdx, bestIdx + 1);
     }
 
-    const wp = list[Math.min(this.wpIndex, lastIdx)];
-    const tx = wp.x + this.jitter.x;
-    const ty = wp.y + this.jitter.y;
+    const curIdx = Math.min(this.wpIndex, lastIdx);
+    const wp = list[curIdx];
+    // Dàn hàng ngang vuông góc trục chiến trường theo chỉ số bot để tránh dồn cục 1 điểm.
+    const lineSlot = (Math.floor(this.botIndex / 3) % 5) - 2;
+    const spread = curIdx === lastIdx ? 70 : 125;
+    const tx = wp.x + Math.round(lineSlot * spread * -0.48) + this.jitter.x;
+    const ty = wp.y + Math.round(lineSlot * spread * -0.88) + this.jitter.y;
 
-    if (isoDistance(me.x, me.y, wp.x, wp.y) < 320) {
+    if (isoDistance(me.x, me.y, wp.x, wp.y) < 340) {
       this.wpIndex = Math.min(lastIdx, this.wpIndex + 1);
       this.rollJitter();
     }
@@ -393,6 +433,115 @@ export class TongKimBehavior implements Behavior {
     if (now >= this.nextMoveAt) {
       this.nextMoveAt = now + 950;
       this.bot.send(C2S.move, { x: tx, y: ty });
+    }
+  }
+
+  private trackDamageStreak(me: any, now: number): void {
+    if (this.lastHp >= 0 && me.hp < this.lastHp) {
+      this.lastHpDropAt = now;
+      if (this.dmgStreakStartAt === 0) this.dmgStreakStartAt = now;
+    } else if (this.dmgStreakStartAt > 0 && now - this.lastHpDropAt > 850) {
+      this.dmgStreakStartAt = 0;
+    }
+    this.lastHp = me.hp;
+  }
+
+  private tryEscapeJump(me: any, myCamp: TkCamp, now: number): boolean {
+    if (now < this.nextEscapeJumpAt || ((me.ctl ?? 0) & 1)) return false;
+    const nearby: { x: number; y: number; dist: number }[] = [];
+    for (const a of this.bot.actors()) {
+      if (a.isSelf || a.state.hp <= 0) continue;
+      const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
+      const otherCamp = raw?.battleCamp as string | undefined;
+      if (!otherCamp || otherCamp === myCamp) continue;
+      if (isInTkSafeCamp(TK_BATTLE_MAP_ID, a.x, a.y)) continue;
+      const dist = isoDistance(me.x, me.y, a.x, a.y);
+      if (dist <= 340 || (raw?.attackTarget === me.id && dist <= 400)) {
+        nearby.push({ x: a.x, y: a.y, dist: Math.max(1, dist) });
+      }
+    }
+    const crowded = nearby.length >= 3;
+    const sustainedDmg = this.dmgStreakStartAt > 0 && now - this.dmgStreakStartAt >= 2000 && nearby.length >= 1;
+    if (!crowded && !sustainedDmg) return false;
+
+    if (me.mounted) {
+      this.nextEscapeJumpAt = now + 220;
+      this.bot.send(C2S.mount, {});
+      return true;
+    }
+    if (!this.bot.ready(KHINH_CONG_ID, now)) return false;
+
+    let vx = 0;
+    let vy = 0;
+    for (const e of nearby) {
+      vx += (me.x - e.x) / e.dist;
+      vy += (me.y - e.y) / e.dist;
+    }
+    const home = BACK_PORTAL[myCamp];
+    const hDist = Math.max(1, isoDistance(me.x, me.y, home.x, home.y));
+    vx += ((home.x - me.x) / hDist) * 0.4;
+    vy += ((home.y - me.y) / hDist) * 0.4;
+
+    const norm = Math.hypot(vx, vy);
+    let angle = norm > 0.01 ? Math.atan2(vy, vx) : Math.atan2(home.y - me.y, home.x - me.x);
+    angle += this.escapeAngleFlip * 0.35;
+    this.escapeAngleFlip *= -1;
+
+    const jx = me.x + Math.cos(angle) * 360;
+    const jy = me.y + Math.sin(angle) * 360;
+    this.nextEscapeJumpAt = now + 6000;
+    this.dmgStreakStartAt = 0;
+    this.lockedTargetId = '';
+    this.wpIndex = -1;
+    this.bot.cast(KHINH_CONG_ID, undefined, jx, jy, false);
+    return true;
+  }
+
+  private retreatToBuyPotions(myCamp: TkCamp, now: number): boolean {
+    if (this.countPotions('hp') > 2) return false;
+    const canBuyHp = SHOP_ITEMS.drug.some(d => potionTotal(d, 'hp') > 0 && potionTotal(d, 'mp') === 0 && d.price > 0 && d.price <= this.bot.money);
+    if (!canBuyHp) return false;
+    if (now >= this.nextMoveAt) {
+      this.nextMoveAt = now + 800;
+      const back = BACK_PORTAL[myCamp];
+      this.bot.send(C2S.move, { x: back.x, y: back.y });
+    }
+    return true;
+  }
+
+  private useTkBagItems(me: any, inCamp: boolean, now: number): void {
+    if (now < this.nextTkItemUseAt) return;
+    const active = new Set<number>([...(me.states ?? [])]);
+    const hpRatio = me.maxHp > 0 ? me.hp / me.maxHp : 1;
+    const mpRatio = me.maxMp > 0 ? me.mp / me.maxMp : 1;
+    const fighting = this.bot.tkState?.phase === 'fighting';
+
+    for (let i = 0; i < this.bot.bag.length; i++) {
+      const def = itemDef(this.bot.bag[i]);
+      const eff = def?.tkItem;
+      if (!eff) continue;
+      if (eff.kind === 'bibao') {
+        this.nextTkItemUseAt = now + 1000;
+        this.bot.send(C2S.use, { index: i });
+        return;
+      }
+      if (eff.kind === 'buff' && !active.has(eff.stateId) && (!eff.aoeRadius || (!inCamp && fighting))) {
+        this.nextTkItemUseAt = now + 1000;
+        this.bot.send(C2S.use, { index: i });
+        return;
+      }
+      if (eff.kind === 'clarion' && !inCamp && fighting && now >= this.nextClarionAt) {
+        this.nextClarionAt = now + 8000;
+        this.nextTkItemUseAt = now + 1000;
+        this.bot.send(C2S.use, { index: i });
+        return;
+      }
+      if (eff.kind === 'battlePotion' && !inCamp && now >= this.nextHpPotionAt && (hpRatio < 0.75 || mpRatio < 0.45)) {
+        this.nextHpPotionAt = now + 1000;
+        this.nextTkItemUseAt = now + 1000;
+        this.bot.send(C2S.use, { index: i });
+        return;
+      }
     }
   }
 }

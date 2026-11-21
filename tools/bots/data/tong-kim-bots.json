@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "title": "Tống Kim Bots",
+  "activities": {
+    "grind": false,
+    "chat": false,
+    "sell": false,
+    "tongkim": true,
+    "autoAcceptTeam": true,
+    "autoInviteTeam": false
+  },
+  "note": "",
+  "server": "http://localhost:2567",
+  "bots": {
+    "prefix": "botfixed",
+    "count": 0,
+    "usernames": [
+      "botfixed_070",
+      "botfixed_071",
+      "botfixed_072",
+      "botfixed_073",
+      "botfixed_074",
+      "botfixed_075",
+      "botfixed_076",
+      "botfixed_077",
+      "botfixed_078",
+      "botfixed_103",
+      "botfixed_104",
+      "botfixed_105",
+      "botfixed_106",
+      "botfixed_107",
+      "botfixed_102"
+    ]
+  },
+  "joinPerSecond": 3,
+  "duration": 0,
+  "seed": 1,
+  "behaviors": {
+    "grind": 100
+  },
+  "pk": {
+    "mode": 2,
+    "target": "nearest"
+  },
+  "wander": {
+    "radius": 300
+  },
+  "travel": {
+    "every": 60,
+    "maps": [
+      37,
+      140
+    ]
+  },
+  "crowd": {
+    "mapId": 37,
+    "x": 0,
+    "y": 0,
+    "radius": 80,
+    "cast": false
+  },
+  "auto": {
+    "autoRadius": 500,
+    "autoSkipBoss": false,
+    "autoBuff": true,
+    "autoReturn": true,
+    "autoSeek": true,
+    "autoPickup": true,
+    "autoSort": true,
+    "autoPriority": "boss",
+    "autoRotate": true,
+    "autoCurse": true,
+    "autoMap": true,
+    "autoReturnTraining": true,
+    "autoRevive": true,
+    "autoBuyPotion": true,
+    "autoJunk": true,
+    "autoMoney": true,
+    "autoLootPriority": false,
+    "autoSellBlue": false,
+    "autoSellAllBlue": false,
+    "autoKeepValuable": true,
+    "autoLoot": "all",
+    "autoHp": 50,
+    "autoMp": 20,
+    "autoReachPct": 60,
+    "autoMeleeClose": true,
+    "autoManualPauseMs": 150
+  },
+  "buffVersion": 1,
+  "tongkim": {
+    "campPreference": "auto",
+    "exitViaScoutRatio": 0.5,
+    "hpHealThreshold": 0.7,
+    "scanRadius": 850
+  },
+  "human": {
+    "tickMs": 150,
+    "reactionMs": [
+      80,
+      250
+    ],
+    "maxOrdersPerSec": 8
+  },
+  "reconnect": true
+}

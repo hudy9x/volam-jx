@@ -299,10 +299,15 @@ export class BotClient {
     this.send(C2S.cast, { skill, targetId, x: Math.round(x), y: Math.round(y), lock, reach });
   }
 
-  /** Attack skills of the bar the bot can use now, strongest first. */
+  /** Attack skills of the bar the bot can use now, strongest first (cấp >= 150 luôn ưu tiên skill 150). */
   attacks(): number[] {
-    return [...new Set([this.left, ...this.keys].filter((id): id is number => id !== null))]
+    const all = [...new Set([this.left, ...this.keys].filter((id): id is number => id !== null))]
       .filter(id => { const s = getSkill(id); return !!s && skillCategory(s) === 'attack' && this.usable(id); });
+    if ((this.me()?.level ?? 0) >= 150) {
+      const tier150 = all.filter(id => (getSkill(id)?.reqLevel ?? 0) >= 150);
+      if (tier150.length) return tier150;
+    }
+    return all;
   }
 
   /**
