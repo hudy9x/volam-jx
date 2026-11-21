@@ -86,6 +86,7 @@ export interface AutoHost {
   money(): number;
   use(index: number): void;
   sell(index: number): void;
+  sellBatch?(indices: number[]): void;
   buy(defId: string, count: number): void;
   sortBag?(): void;
   /** The own character may wear this row (sex, faction, level, potentials). */
@@ -144,6 +145,8 @@ const LOOT_NEAR = 220;
 const PICKUP_WAIT_MS = 1500;
 const PICKUP_RETRY_MS = 6000;
 const PICKUP_TRIES = 2;
+const PICKUP_BURST_MAX = 2;
+const PICKUP_IN_RANGE_GAP_MS = 120;
 const FULL_NOTICE_MS = 60000;
 const SORT_GAP_MS = 1500;
 /** Selling junk (jx-web-main every 30 s) and the town round (buy potions, then back to training). */
@@ -206,6 +209,7 @@ export class AutoPlay {
   private pickTried = new Map<string, { n: number; at: number }>();
   private fullNoticeAt = -Infinity;
   private lastSort = -Infinity;
+  private lastInRangePick = -Infinity;
   private lastJunk = 0;
   private level = 0;
   private townStep = 0;
@@ -239,6 +243,7 @@ export class AutoPlay {
     this.lastBuff = -Infinity;
     this.utility = null;
     this.pickTried.clear();
+    this.lastInRangePick = -Infinity;
     this.bans.clear();
     this.picking = null;
     this.nextTick = 0;
@@ -719,8 +724,10 @@ export class AutoPlay {
     return this.find(d.owner)?.state.team === myTeam;
   }
 
-  /** Parallel instant pickup: take every eligible drop already within pickupRange without interrupting combat or movement. */
+  /** Parallel instant pickup: take eligible drops within pickupRange in throttled bursts to stay well under server rate limits. */
   private pickInRange(now: number, self: AutoActor, opts: Settings): void {
+    if (now - this.lastInRangePick < PICKUP_IN_RANGE_GAP_MS) return;
+    let sent = 0;
     for (const d of this.host.drops()) {
       if (!this.canTake(d, self) || !this.wanted(d, opts)) continue;
       if (isoDistance(self.x, self.y, d.x, d.y) > DROPS.pickupRange) continue;
@@ -732,6 +739,7 @@ export class AutoPlay {
           if (now - this.lastSort >= SORT_GAP_MS) {
             this.lastSort = now;
             this.host.sortBag?.();
+            sent++;
           }
           continue;
         }
@@ -739,7 +747,9 @@ export class AutoPlay {
       this.pickTried.set(d.id, { n: (tried?.n ?? 0) + 1, at: now });
       if (this.pickTried.size > 200) this.pickTried.clear();
       this.host.pickup(d.id);
+      if (++sent >= PICKUP_BURST_MAX) break;
     }
+    if (sent > 0) this.lastInRangePick = now;
   }
 
   /**
@@ -788,14 +798,17 @@ export class AutoPlay {
 
   /** Tự bán đồ thừa: white pieces of equipment the character cannot wear (optionally ordinary blue gear or all blue gear; never gold, potions, books, the token). */
   private sellJunk(opts: Settings): void {
-    let sold = false;
+    const indices: number[] = [];
     this.host.bag().forEach((it, i) => {
       const def = itemDef(it);
       if (!it || !def || !KIND_SLOTS[def.kind].length || def.kind === 'horse') return;
       if ((it.q ?? QUALITY.normal) === QUALITY.magic) {
-        if (opts.autoSellAllBlue || (opts.autoSellBlue && (!opts.autoKeepValuable || !botTradeReasons(it).length))) { this.host.sell(i); sold = true; }
-      } else if (opts.autoJunk && (it.q ?? QUALITY.normal) === QUALITY.normal && !this.host.wearable(def)) { this.host.sell(i); sold = true; }
+        if (opts.autoSellAllBlue || (opts.autoSellBlue && (!opts.autoKeepValuable || !botTradeReasons(it).length))) indices.push(i);
+      } else if (opts.autoJunk && (it.q ?? QUALITY.normal) === QUALITY.normal && !this.host.wearable(def)) indices.push(i);
     });
-    if (sold && opts.autoSort) this.host.sortBag?.();
+    if (!indices.length) return;
+    if (this.host.sellBatch) this.host.sellBatch(indices);
+    else for (const i of indices) this.host.sell(i);
+    if (opts.autoSort) this.host.sortBag?.();
   }
 }

@@ -92,6 +92,14 @@ export class AutoWindow {
       });
     });
     bindSettingInputs(el);
+    const sellAllBlue = el.querySelector<HTMLInputElement>('[data-set="autoSellAllBlue"]');
+    const keepValuable = el.querySelector<HTMLInputElement>('[data-set="autoKeepValuable"]');
+    sellAllBlue?.addEventListener('change', () => {
+      if (sellAllBlue.checked) settings.set({ autoSellAllBlue: true, autoKeepValuable: false });
+    });
+    keepValuable?.addEventListener('change', () => {
+      if (keepValuable.checked) settings.set({ autoKeepValuable: true, autoSellAllBlue: false });
+    });
     settings.watch(() => this.showReach());
     skillbar.watch(() => this.showReach());
   }

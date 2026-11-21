@@ -21,7 +21,7 @@ import { db } from '../account/db.js';
 import { commandCast, commandMove, setMounted, setPk, setSkillLevel, setSlotAura } from '../world/commands.js';
 import type { Sim } from '../world/entity.js';
 import {
-  addMoney, buyItem, discardItem, equipItem, forgeItem, moveBagItem, moveStashItem, restoreStash, sellItem, sortGrid, splitGridItem, transferBetweenGrids, transferStashCurrency, unequipItem, useItem,
+  addMoney, buyItem, discardItem, equipItem, forgeItem, moveBagItem, moveStashItem, restoreStash, sellItem, sellItems, sortGrid, splitGridItem, transferBetweenGrids, transferStashCurrency, unequipItem, useItem,
 } from '../world/inventory.js';
 import { useToken } from '../world/token.js';
 import { teamOffline, teamOnline, teamOrder } from '../world/teams.js';
@@ -236,7 +236,10 @@ export class MapRoom extends Room<{ state: MapState }> {
       equipItem(this.world, sim, Number(msg?.index), typeof msg?.slot === 'string' ? msg.slot : undefined));
     inventoryOp<UnequipMsg>(C2S.unequip, (sim, msg) => unequipItem(this.world, sim, String(msg?.slot)));
     inventoryOp<BuyMsg>(C2S.buy, (sim, msg) => buyItem(this.world, sim, String(msg?.item), Number(msg?.count ?? 1)));
-    inventoryOp<SellMsg>(C2S.sell, (sim, msg) => sellItem(this.world, sim, Number(msg?.index)));
+    inventoryOp<SellMsg>(C2S.sell, (sim, msg) =>
+      Array.isArray(msg?.indices)
+        ? sellItems(this.world, sim, msg.indices.map(Number))
+        : sellItem(this.world, sim, Number(msg?.index)));
     inventoryOp<UseMsg>(C2S.use, (sim, msg) => useItem(this.world, sim, Number(msg?.index)));
     inventoryOp<DiscardMsg>(C2S.discard, (sim, msg) => discardItem(this.world, sim, Number(msg?.index)));
     inventoryOp<ForgeMsg>(C2S.forge, (sim, msg) => forgeItem(this.world, sim, String(msg?.item), Number(msg?.series),

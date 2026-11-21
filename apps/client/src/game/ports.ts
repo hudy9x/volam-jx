@@ -27,6 +27,8 @@ export interface WorldActions {
   buy: (item: string, count?: number) => void;
   /** Sell the bag item in slot `index` to an NPC shop. */
   sell: (index: number) => void;
+  /** Sell multiple bag slots in one network message. */
+  sellBatch: (indices: number[]) => void;
   /** Use the bag item in slot `index` (thuốc). */
   use: (index: number) => void;
   /** Use the first bag piece of table row `defId` (keys 1–9, the quick bar), or say none is left. */

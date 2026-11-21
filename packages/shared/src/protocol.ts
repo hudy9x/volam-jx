@@ -104,8 +104,8 @@ export interface EquipMsg { index: number; slot?: string }
 export interface UnequipMsg { slot: string }
 /** Buy `count` (1–BUY_MAX, default 1) new pieces of a table row from an NPC shop (items/shops.ts), in town. */
 export interface BuyMsg { item: string; count?: number }
-/** Sell the item in bag slot `index` to an NPC shop (sellPrice), in town. */
-export interface SellMsg { index: number }
+/** Sell one item (`index`) or multiple items (`indices`) in bag slots to an NPC shop (sellPrice). */
+export interface SellMsg { index?: number; indices?: number[] }
 /** Use the item in bag slot `index` (thuốc: items/potions.ts). */
 export interface UseMsg { index: number }
 /** Thợ rèn "Chế tạo" (items/magic.ts): a new blue piece of table row `item`, ngũ hành `series`, lines per position. */

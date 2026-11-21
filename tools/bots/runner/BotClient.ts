@@ -363,6 +363,7 @@ export class BotClient {
       money: () => this.money,
       use: index => this.send(C2S.use, { index }),
       sell: index => this.send(C2S.sell, { index }),
+      sellBatch: indices => { if (indices.length) this.send(C2S.sell, { indices }); },
       buy: (item, count) => this.send(C2S.buy, { item, count }),
       sortBag: () => this.send(C2S.bagSort, { page: -1, target: 'bag' }),
       wearable: def => {

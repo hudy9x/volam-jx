@@ -464,4 +464,31 @@ test('autoSellAllBlue sells every blue gear regardless of lines/value, and works
   assert.deepEqual(r.sold, [0, 1]);
   assert.equal(normalizeAuto({ autoLootPriority: true, autoSellAllBlue: true }).autoLootPriority, true);
   assert.equal(normalizeAuto({ autoLootPriority: true, autoSellAllBlue: true }).autoSellAllBlue, true);
+  assert.equal(normalizeAuto({ autoSellAllBlue: true, autoKeepValuable: true }).autoKeepValuable, false);
+});
+
+test('sellBatch sends a single batch for multiple junk items, and pickInRange throttles bursts', () => {
+  const def = Object.values(ITEMS).find(d => d.kind === 'melee')!.id;
+  const batches: number[][] = [];
+  const r = rig();
+  r.host.sellBatch = indices => batches.push(indices);
+  r.setBag(Array.from({ length: 35 }, (_, i) => ({ uid: `blue-${i}`, def, q: QUALITY.magic })));
+  r.auto.start();
+  r.auto.update(31000, { ...r.opts, autoSellAllBlue: true });
+  assert.equal(batches.length, 1);
+  assert.equal(batches[0].length, 35);
+  assert.equal(r.sold.length, 0);
+
+  // Parallel pickup caps each burst at 2 items and waits 120ms before the next burst.
+  const drops = Array.from({ length: 5 }, (_, i) => ({ id: `d-${i}`, def: 'money', q: 0, owner: '', x: i + 1, y: 0 }));
+  r.host.drops = () => drops;
+  r.pickups.length = 0;
+  r.auto.update(31100, { ...r.opts, autoMoney: true });
+  assert.deepEqual(r.pickups, ['d-0', 'd-1']);
+  r.auto.update(31150, { ...r.opts, autoMoney: true });
+  assert.deepEqual(r.pickups, ['d-0', 'd-1']);
+  r.auto.update(31230, { ...r.opts, autoMoney: true });
+  assert.deepEqual(r.pickups, ['d-0', 'd-1', 'd-2', 'd-3']);
+  r.auto.update(31360, { ...r.opts, autoMoney: true });
+  assert.deepEqual(r.pickups, ['d-0', 'd-1', 'd-2', 'd-3', 'd-4']);
 });

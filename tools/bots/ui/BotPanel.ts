@@ -197,6 +197,12 @@ class BotPanel {
     this.on('bt-save', () => void this.saveTemplate());
     this.on('bt-delete', () => void this.deleteFile('templates'));
     this.$('sc-file').addEventListener('change', () => void this.chooseScenario());
+    this.$('sc-a-autoSellAllBlue')?.addEventListener('change', () => {
+      if (this.on_('sc-a-autoSellAllBlue')) this.set('sc-a-autoKeepValuable', false);
+    });
+    this.$('sc-a-autoKeepValuable')?.addEventListener('change', () => {
+      if (this.on_('sc-a-autoKeepValuable')) this.set('sc-a-autoSellAllBlue', false);
+    });
     for (const id of ['sc-grind', 'sc-chat', 'sc-sell']) this.$(id).addEventListener('change', () => this.showActivities());
     this.on('sc-save', () => void this.saveScenario());
     this.on('sc-delete', () => void this.deleteFile('scenarios'));

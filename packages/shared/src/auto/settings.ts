@@ -79,5 +79,6 @@ export function normalizeAuto(raw: unknown): AutoSettings {
   }
   if (v.autoPriority === 'boss' || v.autoPriority === 'near' || v.autoPriority === 'blue') out.autoPriority = v.autoPriority;
   if (v.autoLoot === 'all' || v.autoLoot === 'magic' || v.autoLoot === 'money') out.autoLoot = v.autoLoot;
+  if (out.autoSellAllBlue) out.autoKeepValuable = false;
   return out;
 }

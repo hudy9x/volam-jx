@@ -1,3 +1,14 @@
+## 2026-11-21 · Gộp bán Auto (`sellBatch`), giới hạn nhịp `pickInRange` & loại trừ `autoSellAllBlue` ↔ `autoKeepValuable` (đã commit)
+
+- **USER yêu cầu:** khắc phục lỗi ngắt kết nối (quay về màn hình chọn nhân vật) do gửi quá `maxMessagesPerSecond = 30` khi Auto bán nhiều đồ xanh; áp dụng cả gộp bán và giới hạn nhịp nhặt đồ, đồng thời chỉ chọn 1 trong 2 giữa bán toàn bộ đồ xanh và giữ đồ xanh giá trị.
+- **Thay đổi:**
+  - `packages/shared/src/protocol.ts`, `packages/shared/src/auto/{AutoPlay,settings}.ts`: mở rộng `SellMsg` hỗ trợ `indices?: number[]`; `AutoPlay.sellJunk` gom slot gọi `host.sellBatch` (fallback `host.sell`); `AutoPlay.pickInRange` giới hạn tối đa `PICKUP_BURST_MAX = 2` lệnh mỗi đợt và giãn `PICKUP_IN_RANGE_GAP_MS = 120` ms; `normalizeAuto` tự tắt `autoKeepValuable` khi `autoSellAllBlue` bật.
+  - `apps/server/src/world/inventory.ts`, `apps/server/src/net/MapRoom.ts`: thêm `sellItems` bán nhiều slot trong 1 lượt và phát 1 thông báo/log tổng hợp, chỉ gọi `sendInventory` + `saveCharacter` 1 lần.
+  - `apps/client/src/game/{ports,WorldScene}.ts`, `tools/bots/runner/BotClient.ts`: nối `sellBatch` qua `C2S.sell` với `{ indices }`.
+  - `apps/client/src/ui/windows/auto.ts`, `tools/bots/ui/BotPanel.ts`: tick `autoSellAllBlue` tự bỏ tick `autoKeepValuable` và ngược lại.
+  - `tests/auto-behavior.test.ts`: thêm test kiểm tra `sellBatch`, giới hạn nhịp `pickInRange` và chuẩn hóa `autoSellAllBlue`/`autoKeepValuable`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run test:auto` (**67/67 pass**), `npm run build` thành công. Dùng chung Web/Desktop/Mobile; cần restart server và reload client/bot runner để nhận mã mới. Chưa commit/push.
+
 ## 2026-11-21 · Thay Chợ thành thị bằng Bày bán trực tiếp trên Hành trang & lọc Mua bán 30 phút / 50 tin (đã commit)
 
 - **USER yêu cầu:** thay chức năng Chợ danh sách bằng cơ chế Bày bán trực tiếp trên Hành trang theo JX1 (`co-che-bay-ban.md`): bán tối đa 2 trang đầu Hành trang (120 ô), người mua thấy 1 trang lớn `10×12` (120 ô), hỗ trợ Ngân lượng + KNB, áp dụng cấp ≥ 60 & tránh NPC chức năng, giới hạn lời rao 20 ký tự, giải mã 3 SPR bảng hiệu `VLTK-SHXT`, giữ kênh chat Mua bán với bộ lọc 30 phút / tối đa 50 tin.

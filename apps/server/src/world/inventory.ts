@@ -283,22 +283,52 @@ export function transferStashCurrency(
   return false;
 }
 
-/**
- * Sell the piece in bag slot `index` (a quarter of its table price). Anywhere: the hành trang has its own "Bán" button
- * (USER 2026-11-12), not only an NPC shop in town.
- */
-export function sellItem(w: World, sim: Sim, index: number): boolean {
-  if (sim.a.stallTitle) return false;
+function sellSlot(sim: Sim, index: number): { gain: number; name: string; qty: number } | null {
+  if (sim.a.stallTitle || sim.dead || !Number.isInteger(index)) return null;
   const item = sim.bag?.[index];
   const def = itemDef(item);
-  if (!item || !def || sim.dead) return false;
+  if (!item || !def) return null;
   const qty = itemQty(item);
   const gain = sellPrice(def) * qty;
   delete item.stallPrice;
   sim.bag![index] = null;
   addMoney(sim, gain);
-  w.hooks.notify(sim, `Bán ${qty > 1 ? `${qty} ` : ''}${def.name}: ${moneyText(gain)} lượng.`);
-  w.hooks.log(sim, 'sell', `Bán ${qty > 1 ? `${qty} ` : ''}${def.name}: +${moneyText(gain)} lượng.`);
+  return { gain, name: def.name, qty };
+}
+
+/**
+ * Sell the piece in bag slot `index` (a quarter of its table price). Anywhere: the hành trang has its own "Bán" button
+ * (USER 2026-11-12), not only an NPC shop in town.
+ */
+export function sellItem(w: World, sim: Sim, index: number): boolean {
+  const sold = sellSlot(sim, index);
+  if (!sold) return false;
+  w.hooks.notify(sim, `Bán ${sold.qty > 1 ? `${sold.qty} ` : ''}${sold.name}: ${moneyText(sold.gain)} lượng.`);
+  w.hooks.log(sim, 'sell', `Bán ${sold.qty > 1 ? `${sold.qty} ` : ''}${sold.name}: +${moneyText(sold.gain)} lượng.`);
+  return true;
+}
+
+/** Sell multiple bag slots in one network message, emitting a single summary notice/log when >= 2 items are sold. */
+export function sellItems(w: World, sim: Sim, indices: number[]): boolean {
+  const unique = [...new Set(indices.filter(i => Number.isInteger(i)))];
+  let count = 0;
+  let totalGain = 0;
+  let first: { gain: number; name: string; qty: number } | null = null;
+  for (const index of unique) {
+    const sold = sellSlot(sim, index);
+    if (!sold) continue;
+    if (!first) first = sold;
+    count++;
+    totalGain += sold.gain;
+  }
+  if (!count) return false;
+  if (count === 1 && first) {
+    w.hooks.notify(sim, `Bán ${first.qty > 1 ? `${first.qty} ` : ''}${first.name}: ${moneyText(first.gain)} lượng.`);
+    w.hooks.log(sim, 'sell', `Bán ${first.qty > 1 ? `${first.qty} ` : ''}${first.name}: +${moneyText(first.gain)} lượng.`);
+  } else {
+    w.hooks.notify(sim, `Bán ${count} món đồ: ${moneyText(totalGain)} lượng.`);
+    w.hooks.log(sim, 'sell', `Bán ${count} món đồ: +${moneyText(totalGain)} lượng.`);
+  }
   return true;
 }
 
