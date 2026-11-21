@@ -11,7 +11,7 @@ import type { ItemDef } from './items.js';
 export { TOKEN_ITEM, TOKEN_ITEM_ID, TOWN_PORTAL_ITEM, TOWN_PORTAL_ID } from './books.js';
 
 /** Options; 'faction' / 'gender' reset potential + skill points to their defaults, keep items and level (USER 2026-11-12). */
-export type TokenOp = 'level' | 'exp' | 'skills' | 'money' | 'gold' | 'faction' | 'gender' | 'washPotential' | 'washSkills' | 'ring' | 'graduate';
+export type TokenOp = 'level' | 'exp' | 'skills' | 'money' | 'gold' | 'faction' | 'gender' | 'washPotential' | 'washSkills' | 'ring' | 'graduate' | 'tkAccum';
 
 export const TOKEN = {
   /** "Thăng cấp 150". */
@@ -21,6 +21,8 @@ export const TOKEN = {
   expMax: 1_000_000_000,
   /** "Nhận 10000 vạn lượng" = 100 000 000 lượng. */
   money: 100_000_000,
+  /** "Nhận 100000 điểm tích lũy". */
+  tkAccum: 100_000,
   /** Skill tiers "Học kĩ năng 90, 120, 150". */
   tiers: [90, 120, 150] as const,
 };

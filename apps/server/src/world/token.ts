@@ -2,6 +2,7 @@ import {
   CAMP_NAMES, CANKHON_RING_ID, FACTIONS, LEVEL, campOf, factionAllowsGender, pointsAtLevel, type Element, MAX_MONEY, TOKEN, TOKEN_ITEM, TOKEN_ITEM_ID, TOWN_PORTAL_ID, addToBag, createGold, expToNext, factionSuites, findPlace, getSkill,
   learnTiers, levelCap, type Item, type TokenOp,
 } from '@vltk/shared';
+import { db } from '../account/db.js';
 import type { Sim } from './entity.js';
 import { addMoney, makeItem, newItemUid } from './inventory.js';
 import { gainExp, refreshStats, unlockSkills, washPoints } from './progress.js';
@@ -47,6 +48,15 @@ export function useToken(w: World, sim: Sim, op: TokenOp, suite?: number, factio
       addMoney(sim, TOKEN.money);
       w.hooks.notify(sim, `Nhận được ${TOKEN.money / 10_000} vạn lượng.`);
       return true;
+    }
+    case 'tkAccum': {
+      if (!sim.charId) return false;
+      const char = db.getCharacter(sim.charId);
+      if (!char) return false;
+      const next = Math.max(0, Math.floor(char.tkAccum ?? 0)) + TOKEN.tkAccum;
+      db.updateCharacter(sim.charId, { tkAccum: next });
+      w.hooks.notify(sim, `Nhận được ${TOKEN.tkAccum.toLocaleString('vi-VN')} điểm tích lũy Tống Kim (hiện có ${next.toLocaleString('vi-VN')}).`);
+      return false;
     }
     case 'gold':
       return giveSuite(w, sim, Number(suite));

@@ -403,6 +403,9 @@ export class MapRoom extends Room<{ state: MapState }> {
       const gender = sim.a.gender;
       const changed = useToken(this.world, sim, msg.op, Number(msg.suite), typeof msg.faction === 'string' ? msg.faction : undefined);
       if (changed) this.sendInventory(client, sim);
+      if (msg.op === 'tkAccum' && sim.charId) {
+        client.send(S2C.tkState, tongKim.snapshotFor(sim.charId));
+      }
       this.saveCharacter(sim);
       if (sim.a.gender !== gender) this.transfer(sim, this.state.mapId, sim.a.x, sim.a.y);
     });

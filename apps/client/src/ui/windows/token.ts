@@ -12,6 +12,7 @@ const HTML = `
     <button type="button" class="btn" data-op="exp">Nhận ${TOKEN.expMin / 1e6} triệu – ${TOKEN.expMax / 1e9} tỷ kinh nghiệm</button>
     <button type="button" class="btn" data-op="skills">Học kỹ năng cấp 90 / 120 / 150 (cấp tối đa)</button>
     <button type="button" class="btn" data-op="money">Nhận ${TOKEN.money / 10_000} vạn lượng</button>
+    <button type="button" class="btn" data-op="tkAccum">Nhận ${TOKEN.tkAccum.toLocaleString('vi-VN')} điểm tích lũy</button>
     <button type="button" class="btn" data-op="gold">Nhận bộ hoàng kim môn phái…</button>
     <button type="button" class="btn" data-op="faction">Đổi môn phái…</button>
     <button type="button" class="btn" data-op="graduate">Xuất sư / Về trận doanh phái (màu đỏ ↔ màu phái)</button>
@@ -48,7 +49,7 @@ export class TokenWindow {
       else if (op === 'gender') { if (confirm('Đổi giới tính? Điểm tiềm năng và kỹ năng sẽ trả về mặc định.')) this.send({ op: 'gender' }); }
       else if (op === 'washPotential' || op === 'washSkills') {
         if (confirm(op === 'washPotential' ? 'Tẩy tủy toàn bộ điểm tiềm năng?' : 'Tẩy tủy toàn bộ điểm kỹ năng (chiêu luyện / bí kíp giữ nguyên)?')) this.send({ op });
-      } else this.send({ op: op as 'level' | 'exp' | 'skills' | 'money' | 'ring' | 'graduate' });
+      } else this.send({ op: op as 'level' | 'exp' | 'skills' | 'money' | 'ring' | 'graduate' | 'tkAccum' });
     }));
     $('token-back').addEventListener('click', () => this.back());
   }
