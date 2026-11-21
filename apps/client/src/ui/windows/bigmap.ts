@@ -164,11 +164,21 @@ export class BigMap {
       text(l.name, l.x * k, l.y * k - 8 * dpr, '#9cf08a');
     }
     let self: MapActor | undefined;
+    for (const a of actors) if (a.id === selfId) { self = a; break; }
+    const myBattleCamp = self?.state.battleCamp;
     for (const a of actors) {
-      if (a.id === selfId) { self = a; continue; }
+      if (a.id === selfId) continue;
       const s = a.state;
       if (s.hp <= 0 || s.kind === 'npc') continue;
-      if (s.kind === 'monster') {
+      if (myBattleCamp && s.battleCamp) {
+        const isNpc = s.kind === 'monster';
+        const ally = s.battleCamp === myBattleCamp;
+        const color = isNpc
+          ? (ally ? 'rgba(68, 224, 107, 0.5)' : 'rgba(255, 59, 48, 0.5)')
+          : (ally ? '#44e06b' : '#ff3b30');
+        const r = isNpc ? (Number(s.boss) >= 2 || s.boss === true ? 4.5 : s.boss === 1 ? 3.4 : 2.4) : 3;
+        dot(a.x, a.y, r, color, s.kind === 'player' || !!s.boss);
+      } else if (s.kind === 'monster') {
         const gold = Number(s.boss) >= 2 || s.boss === true;
         dot(a.x, a.y, gold ? 4.5 : s.boss === 1 ? 3.4 : 2, gold ? '#ffd700' : s.boss === 1 ? '#5cb8ff' : '#e0503c', !!s.boss);
       }

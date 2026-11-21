@@ -83,32 +83,20 @@
 }
 
 .tk-board-rank {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .tk-board-subhead {
   font-size: 12px;
   font-weight: 700;
-  color: #f3d285;
+  color: var(--gold);
+  text-shadow: var(--outline);
   margin-bottom: 6px;
 }
 
-.tk-btn {
-  padding: 3px 9px;
-  min-height: 26px;
-  background: rgba(24, 30, 38, 0.78);
-  color: #f4ebd2;
-  border: 1px solid rgba(212, 175, 95, 0.5);
-  border-radius: 4px;
-  font-size: 11px;
-  cursor: pointer;
+.tk-btn-danger {
+  color: var(--danger);
 }
-.tk-btn:hover { background: rgba(44, 54, 66, 0.92); }
-.tk-btn-go { background: rgba(30, 96, 54, 0.85); border-color: #69d184; }
-.tk-btn-tong { background: rgba(24, 68, 112, 0.85); border-color: #5cb8ff; }
-.tk-btn-kim { background: rgba(112, 34, 28, 0.85); border-color: #ff6b57; }
-.tk-btn-warn { background: rgba(98, 36, 30, 0.82); border-color: #e07668; }
-.tk-btn-dev { background: rgba(74, 52, 110, 0.85); border-color: #b593ff; }
 
 #tk-board,
 #tk-end {
@@ -118,31 +106,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.36);
+  background: rgba(0, 0, 0, 0.45);
   pointer-events: auto;
 }
 #tk-board.hidden,
 #tk-end.hidden { display: none; }
 
-.tk-board-box {
-  width: min(560px, 92vw);
-  max-height: 76vh;
-  overflow: auto;
-  background: rgba(16, 20, 26, 0.78);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(212, 175, 95, 0.65);
-  border-radius: 6px;
-  padding: 10px 12px;
-  color: #efe7d2;
+.tk-board-box.dlg {
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  width: min(560px, 94vw);
+  max-height: 78vh;
+  color: var(--text);
 }
 
-.tk-board-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
-  color: #f3d285;
-  margin-bottom: 8px;
+.tk-board-box .dlg-head {
+  cursor: default;
 }
 
 .tk-table {
@@ -152,23 +133,19 @@
 }
 .tk-table th, .tk-table td {
   padding: 4px 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid var(--line);
   text-align: left;
 }
-.tk-table th { color: #c7b68a; font-weight: 600; }
-.tk-empty { text-align: center !important; color: #9c9482; padding: 12px !important; }
+.tk-table th { color: var(--gold); font-weight: 700; }
+.tk-empty { text-align: center !important; color: var(--muted); padding: 12px !important; }
 
-/* Dialog kết thúc trận đấu trong suốt */
-.tk-end-box {
+/* Dialog kết thúc trận đấu chuẩn khung ngọc bích */
+.tk-end-box.jade {
   width: min(440px, 92vw);
-  padding: 18px 20px 16px;
+  padding: 16px 18px 14px;
   text-align: center;
-  background: rgba(12, 16, 22, 0.64);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(226, 188, 102, 0.65);
-  border-radius: 10px;
-  color: #f5eedb;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.58);
+  color: var(--text);
+  box-shadow: 0 8px 30px #000c;
 }
 
 .tk-end-icon {

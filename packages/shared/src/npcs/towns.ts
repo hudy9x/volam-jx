@@ -90,13 +90,9 @@ export const DEFAULT_TOWN_NPCS: Record<number, TownNpc[]> = {
     // Hậu doanh Tống (dưới cùng góc Tây Nam, quanh 2704, 9224; entry 378 = 9744, 5384)
     { id: 'npc-tk378-drug-tong', name: 'Chủ dược điếm (Tống)', res: 'passerby007', action: 'drug', tkCamp: 'tong', dx: -7140, dy: 3790, dir: 0 },
     { id: 'npc-tk378-stash-tong', name: 'Rương chứa đồ (Tống)', res: 'passerby198', action: 'stash', tkCamp: 'tong', dx: -6940, dy: 3790, dir: 0 },
-    { id: 'npc-tk378-scout-tong', name: 'Đặc thám tiền phương (Tống)', res: 'enemy029', action: 'tkScout', tkCamp: 'tong', dx: -6920, dy: 3710, dir: 0 },
-    { id: 'npc-tk378-gate-tong', name: 'Cổng xuất trận (Tống)', res: 'enemy029', action: 'tkGate', tkCamp: 'tong', dx: -6760, dy: 3620, dir: 0 },
     // Hậu doanh Kim (trên cùng góc Đông Bắc, quanh 17136, 1640)
     { id: 'npc-tk378-drug-kim', name: 'Chủ dược điếm (Kim)', res: 'passerby007', action: 'drug', tkCamp: 'kim', dx: 7492, dy: -3794, dir: 0 },
     { id: 'npc-tk378-stash-kim', name: 'Rương chứa đồ (Kim)', res: 'passerby198', action: 'stash', tkCamp: 'kim', dx: 7292, dy: -3794, dir: 0 },
-    { id: 'npc-tk378-scout-kim', name: 'Trinh sát tiền tuyến (Kim)', res: 'enemy031', action: 'tkScout', tkCamp: 'kim', dx: 7272, dy: -3664, dir: 0 },
-    { id: 'npc-tk378-gate-kim', name: 'Cổng xuất trận (Kim)', res: 'enemy031', action: 'tkGate', tkCamp: 'kim', dx: 7112, dy: -3574, dir: 0 },
   ],
   326: BATTLE_EXIT_NPCS,
   329: BATTLE_EXIT_NPCS,

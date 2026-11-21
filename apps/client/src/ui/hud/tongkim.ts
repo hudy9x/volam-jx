@@ -155,22 +155,22 @@ export class TongKimHud {
 
       const actions: string[] = [];
       if (isBattle && st.phase === 'fighting' && me?.inCamp) {
-        actions.push(`<button type="button" class="tk-btn tk-btn-go" data-tk-act="scout">Ra tiền tuyến</button>`);
-        actions.push(`<button type="button" class="tk-btn" data-tk-act="exitGate">${me.gateWaitSec > 0 ? `Cổng (${me.gateWaitSec}s)` : 'Qua cổng'}</button>`);
+        actions.push(`<button type="button" class="btn sm" data-tk-act="scout">Ra tiền tuyến</button>`);
+        actions.push(`<button type="button" class="btn2" data-tk-act="exitGate">${me.gateWaitSec > 0 ? `Cổng (${me.gateWaitSec}s)` : 'Qua cổng'}</button>`);
       }
       if (isBattle) {
-        actions.push(`<button type="button" class="tk-btn tk-btn-warn" data-tk-act="leave">Rời trận</button>`);
+        actions.push(`<button type="button" class="btn2 tk-btn-danger" data-tk-act="leave">Rời trận</button>`);
       }
       if (!isBattle && (st.phase === 'signup' || st.phase === 'fighting')) {
-        actions.push(`<button type="button" class="tk-btn tk-btn-tong" data-tk-act="regTong">Vào Tống</button>`);
-        actions.push(`<button type="button" class="tk-btn tk-btn-kim" data-tk-act="regKim">Vào Kim</button>`);
+        actions.push(`<button type="button" class="btn sm" data-tk-act="regTong">Vào Tống</button>`);
+        actions.push(`<button type="button" class="btn sm" data-tk-act="regKim">Vào Kim</button>`);
       }
       if (st.devTools) {
         if (st.phase === 'closed') {
-          actions.push(`<button type="button" class="tk-btn tk-btn-dev" data-tk-act="devStart1">Mở Nguyên Soái (Test)</button>`);
-          actions.push(`<button type="button" class="tk-btn tk-btn-dev" data-tk-act="devStart2">Mở Cừu Sát (Test)</button>`);
+          actions.push(`<button type="button" class="btn sm" data-tk-act="devStart1">Mở Nguyên Soái (Test)</button>`);
+          actions.push(`<button type="button" class="btn sm" data-tk-act="devStart2">Mở Cừu Sát (Test)</button>`);
         } else {
-          actions.push(`<button type="button" class="tk-btn tk-btn-warn" data-tk-act="devStop">Đóng trận</button>`);
+          actions.push(`<button type="button" class="btn2 tk-btn-danger" data-tk-act="devStop">Đóng trận</button>`);
         }
       }
 
@@ -213,27 +213,32 @@ export class TongKimHud {
           </div>`
         : '';
 
+      const titleText = st.phase === 'closed'
+        ? `Tống Kim · ${phaseLabel(st.phase)}`
+        : `Tống Kim · ${TK_MODE_NAMES[st.mode]} · ${phaseLabel(st.phase)} (${fmtTime(st.remainSec)})`;
+
       this.boardModal.innerHTML = `
-        <div class="tk-board-box">
-          <div class="tk-board-summary">
-            <div class="tk-board-head">
-              <span>Tống Kim · ${st.phase === 'closed' ? phaseLabel(st.phase) : `${TK_MODE_NAMES[st.mode]} · ${phaseLabel(st.phase)}`}</span>
-              <div class="tk-top-right">
-                ${st.phase !== 'closed' ? `<span class="tk-clock">${fmtTime(st.remainSec)}</span>` : ''}
-                <button type="button" class="tk-btn" data-tk-close="1">Đóng</button>
-              </div>
-            </div>
-            ${st.phase !== 'closed' ? `
-            <div class="tk-scores">
-              <span class="tk-camp-tong">Tống (${st.tongCount}): <b>${st.tongScore.toLocaleString('vi-VN')}</b></span>
-              <span class="tk-vs">VS</span>
-              <span class="tk-camp-kim">Kim (${st.kimCount}): <b>${st.kimScore.toLocaleString('vi-VN')}</b></span>
-            </div>` : ''}
-            ${marshalRow}
-            ${meRow}
-            ${actions.length ? `<div class="tk-actions">${actions.join('')}</div>` : ''}
+        <div class="dlg tk-board-box">
+          <div class="dlg-head">
+            <span class="coin"></span>
+            <h3 class="dlg-title">${titleText}</h3>
+            <span class="coin"></span>
+            <button type="button" class="dlg-x" data-tk-close="1" title="Đóng (phím \`)"></button>
           </div>
-          ${boardSection}
+          <div class="dlg-body">
+            <div class="tk-board-summary">
+              ${st.phase !== 'closed' ? `
+              <div class="tk-scores">
+                <span class="tk-camp-tong">Tống (${st.tongCount}): <b>${st.tongScore.toLocaleString('vi-VN')}</b></span>
+                <span class="tk-vs">VS</span>
+                <span class="tk-camp-kim">Kim (${st.kimCount}): <b>${st.kimScore.toLocaleString('vi-VN')}</b></span>
+              </div>` : ''}
+              ${marshalRow}
+              ${meRow}
+              ${actions.length ? `<div class="tk-actions">${actions.join('')}</div>` : ''}
+            </div>
+            ${boardSection}
+          </div>
         </div>
       `;
     }
@@ -260,7 +265,7 @@ export class TongKimHud {
     const myRankTitle = myCamp && st.me?.rank ? tkTitleOf(myCamp as TkCamp, st.me.rank) : '';
 
     this.endModal.innerHTML = `
-      <div class="tk-end-box">
+      <div class="jade tk-end-box">
         <div class="tk-end-icon">${icon}</div>
         <div class="tk-end-title ${headCls}">${headline}</div>
         <div class="tk-end-reason">${st.winReason || 'Chiến trường Tống Kim đã kết thúc.'}</div>
@@ -282,7 +287,7 @@ export class TongKimHud {
           <span>Max Liên trảm: <b>${st.me.maxStreak}</b></span>
         </div>` : ''}
         <div class="tk-end-foot">
-          <button type="button" class="tk-btn tk-btn-go tk-end-close-btn" data-tk-end-close="1">Đóng (Về điểm báo danh)</button>
+          <button type="button" class="btn coins" data-tk-end-close="1">Đóng (Về điểm báo danh)</button>
         </div>
       </div>
     `;

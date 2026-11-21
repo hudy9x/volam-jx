@@ -103,7 +103,7 @@ export interface MapActor {
   id: string;
   x: number;
   y: number;
-  state: { kind: string; hp: number; pk: number; camp?: string; team?: string; boss: boolean | number; name?: string; level?: number; faction?: string };
+  state: { kind: string; hp: number; pk: number; camp?: string; battleCamp?: string; team?: string; boss: boolean | number; name?: string; level?: number; faction?: string };
 }
 
 export interface ViewRect { x: number; y: number; width: number; height: number }

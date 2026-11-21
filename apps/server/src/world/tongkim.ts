@@ -815,8 +815,22 @@ class TongKimManager {
     this.phase = 'ended';
     this.winner = winner;
     this.winReason = reason;
-    this.phaseEndsAt = now + this.timing.endSec * 1000;
+    // Dừng giao tranh ngay: dọn NPC chiến trường, tắt PK và đóng trận sau thời gian xem kết quả ngắn (tối đa 10s).
+    this.phaseEndsAt = now + Math.min(this.timing.endSec, 10) * 1000;
+    this.npcRespawns = [];
+    this.npcsSpawned = false;
+    this.tongMarshalId = null;
+    this.kimMarshalId = null;
     if (w) {
+      this.clearBattleNpcs(w);
+      for (const sim of w.sims.values()) {
+        if (sim.kind === 'player') {
+          sim.a.pk = 0;
+          sim.path = [];
+          sim.pending = null;
+          sim.lockedAttack = undefined;
+        }
+      }
       w.hooks.announce(`KẾT THÚC TỐNG KIM: ${reason}`);
     }
     if (!this.rewardsGranted) {
@@ -1059,7 +1073,7 @@ class TongKimManager {
           signupSec: msg.signupSec ?? 30,
           durationSec: msg.durationSec ?? 600,
           marshalDelaySec: msg.marshalDelaySec ?? 60,
-          endSec: 60,
+          endSec: 10,
           allowSolo: true,
         });
         w.hooks.notify(sim, res.message);

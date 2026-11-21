@@ -124,16 +124,29 @@ class Minimap {
     }
 
     let self: MapActor | undefined;
+    for (const a of actors) if (a.id === selfId) { self = a; break; }
+    const myBattleCamp = self?.state.battleCamp;
     for (const a of actors) {
-      if (a.id === selfId) { self = a; continue; }
+      if (a.id === selfId) continue;
       const s = a.state;
       if (s.hp <= 0) continue;
-      const [color, r] = s.kind === 'monster'
-        ? (Number(s.boss) >= 2 || s.boss === true ? ['#ffd700', 3.2] : s.boss === 1 ? ['#5cb8ff', 2.4] : ['#e0503c', 1.5])
-        : s.kind === 'player' ? [(CAMP_COLORS[(s.camp || 'new') as Camp] ?? '#ffffff'), 2] : ['#7fe08a', 2];
-      ctx.fillStyle = color as string;
+      let color: string;
+      let r: number;
+      if (myBattleCamp && s.battleCamp) {
+        const isNpc = s.kind === 'monster';
+        const ally = s.battleCamp === myBattleCamp;
+        color = isNpc
+          ? (ally ? 'rgba(68, 224, 107, 0.5)' : 'rgba(255, 59, 48, 0.5)')
+          : (ally ? '#44e06b' : '#ff3b30');
+        r = isNpc ? (Number(s.boss) >= 2 || s.boss === true ? 3.2 : s.boss === 1 ? 2.4 : 1.8) : 2.2;
+      } else {
+        [color, r] = s.kind === 'monster'
+          ? (Number(s.boss) >= 2 || s.boss === true ? ['#ffd700', 3.2] : s.boss === 1 ? ['#5cb8ff', 2.4] : ['#e0503c', 1.5])
+          : s.kind === 'player' ? [(CAMP_COLORS[(s.camp || 'new') as Camp] ?? '#ffffff'), 2] : ['#7fe08a', 2];
+      }
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(toX(a.x), toY(a.y), r as number, 0, Math.PI * 2);
+      ctx.arc(toX(a.x), toY(a.y), r, 0, Math.PI * 2);
       ctx.fill();
     }
 

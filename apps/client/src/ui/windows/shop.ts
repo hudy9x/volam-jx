@@ -30,6 +30,7 @@ const HTML = `
       <button type="button" class="btn sm" id="shop-forge" title="Chọn trang bị, ngũ hành và từng dòng thuộc tính (giá trị tối đa)">Chế tạo</button>
     </div>
     ${moneyHtml('shop-money')}
+    <div id="shop-tk-row" class="hidden" title="Điểm tích lũy Tống Kim hiện có"><span class="money" id="shop-tk-accum"></span></div>
   </div>
   <div class="muted" id="shop-hint"></div>
 </section>`;
@@ -111,10 +112,14 @@ export class ShopWindow {
 
   render(): void {
     const smith = this.shop === 'smith';
+    const isTkShop = this.shop === 'tongkim';
     $(ID).dataset.shop = this.shop;
     $('shop-tabs').classList.toggle('hidden', !smith);
     $('shop-all-row').classList.toggle('hidden', !smith);
     $('shop-forge').classList.toggle('hidden', !smith);
+    $(ID).querySelector('.trade-modes .tab[data-mode="sell"]')?.classList.toggle('hidden', isTkShop);
+    $(ID).querySelector('.money-row')?.classList.toggle('hidden', isTkShop);
+    $('shop-tk-row').classList.toggle('hidden', !isTkShop);
     document.querySelectorAll<HTMLElement>('#shop-tabs .tab').forEach(t => t.classList.toggle('on', t.dataset.kind === this.tab));
     const self = this.ctx.self();
     const viewer = itemViewer(self);
@@ -147,6 +152,7 @@ export class ShopWindow {
   private renderPrices(): void {
     const inv = inventory.get();
     const accum = tkState.get()?.me?.accum ?? 0;
+    $('shop-tk-accum').textContent = `Điểm tích lũy: ${accum.toLocaleString('vi-VN')}`;
     document.querySelectorAll<HTMLElement>('#shop-list .shop-item').forEach(el => {
       const cur = el.dataset.currency;
       const bal = cur === 'knb' ? (inv.knb ?? 0) : cur === 'tkAccum' ? accum : inv.money;
