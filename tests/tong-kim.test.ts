@@ -437,3 +437,212 @@ test('Tống Kim: giết NPC chiến trường không có slot sau khi trận đ
   assert.equal(target.dead, true);
   assert.ok((target.removeAt ?? 0) > 5000);
 });
+
+test('Bot Manager & Chiến thuật Tống Kim: dải cấp 150–200 dùng Hoàng Kim + skill 150, và bot chia 3 cánh gọng kìm', async () => {
+  const { BOT_LEVEL_BANDS, normalizeBotTemplate } = await import('@vltk/shared');
+  assert.ok(BOT_LEVEL_BANDS.some(([lo, hi]) => lo === 150 && hi === 200), 'phải có dải cấp 150–200');
+  const norm = normalizeBotTemplate({ level: [150, 200], gear: 'green', tiers: false });
+  assert.deepEqual(norm.level, [150, 200]);
+  assert.equal(norm.gear, 'gold');
+  assert.equal(norm.tiers, true);
+
+  const { TongKimBehavior } = await import('../tools/bots/runner/TongKimBehavior.js');
+  const sc = normalizeBotScenario(DEFAULT_BOT_SCENARIO);
+  const destinations: { x: number; y: number }[] = [];
+  for (let idx = 0; idx < 3; idx++) {
+    const sent: { type: string; msg: unknown }[] = [];
+    const fakeBot = {
+      mapId: TK_BATTLE_MAP_ID,
+      rand: () => 0.5,
+      levels: { 1: 1 },
+      bag: [],
+      money: 0,
+      autoSettings: sc.auto,
+      tkState: {
+        matchId: 1, mode: 1 as const, phase: 'fighting' as const, remainSec: 200,
+        tongCount: 3, kimCount: 3, tongScore: 0, kimScore: 0,
+        marshalSpawned: false, tongMarshalAlive: false, kimMarshalAlive: false, top10: [],
+        me: { camp: 'tong' as const, points: 0, rank: 1, kills: 0, deaths: 0, npcKills: 0, streak: 0, maxStreak: 0, accum: 0, inCamp: false, campRemainSec: 0, gateWaitSec: 0 },
+      },
+      me: () => ({ id: `b${idx}`, x: 5648, y: 7472, hp: 1000, maxHp: 1000, mp: 500, maxMp: 500, battleCamp: 'tong', states: [] }),
+      actors: () => [],
+      room: { state: { actors: new Map() } },
+      host: { aura: () => {}, drops: () => [] },
+      prepareCombat: () => false,
+      attacks: () => [1],
+      ready: () => true,
+      range: () => 120,
+      levelOf: () => 1,
+      usable: () => true,
+      cast: () => {},
+      send: (type: string, msg: unknown) => sent.push({ type, msg }),
+      reviveIfDead: () => false,
+    };
+    const beh = new TongKimBehavior(fakeBot as never, sc, idx);
+    beh.update(1000);
+    const mv = sent.find(s => s.type === C2S.move);
+    assert.ok(mv, `bot ${idx} phải gửi lệnh di chuyển`);
+    destinations.push(mv.msg as { x: number; y: number });
+  }
+  // 3 bot chia 3 cánh khác nhau nên tọa độ y đích khác biệt rõ rệt
+  const ys = destinations.map(d => d.y);
+  assert.ok(new Set(ys).size === 3, `3 cánh phải có 3 tọa độ y khác nhau: ${ys.join(', ')}`);
+});
+
+test('Tống Kim: giết Nguyên Soái dừng trận, dọn NPC ngay và tự đóng trận sau <= 10s', () => {
+  tongKim.stopMatch();
+  tongKim.startMatch({ mode: 1, signupSec: 10, durationSec: 300, marshalDelaySec: 5, endSec: 60, allowSolo: true });
+  const now = Date.now();
+  const p = new Actor();
+  p.id = 'p-win';
+  p.name = 'AnhHung';
+  p.kind = 'player';
+  p.level = 90;
+  p.pk = 1;
+  const pSim = makeSim(p.id, 'player', p, 'metal', 120);
+  pSim.charId = 'char-win';
+  tongKim.registerPlayer(pSim, 'tong');
+
+  const m = new Actor();
+  m.id = 'kim-marshal';
+  m.name = 'Kim Nguyên Soái';
+  m.kind = 'monster';
+  m.res = 'enemy031';
+  m.level = 100;
+  m.battleCamp = 'kim';
+  const mSim = makeSim(m.id, 'monster', m, 'wood', 120);
+  mSim.tkCamp = 'kim';
+  mSim.tkRole = 'marshal';
+
+  const removed: string[] = [];
+  const transferred: { id: string; mapId: number }[] = [];
+  const w = {
+    now,
+    meta: MAPS[TK_BATTLE_MAP_ID],
+    sims: new Map([[pSim.id, pSim], [mSim.id, mSim]]),
+    removeSim: (id: string) => { removed.push(id); w.sims.delete(id); },
+    hooks: {
+      announce: () => {},
+      notify: () => {},
+      log: () => {},
+      transfer: (sim: { id: string }, mapId: number) => transferred.push({ id: sim.id, mapId }),
+    },
+  };
+
+  // Đẩy sang fighting rồi giết Nguyên Soái Kim
+  tongKim.tickBattleWorld(undefined, now + 15_000);
+  assert.equal(tongKim.snapshotFor('char-win', now + 15_000).phase, 'fighting');
+
+  w.now = now + 20_000;
+  tongKim.onTkKill(w as never, mSim, pSim);
+  assert.equal(tongKim.snapshotFor('char-win', now + 20_000).phase, 'ended');
+  assert.equal(pSim.a.pk, 0);
+  assert.ok(removed.includes(mSim.id), 'phải dọn NPC chiến trường ngay khi Nguyên Soái chết');
+
+  // Sau 10s -> tự đóng trận và chuyển toàn bộ người chơi về 323
+  tongKim.tickBattleWorld(w as never, now + 30_500);
+  assert.equal(tongKim.snapshotFor(undefined, now + 30_500).phase, 'closed');
+  assert.ok(transferred.some(t => t.id === pSim.id && t.mapId === TK_SIGNUP_MAP_ID));
+});
+
+test('PvP ngũ hành: khắc hệ (Kim đánh Mộc) nhân 0.4, không khắc (Kim đánh Thổ/Hỏa) nhân 0.2', async () => {
+  const { resolveHit } = await import('@vltk/shared');
+  const makeTarget = (series: 'kim' | 'moc' | 'tho' | 'hoa') => ({
+    series,
+    level: 90,
+    def: 0,
+    resist: { phys: 0, cold: 0, fire: 0, light: 0, poison: 0 },
+    resistMax: { phys: 75, cold: 75, fire: 75, light: 75, poison: 75 },
+    bag: {},
+  });
+  const attacker = { series: 'kim' as const, level: 90, ar: 9999, bag: {} };
+  const skill = { id: 1, name: 'Test', useAR: false, pack: 'common', series: -1 } as never;
+  const parts = { phys: [1000, 1000] as [number, number], cold: [0, 0] as [number, number], fire: [0, 0] as [number, number], light: [0, 0] as [number, number], poison: null };
+
+  const vsWood = resolveHit(parts, { attacker, target: makeTarget('moc'), skill, level: 1, targetLife: 10000, pvp: true } as never, () => 0.5);
+  const vsEarth = resolveHit(parts, { attacker, target: makeTarget('tho'), skill, level: 1, targetLife: 10000, pvp: true } as never, () => 0.5);
+  const vsFire = resolveHit(parts, { attacker, target: makeTarget('hoa'), skill, level: 1, targetLife: 10000, pvp: true } as never, () => 0.5);
+
+  assert.equal(vsWood.dmg, 400);
+  assert.equal(vsEarth.dmg, 200);
+  assert.equal(vsFire.dmg, 200);
+});
+
+test('Tống Kim: Bot TongKimBehavior Khinh công thoát vây (>= 3 địch / mất máu 2s), chạy về mua máu và dùng vật phẩm TK', async () => {
+  const { TongKimBehavior } = await import('../tools/bots/runner/TongKimBehavior.js');
+  const sc = normalizeBotScenario(DEFAULT_BOT_SCENARIO);
+  const sent: { type: string; msg: unknown }[] = [];
+  const casts: { skill: number; x: number; y: number }[] = [];
+
+  const meObj: any = { id: 'bot1', x: 9600, y: 5380, hp: 1000, maxHp: 1000, mp: 500, maxMp: 500, battleCamp: 'tong', states: [], mounted: false, ctl: 0, jumpMs: 0, anim: 'idle' };
+  const enemyActors = [
+    { id: 'e1', isSelf: false, x: 9680, y: 5390, state: { hp: 500, kind: 'player', boss: 0 } },
+    { id: 'e2', isSelf: false, x: 9650, y: 5440, state: { hp: 500, kind: 'player', boss: 0 } },
+    { id: 'e3', isSelf: false, x: 9540, y: 5420, state: { hp: 500, kind: 'player', boss: 0 } },
+  ];
+  const rawActors = new Map([
+    ['e1', { battleCamp: 'kim', attackTarget: 'bot1' }],
+    ['e2', { battleCamp: 'kim', attackTarget: 'bot1' }],
+    ['e3', { battleCamp: 'kim', attackTarget: '' }],
+  ]);
+
+  const fakeBot = {
+    mapId: TK_BATTLE_MAP_ID,
+    rand: () => 0.1,
+    levels: { 1: 1, 210: 1 },
+    bag: [
+      { uid: 'p1', def: 'potion-0-2', qty: 5 },
+      { uid: 'tk1', def: 'tk-bibao', qty: 1 },
+      { uid: 'tk2', def: 'tk-chienco', qty: 1 },
+      null,
+    ] as unknown[],
+    money: 50_000,
+    autoSettings: sc.auto,
+    tkState: {
+      matchId: 1, mode: 1 as const, phase: 'fighting' as const, remainSec: 200,
+      tongCount: 1, kimCount: 1, tongScore: 0, kimScore: 0,
+      marshalSpawned: false, tongMarshalAlive: false, kimMarshalAlive: false, top10: [],
+      me: { camp: 'tong' as const, points: 0, rank: 1, kills: 0, deaths: 0, npcKills: 0, streak: 0, maxStreak: 0, accum: 0, inCamp: false, campRemainSec: 0, gateWaitSec: 0 },
+    },
+    me: () => meObj,
+    actors: () => enemyActors,
+    room: { state: { actors: rawActors } },
+    host: { aura: () => {}, drops: () => [] },
+    prepareCombat: () => false,
+    attacks: () => [1],
+    ready: () => true,
+    range: () => 120,
+    levelOf: () => 1,
+    usable: () => true,
+    cast: (skill: number, _tid: string | undefined, x: number, y: number) => { casts.push({ skill, x, y }); },
+    send: (type: string, msg: unknown) => sent.push({ type, msg }),
+    reviveIfDead: () => {},
+  };
+
+  const beh = new TongKimBehavior(fakeBot as never, sc, 0);
+  // 1. Có >= 3 địch gần -> dùng Khinh công (210) và tự mở vật phẩm Tống Kim trong túi
+  beh.update(1000);
+  assert.ok(casts.some(c => c.skill === 210), 'phải dùng Khinh công (210) khi có >= 3 địch áp sát');
+  assert.ok(sent.some(s => s.type === C2S.use && (s.msg as any).index === 1), 'phải tự dùng vật phẩm Tống Kim (tk-bibao) trong túi');
+
+  // 2. Chỉ còn 1 địch nhưng mất máu liên tục trong 2s -> nhảy Khinh công lần nữa sau cooldown
+  enemyActors.length = 1;
+  meObj.hp = 900;
+  beh.update(8000);
+  meObj.hp = 850;
+  beh.update(8700);
+  meObj.hp = 800;
+  beh.update(9400);
+  meObj.hp = 760;
+  beh.update(10100);
+  assert.equal(casts.filter(c => c.skill === 210).length, 2, 'phải nhảy Khinh công khi mất máu liên tục >= 2s');
+
+  // 3. Ít bình máu (<= 2) -> chạy về cổng Hậu doanh (4592, 8080) mua máu
+  fakeBot.bag[0] = { uid: 'p1', def: 'potion-0-2', qty: 2 };
+  sent.length = 0;
+  enemyActors.length = 0;
+  beh.update(12000);
+  const moveMsg = sent.find(s => s.type === C2S.move);
+  assert.ok(moveMsg, 'phải gửi lệnh di chuyển về cổng Hậu doanh');
+  assert.deepEqual(moveMsg.msg, { x: 4592, y: 8080 });
+});

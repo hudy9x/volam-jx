@@ -1,3 +1,14 @@
+## 2026-11-22 · Commit theo từng phần: PvP ngũ hành, Lệnh bài điểm tích lũy, tinh chỉnh Tống Kim & Bot 150–200 (đã commit)
+
+- **USER yêu cầu:** commit toàn bộ code hiện tại, chia theo từng phần (không push).
+- **Các commit đã tạo trên `main`:**
+  1. `b82632d` — `feat(combat)`: thêm hệ số sát thương PvP khắc hệ ngũ hành (`PVP.counterDamageScale`, `formulas/damage.ts`).
+  2. `b8ad77d` — `feat(token)`: bổ sung tùy chọn nhận `100.000` điểm tích lũy Tống Kim trong Lệnh bài (`items/token.ts`, `world/token.ts`, `MapRoom.ts`, `windows/token.ts`).
+  3. `3f1b586` — `feat(tongkim)`: dừng giao tranh & dọn NPC ngay khi kết thúc trận (đóng sau tối đa 10s), bỏ NPC Đặc thám/Cổng ở Hậu doanh map `378`, chuẩn hóa dialog/CSS Tống Kim (`.dlg`/`.jade`/`.btn`), cập nhật shop Quân Nhu Quan hiển thị điểm tích lũy và phân màu xanh/đỏ phe ta/địch trên Minimap & BigMap.
+  4. `1de526a` — `feat(bots)`: thêm dải cấp `150–200` (tự ép Hoàng Kim + skill 150), nâng cấp chiến thuật Bot Tống Kim (3 cánh gọng kìm, Khinh công thoát vây, về mua máu, dùng vật phẩm TK) và lưu template/kịch bản bot (`level-150-200.json`, `tong-kim-bots.json`).
+  5. Commit test & quy ước: bổ sung test trong `tests/tong-kim.test.ts`, quy ước `.agents/rules/tong-kim.md` và cập nhật `tasks/CURRENT.md`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `git diff --check` đạt, `tests/tong-kim.test.ts` (**15/16 pass**; 1 test `PvP ngũ hành` đang assert `400` theo `0.4` trong khi `packages/shared/src/formulas/tuning.ts` đang đặt `counterDamageScale: 0.3` → trả về `300`, giữ nguyên theo code hiện tại và đã báo lại USER). Không push.
+
 ## 2026-11-21 · Tinh chỉnh Tống Kim (sprite SHXT gốc, màu/vị trí danh hiệu, spawn 2 cánh, kháng Đại tướng/Nguyên Soái & sửa bot) (đã commit)
 
 - **USER yêu cầu:** đồng bộ màu danh hiệu/tên Tống (`#e8b878`) & Kim (`#d58cff`), đặt danh hiệu lên trên đầu và sửa lỗi sót chữ khi chết, trích xuất sprite NPC gốc theo `volam-3005/Server/Settings/Npcs.txt`, spawn quái liên tục cả trung lộ + 2 cánh trái/phải, gán skill cho Thống lĩnh→Đại tướng, chỉ giữ kháng/giảm hiệu ứng cho Đại tướng & Nguyên Soái, tăng thời gian test lên 10 phút, và sửa lỗi bot chạy ngược về kiểm tra Nguyên Soái.
