@@ -59,6 +59,7 @@ Chi tiết kiến trúc: [docs/architecture.md](docs/architecture.md). Tóm tắ
 5. **Khung game cố định:** `1280×720` hoặc `1280×800`, render **2×**, tắt MSAA, `roundPixels`, WebP lossless. HUD/input cùng khung.
 6. **Không đổi công thức / số liệu ngoài `packages/shared/src/formulas/`**; hằng số ở `formulas/tuning.ts` (và `formulas/effects/tuning.ts`).
 7. **Dữ liệu tài khoản test** ở `apps/server/data/db.json` (bị `.gitignore`); kiểm tra Playwright trên cổng riêng `2568` / `5174`, không đụng server `:2567` / `:5173` của người dùng.
+8. **Giới hạn `maxMessagesPerSecond = 30` (`MapRoom.ts`):** Colyseus ngắt kết nối ngay (`CloseCode.WITH_ERROR`, văng về chọn nhân vật) nếu client gửi > 30 gói `C2S`/giây. Mọi tính năng gửi lệnh tự động hoặc hàng loạt (bán đồ, nhặt đồ, đồng bộ danh sách…) **phải gộp batch hoặc giới hạn nhịp/hàng đợi** ở client/shared và **bắt buộc có test case kiểm chứng** không vượt ngưỡng này.
 
 ## 4. Quyết định thiết kế cốt lõi
 
