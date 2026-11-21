@@ -411,3 +411,29 @@ test('Tống Kim: Bot TongKimBehavior bơm máu 3 lớp (80% / 50% / 30% bơm li
   const tier3Uses = sent.filter(s => s.type === C2S.use);
   assert.equal(tier3Uses.length, 2);
 });
+
+test('Tống Kim: giết NPC chiến trường không có slot sau khi trận đóng không gây crash TypeError', async () => {
+  const { kill } = await import('../apps/server/src/world/systems/combat.js');
+  tongKim.stopMatch();
+  const a = new Actor();
+  a.id = 'tk-npc-dead';
+  a.kind = 'monster';
+  a.res = 'enemy029';
+  a.level = 80;
+  a.hp = 100;
+  a.maxHp = 100;
+  a.battleCamp = 'kim';
+  const target = makeSim(a.id, 'monster', a, 'wood', 120);
+  const w = {
+    now: 5000,
+    meta: MAPS[TK_BATTLE_MAP_ID],
+    grid: null,
+    sims: new Map([[target.id, target]]),
+    events: [] as unknown[],
+    engine: { cancel: () => {}, onDeath: () => {} },
+    hooks: { progress: () => {}, announce: () => {}, notify: () => {} },
+  };
+  assert.doesNotThrow(() => kill(w as never, target));
+  assert.equal(target.dead, true);
+  assert.ok((target.removeAt ?? 0) > 5000);
+});

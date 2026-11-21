@@ -124,17 +124,19 @@ export function kill(w: World, target: Sim, killer: Sim | undefined): void {
   }
   if (target.kind === 'monster') {
     target.removeAt = w.now + CORPSE_SECONDS * 1000;
-    const slot = target.slot!;
-    slot.simId = null;
-    if (slot.boss >= 2) {
-      const delayMs = nextGoldenBossSpawnDelayMs(w.now, getGoldenBossConfig().settings, false);
-      slot.respawnAt = w.now + delayMs;
-    } else {
-      slot.respawnAt = w.now + slot.respawnMs;
+    const slot = target.slot;
+    if (slot) {
+      slot.simId = null;
+      if (slot.boss >= 2) {
+        const delayMs = nextGoldenBossSpawnDelayMs(w.now, getGoldenBossConfig().settings, false);
+        slot.respawnAt = w.now + delayMs;
+      } else {
+        slot.respawnAt = w.now + slot.respawnMs;
+      }
+      shareKillExp(w, target, killer);
+      dropLoot(w, target, killer);
+      onMonsterKilled(w, target, killer);
     }
-    shareKillExp(w, target, killer);
-    dropLoot(w, target, killer);
-    onMonsterKilled(w, target, killer);
   } else if (killer?.kind === 'player') {
     w.hooks.announce(`${killer.a.name} đã đánh trọng thương ${target.a.name}.`);
   } else {
