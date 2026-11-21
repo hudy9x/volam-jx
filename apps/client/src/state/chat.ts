@@ -18,21 +18,39 @@ export const chat = new Store<ChatView>({ lines: [], done: true, loading: false 
 /** Characters online on every map (S2C.online), shown in the kênh Thế giới header. */
 export const chatOnlineCount = new Store<number>(0);
 
+function pruneTradeLines(lines: ChatLine[], now = Date.now()): ChatLine[] {
+  const cutoff = now - CHAT.tradeWindowMs;
+  const world: ChatLine[] = [];
+  const trade: ChatLine[] = [];
+  for (const l of lines) {
+    if (l.ch === 'trade') { if (l.at >= cutoff) trade.push(l); }
+    else world.push(l);
+  }
+  const keptTrade = trade.slice(-CHAT.tradeMaxLines);
+  const kept = new Set(keptTrade.map(l => l.id));
+  return lines.filter(l => (l.ch === 'trade' ? kept.has(l.id) : world.includes(l)));
+}
+
 /**
  * One new line, or the account's last CHAT.page lines sent on entering a map (they replace what is shown, so travel
  * does not repeat them; fewer than a page = nothing older).
  */
 export function receiveChat(msg: ChatLine | ChatLine[]): void {
   const v = chat.get();
-  if (Array.isArray(msg)) chat.set({ lines: msg, done: msg.length < CHAT.page, loading: false });
-  else chat.set({ ...v, lines: v.lines.some(l => l.id === msg.id) ? v.lines.map(l => l.id === msg.id ? msg : l) : [...v.lines, msg].slice(-CHAT_KEEP) });
+  if (Array.isArray(msg)) {
+    const lines = pruneTradeLines(msg);
+    chat.set({ lines, done: msg.length < CHAT.page, loading: false });
+  } else {
+    const next = v.lines.some(l => l.id === msg.id) ? v.lines.map(l => l.id === msg.id ? msg : l) : [...v.lines, msg].slice(-CHAT_KEEP);
+    chat.set({ ...v, lines: pruneTradeLines(next) });
+  }
 }
 
 /** An older page (scrolling up): put before what is shown. */
 export function receiveOlder(msg: ChatOlderMsg): void {
   const v = chat.get();
   const have = new Set(v.lines.map(l => l.id));
-  chat.set({ lines: [...msg.lines.filter(l => !have.has(l.id)), ...v.lines], done: msg.done || !msg.lines.length, loading: false });
+  chat.set({ lines: pruneTradeLines([...msg.lines.filter(l => !have.has(l.id)), ...v.lines]), done: msg.done || !msg.lines.length, loading: false });
 }
 
 export const chatLoading = (): void => chat.set({ ...chat.get(), loading: true });

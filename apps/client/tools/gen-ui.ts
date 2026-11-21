@@ -125,6 +125,11 @@ for (const [name, file] of Object.entries(BUTTONS)) await strip(name, `主界面
 // Kỳ Trân Các button of the Vietnamese main interface (frames: normal / pressed / hover).
 await strip('b-kytran', '主界面\\奇珍阁按钮_vn.spr');
 
+// Bảng hiệu bày bán (3-slice: left 18x20, mid 2x20, right 18x20)
+await strip('stall-left', '摆摊\\摆摊头顶条－左.spr', 1);
+await strip('stall-mid', '摆摊\\摆摊头顶条－中.spr', 1);
+await strip('stall-right', '摆摊\\摆摊头顶条－右.spr', 1);
+
 // Login screens (USER 2026-11-12: chọn / tạo nhân vật theo hình gốc), spr/ui3/登入界面: backgrounds (登陆过程背景窗口.ini Login /
 // Login2), the new-character window (新建角色.ini, 800 x 600 with its five ngũ hành buttons) and the saved-character buttons.
 {

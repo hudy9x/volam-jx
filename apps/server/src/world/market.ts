@@ -27,14 +27,16 @@ export function marketPost(sim: Sim, msg: TradePostMsg): string | null {
 export function purchaseOffer(buyer: Sim, seller: Sim, line: ChatLine): string | null {
   const offer = line.offer;
   if (!offer || offer.sold || !['money', 'knb'].includes(offer.currency) || offer.seller !== seller.charId || buyer.charId === seller.charId) return 'Tin rao không thể mua.';
-  if (buyer.dead || seller.dead || !buyer.bag || !seller.bag) return 'Nhân vật đang không thể giao dịch.';
+  if (buyer.dead || seller.dead || buyer.a?.stallTitle || seller.a?.stallTitle || !buyer.bag || !seller.bag) return 'Nhân vật đang không thể giao dịch.';
   const index = seller.bag.findIndex(it => it?.uid === offer.item.uid);
   if (index < 0 || JSON.stringify(seller.bag[index]) !== JSON.stringify(offer.item)) return 'Món đồ đã thay đổi hoặc không còn trong túi người bán.';
   const key = offer.currency;
   if (key !== 'money' && key !== 'knb') return 'Tin rao không thể mua.';
   if (!Number.isSafeInteger(offer.price) || offer.price <= 0 || (buyer[key] ?? 0) < offer.price) return 'Không đủ tiền mua.';
   if ((seller[key] ?? 0) + offer.price > MAX_MONEY) return 'Ví người bán đã đạt giới hạn.';
-  if (!addToBag(buyer.bag, seller.bag[index]!)) return 'Hành trang không đủ chỗ.';
+  const bought = seller.bag[index]!;
+  delete bought.stallPrice;
+  if (!addToBag(buyer.bag, bought)) return 'Hành trang không đủ chỗ.';
   seller.bag[index] = null;
   buyer[key] = (buyer[key] ?? 0) - offer.price; seller[key] = (seller[key] ?? 0) + offer.price;
   offer.sold = true;

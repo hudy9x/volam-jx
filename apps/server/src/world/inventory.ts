@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, MAX_BAG_POTIONS, STASH_SIZE, TOKEN_ITEM_ID, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF,
+  BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, MAX_BAG_POTIONS, STALL_SIZE, STASH_SIZE, TOKEN_ITEM_ID, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF,
   addToBag, bagPotionCount, bagValid, createGold, createItem, equipError, findPlace, fitsAt, forgeError, forgePrice, forgedMagic, fortuneRequirement,
   getExpElixirMultiplier, isStackablePotion, itemDef, itemQty, lookOf, maxStackOf, moveOrSwapInGrid, overlappingAt, packBag, restoreItem, roomFor, sellPrice,
   sortGridPage, splitStackInGrid, usableItem, weaponTypeOf,
@@ -31,6 +31,7 @@ export function makeItem(defId: string): Item | null {
 
 /** Wear the item in bag slot `index`; whatever was worn there goes back into that bag slot. */
 export function equipItem(w: World, sim: Sim, index: number, wanted?: string): boolean {
+  if (sim.a.stallTitle) return false;
   const item = sim.bag?.[index];
   const def = itemDef(item);
   if (!item || !def || sim.dead) return false;
@@ -48,6 +49,7 @@ export function equipItem(w: World, sim: Sim, index: number, wanted?: string): b
     if (at < 0) { bag[index] = item; w.hooks.notify(sim, 'Hành trang không đủ chỗ cho món đang mặc.'); return false; }
     bag[at] = old;
   }
+  delete item.stallPrice;
   sim.equip![slot] = item;
   applyEquipment(sim);
   return true;
@@ -55,6 +57,7 @@ export function equipItem(w: World, sim: Sim, index: number, wanted?: string): b
 
 /** Take off a worn item into the first free bag slot. */
 export function unequipItem(w: World, sim: Sim, slot: string): boolean {
+  if (sim.a.stallTitle) return false;
   const item = sim.equip?.[slot as EquipSlot];
   if (!item || sim.dead) return false;
   if (!addToBag(sim.bag!, item)) { w.hooks.notify(sim, 'Hành trang không đủ chỗ.'); return false; }
@@ -68,6 +71,7 @@ export function unequipItem(w: World, sim: Sim, slot: string): boolean {
  * Stackable potions automatically merge into existing stacks and respect MAX_BAG_POTIONS.
  */
 export function buyItem(w: World, sim: Sim, defId: string, count = 1): boolean {
+  if (sim.a.stallTitle) return false;
   const def = ITEMS[defId];
   if (!def || !SHOP_OF[defId] || sim.dead) return false;
   if (!w.rules.safe) { w.hooks.notify(sim, 'Chỉ mua được đồ trong thành.'); return false; }
@@ -118,6 +122,7 @@ export function buyItem(w: World, sim: Sim, defId: string, count = 1): boolean {
  * them against magicattrib.txt), base values at their maximum. Town only; costs forgePrice.
  */
 export function forgeItem(w: World, sim: Sim, defId: string, series: number, lines: ForgeLines, token = false): boolean {
+  if (sim.a.stallTitle) return false;
   const def = ITEMS[defId];
   if (!def || SHOP_OF[defId] !== 'smith' || sim.dead) return false;
   // Lệnh bài "Nhận đồ xanh" (USER 2026-11-13): free, anywhere, while the character carries the lệnh bài.
@@ -140,7 +145,14 @@ export function forgeItem(w: World, sim: Sim, defId: string, series: number, lin
 
 /** Move or swap a bag piece so its top-left cell is `to`. */
 export function moveBagItem(sim: Sim, from: number, to: number): boolean {
-  return !!sim.bag && moveOrSwapInGrid(sim.bag, from, to, BAG_SIZE);
+  if (sim.a.stallTitle || !sim.bag) return false;
+  const ok = moveOrSwapInGrid(sim.bag, from, to, BAG_SIZE);
+  if (ok) {
+    for (let i = STALL_SIZE; i < sim.bag.length; i++) {
+      if (sim.bag[i]?.stallPrice) delete sim.bag[i]!.stallPrice;
+    }
+  }
+  return ok;
 }
 
 /** Sort/compact one page of bag or stash. */
@@ -276,11 +288,13 @@ export function transferStashCurrency(
  * (USER 2026-11-12), not only an NPC shop in town.
  */
 export function sellItem(w: World, sim: Sim, index: number): boolean {
+  if (sim.a.stallTitle) return false;
   const item = sim.bag?.[index];
   const def = itemDef(item);
   if (!item || !def || sim.dead) return false;
   const qty = itemQty(item);
   const gain = sellPrice(def) * qty;
+  delete item.stallPrice;
   sim.bag![index] = null;
   addMoney(sim, gain);
   w.hooks.notify(sim, `Bán ${qty > 1 ? `${qty} ` : ''}${def.name}: ${moneyText(gain)} lượng.`);
@@ -290,6 +304,7 @@ export function sellItem(w: World, sim: Sim, index: number): boolean {
 
 /** Use the piece in bag slot `index` (thuốc: drunk at once, its pumps start; systems/potions.ts). */
 export function useItem(w: World, sim: Sim, index: number): boolean {
+  if (sim.a.stallTitle) return false;
   const item = sim.bag?.[index];
   const def = itemDef(item);
   if (!item || !def || sim.dead) return false;
@@ -337,9 +352,11 @@ export function addMoney(sim: Sim, amount: number): boolean {
 
 /** Throw the piece in bag slot `index` on the ground (systems/drops.ts throwItem; the thrower may pick it up again). */
 export function discardItem(w: World, sim: Sim, index: number): boolean {
+  if (sim.a.stallTitle) return false;
   const item = sim.bag?.[index];
   const def = itemDef(item);
   if (!item || !def || sim.dead) return false;
+  delete item.stallPrice;
   sim.bag![index] = null;
   throwItem(w, sim, item);
   w.hooks.notify(sim, `Đã vứt ${def.name} xuống đất.`);

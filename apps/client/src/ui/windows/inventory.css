@@ -39,6 +39,22 @@
   outline-offset: -1px;
 }
 
+#bag-grid .bag-item.stall-priced {
+  outline: 1px solid rgba(255, 217, 78, 0.8);
+  outline-offset: -1px;
+}
+
+#bag-grid.pricing .slot,
+#bag-grid.pricing .slot * {
+  cursor: var(--cur-sell, pointer);
+}
+
+#bag-stall.on,
+#bag-price.on {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
 #bag-grid .bag-item img {
   max-width: none;
   max-height: none;
@@ -127,13 +143,20 @@
 }
 
 .bag-actions {
-  display: flex;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
   margin-top: 6px;
 }
 
 .bag-actions .btn {
-  flex: 1;
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 6px;
+  padding-right: 6px;
 }
 
 .bag-actions .btn.on {
@@ -149,17 +172,6 @@
 #bag-grid.selling-own .slot,
 #bag-grid.selling-own .slot * {
   cursor: var(--cur-sell, pointer);
-}
-
-.bag-actions {
-  gap: 4px;
-}
-
-.bag-actions .btn {
-  min-width: 0;
-  white-space: nowrap;
-  padding-left: 5px;
-  padding-right: 5px;
 }
 
 /* Shared drop-target preview footprint for Hành trang, Rương chứa đồ, and Quầy hàng */

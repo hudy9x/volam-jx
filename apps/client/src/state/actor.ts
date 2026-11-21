@@ -38,6 +38,8 @@ export interface ActorState {
   /** Players: team id ('' = none). */
   team?: string;
   teamLeader?: boolean;
+  /** Players: non-empty while player stall is open. */
+  stallTitle?: string;
   /** Boss tier: 0/false = normal (white), 1 = Boss Xanh (blue), 2/true = Boss Hoàng Kim (gold). */
   boss: boolean | number;
   scale: number;

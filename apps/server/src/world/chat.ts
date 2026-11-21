@@ -41,12 +41,16 @@ function sendOnline(): void {
   for (const send of rooms) send(S2C.online, msg);
 }
 
-/** The account's saved lines (oldest first), still in the store. */
-const accountLines = (username: string): ChatLine[] => {
-  const seen = (db.userChat(username) ?? []).map(id => byId.get(id)).filter((l): l is ChatLine => !!l);
-  // Public market history must also be visible to buyers who joined after an advertisement was posted.
-  const lines = new Map([...seen, ...store.lines.filter(l => l.ch === 'trade')].map(l => [l.id, l]));
-  return [...lines.values()].sort((a, b) => a.id - b.id).slice(-CHAT.accountLines);
+/** The account's saved lines (oldest first), still in the store. Trade channel is filtered to last 30m & max 50 lines. */
+const accountLines = (username: string, now = Date.now()): ChatLine[] => {
+  const tradeCutoff = now - CHAT.tradeWindowMs;
+  const recentTrade = store.lines
+    .filter(l => l.ch === 'trade' && l.at >= tradeCutoff)
+    .slice(-CHAT.tradeMaxLines);
+  const seenWorld = (db.userChat(username) ?? [])
+    .map(id => byId.get(id))
+    .filter((l): l is ChatLine => !!l && l.ch !== 'trade');
+  return [...seenWorld, ...recentTrade].sort((a, b) => a.id - b.id).slice(-CHAT.accountLines);
 };
 
 /** The account's last CHAT.page lines, for a character entering a map (older ones load on scrolling up: chatOlder). */

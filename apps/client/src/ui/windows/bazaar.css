@@ -1,28 +1,4 @@
-/* Chợ bày bán theo thành thị (windows/bazaar.ts) */
-#bazaar-dlg { width: 380px; max-width: calc(100vw - 24px); }
-.bazaar-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
-.bazaar-search {
-  flex: 1; min-width: 120px; height: 26px; padding: 0 8px;
-  border: 1px solid var(--line); background: #0d120f; color: var(--ink); font-size: 12px;
-}
-.bazaar-list {
-  display: flex; flex-direction: column; gap: 4px;
-  max-height: 320px; min-height: 160px; overflow-y: auto;
-  border: 1px solid var(--line); background: #0a0e0c; padding: 4px;
-}
-.bazaar-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 7px 10px; border: 1px solid #26332a; background: #131a15;
-  text-align: left; cursor: pointer; color: var(--ink); width: 100%;
-}
-.bazaar-row:hover { border-color: var(--gold); background: #1c261f; }
-.bazaar-row-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.bazaar-row-title { color: #ffd94e; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bazaar-row-seller { font-size: 12px; }
-.bazaar-row-count { flex: none; font-size: 11px; color: var(--muted); border: 1px solid #2d3c32; padding: 2px 6px; background: #0d120f; }
-.bazaar-empty { padding: 36px 12px; text-align: center; color: var(--muted); font-size: 12px; }
-
-/* Quầy hàng 2 tab × 60 ô (tái sử dụng cấu trúc lưới của Hành trang / Rương) */
+/* Sạp hàng người chơi (1 trang lớn 10×12 = 120 ô; windows/bazaar.ts) */
 #stall-dlg { width: auto; }
 #stall-grid {
   position: relative;
@@ -44,46 +20,35 @@
   border-color: transparent;
 }
 #stall-grid .bag-item.wear-ok { background: rgba(4, 86, 59, 0.6); }
-#stall-grid .bag-item.wear-no { background: rgba(109, 4, 6, 0.6); }
 #stall-grid .bag-item:hover { outline: 1px solid var(--hl); outline-offset: -1px; }
 #stall-grid .bag-item img { max-width: none; max-height: none; }
-#stall-grid.pricing .slot,
-#stall-grid.pricing .slot * {
-  cursor: var(--cur-sell, pointer);
-}
 #stall-grid .bag-item.mobile-picked { outline: 2px solid #5cb8ff; outline-offset: -2px; }
-.stall-checked {
+
+.stall-price-tag {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: rgba(20, 128, 56, 0.92);
-  border: 1px solid #9bffb5;
-  display: grid;
-  place-items: center;
+  left: 1px;
+  right: 1px;
+  bottom: 1px;
+  padding: 0 2px;
+  font-size: 9px;
+  line-height: 11px;
+  text-align: center;
+  color: #ffe27a;
+  background: rgba(8, 12, 10, 0.85);
+  border-top: 1px solid rgba(202, 163, 72, 0.45);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   pointer-events: none;
-  z-index: 3;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
 }
-.stall-checked svg {
-  width: 9px;
-  height: 9px;
-  fill: none;
-  stroke: #ffffff;
-  stroke-width: 2.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
+.stall-price-tag.knb { color: #7ae2ff; border-top-color: rgba(92, 184, 255, 0.45); }
+
 .stall-status {
   margin-bottom: 6px; padding: 4px 8px; font-size: 12px;
   border: 1px solid #2b3c30; background: #111913; color: var(--muted);
 }
-.stall-status.open { border-color: #9e8346; color: #ffd94e; }
-.stall-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; justify-content: center; }
-.stall-actions .btn.on { border-color: var(--gold); color: var(--gold); }
-.stall-note { margin-top: 6px; font-size: 11px; text-align: center; max-width: 190px; }
+.stall-status.open { border-color: #9e8346; color: #ffd94e; text-align: center; font-weight: 600; }
+.stall-note { margin-top: 6px; font-size: 11px; text-align: center; }
 
 /* Popup định giá & nhập lời mời chào */
 #stall-price-dlg, #stall-title-dlg { width: 280px; }

@@ -76,6 +76,9 @@ export const ITEM_LIST: ItemDef[] = Object.values(ITEMS);
 export const QUALITY = { normal: 0, magic: 1, purple: 2, gold: 3, platinum: 4 } as const;
 export const QUALITY_NAMES = ['Thường', 'Xanh', 'Tím', 'Hoàng kim', 'Bạch kim'];
 
+export type TradeCurrency = 'money' | 'knb';
+export interface StallPrice { price: number; currency: TradeCurrency }
+
 /**
  * One item somebody owns: which table row it was made from and what was rolled for it. Later work fills the
  * optional parts (blue lines TB6, hidden lines TB7, durability use TB9, gold TB11…).
@@ -99,6 +102,8 @@ export interface Item {
   magic?: MagicLine[];
   /** Stack count (defaults to 1 when omitted; stackable potions up to POTION_STACK_MAX). */
   qty?: number;
+  /** Player stall price set directly on the bag item (0 / omitted = not for sale; cleared on owner change). */
+  stallPrice?: StallPrice;
 }
 
 export const isStackablePotion = (def: ItemDef | undefined): boolean => def?.kind === 'potion';
@@ -116,9 +121,11 @@ export const BAG_SIZE = BAG_PAGE_SIZE * BAG_PAGES;
 /** Pages of the account-shared stash (NPC Rương chứa đồ, USER 2026-11-14). */
 export const STASH_PAGES = 3;
 export const STASH_SIZE = BAG_PAGE_SIZE * STASH_PAGES;
-/** City bazaar stall (2 tabs × 60 cells = 120 slots per character). */
+/** Player stall (2 bag pages × 60 cells = 120 slots displayed as one 10×12 shop grid). */
 export const STALL_PAGES = 2;
 export const STALL_SIZE = BAG_PAGE_SIZE * STALL_PAGES;
+export const STALL_MIN_LEVEL = 60;
+export const STALL_NPC_CLEARANCE = 80;
 export type Equipment = Partial<Record<EquipSlot, Item>>;
 export type Bag = (Item | null)[];
 /** Table rows per slot (starter outfits, previews): no rolled values. */

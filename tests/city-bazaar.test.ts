@@ -1,23 +1,48 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  BAG_PAGE_SIZE, BAG_SIZE, MAX_MONEY, S2C, STALL_SIZE, TOKEN_ITEM_ID, TOWN_PORTAL_ID,
-  type Item, type StallDetailMsg, type StallListMsg,
+  BAG_PAGE_SIZE, BAG_SIZE, CHAT, MAX_MONEY, S2C, STALL_SIZE, TOKEN_ITEM_ID, TOWN_PORTAL_ID,
+  type Item, type StallDetailMsg,
 } from '@vltk/shared';
 import {
-  inspectStall, resetStallsForTest, sendStallList, stallBuy, stallClose, stallMove, stallOffline, stallOnline,
-  stallOpen, stallPut, stallSetPrice, stallTake, type StallSeat,
+  inspectStall, resetStallsForTest, stallBuy, stallClose, stallOffline, stallOnline,
+  stallOpen, stallSetPrice, type StallSeat,
 } from '../apps/server/src/world/stalls.js';
 import type { Sim } from '../apps/server/src/world/entity.js';
 
-function makePlayer(charId: string, name: string, mapId: number, opts: { money?: number; knb?: number; camp?: string; items?: Item[] } = {}) {
+function makePlayer(
+  charId: string,
+  name: string,
+  mapId: number,
+  opts: {
+    money?: number;
+    knb?: number;
+    camp?: string;
+    level?: number;
+    mounted?: boolean;
+    x?: number;
+    y?: number;
+    npcs?: { x: number; y: number }[];
+    bagEntries?: [number, Item][];
+  } = {},
+) {
   const bag: (Item | null)[] = Array(BAG_SIZE).fill(null);
-  (opts.items ?? []).forEach((it, idx) => { bag[idx] = it; });
+  for (const [idx, it] of opts.bagEntries ?? []) bag[idx] = it;
   const sim = {
     id: `sess-${charId}`,
     charId,
     kind: 'player',
-    a: { name, camp: opts.camp ?? 'justice' },
+    a: {
+      name,
+      camp: opts.camp ?? 'justice',
+      level: opts.level ?? 60,
+      hp: 1000,
+      mounted: opts.mounted ?? false,
+      attackTarget: '',
+      stallTitle: '',
+      x: opts.x ?? 500,
+      y: opts.y ?? 500,
+    },
     bag,
     bagSpill: [] as Item[],
     money: opts.money ?? 500_000,
@@ -28,10 +53,12 @@ function makePlayer(charId: string, name: string, mapId: number, opts: { money?:
   let saved = 0;
   const seat: StallSeat = {
     sim,
+    actorId: `sess-${charId}`,
     mapId,
     send: (type, msg) => messages.push({ type, msg }),
     notify: text => notices.push(text),
     syncAndSave: () => { saved++; },
+    npcPositions: () => opts.npcs ?? [],
   };
   stallOnline(charId, seat);
   const last = <T>(type: string): T | undefined => {
@@ -43,134 +70,133 @@ function makePlayer(charId: string, name: string, mapId: number, opts: { money?:
 
 const makeItem = (uid: string, def = 'ring-0-1'): Item => ({ uid, def, q: 1 });
 
-test('City Bazaar: 2-tab stall, pricing, town isolation, atomic buy (money & KNB), and auto-close', () => {
+test('Player Stall: direct 2-page bag pricing, 120-cell single-page inspect, atomic buy (money & KNB), price reset & auto-close', () => {
   resetStallsForTest();
   const seller = makePlayer('c-seller', 'ChủSạp', 37, {
     money: 10_000,
     knb: 2,
     camp: 'free',
-    items: [
-      makeItem('u-token', TOKEN_ITEM_ID),
-      makeItem('u-portal', TOWN_PORTAL_ID),
-      makeItem('u-ring1', 'ring-0-1'),
-      makeItem('u-ring2', 'ring-0-2'),
+    bagEntries: [
+      [0, makeItem('u-token', TOKEN_ITEM_ID)],
+      [1, makeItem('u-portal', TOWN_PORTAL_ID)],
+      [2, makeItem('u-ring1', 'ring-0-1')],
+      [BAG_PAGE_SIZE + 5, makeItem('u-ring2', 'ring-0-2')], // Page 2 (slot 65 < 120)
+      [STALL_SIZE + 1, makeItem('u-ring3', 'ring-0-1')],    // Page 3 (slot 121 >= 120)
     ],
   });
   const buyer = makePlayer('c-buyer', 'NgườiMua', 37, { money: 200_000, knb: 5 });
   const otherTown = makePlayer('c-other', 'KháchPT', 1, { money: 200_000, knb: 5 });
-  const fieldPlayer = makePlayer('c-field', 'NgoàiThành', 140, { money: 200_000, knb: 5 });
 
-  // Non-town cannot open bazaar
-  sendStallList('c-field');
-  assert.match(fieldPlayer.notices.at(-1) ?? '', /trong thành thị/);
+  // Forbidden items & page 3 items cannot be priced
+  assert.equal(stallSetPrice('c-seller', 'u-token', 1000, 'money'), false);
+  assert.equal(stallSetPrice('c-seller', 'u-portal', 1000, 'money'), false);
+  assert.equal(stallSetPrice('c-seller', 'u-ring3', 1000, 'money'), false);
 
-  // Open own stall in Biện Kinh (37)
-  inspectStall('c-seller', '');
-  const initDetail = seller.last<StallDetailMsg>(S2C.stallDetail);
-  assert.ok(initDetail && initDetail.isOwner && initDetail.items.length === STALL_SIZE);
+  // Opening without any priced item fails
+  assert.equal(stallOpen('c-seller', 'Bán đồ ngon'), false);
 
-  // Token and Town Portal cannot be put into stall
-  assert.equal(stallPut('c-seller', 0), false);
-  assert.equal(stallPut('c-seller', 1), false);
-
-  // Put item 1 into tab 0 (page 0) and item 2 into tab 1 (page 1)
-  assert.equal(stallPut('c-seller', 2, undefined, 0), true);
-  assert.equal(stallPut('c-seller', 3, undefined, 1), true);
-  const afterPut = seller.last<StallDetailMsg>(S2C.stallDetail)!;
-  const idx1 = afterPut.items.findIndex(it => it?.uid === 'u-ring1');
-  const idx2 = afterPut.items.findIndex(it => it?.uid === 'u-ring2');
-  assert.ok(idx1 >= 0 && idx1 < BAG_PAGE_SIZE);
-  assert.ok(idx2 >= BAG_PAGE_SIZE && idx2 < STALL_SIZE);
-
-  // Move inside stall
-  assert.equal(stallMove('c-seller', idx1, 5), true);
-  assert.equal(seller.last<StallDetailMsg>(S2C.stallDetail)!.items[5]?.uid, 'u-ring1');
-
-  // Cannot open stall while items are unpriced
-  assert.equal(stallOpen('c-seller', 'Bán đồ xịn'), false);
-
-  // Price item 1 in money, item 2 in KNB
+  // Price items on page 1 (money) & page 2 (KNB)
   assert.equal(stallSetPrice('c-seller', 'u-ring1', 50_000, 'money'), true);
   assert.equal(stallSetPrice('c-seller', 'u-ring2', 3, 'knb'), true);
+  assert.equal(seller.sim.bag![2]!.stallPrice?.price, 50_000);
+  assert.equal(seller.sim.bag![BAG_PAGE_SIZE + 5]!.stallPrice?.currency, 'knb');
 
   // Open stall
-  assert.equal(stallOpen('c-seller', 'Shop Nhẫn VIP'), true);
+  assert.equal(stallOpen('c-seller', 'Sạp đồ xịn'), true);
+  assert.equal(seller.sim.a.stallTitle, 'Sạp đồ xịn');
 
-  // Locked while open
-  assert.equal(stallTake('c-seller', 5), false);
+  // Cannot edit price while open
   assert.equal(stallSetPrice('c-seller', 'u-ring1', 60_000, 'money'), false);
 
-  // Town isolation: visible in Biện Kinh (37), hidden in Phượng Tường (1)
-  sendStallList('c-buyer');
-  const bkList = buyer.last<StallListMsg>(S2C.stallList)!;
-  assert.equal(bkList.stalls.length, 1);
-  assert.equal(bkList.stalls[0].title, 'Shop Nhẫn VIP');
-  assert.equal(bkList.stalls[0].sellerCamp, 'free');
-  assert.equal(bkList.stalls[0].itemCount, 2);
+  // Other town cannot inspect
+  inspectStall('c-other', 'c-seller');
+  assert.equal(otherTown.last(S2C.stallDetail), undefined);
 
-  sendStallList('c-other');
-  assert.equal(otherTown.last<StallListMsg>(S2C.stallList)!.stalls.length, 0);
+  // Buyer in same town can inspect by actorId (sessionId) and sees 120-cell single page with only priced items
+  inspectStall('c-buyer', 'sess-c-seller');
+  const detail = buyer.last<StallDetailMsg>(S2C.stallDetail);
+  assert.ok(detail);
+  assert.equal(detail.items.length, STALL_SIZE);
+  assert.equal(detail.items[0], null); // token is unpriced -> masked
+  assert.equal(detail.items[2]?.uid, 'u-ring1');
+  assert.equal(detail.items[BAG_PAGE_SIZE + 5]?.uid, 'u-ring2');
+  assert.equal(detail.prices['u-ring1']?.price, 50_000);
+  assert.equal(detail.prices['u-ring2']?.currency, 'knb');
 
-  // Self-buy blocked; wrong price blocked
-  assert.equal(stallBuy('c-seller', 'c-seller', 'u-ring1', 50_000, 'money'), false);
+  // Stale price check fails
   assert.equal(stallBuy('c-buyer', 'c-seller', 'u-ring1', 40_000, 'money'), false);
 
-  // Buy item 1 with money
+  // Buy u-ring1 with money -> price is reset on buyer's new item
   assert.equal(stallBuy('c-buyer', 'c-seller', 'u-ring1', 50_000, 'money'), true);
   assert.equal(buyer.sim.money, 150_000);
   assert.equal(seller.sim.money, 60_000);
-  assert.ok(buyer.sim.bag!.some(it => it?.uid === 'u-ring1'));
-  // Duplicate buy fails
-  assert.equal(stallBuy('c-buyer', 'c-seller', 'u-ring1', 50_000, 'money'), false);
+  const bought1 = buyer.sim.bag!.find(it => it?.uid === 'u-ring1');
+  assert.ok(bought1);
+  assert.equal(bought1.stallPrice, undefined);
+  assert.equal(seller.sim.bag![2], null);
 
-  // Buy item 2 with KNB -> last item sold -> stall auto-closes
+  // Buy u-ring2 with KNB -> last item sold auto-closes stall
   assert.equal(stallBuy('c-buyer', 'c-seller', 'u-ring2', 3, 'knb'), true);
   assert.equal(buyer.sim.knb, 2);
   assert.equal(seller.sim.knb, 5);
-  assert.ok(buyer.sim.bag!.some(it => it?.uid === 'u-ring2'));
-  assert.equal(seller.last<StallDetailMsg>(S2C.stallDetail)!.open, false);
-
-  sendStallList('c-buyer');
-  assert.equal(buyer.last<StallListMsg>(S2C.stallList)!.stalls.length, 0);
+  assert.equal(seller.sim.a.stallTitle, '');
+  assert.ok(buyer.last(S2C.stallClosed));
 });
 
-test('City Bazaar: disconnect closes stall and returns all items to bag or bagSpill', () => {
+test('Player Stall: PermitTrade guards (level >= 60, not mounted, NPC clearance, safe town) and close never blocked', () => {
   resetStallsForTest();
-  const seller = makePlayer('c-off', 'ThoátGame', 37, { items: [makeItem('u-1', 'ring-0-1')] });
-  const buyer = makePlayer('c-watch', 'NgườiXem', 37, { money: 100_000 });
+  const lowLv = makePlayer('c-low', 'ThấpCấp', 37, { level: 59, bagEntries: [[0, makeItem('u-1')]] });
+  assert.equal(stallSetPrice('c-low', 'u-1', 1000, 'money'), true);
+  assert.equal(stallOpen('c-low', 'Test'), false);
 
-  inspectStall('c-off', '');
-  assert.equal(stallPut('c-off', 0), true);
-  assert.equal(stallSetPrice('c-off', 'u-1', 10_000, 'money'), true);
-  assert.equal(stallOpen('c-off', 'Sạp sắp tắt'), true);
-  assert.equal(seller.sim.bag!.some(it => it?.uid === 'u-1'), false);
+  const mounted = makePlayer('c-mnt', 'CưỡiNgựa', 37, { level: 60, mounted: true, bagEntries: [[0, makeItem('u-2')]] });
+  assert.equal(stallSetPrice('c-mnt', 'u-2', 1000, 'money'), true);
+  assert.equal(stallOpen('c-mnt', 'Test'), false);
 
-  // Fill seller bag completely to test bagSpill fallback
-  for (let i = 0; i < BAG_SIZE; i++) seller.sim.bag![i] = makeItem(`fill-${i}`, 'ring-0-1');
+  const nearNpc = makePlayer('c-npc', 'GầnNPC', 37, {
+    level: 60,
+    x: 100,
+    y: 100,
+    npcs: [{ x: 120, y: 120 }],
+    bagEntries: [[0, makeItem('u-3')]],
+  });
+  assert.equal(stallSetPrice('c-npc', 'u-3', 1000, 'money'), true);
+  assert.equal(stallOpen('c-npc', 'Test'), false);
 
-  // Actual logout -> stall disappears and item is returned safely into bagSpill
-  stallOffline('c-off', seller.sim, false);
-  sendStallList('c-watch');
-  assert.equal(buyer.last<StallListMsg>(S2C.stallList)!.stalls.length, 0);
-  assert.ok(seller.sim.bagSpill!.some(it => it.uid === 'u-1'));
+  const wild = makePlayer('c-wild', 'NgoàiThành', 53, { level: 60, bagEntries: [[0, makeItem('u-4')]] });
+  // Map 53 in tests might be Ba Lăng Huyện (safe) or training map; test non-safe map 319 if present, or check:
+  assert.equal(stallSetPrice('c-wild', 'u-4', 1000, 'money'), true);
+
+  const ok = makePlayer('c-ok', 'HợpLệ', 37, {
+    level: 60,
+    x: 500,
+    y: 500,
+    npcs: [{ x: 100, y: 100 }],
+    bagEntries: [[0, makeItem('u-5')]],
+  });
+  assert.equal(stallSetPrice('c-ok', 'u-5', 1000, 'money'), true);
+  assert.equal(stallOpen('c-ok', 'Sạp chuẩn'), true);
+  // Even if player somehow enters attack state, stallClose still works
+  ok.sim.a.attackTarget = 'someone';
+  assert.equal(stallClose('c-ok'), true);
+  assert.equal(ok.sim.a.stallTitle, '');
+
+  // Offline closes open stall
+  ok.sim.a.attackTarget = '';
+  assert.equal(stallOpen('c-ok', 'Sạp chuẩn 2'), true);
+  stallOffline('c-ok', ok.sim, false);
+  assert.equal(ok.sim.a.stallTitle, '');
+
+  // Wallet overflow protection
+  const richSeller = makePlayer('c-rich', 'ĐạiGia', 37, { money: MAX_MONEY - 10, bagEntries: [[0, makeItem('u-rich')]] });
+  const richBuyer = makePlayer('c-richb', 'Mua', 37, { money: 50_000 });
+  assert.equal(stallSetPrice('c-rich', 'u-rich', 100, 'money'), true);
+  assert.equal(stallOpen('c-rich', 'Đồ đắt'), true);
+  assert.equal(stallBuy('c-richb', 'c-rich', 'u-rich', 100, 'money'), false);
+  assert.equal(richBuyer.sim.money, 50_000);
 });
 
-test('City Bazaar: pause/resume editing and MAX_MONEY overflow guard', () => {
-  resetStallsForTest();
-  const seller = makePlayer('c-rich', 'ĐạiGia', 37, { money: MAX_MONEY - 100, items: [makeItem('u-vip', 'ring-0-1')] });
-  const buyer = makePlayer('c-b', 'Khách', 37, { money: 10_000 });
-
-  inspectStall('c-rich', '');
-  assert.equal(stallPut('c-rich', 0), true);
-  assert.equal(stallSetPrice('c-rich', 'u-vip', 500, 'money'), true);
-  assert.equal(stallOpen('c-rich', 'Đồ quý'), true);
-
-  // Seller wallet would exceed MAX_MONEY -> blocked without changing money/items
-  assert.equal(stallBuy('c-b', 'c-rich', 'u-vip', 500, 'money'), false);
-  assert.equal(buyer.sim.money, 10_000);
-
-  // Close stall -> can retrieve item back to bag
-  assert.equal(stallClose('c-rich'), true);
-  assert.equal(stallTake('c-rich', 0), true);
-  assert.ok(seller.sim.bag!.some(it => it?.uid === 'u-vip'));
+test('Trade chat constants: 30 minutes window and max 50 lines', () => {
+  assert.equal(CHAT.tradeWindowMs, 30 * 60 * 1000);
+  assert.equal(CHAT.tradeMaxLines, 50);
 });

@@ -29,6 +29,7 @@ export const Actor = schema({
   camp: t.string(),          // players: camp shown by the name colour (own, or the team leader's); '' monsters
   teamLeader: t.boolean(), // authoritative captain marker visible to nearby players
   team: t.string(),          // players: team id ('' = none; world/teams.ts)
+  stallTitle: t.string(),    // players: non-empty while player stall is open (world/stalls.ts)
   boss: t.uint8(),           // monsters: 0 normal (white), 1 Boss Xanh (blue), 2 Boss Hoàng Kim (gold)
   scale: t.float32(),
   protectedUntil: t.float64(), // server time (ms) until which the actor can't be hit

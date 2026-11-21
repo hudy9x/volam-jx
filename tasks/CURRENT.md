@@ -1,3 +1,12 @@
+## 2026-11-21 · Thay Chợ thành thị bằng Bày bán trực tiếp trên Hành trang & lọc Mua bán 30 phút / 50 tin (đã commit)
+
+- **USER yêu cầu:** thay chức năng Chợ danh sách bằng cơ chế Bày bán trực tiếp trên Hành trang theo JX1 (`co-che-bay-ban.md`): bán tối đa 2 trang đầu Hành trang (120 ô), người mua thấy 1 trang lớn `10×12` (120 ô), hỗ trợ Ngân lượng + KNB, áp dụng cấp ≥ 60 & tránh NPC chức năng, giới hạn lời rao 20 ký tự, giải mã 3 SPR bảng hiệu `VLTK-SHXT`, giữ kênh chat Mua bán với bộ lọc 30 phút / tối đa 50 tin.
+- **Thay đổi:**
+  - `packages/shared/src/items/items.ts`, `protocol.ts`: thêm `Item.stallPrice`, `STALL_MIN_LEVEL = 60`, `STALL_NPC_CLEARANCE = 80`, `CHAT.tradeWindowMs` / `tradeMaxLines`; bỏ `stallList`/`stallPut`/`stallTake`/`stallMove`.
+  - `apps/server/src/net/{schema,MapRoom}.ts`, `world/{stalls,commands,inventory,market,chat}.ts`: đồng bộ `Actor.stallTitle`, kiểm tra `PermitTrade` khi mở sạp, khóa di chuyển/chiêu/ngựa/túi khi đang bày bán, xóa `stallPrice` khi đổi chủ hoặc rời 2 trang đầu, lọc kênh `trade` 30 phút / 50 tin.
+  - `apps/client/tools/gen-ui.ts`, `src/game/{WorldScene,actors/ActorView,ports}.ts`, `src/state/{actor,chat,stall}.ts`, `src/net/room.ts`, `src/ui/{hud/Hud,hud/quickbar,kit/tooltip.css,tips/itemTip,windows/bazaar,windows/inventory}.{ts,css}`: giải mã `stall-{left,mid,right}.webp`, vẽ bảng hiệu lời rao trên đầu nhân vật, click nhân vật mở sạp `10×12`, bố cục nút Hành trang 2 nút/hàng, đồng bộ nút `Bày bán`/`Ngưng bán` qua `ownStallTitle`, style giá hover theo `.dlg-title`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run build` thành công, `tests/city-bazaar.test.ts` + `tests/team-leader-render.test.cjs` (**4/4 pass**), `npm run test:market` (**13/13 pass**). Giữ ngoài commit `theme.css`, `bosses/config.json`, `bosses/config.ts`. Đã commit trên `main`, không push.
+
 ## 2026-11-21 · Đồng bộ dải cấp quái từ spawn files vào mapLevelBand (đã commit)
 
 - **USER yêu cầu:** hiển thị đầy đủ cấp quái cho các bãi luyện công/hang động mới trong hộp thoại Xa phu thay vì `"Chưa có dữ liệu cấp quái"`.

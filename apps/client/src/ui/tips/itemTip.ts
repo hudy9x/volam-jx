@@ -101,13 +101,13 @@ export function fillItemTip(tip: HTMLElement, def: ItemDef, opts: ItemTipOptions
   put(s4, t.suite, 'tip-suite');
   flush(s4);
 
-  // Giá bày bán tại Chợ (nếu đang xem trong Quầy hàng)
+  // Giá bày bán tại Sạp (style nổi bật giống thanh tiêu đề .dlg-title)
   if (opts.stallPrice && opts.stallPrice.price > 0) {
     const sp = section();
     const label = opts.stallPrice.currency === 'knb'
       ? `Giá bán: ${opts.stallPrice.price.toLocaleString('vi-VN')} Kim nguyên bảo`
       : `Giá bán: ${moneyText(opts.stallPrice.price)} lượng`;
-    text(sp, 'tip-price', label, TIP_COLORS.gold);
+    text(sp, 'tip-stall-price', label, '');
     flush(sp);
   }
 

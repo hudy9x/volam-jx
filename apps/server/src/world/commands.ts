@@ -10,7 +10,7 @@ import type { World } from './World.js';
 
 /** Click on the ground: walk there (cancels a queued attack). */
 export function commandMove(w: World, sim: Sim, x: number, y: number): void {
-  if (sim.dead || !Number.isFinite(x) || !Number.isFinite(y)) return;
+  if (sim.dead || sim.a.stallTitle || !Number.isFinite(x) || !Number.isFinite(y)) return;
   sim.pending = null;
   sim.lockedAttack = undefined;
   sim.pickup = undefined;
@@ -24,7 +24,7 @@ export function commandMove(w: World, sim: Sim, x: number, y: number): void {
 /** Use a skill on a target / point. Out of range => walk closer first. `lock` = keep attacking that target. */
 export function commandCast(w: World, sim: Sim, skillId: number, targetId: string | undefined, x: number, y: number, lock = false,
   reach?: number): void {
-  if (sim.dead || !Number.isFinite(x) || !Number.isFinite(y)) return;
+  if (sim.dead || sim.a.stallTitle || !Number.isFinite(x) || !Number.isFinite(y)) return;
   sim.queuedMove = undefined;
   if (sim.slotAura && getSkill(skillId)?.aura) {
     w.hooks.notify(sim, 'Hào quang đang đặt ở ô tay trái / phải: tự bật, đổi chiêu ở ô đó để thay hoặc tắt.');
@@ -83,6 +83,7 @@ export function setPk(w: World, sim: Sim, mode: number): void {
 /** Mount / dismount the horse in the horse slot. */
 export function setMounted(w: World, sim: Sim, on: boolean): void {
   if (sim.dead || on === sim.a.mounted) return;
+  if (sim.a.stallTitle) { w.hooks.notify(sim, 'Đang bày bán không thể lên/xuống ngựa.'); return; }
   const horse = HORSES[sim.a.horse];
   if (on && !horse) { w.hooks.notify(sim, 'Chưa có ngựa: mua ở Bán ngựa trong thành rồi mặc vào ô Ngựa.'); return; }
   sim.a.mounted = on;

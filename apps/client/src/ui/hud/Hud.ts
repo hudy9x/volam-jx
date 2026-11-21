@@ -9,6 +9,7 @@ import { settings as userSettings } from '../../state/settings';
 import { skillbar } from '../../state/skillbar';
 import { addSyslog, syslogFor, syslogReady } from '../../state/syslog';
 import { dialogs } from '../kit/dialog';
+import { ownStallTitle } from '../../state/stall';
 import { mount } from '../kit/dom';
 import { tooltip } from '../kit/tooltip';
 import type { LoadingScreen } from '../screens/loading';
@@ -127,7 +128,6 @@ export class Hud implements WorldUi {
       system: () => this.toggleWindow('system'),
       kytran: () => this.toggleWindow('kytran'),
       rankings: () => this.toggleWindow('rankings'),
-      bazaar: () => this.toggleWindow('bazaar'),
       gm: () => this.toggleWindow('gm'),
       team: () => this.toggleWindow('team'),
       notice: text => this.notice(text),
@@ -163,8 +163,8 @@ export class Hud implements WorldUi {
     this.settings = new SettingsWindow(root);
     this.rankings = new RankingsWindow(root, ctx);
     this.bazaar = new BazaarWindow(root, ctx, trade);
-    this.bazaar.onOpenBag = () => this.bag.toggle(true);
-    this.bag.onStallPut = (index, item) => this.bazaar.handleBagClick(index, item);
+    this.bag.onStallPrice = item => this.bazaar.openPriceDialog(item);
+    this.bag.onStallOpen = () => this.bazaar.openTitleDialog();
     this.gmTool = new GmToolWindow(root, ctx);
     this.autoWin = new AutoWindow(root, on => this.setAuto(on));
     this.notices.onAutoToggle = () => this.setAuto(!this.autoOn);
@@ -265,6 +265,8 @@ export class Hud implements WorldUi {
     this.quickbar.update();
     this.status.update(self);
     this.character.update(self);
+    const stallTitle = self.stallTitle ?? '';
+    if (ownStallTitle.get() !== stallTitle) ownStallTitle.set(stallTitle);
   }
 
   /** Other players of the map, from the minimap's actor list (tổ đội window). */
@@ -311,7 +313,6 @@ export class Hud implements WorldUi {
       case 'system': this.system.toggle(open); break;
       case 'team': this.team.toggle(open); break;
       case 'rankings': this.rankings.toggle(open); break;
-      case 'bazaar': this.bazaar.toggle(open); break;
       case 'gm': this.gmTool.toggle(open); break;
     }
   }

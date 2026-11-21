@@ -1,4 +1,5 @@
-import type { Item } from './items/items.js';
+import type { Item, StallPrice, TradeCurrency } from './items/items.js';
+export type { StallPrice, TradeCurrency };
 import type { Progress } from './characters/progression.js';
 import type { CharacterStats, Potential } from './formulas/character.js';
 import type { CombatStats } from './formulas/combat.js';
@@ -44,25 +45,10 @@ export interface PkMsg { mode: number }
 export interface MountMsg { on: boolean }
 /** Kênh chat (USER 2026-11-13): 'world' = Thế giới, every online character. */
 export type ChatChannel = 'world' | 'trade';
-export type TradeCurrency = 'money' | 'knb';
 /** 'contact' is read-only compatibility for old chat snapshots; new posts accept money/knb only. */
 export interface TradeOffer { seller: string; item: Item; currency: TradeCurrency | 'contact'; price: number; sold?: boolean; valuation?: import('./formulas/market.js').ItemValuation }
 export interface TradePostMsg { uid: string; currency: TradeCurrency; price: number; text: string; autoPrice?: boolean }
-/** City bazaar stall (Chợ bày bán theo thành thị; 1 character = 1 stall of 2 tabs × 60 cells). */
-export interface StallPrice { price: number; currency: TradeCurrency }
-export interface StallSummary {
-  charId: string;
-  sellerName: string;
-  sellerCamp: string;
-  mapId: number;
-  title: string;
-  itemCount: number;
-}
-export interface StallListMsg {
-  mapId: number;
-  stalls: StallSummary[];
-  myStall?: { mapId: number; open: boolean; title: string; itemCount: number } | null;
-}
+/** Player stall (Bày bán trực tiếp trên hành trang: 2 trang × 60 ô = 120 ô hiển thị 1 trang 10×12 cho người mua). */
 export interface StallDetailMsg {
   charId: string;
   sellerName: string;
@@ -76,9 +62,6 @@ export interface StallDetailMsg {
 }
 export interface StallClosedMsg { charId: string; reason?: string }
 export interface StallInspectMsg { charId: string }
-export interface StallPutMsg { from: number; to?: number; page?: number }
-export interface StallTakeMsg { from: number; to?: number; page?: number }
-export interface StallMoveMsg { from: number; to: number }
 export interface StallPriceMsg { uid: string; price: number; currency: TradeCurrency }
 export interface StallOpenMsg { title: string }
 export interface StallBuyMsg { sellerCharId: string; uid: string; price: number; currency: TradeCurrency }
@@ -102,6 +85,9 @@ export const CHAT = {
   accountLines: 1000,
   /** Lines sent on entering a map, and per scroll-up page (C2S.chatMore). */
   page: 30,
+  /** Trade channel filter: 30 minutes window, max 50 lines. */
+  tradeWindowMs: 30 * 60 * 1000,
+  tradeMaxLines: 50,
   /** Reactions people can put on a line (USER 2026-11-13: "chọn vài cái thôi"). */
   reactions: ['👍', '❤️', '😂', '😮', '😢', '😡'] as readonly string[],
   /** Reaction clicks per character every this many ms. */
@@ -216,11 +202,7 @@ export const C2S = {
   chat: 'chat',
   chatReact: 'chatReact',
   chatMore: 'chatMore',
-  stallList: 'stallList',
   stallInspect: 'stallInspect',
-  stallPut: 'stallPut',
-  stallTake: 'stallTake',
-  stallMove: 'stallMove',
   stallPrice: 'stallPrice',
   stallOpen: 'stallOpen',
   stallClose: 'stallClose',
@@ -320,8 +302,7 @@ export const S2C = {
   log: 'log',
   /** OnlineMsg: characters in the world (all maps), to everyone when it changes and on entering a map. */
   online: 'online',
-  /** City bazaar stall messages. */
-  stallList: 'stallList',
+  /** Player stall messages. */
   stallDetail: 'stallDetail',
   stallClosed: 'stallClosed',
 } as const;

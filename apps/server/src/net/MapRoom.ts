@@ -3,18 +3,18 @@ import { mapAvailable, refreshMapRegistry, resolveCharacterMap } from '../mapReg
 import { DEFAULT_AUTO, normalizeAuto, normalizeBotTemplate, type CharacterAuto, type TradePostMsg } from '@vltk/shared';
 import { buyKnb, marketOnline, marketOffline, marketPost, marketBuy } from '../world/market.js';
 import {
-  inspectStall, sendStallList, stallBuy, stallClose, stallMove, stallOffline, stallOnline, stallOpen, stallPut, stallSetPrice, stallTake,
+  inspectStall, stallBuy, stallClose, stallOffline, stallOnline, stallOpen, stallSetPrice,
 } from '../world/stalls.js';
 import { Room, ServerError, type Client } from 'colyseus';
 import {
   bestTrainingMap, trainingMaps, type TrainingMap, type TrainMsg, type TeamOrderMsg, type SuggestMsg, type TokenMsg,
-  BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, expToNext, TICK_MS, TOWN_MAP_ID, combatRulesAt, getExpElixirMultiplier, getGrid,
+  BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, expToNext, TICK_MS, TOWN_MAP_ID, TOWN_NPCS, combatRulesAt, getExpElixirMultiplier, getGrid,
   DEFAULT_SPEED, setActiveSpeedConfig,
   type BagMoveMsg, type BagSortMsg, type BagSplitMsg, type BagStashTransferMsg, type StashCurrencyMsg, type StashMoveMsg, type StashMsg,
   type BuyMsg, type CastMsg, type DevMoneyMsg, type DevLevelMsg, type DevSpeedMsg, type DiscardMsg, type EquipMsg, type ForgeMsg, type InventoryMsg, type MountMsg, type AuraMsg, type ChatMsg, type ChatMoreMsg, type ChatReactMsg, type MoveMsg,
   type AddPotentialMsg, type PickupMsg, type JoinFactionMsg, type Potential, type RaiseSkillMsg, type StatsMsg, type LogMsg, type NoticeMsg, type OnlineMsg, type PkMsg, type SellMsg, type SkillLevelMsg, type SkillsMsg, type TeleportMsg, type TransferMsg,
   type UnequipMsg, type UseMsg,
-  type StallBuyMsg, type StallInspectMsg, type StallMoveMsg, type StallOpenMsg, type StallPriceMsg, type StallPutMsg, type StallTakeMsg,
+  type StallBuyMsg, type StallInspectMsg, type StallOpenMsg, type StallPriceMsg,
 } from '@vltk/shared';
 import { verifyToken } from '../account/auth.js';
 import { db } from '../account/db.js';
@@ -258,6 +258,7 @@ export class MapRoom extends Room<{ state: MapState }> {
         if (stash && sortGrid(stash, page, STASH_SIZE)) { db.touch(); sendStash(client, sim); }
         return;
       }
+      if (sim.a.stallTitle) return;
       if (sim.bag && sortGrid(sim.bag, page, BAG_SIZE)) { this.sendInventory(client, sim); this.saveCharacter(sim); }
     });
     this.onMessage(C2S.bagSplit, (client, msg: BagSplitMsg) => {
@@ -272,6 +273,7 @@ export class MapRoom extends Room<{ state: MapState }> {
         if (stash && splitGridItem(stash, from, qty, STASH_SIZE, to)) { db.touch(); sendStash(client, sim); }
         return;
       }
+      if (sim.a.stallTitle) return;
       if (sim.bag && splitGridItem(sim.bag, from, qty, BAG_SIZE, to)) { this.sendInventory(client, sim); this.saveCharacter(sim); }
     });
     this.onMessage(C2S.stashMove, (client, msg: StashMoveMsg) => {
@@ -298,9 +300,12 @@ export class MapRoom extends Room<{ state: MapState }> {
     this.onMessage(C2S.bagToStash, (client, msg: BagStashTransferMsg) => {
       const sim = this.simOf(client);
       const stash = sim ? accountStash(sim) : null;
-      if (!sim || !sim.bag || !stash) return;
+      if (!sim || !sim.bag || !stash || sim.a.stallTitle) return;
+      const fromIdx = Number(msg?.from);
+      const moving = sim.bag[fromIdx];
       if (!transferBetweenGrids(this.world, sim, sim.bag, BAG_SIZE, stash, STASH_SIZE,
-        Number(msg?.from), typeof msg?.to === 'number' ? msg.to : undefined, typeof msg?.page === 'number' ? msg.page : undefined, 'rương chứa đồ')) return;
+        fromIdx, typeof msg?.to === 'number' ? msg.to : undefined, typeof msg?.page === 'number' ? msg.page : undefined, 'rương chứa đồ')) return;
+      if (moving?.stallPrice) delete moving.stallPrice;
       db.touch();
       this.sendInventory(client, sim);
       sendStash(client, sim);
@@ -331,26 +336,10 @@ export class MapRoom extends Room<{ state: MapState }> {
       const sim = this.simOf(client);
       if (sim?.charId && typeof msg?.op === 'string') teamOrder(sim.charId, msg.op, typeof msg.name === 'string' ? msg.name.slice(0, 32) : '');
     });
-    // Chợ bày bán theo thành thị (world/stalls.ts).
-    this.onMessage(C2S.stallList, client => {
-      const sim = this.simOf(client);
-      if (sim?.charId) sendStallList(sim.charId);
-    });
+    // Bày bán trực tiếp trên hành trang (world/stalls.ts).
     this.onMessage(C2S.stallInspect, (client, msg: StallInspectMsg) => {
       const sim = this.simOf(client);
       if (sim?.charId) inspectStall(sim.charId, typeof msg?.charId === 'string' ? msg.charId : '');
-    });
-    this.onMessage(C2S.stallPut, (client, msg: StallPutMsg) => {
-      const sim = this.simOf(client);
-      if (sim?.charId) stallPut(sim.charId, Number(msg?.from), typeof msg?.to === 'number' ? msg.to : undefined, typeof msg?.page === 'number' ? msg.page : undefined);
-    });
-    this.onMessage(C2S.stallTake, (client, msg: StallTakeMsg) => {
-      const sim = this.simOf(client);
-      if (sim?.charId) stallTake(sim.charId, Number(msg?.from), typeof msg?.to === 'number' ? msg.to : undefined, typeof msg?.page === 'number' ? msg.page : undefined);
-    });
-    this.onMessage(C2S.stallMove, (client, msg: StallMoveMsg) => {
-      const sim = this.simOf(client);
-      if (sim?.charId) stallMove(sim.charId, Number(msg?.from), Number(msg?.to));
     });
     this.onMessage(C2S.stallPrice, (client, msg: StallPriceMsg) => {
       const sim = this.simOf(client);
@@ -526,10 +515,17 @@ export class MapRoom extends Room<{ state: MapState }> {
       sim, mapId: this.state.mapId, send: (type, msg) => client.send(type, msg), notify: text => this.notify(sim, text),
     });
     stallOnline(char.id, {
-      sim, mapId: this.state.mapId,
+      sim, actorId: client.sessionId, mapId: this.state.mapId,
       send: (type, msg) => client.send(type, msg),
       notify: text => this.notify(sim, text),
       syncAndSave: () => { this.sendInventory(client, sim); this.saveCharacter(sim); },
+      stopMove: () => { sim.path = []; sim.queuedMove = undefined; sim.pending = null; sim.a.attackTarget = ''; },
+      npcPositions: () => {
+        const entry = MAPS[this.state.mapId]?.raw.entry;
+        const list = TOWN_NPCS[this.state.mapId];
+        if (!entry || !list) return [];
+        return list.map(n => ({ x: entry.x + n.dx, y: entry.y + n.dy }));
+      },
     });
   }
 

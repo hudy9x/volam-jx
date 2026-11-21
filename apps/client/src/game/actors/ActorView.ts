@@ -30,6 +30,11 @@ export class ActorView {
   /** Invisible point at the feet; the camera follows it. */
   readonly anchor: Phaser.GameObjects.Zone;
   private readonly label: Phaser.GameObjects.Text;
+  private readonly stallBg: Phaser.GameObjects.Graphics;
+  private stallLeft: Phaser.GameObjects.Image | null = null;
+  private stallMid: Phaser.GameObjects.Image | null = null;
+  private stallRight: Phaser.GameObjects.Image | null = null;
+  private readonly stallText: Phaser.GameObjects.Text;
   private readonly leaderFlag: Phaser.GameObjects.Graphics;
   private readonly bar: Phaser.GameObjects.Graphics;
   private readonly decor: StateDecor;
@@ -89,6 +94,10 @@ export class ActorView {
     this.label = scene.add.text(this.x, this.y, '', {
       resolution: textResolution(), fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(13), stroke: '#000', strokeThickness: ui(3),
     }).setOrigin(0.5, 1).setDepth(1e6);
+    this.stallBg = scene.add.graphics().setDepth(1e6).setVisible(false);
+    this.stallText = scene.add.text(this.x, this.y, '', {
+      resolution: textResolution(), fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(12), color: '#ffd94e', stroke: '#000', strokeThickness: ui(3),
+    }).setOrigin(0.5, 1).setDepth(1e6 + 1).setVisible(false);
     this.leaderFlag = scene.add.graphics().setDepth(1e6);
     this.bar = scene.add.graphics().setDepth(1e6);
     this.decor = new StateDecor(scene);
@@ -348,6 +357,64 @@ export class ActorView {
     const labelX = hasBadge ? Math.round(this.x + (badgeSize + badgeGap) / 2) : Math.round(this.x);
     const labelY = top - Math.max(2, ui(plate.gapY));
     this.label.setPosition(labelX, labelY);
+    const showStall = s.kind === 'player' && !!s.stallTitle && s.hp > 0;
+    this.stallBg.clear().setVisible(false);
+    this.stallLeft?.setVisible(false);
+    this.stallMid?.setVisible(false);
+    this.stallRight?.setVisible(false);
+    this.stallText.setVisible(showStall);
+    if (showStall) {
+      const banner = s.stallTitle ?? '';
+      if (this.stallText.text !== banner) this.stallText.setText(banner);
+      if (this.stallText.scaleX !== plate.textScale) this.stallText.setScale(plate.textScale);
+      const labelH = typeof this.label.displayHeight === 'number' ? this.label.displayHeight : ui(13) * plate.textScale;
+      const sy = Math.round(labelY - labelH - ui(5) * plate.textScale);
+      const tw = typeof this.stallText.displayWidth === 'number' ? this.stallText.displayWidth : banner.length * ui(7) * plate.textScale;
+      const th = typeof this.stallText.displayHeight === 'number' ? this.stallText.displayHeight : ui(14) * plate.textScale;
+
+      const tex = this.scene.textures;
+      if (tex && typeof tex.exists === 'function' && !tex.exists('stall-left') && this.scene.load) {
+        if (!this.scene.load.isLoading()) {
+          this.scene.load.image('stall-left', '/assets/ui/stall-left.webp');
+          this.scene.load.image('stall-mid', '/assets/ui/stall-mid.webp');
+          this.scene.load.image('stall-right', '/assets/ui/stall-right.webp');
+          this.scene.load.start();
+        }
+      }
+      const hasSpr = !!tex && typeof tex.exists === 'function'
+        && tex.exists('stall-left') && tex.exists('stall-mid') && tex.exists('stall-right')
+        && typeof this.scene.add?.image === 'function';
+
+      if (hasSpr) {
+        if (!this.stallLeft) {
+          this.stallLeft = this.scene.add.image(0, 0, 'stall-left').setOrigin(0, 0.5).setDepth(1e6);
+          this.stallMid = this.scene.add.image(0, 0, 'stall-mid').setOrigin(0.5, 0.5).setDepth(1e6);
+          this.stallRight = this.scene.add.image(0, 0, 'stall-right').setOrigin(1, 0.5).setDepth(1e6);
+        }
+        const scale = ui(1) * plate.textScale;
+        const capW = Math.round(18 * scale);
+        const h = Math.round(Math.max(20 * scale, th + ui(6) * plate.textScale));
+        const midW = Math.round(Math.max(8, tw + ui(6) * plate.textScale));
+        const totalW = capW * 2 + midW;
+        const cx = Math.round(this.x);
+        const cy = Math.round(sy - h / 2);
+        this.stallLeft!.setDisplaySize(capW, h).setPosition(cx - Math.round(totalW / 2), cy).setVisible(true);
+        this.stallMid!.setDisplaySize(midW, h).setPosition(cx, cy).setVisible(true);
+        this.stallRight!.setDisplaySize(capW, h).setPosition(cx + Math.round(totalW / 2), cy).setVisible(true);
+        this.stallText.setOrigin(0.5, 0.5).setPosition(cx, cy);
+      } else {
+        this.stallText.setOrigin(0.5, 1).setPosition(Math.round(this.x), sy);
+        const padX = ui(6) * plate.textScale;
+        const padY = ui(2) * plate.textScale;
+        const bx = Math.round(this.x - tw / 2 - padX);
+        const by = Math.round(sy - th - padY);
+        const bw = Math.round(tw + padX * 2);
+        const bh = Math.round(th + padY * 2);
+        this.stallBg.setVisible(true);
+        this.stallBg.fillStyle(0x111714, 0.86).fillRect(bx, by, bw, bh);
+        this.stallBg.lineStyle(ui(1), 0xcaa348, 0.95).strokeRect(bx, by, bw, bh);
+      }
+    }
     if (hasBadge) {
       if (!this.elementBadge) {
         this.elementBadge = this.scene.add.image(0, 0, badgeKey).setOrigin(0.5, 0.5).setDepth(1e6);
@@ -402,6 +469,11 @@ export class ActorView {
 
   destroy(): void {
     this.leaderFlag.destroy();
+    this.stallBg.destroy();
+    this.stallLeft?.destroy();
+    this.stallMid?.destroy();
+    this.stallRight?.destroy();
+    this.stallText.destroy();
     this.elementBadge?.destroy();
     this.label.destroy();
     this.bar.destroy();

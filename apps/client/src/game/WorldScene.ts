@@ -233,6 +233,9 @@ export class WorldScene extends Phaser.Scene {
       if (p.rightButtonDown()) { cast('right', p.worldX, p.worldY, target && target.state.kind !== 'npc' ? target : undefined); return; }
       if (target && this.isHostile(target)) cast('left', target.x, target.y, target, true);
       else if (target?.state.kind === 'npc') this.talkTo(target);
+      else if (target?.state.kind === 'player' && target.state.stallTitle && target.id !== this.room.sessionId) {
+        this.room.send(C2S.stallInspect, { charId: target.id });
+      }
       else move(p.worldX, p.worldY);
     });
     // Hold the left button to keep walking toward the cursor; otherwise show what a click would do (original cursors).
@@ -240,8 +243,9 @@ export class WorldScene extends Phaser.Scene {
       if (!this.ready || !inside(p)) return;
       p.updateWorldPoint(this.cameras.main);
       const over = this.pickActor(p.worldX, p.worldY);
+      const isStall = over?.state.kind === 'player' && !!over.state.stallTitle && over.id !== this.room.sessionId;
       this.setCursor(this.pickGround(p.worldX, p.worldY) ? 'pick'
-        : !over ? 'normal' : over.state.kind === 'npc' ? 'talk' : this.isHostile(over) ? 'attack' : 'normal');
+        : !over ? 'normal' : over.state.kind === 'npc' || isStall ? 'talk' : this.isHostile(over) ? 'attack' : 'normal');
       if (!p.leftButtonDown() || this.time.now - this.lastMoveSent < MOVE_REPEAT_MS) return;
       if (over) return;
       move(p.worldX, p.worldY);
@@ -364,11 +368,7 @@ export class WorldScene extends Phaser.Scene {
       joinFaction: faction => this.room.send(C2S.joinFaction, { faction }),
       raiseSkill: skill => this.room.send(C2S.raiseSkill, { skill }),
       token: msg => this.room.send(C2S.token, msg),
-      stallList: () => this.room.send(C2S.stallList, {}),
-      stallInspect: (charId = '') => this.room.send(C2S.stallInspect, { charId }),
-      stallPut: (from, to, page) => this.room.send(C2S.stallPut, { from, to, page }),
-      stallTake: (from, to, page) => this.room.send(C2S.stallTake, { from, to, page }),
-      stallMove: (from, to) => this.room.send(C2S.stallMove, { from, to }),
+      stallInspect: charId => this.room.send(C2S.stallInspect, { charId }),
       stallPrice: (uid, price, currency) => this.room.send(C2S.stallPrice, { uid, price, currency }),
       stallOpen: title => this.room.send(C2S.stallOpen, { title }),
       stallClose: () => this.room.send(C2S.stallClose, {}),
