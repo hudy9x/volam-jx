@@ -1,5 +1,6 @@
 import { BUY_MAX, moneyText, type ItemDef } from '@vltk/shared';
 import { inventory } from '../../state/inventory';
+import { tkState } from '../../state/tongkim';
 import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
 import './tradeConfirm.css';
@@ -31,7 +32,7 @@ export interface TradeAsk {
   /** Price of one piece (buy: table price; sell: what the NPC pays; split: unused). */
   unit: number;
   /** Currency unit for buy/sell (defaults to 'money'). */
-  currency?: 'money' | 'knb';
+  currency?: 'money' | 'knb' | 'tkAccum';
   /** Most pieces at once (buy: BUY_MAX and the free bag cells; sell: 1; split: curQty - 1). */
   max: number;
   /** Initial quantity (defaults to 1). */
@@ -84,16 +85,19 @@ export class TradeConfirm {
     if (!a) return;
     const total = a.unit * this.count;
     const isKnb = a.currency === 'knb';
+    const isTk = a.currency === 'tkAccum';
     const inv = inventory.get();
-    const bal = isKnb ? (inv.knb ?? 0) : inv.money;
+    const bal = isKnb ? (inv.knb ?? 0) : isTk ? (tkState.get()?.me?.accum ?? 0) : inv.money;
     const short = a.mode === 'buy' && total > bal;
     const price = $('trade-price');
-    price.textContent = isKnb ? total.toLocaleString('vi-VN') : moneyText(total);
+    price.textContent = (isKnb || isTk) ? total.toLocaleString('vi-VN') : moneyText(total);
     price.classList.toggle('short', short);
     const curEl = price.parentElement?.querySelector('.trade-cur');
-    if (curEl) curEl.textContent = isKnb ? 'KNB' : 'lượng';
+    if (curEl) curEl.textContent = isKnb ? 'KNB' : isTk ? 'điểm tích lũy' : 'lượng';
     $('trade-left').textContent = a.mode === 'buy'
-      ? (isKnb ? `Kim nguyên bảo: ${bal.toLocaleString('vi-VN')} KNB` : `Tiền túi: ${moneyText(bal)} lượng`)
+      ? (isKnb ? `Kim nguyên bảo: ${bal.toLocaleString('vi-VN')} KNB`
+        : isTk ? `Điểm tích lũy Tống Kim: ${bal.toLocaleString('vi-VN')} điểm`
+        : `Tiền túi: ${moneyText(bal)} lượng`)
       : a.mode === 'split'
         ? `Tách ${this.count} · Còn lại ${a.max + 1 - this.count}`
         : '';

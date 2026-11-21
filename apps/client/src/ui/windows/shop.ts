@@ -1,4 +1,5 @@
 import { knbPurchaseResult } from '../../state/market';
+import { tkState } from '../../state/tongkim';
 import { KNB_PRICE, BUY_MAX, KIND_NAMES, MAX_BAG_POTIONS, SHOP_ITEMS, SHOP_NAMES, SMITH_KINDS, bagPotionCount, isStackablePotion, moneyText, roomFor, sellPrice, type ItemDef, type ItemKind, type ShopId } from '@vltk/shared';
 import { itemViewer } from '../../state/progress';
 import { keyLabel } from '../../input/keymap';
@@ -81,6 +82,7 @@ export class ShopWindow {
     }));
     trade.watch(t => this.renderMode(t.mode));
     inventory.watch(inv => { setMoney($('shop-money'), inv.money); this.renderPrices(); });
+    tkState.watch(() => { if (this.shop === 'tongkim') this.renderPrices(); }, false);
   }
 
   /** Open `shop` (or close it when it is already open and `open` is not given). */
@@ -121,15 +123,18 @@ export class ShopWindow {
       el.className = 'shop-item';
       if (def.gold || def.kind === 'mantle') el.classList.add('is-gold');
       const isKnb = !!(def.knbPrice && def.knbPrice > 0);
-      el.dataset.price = String(isKnb ? def.knbPrice : def.price);
-      el.dataset.currency = isKnb ? 'knb' : 'money';
+      const isTk = !!(def.tkAccumPrice && def.tkAccumPrice > 0);
+      el.dataset.price = String(isKnb ? def.knbPrice : isTk ? def.tkAccumPrice : def.price);
+      el.dataset.currency = isKnb ? 'knb' : isTk ? 'tkAccum' : 'money';
       el.innerHTML = '<div class="slot"></div><div class="grow"><div class="fname"></div><div class="muted"></div><div class="price"></div></div>';
       setSlotIcon(el.querySelector('.slot') as HTMLElement, def);
       (el.querySelector('.fname') as HTMLElement).textContent = def.name;
-      const sub = [def.gold ? `Bộ ${def.gold.suite}` : def.kind === 'mask' || def.kind === 'potion' || def.kind === 'book' || def.kind === 'token' ? '' : `Cấp ${def.level}`, def.sex ? (def.sex === 'm' ? 'Nam' : 'Nữ') : '']
+      const sub = [def.gold ? `Bộ ${def.gold.suite}` : def.kind === 'mask' || def.kind === 'potion' || def.kind === 'book' || def.kind === 'token' || def.kind === 'elixir' ? '' : `Cấp ${def.level}`, def.sex ? (def.sex === 'm' ? 'Nam' : 'Nữ') : '']
         .filter(Boolean).join(' · ');
       (el.querySelector('.muted') as HTMLElement).textContent = sub;
-      (el.querySelector('.price') as HTMLElement).textContent = isKnb ? `${def.knbPrice!.toLocaleString('vi-VN')} KNB` : `${moneyText(def.price)} lượng`;
+      (el.querySelector('.price') as HTMLElement).textContent = isKnb ? `${def.knbPrice!.toLocaleString('vi-VN')} KNB`
+        : isTk ? `${def.tkAccumPrice!.toLocaleString('vi-VN')} điểm tích lũy`
+        : `${moneyText(def.price)} lượng`;
       el.addEventListener('click', () => this.buy(def));
       el.addEventListener('mouseenter', () => showItemTip(def, el, { viewer, hint: 'Click: mua' }));
       el.addEventListener('mouseleave', () => showItemTip(null));
@@ -141,8 +146,10 @@ export class ShopWindow {
   /** Prices the character cannot pay in the original "not enough money" colour. */
   private renderPrices(): void {
     const inv = inventory.get();
+    const accum = tkState.get()?.me?.accum ?? 0;
     document.querySelectorAll<HTMLElement>('#shop-list .shop-item').forEach(el => {
-      const bal = el.dataset.currency === 'knb' ? (inv.knb ?? 0) : inv.money;
+      const cur = el.dataset.currency;
+      const bal = cur === 'knb' ? (inv.knb ?? 0) : cur === 'tkAccum' ? accum : inv.money;
       el.classList.toggle('short', Number(el.dataset.price) > bal);
     });
   }
@@ -166,8 +173,9 @@ export class ShopWindow {
     const free = roomFor(bag, def, BUY_MAX);
     if (!free) { this.ctx.notice('Hành trang không đủ chỗ.'); return; }
     const isKnb = !!(def.knbPrice && def.knbPrice > 0);
+    const isTk = !!(def.tkAccumPrice && def.tkAccumPrice > 0);
     this.confirm.open({
-      mode: 'buy', def, unit: isKnb ? def.knbPrice! : def.price, currency: isKnb ? 'knb' : 'money', max: free,
+      mode: 'buy', def, unit: isKnb ? def.knbPrice! : isTk ? def.tkAccumPrice! : def.price, currency: isKnb ? 'knb' : isTk ? 'tkAccum' : 'money', max: free,
       ok: n => this.ctx.actions()?.buy(def.id, n),
     });
   }

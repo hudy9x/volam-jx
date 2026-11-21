@@ -24,7 +24,7 @@ const LAST_KEY = 'vltk.botPanel.last';
 
 const AUTO_LABELS: Record<keyof AutoSettings, string> = {
   autoMoney: 'Tự nhặt ngân lượng', autoLootPriority: 'Ưu tiên nhặt đồ (phạm vi 1200)', autoSellBlue: 'Tự bán đồ xanh trong túi', autoSellAllBlue: 'Tự bán toàn bộ đồ xanh (bất kể dòng)', autoKeepValuable: 'Giữ đồ xanh có giá trị để rao bán',
-  autoRadius: 'Bán kính quanh chỗ bắt đầu', autoSkipBoss: 'Bỏ qua boss', autoBuff: 'Tự động buff kỹ năng đã học và duy trì hào quang', autoReturn: 'Quay về chỗ cũ khi hết quái',
+  autoRadius: 'Bán kính quanh chỗ bắt đầu', autoSkipBoss: 'Bỏ qua boss', autoPk: 'Tự động đánh người (ưu tiên hơn quái)', autoBuff: 'Tự động buff kỹ năng đã học và duy trì hào quang', autoReturn: 'Quay về chỗ cũ khi hết quái',
   autoSeek: 'Tìm quái ở xa', autoPickup: 'Tự nhặt đồ', autoSort: 'Tự sắp xếp hành trang khi hết chỗ', autoPriority: 'Mục tiêu ưu tiên', autoRotate: 'Xoay chiêu',
   autoCurse: 'Tự dùng bùa hại', autoMap: 'Tự đổi bãi luyện công theo cấp', autoReturnTraining: 'Tự quay lại bãi luyện công trước đó', autoRevive: 'Tự hồi sinh khi trọng thương',
   autoBuyPotion: 'Hết thuốc về thành mua', autoJunk: 'Tự bán đồ trắng không mặc được', autoLoot: 'Lọc đồ nhặt',

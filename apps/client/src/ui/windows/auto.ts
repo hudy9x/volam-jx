@@ -17,7 +17,8 @@ const HTML = `
   </div>
   <div class="auto-panels">
   <div id="auto-panel-combat" role="tabpanel" aria-labelledby="auto-tab-combat" tabindex="0">
-  <div class="auto-h">Đánh quái</div>
+  <div class="auto-h">Đánh quái &amp; PK</div>
+  <label class="check"><input type="checkbox" data-set="autoPk" /> Tự động đánh người (ưu tiên cao hơn đánh quái)</label>
   <label class="row">Ưu tiên mục tiêu <select data-set="autoPriority"><option value="near">Gần nhất</option><option value="boss">Hoàng Kim → Boss Xanh → quái thường</option><option value="blue">Boss Xanh → Quái thường (bỏ Hoàng Kim)</option></select></label>
   <label class="check"><input type="checkbox" data-set="autoSkipBoss" /> Bỏ qua boss</label>
   <label class="check"><input type="checkbox" data-set="autoRotate" /> Xoay chiêu: dùng lần lượt chiêu tấn công trên phím 1 – 9 (cả khi đánh boss)</label>

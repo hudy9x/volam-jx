@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import type { Room } from '@colyseus/sdk';
 import { Callbacks, CloseCode } from '@colyseus/sdk';
 import {
-  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, skillCategory, skillResourceCost, canPaySkillCost, equipError, TOWN_MAP_ID, pvpAllowed, type Camp,
+  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, skillCategory, skillResourceCost, canPaySkillCost, equipError, TOWN_MAP_ID, TK_BATTLE_MAP_ID, pvpAllowed, type Camp,
   C2S, FACTIONS, ITEMS, MAPS, NPC_LINES, S2C, TOWN_NPCS, hasNav, registerNav,
   type FxEvent, type MapMeta, type NavFile, type NoticeMsg, type TownNpc, type TransferMsg,
 } from '@vltk/shared';
@@ -145,9 +145,13 @@ export class WorldScene extends Phaser.Scene {
     this.setupAuto();
     this.ui.show(this.meta, this.actions);
     this.ui.loading(null);
-    // Original map music (settings/music/musicset.txt); the same track keeps playing across maps.
-    const music = MAP_MUSIC[this.meta.id];
-    audio.playMusic(music?.[0], music?.[1]);
+    // Chiến trường Tống Kim (378): mix luân phiên 6 bản nhạc chiến đấu; các map khác giữ nhạc gốc (musicset.txt).
+    if (this.meta.id === TK_BATTLE_MAP_ID) {
+      audio.playPlaylist(['music/music401', 'music/music402', 'music/music403', 'music/music404', 'music/music400', 'music/music500'], 93);
+    } else {
+      const music = MAP_MUSIC[this.meta.id];
+      audio.playMusic(music?.[0], music?.[1]);
+    }
     this.ready = true;
   }
 
@@ -388,6 +392,7 @@ export class WorldScene extends Phaser.Scene {
       self: () => this.self,
       actors: () => this.views.values(),
       safe: () => !this.self || combatRulesAt(this.meta, this.self.state).safe,
+      hostile: target => { const v = this.views.get(target.id); return !!v && this.isHostile(v); },
       skillAt: slot => skillbar.skillAt(slot),
       usable: skill => {
         const s = getSkill(skill);
@@ -467,12 +472,12 @@ export class WorldScene extends Phaser.Scene {
     const line = NPC_LINES[npc.action];
     if (npc.action === 'tkRecruit') {
       const camp = npc.tkCamp === 'kim' ? 'kim' : 'tong';
-      const label = camp === 'kim' ? 'Báo danh phe Đại Kim (3.000 lượng)' : 'Báo danh phe Đại Tống (3.000 lượng)';
+      const campName = camp === 'kim' ? 'Đại Kim' : 'Đại Tống';
       this.ui.talk({
-        name: npc.name, res: npc.res, text: line.text,
+        name: npc.name, res: npc.res,
+        text: `Chiến trường Tống Kim đang chiêu mộ hào kiệt (cấp ≥ 60, phí 3.000 lượng). Hiệp sĩ muốn gia nhập phe ${campName}?`,
         options: [
-          { label, run: () => this.actions.tkAction({ op: 'register', camp }) },
-          { label: camp === 'kim' ? 'Báo danh phe Đại Tống (3.000 lượng)' : 'Báo danh phe Đại Kim (3.000 lượng)', run: () => this.actions.tkAction({ op: 'register', camp: camp === 'kim' ? 'tong' : 'kim' }) },
+          { label: `Báo danh phe ${campName} (3.000 lượng)`, run: () => this.actions.tkAction({ op: 'register', camp }) },
         ],
       });
       return;
@@ -481,6 +486,7 @@ export class WorldScene extends Phaser.Scene {
       this.ui.talk({
         name: npc.name, res: npc.res, text: line.text,
         options: [
+          { label: 'Mở cửa hàng Quân Nhu Quan (mua bằng điểm tích lũy)', run: () => this.ui.toggleWindow('tkshop', true) },
           { label: 'Đổi 500 điểm tích lũy (+50.000 EXP)', run: () => this.actions.tkAction({ op: 'exchangeExp', amount: 500 }) },
           { label: 'Đổi 1.000 điểm tích lũy (+100.000 EXP)', run: () => this.actions.tkAction({ op: 'exchangeExp', amount: 1000 }) },
           { label: 'Đổi 5.000 điểm tích lũy (+500.000 EXP)', run: () => this.actions.tkAction({ op: 'exchangeExp', amount: 5000 }) },

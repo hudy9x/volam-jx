@@ -492,3 +492,27 @@ test('sellBatch sends a single batch for multiple junk items, and pickInRange th
   r.auto.update(31360, { ...r.opts, autoMoney: true });
   assert.deepEqual(r.pickups, ['d-0', 'd-1', 'd-2', 'd-3', 'd-4']);
 });
+
+test('autoPk prioritizes hostile players over golden bosses and monsters, and respects allies', () => {
+  const r = rig();
+  r.actors.length = 0;
+  r.self.state.pk = 1;
+  r.self.state.camp = 'justice';
+  r.self.state.battleCamp = 'tong';
+  r.actors.push(
+    { id: 'gold-boss', x: 100, y: 0, isSelf: false, state: { kind: 'monster', level: 90, hp: 5000, maxHp: 5000, mp: 100, maxMp: 100, boss: 2, sprite: 'enemy157', battleCamp: 'kim' } },
+    { id: 'ally-player', x: 80, y: 0, isSelf: false, state: { kind: 'player', level: 90, hp: 1000, maxHp: 1000, mp: 100, maxMp: 100, boss: 0, sprite: '', pk: 1, camp: 'evil', battleCamp: 'tong' } },
+    { id: 'enemy-player', x: 250, y: 0, isSelf: false, state: { kind: 'player', level: 90, hp: 1000, maxHp: 1000, mp: 100, maxMp: 100, boss: 0, sprite: '', pk: 1, camp: 'evil', battleCamp: 'kim' } },
+  );
+
+  // Khi autoPk tắt: chỉ đánh gold-boss, bỏ qua người chơi
+  r.auto.start();
+  r.auto.update(1000, { ...r.opts, autoPk: false, autoPriority: 'boss' });
+  assert.equal(r.self.state.attackTarget, 'gold-boss');
+
+  // Khi autoPk bật: ưu tiên enemy-player cao hơn cả gold-boss dù xa hơn; bỏ qua ally-player
+  r.self.state.attackTarget = '';
+  r.auto.start();
+  r.auto.update(2000, { ...r.opts, autoPk: true, autoPriority: 'boss' });
+  assert.equal(r.self.state.attackTarget, 'enemy-player');
+});

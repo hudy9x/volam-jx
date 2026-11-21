@@ -27,6 +27,8 @@ export interface StateApply {
   aura?: boolean;
   /** Keep the state active for visuals/icons without applying its attribute modifiers (e.g. hostile aura on caster). */
   visualOnly?: boolean;
+  /** Optional direct attribute overrides (used by battlefield consumables / pills). */
+  attrs?: Record<string, AttrValue>;
 }
 
 /** One attribute of a state and when it ends (0 = with the state). */
@@ -62,7 +64,9 @@ export function applyState(states: ActiveStates, st: StateApply, now: number): b
   const aura = st.aura || !!getSkill(st.skill)?.aura;
   states.set(st.skill, {
     until, by: st.by, kind: st.kind, level,
-    attrs: st.visualOnly ? [] : stateAttrsAt(st.skill, level, until, now, aura),
+    attrs: st.visualOnly ? [] : st.attrs
+      ? Object.entries(st.attrs).map(([name, value]) => ({ name, value, until: 0 }))
+      : stateAttrsAt(st.skill, level, until, now, aura),
     ...(aura ? { aura: true } : {}),
   });
   return fresh;

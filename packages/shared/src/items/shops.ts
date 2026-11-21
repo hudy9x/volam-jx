@@ -6,6 +6,7 @@ import { ITEMS, ITEM_LIST, type ItemDef, type ItemKind } from './items.js';
 import { TOKEN_ITEM } from './books.js';
 import { ELIXIR_ITEMS } from './elixirs.js';
 import { MANTLE_ITEMS } from './mantles.js';
+import { TK_SHOP_ITEMS } from './tongkim-items.js';
 import { usableItem } from './potions.js';
 
 /**
@@ -32,8 +33,8 @@ export const moneyText = (n: number): string => {
 };
 
 /** 'gold' = dev-only tab of Thợ rèn (server DEV_TOOLS): hoàng kim môn phái for tests; in play they drop from bosses. */
-export type ShopId = 'smith' | 'drug' | 'horse' | 'gold' | 'kytran';
-export const SHOP_NAMES: Record<ShopId, string> = { smith: 'Thợ rèn', drug: 'Chủ dược điếm', horse: 'Bán ngựa', gold: 'Hoàng kim (dev)', kytran: 'Kỳ Trân Các' };
+export type ShopId = 'smith' | 'drug' | 'horse' | 'gold' | 'kytran' | 'tongkim';
+export const SHOP_NAMES: Record<ShopId, string> = { smith: 'Thợ rèn', drug: 'Chủ dược điếm', horse: 'Bán ngựa', gold: 'Hoàng kim (dev)', kytran: 'Kỳ Trân Các', tongkim: 'Quân Nhu Quan' };
 
 /** Thợ rèn: every equipment kind of levels 1–10 (+ the original masks), in tab order. */
 export const SMITH_KINDS: ItemKind[] = ['armor', 'helm', 'melee', 'range', 'amulet', 'ring', 'pendant', 'belt', 'cuff', 'boot', 'mask'];
@@ -49,6 +50,8 @@ export const SHOP_ITEMS: Record<ShopId, ItemDef[]> = {
   gold: ITEM_LIST.filter(it => it.gold),
   /** Kỳ Trân Các: bí kíp (items/books.ts) + Tiên Thảo Lộ + Phi phong (100 KNB) + the GM lệnh bài for 1 lượng. */
   kytran: [...MANTLE_ITEMS, ...ELIXIR_ITEMS, ...ITEM_LIST.filter(it => it.book), TOKEN_ITEM],
+  /** Quân Nhu Quan: vật phẩm chiến trường Tống Kim mua bằng điểm tích lũy. */
+  tongkim: TK_SHOP_ITEMS,
 };
 
 /** Shop that sells a table row (server check for buying). */

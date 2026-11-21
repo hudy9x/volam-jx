@@ -1,9 +1,13 @@
-import { SKILL_CATEGORY_NAMES, getSkill, skillCategory, stateLines } from '@vltk/shared';
+import { SKILL_CATEGORY_NAMES, TK_ALL_ITEMS, getSkill, skillCategory, stateLines, type ItemDef } from '@vltk/shared';
 import type { ActorState } from '../../state/actor';
 import { progress } from '../../state/progress';
 import { mount } from '../kit/dom';
 import './status.css';
 import { assetUrl } from '../../art/assets';
+
+const TK_BUFF_BY_STATE = new Map<number, ItemDef>(
+  TK_ALL_ITEMS.flatMap(it => (it.tkItem?.kind === 'buff' ? [[it.tkItem.stateId, it] as const] : [])),
+);
 
 function fmtBadge(sec: number): string {
   if (sec >= 3600) {
@@ -44,13 +48,18 @@ export class StatusIcons {
       this.sig = sig;
       this.el.replaceChildren(...ids.map((id, i) => {
         const s = getSkill(id);
+        const tkItem = s ? undefined : TK_BUFF_BY_STATE.get(id);
         const el = document.createElement('div');
         const cat = s ? skillCategory(s) : 'buff';
         el.className = `st-icon${cat === 'buff' || cat === 'support' ? '' : ' debuff'}`;
-        if (s?.icon) { const img = document.createElement('img'); img.src = assetUrl(`${s.icon}.webp`); img.alt = ''; el.appendChild(img); }
+        const iconPath = s?.icon ?? tkItem?.icon;
+        if (iconPath) { const img = document.createElement('img'); img.src = assetUrl(`${iconPath}.webp`); img.alt = ''; el.appendChild(img); }
         if (left[i] >= 0) { const t = document.createElement('span'); t.textContent = `${left[i]}`; el.appendChild(t); }
-        el.title = s ? [`${s.name} · ${cat === 'debuff' || cat === 'attack' ? 'Bùa hại' : SKILL_CATEGORY_NAMES[cat]}`,
-          ...stateLines(s, 10)].join('\n') : `#${id}`;
+        el.title = s
+          ? [`${s.name} · ${cat === 'debuff' || cat === 'attack' ? 'Bùa hại' : SKILL_CATEGORY_NAMES[cat]}`, ...stateLines(s, 10)].join('\n')
+          : tkItem
+            ? `${tkItem.name}\n${tkItem.desc}`
+            : `#${id}`;
         return el;
       }));
     }

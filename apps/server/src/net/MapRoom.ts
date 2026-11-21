@@ -237,7 +237,13 @@ export class MapRoom extends Room<{ state: MapState }> {
     inventoryOp<EquipMsg>(C2S.equip, (sim, msg) =>
       equipItem(this.world, sim, Number(msg?.index), typeof msg?.slot === 'string' ? msg.slot : undefined));
     inventoryOp<UnequipMsg>(C2S.unequip, (sim, msg) => unequipItem(this.world, sim, String(msg?.slot)));
-    inventoryOp<BuyMsg>(C2S.buy, (sim, msg) => buyItem(this.world, sim, String(msg?.item), Number(msg?.count ?? 1)));
+    inventoryOp<BuyMsg>(C2S.buy, (sim, msg) => {
+      const ok = buyItem(this.world, sim, String(msg?.item), Number(msg?.count ?? 1));
+      if (ok && (this.state.mapId === TK_SIGNUP_MAP_ID || this.state.mapId === TK_BATTLE_MAP_ID)) {
+        this.broadcastTkState();
+      }
+      return ok;
+    });
     inventoryOp<SellMsg>(C2S.sell, (sim, msg) =>
       Array.isArray(msg?.indices)
         ? sellItems(this.world, sim, msg.indices.map(Number))

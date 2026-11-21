@@ -1,8 +1,8 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  applyMapRegistry, combatRulesAt, BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillResourceCost, canPaySkillCost,
+  applyMapRegistry, canAttack, combatPairRules, combatRulesAt, BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillResourceCost, canPaySkillCost,
   tuningOf, weaponOk, weaponTypeOf, autoAuraSkill, autoBuffSkills, isoDistance,
-  type AutoSettings, type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type InventoryMsg, type Item,
+  type AutoSettings, type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type Camp, type InventoryMsg, type Item,
   type SkillDef, type SkillsMsg, type StatsMsg, type TkStateMsg, type TransferMsg, type TeamMsg,
 } from '@vltk/shared';
 import { TeamInviter, type TeamCandidate } from './TeamInviter.js';
@@ -348,6 +348,24 @@ export class BotClient {
       self: () => this.actors().find(a => a.isSelf),
       actors: () => this.actors(),
       safe: () => this.safe(),
+      hostile: target => {
+        const me = this.me(), map = MAPS[this.mapId];
+        if (!me || !map) return false;
+        return canAttack(
+          {
+            kind: 'player', id: this.room?.sessionId ?? '', dead: me.hp <= 0,
+            pk: me.pk ?? 0, camp: (me.camp || 'new') as Camp, team: me.team ?? '',
+            battleCamp: (me.battleCamp || '') as 'tong' | 'kim' | '', protectedUntil: me.protectedUntil ?? 0,
+          },
+          {
+            kind: target.state.kind === 'monster' ? 'monster' : 'player', id: target.id, dead: target.state.hp <= 0,
+            pk: target.state.pk ?? 0, camp: (target.state.camp || 'new') as Camp, team: target.state.team ?? '',
+            battleCamp: (target.state.battleCamp || '') as 'tong' | 'kim' | '', protectedUntil: target.state.protectedUntil ?? 0,
+          },
+          combatPairRules(map, me, target),
+          Date.now(),
+        );
+      },
       prepareCombat: now => this.prepareCombat(now),
       skillAt: slot => {
         if (this.barMounted !== !!this.me()?.mounted) this.layoutBar();

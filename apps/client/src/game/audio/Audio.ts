@@ -28,6 +28,9 @@ class AudioSystem {
   private last = new Map<string, number>();
   private music: HTMLAudioElement | null = null;
   private musicKey = '';
+  private playlistKey = '';
+  private playlist: string[] = [];
+  private playlistIdx = 0;
   private musicVolume = 1;
   private opts: Settings = settings.get();
   /** Who hears: the own character (world px). */
@@ -133,20 +136,58 @@ class AudioSystem {
   playMusic(key: string | undefined, volume = 100): void {
     if (!key) { this.stopMusic(); return; }
     this.musicVolume = volume / 100;
-    if (key === this.musicKey && this.music) { this.music.volume = this.musicLevel(); return; }
+    if (key === this.musicKey && !this.playlistKey && this.music) { this.music.volume = this.musicLevel(); return; }
     this.stopMusic();
+    this.startTrack(key, true);
+  }
+
+  /** Play a shuffled playlist of tracks in sequence (used for Tống Kim battlefield). */
+  playPlaylist(keys: readonly string[], volume = 100): void {
+    if (!keys.length) { this.stopMusic(); return; }
+    const sig = keys.join('|');
+    this.musicVolume = volume / 100;
+    if (sig === this.playlistKey && this.music) { this.music.volume = this.musicLevel(); return; }
+    this.stopMusic();
+    this.playlistKey = sig;
+    this.playlist = [...keys];
+    for (let i = this.playlist.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this.playlist[i], this.playlist[j]] = [this.playlist[j], this.playlist[i]];
+    }
+    this.playlistIdx = 0;
+    this.playPlaylistCurrent();
+  }
+
+  private playPlaylistCurrent(): void {
+    const key = this.playlist[this.playlistIdx];
+    if (!key) return;
+    const el = this.startTrack(key, false);
+    el.onended = () => {
+      if (!this.playlistKey || !this.playlist.length) return;
+      this.playlistIdx = (this.playlistIdx + 1) % this.playlist.length;
+      this.playPlaylistCurrent();
+    };
+  }
+
+  private startTrack(key: string, loop: boolean): HTMLAudioElement {
     const el = new Audio(url(key));
-    el.loop = true;
+    el.loop = loop;
     el.volume = this.musicLevel();
     this.music = el;
     this.musicKey = key;
     void el.play().catch(() => undefined); // starts on the first click if the browser blocks it
+    return el;
   }
 
   stopMusic(): void {
-    this.music?.pause();
+    if (this.music) {
+      this.music.onended = null;
+      this.music.pause();
+    }
     this.music = null;
     this.musicKey = '';
+    this.playlistKey = '';
+    this.playlist = [];
   }
 }
 

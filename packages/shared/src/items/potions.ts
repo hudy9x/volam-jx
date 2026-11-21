@@ -27,7 +27,7 @@ export function potionPumps(def: ItemDef | undefined): PotionPump[] {
 
 /** Has an effect when used (right click / keys 1–9). */
 export const usableItem = (def: ItemDef | undefined): boolean =>
-  potionPumps(def).length > 0 || !!def?.elixir || !!def?.book || def?.kind === 'token' || def?.kind === 'portal';
+  potionPumps(def).length > 0 || !!def?.elixir || !!def?.book || !!def?.tkItem || def?.kind === 'token' || def?.kind === 'portal';
 
 /** Sinh lực or Nội lực a potion gives in all. */
 export const potionTotal = (def: ItemDef | undefined, stat: PotionStat): number =>

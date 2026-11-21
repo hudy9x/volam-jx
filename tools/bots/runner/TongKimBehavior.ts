@@ -1,6 +1,9 @@
 import {
   C2S,
   DEFAULT_BOT_TONGKIM,
+  DROPS,
+  ITEMS,
+  SHOP_ITEMS,
   TK_BATTLE_MAP_ID,
   TK_MAP_LAYOUT,
   TK_SIGNUP_MAP_ID,
@@ -9,7 +12,10 @@ import {
   isInTkSafeCamp,
   isoDistance,
   itemDef,
+  itemQty,
+  potionMs,
   potionTotal,
+  roomFor,
   type BotScenario,
   type TkCamp,
 } from '@vltk/shared';
@@ -45,7 +51,12 @@ export class TongKimBehavior implements Behavior {
   private nextTeleportAt = 0;
   private nextRegisterAt = 0;
   private nextCampExitAt = 0;
-  private nextPotionAt = 0;
+  private nextHpPotionAt = 0;
+  private hpTierLast: 0 | 1 | 2 | 3 = 0;
+  private nextMpPotionAt = 0;
+  private nextBuyAt = 0;
+  private nextPickAt = 0;
+  private pickTried = new Map<string, number>();
   private nextBuffAt = 0;
   private nextMoveAt = 0;
   private nextCastAt = 0;
@@ -88,6 +99,7 @@ export class TongKimBehavior implements Behavior {
 
     // 2. Ở điểm báo danh (323): chờ trận mở -> tự cân bằng phe và báo danh vào 378.
     if (this.bot.mapId === TK_SIGNUP_MAP_ID) {
+      this.restockPotionsInCamp(now);
       const st = this.bot.tkState;
       if (!st || (st.phase !== 'signup' && st.phase !== 'fighting')) return;
       if (now >= this.nextRegisterAt) {
@@ -133,18 +145,14 @@ export class TongKimBehavior implements Behavior {
     if (inCamp) {
       this.lockedTargetId = '';
       this.wpIndex = -1;
+      this.restockPotionsInCamp(now);
       if (!st || st.phase !== 'fighting' || (st.me?.gateWaitSec ?? 0) > 0) return;
       if (now >= this.nextCampExitAt) {
         this.nextCampExitAt = now + 2200 + this.bot.rand() * 800;
-        const scoutRatio = this.sc.tongkim?.exitViaScoutRatio ?? DEFAULT_BOT_TONGKIM.exitViaScoutRatio;
-        if (this.bot.rand() < scoutRatio) {
-          this.bot.send(C2S.tkAction, { op: 'scout' });
-        } else {
-          const p = OUTGOING_PORTAL[myCamp];
-          this.bot.send(C2S.move, { x: p.x, y: p.y });
-          if (isoDistance(me.x, me.y, p.x, p.y) < 150) {
-            this.bot.send(C2S.tkAction, { op: 'exitGate' });
-          }
+        const p = OUTGOING_PORTAL[myCamp];
+        this.bot.send(C2S.move, { x: p.x, y: p.y });
+        if (isoDistance(me.x, me.y, p.x, p.y) < 150) {
+          this.bot.send(C2S.tkAction, { op: 'exitGate' });
         }
       }
       return;
@@ -155,6 +163,8 @@ export class TongKimBehavior implements Behavior {
     // 4. Giao tranh ngoài tiền tuyến: tìm mục tiêu phe địch ưu tiên.
     const scanRadius = this.sc.tongkim?.scanRadius ?? DEFAULT_BOT_TONGKIM.scanRadius;
     const target = this.pickTarget(me, myCamp, scanRadius);
+    // Nhặt vật phẩm Tống Kim rơi trong tầm (song song khi giao tranh) hoặc chạy tới nhặt khi không có địch.
+    if (this.pickupTkDrops(me, now, !!target)) return;
     if (target) {
       if (this.bot.prepareCombat(now)) return;
       const attacks = this.bot.attacks();
@@ -172,23 +182,139 @@ export class TongKimBehavior implements Behavior {
     this.advanceWaypoints(me, myCamp, now);
   }
 
+  private countPotions(stat: 'hp' | 'mp'): number {
+    let total = 0;
+    for (const it of this.bot.bag) {
+      const def = itemDef(it);
+      if (def && potionTotal(def, stat) > 0) total += itemQty(it);
+    }
+    return total;
+  }
+
+  private restockPotionsInCamp(now: number): void {
+    if (now < this.nextBuyAt) return;
+    const needHp = Math.max(0, 12 - this.countPotions('hp'));
+    const needMp = Math.max(0, 6 - this.countPotions('mp'));
+    if (needHp === 0 && needMp === 0) return;
+
+    const tryBuy = (stat: 'hp' | 'mp', want: number): boolean => {
+      if (want <= 0) return false;
+      const budget = Math.floor(this.bot.money * 0.6);
+      const other = stat === 'hp' ? 'mp' : 'hp';
+      const cand = SHOP_ITEMS.drug
+        .filter(d => potionTotal(d, stat) > 0 && potionTotal(d, other) === 0 && d.price > 0 && d.price <= budget)
+        .sort((a, b) => potionTotal(b, stat) - potionTotal(a, stat))[0];
+      if (!cand) return false;
+      const qty = Math.min(want, Math.floor(budget / cand.price));
+      if (qty <= 0) return false;
+      this.nextBuyAt = now + 2500;
+      this.bot.send(C2S.buy, { item: cand.id, count: qty });
+      return true;
+    };
+
+    if (!tryBuy('hp', needHp)) tryBuy('mp', needMp);
+  }
+
   private upkeepPotions(me: any, now: number): void {
-    if (now < this.nextPotionAt) return;
-    const hpThreshold = this.sc.tongkim?.hpHealThreshold ?? DEFAULT_BOT_TONGKIM.hpHealThreshold;
-    const needHp = me.maxHp > 0 && me.hp / me.maxHp < hpThreshold;
-    const needMp = me.maxMp > 0 && me.mp / me.maxMp < 0.35;
+    const baseThreshold = Math.max(0.8, this.sc.tongkim?.hpHealThreshold ?? DEFAULT_BOT_TONGKIM.hpHealThreshold);
+    const hpRatio = me.maxHp > 0 ? me.hp / me.maxHp : 1;
+    const mpRatio = me.maxMp > 0 ? me.mp / me.maxMp : 1;
+
+    // Bơm máu 3 lớp: Lớp 1 (<80%) bơm 1 bình theo nhịp hồi; Lớp 2 (<50%) bơm nhanh (1s); Lớp 3 (<30%) bơm liên tục 2 bình (0.8s).
+    const hpTier: 0 | 1 | 2 | 3 = hpRatio < 0.30 ? 3 : hpRatio < 0.50 ? 2 : hpRatio < baseThreshold ? 1 : 0;
+    if (hpTier === 0) this.hpTierLast = 0;
+    const tierEscalated = hpTier > this.hpTierLast;
+    const needHp = hpTier > 0 && (now >= this.nextHpPotionAt || tierEscalated);
+    const needMp = mpRatio < 0.35 && (now >= this.nextMpPotionAt || mpRatio < 0.18);
     if (!needHp && !needMp) return;
-    for (let i = 0; i < this.bot.bag.length; i++) {
-      const def = itemDef(this.bot.bag[i]);
-      if (!def || def.kind !== 'potion') continue;
-      const healsHp = potionTotal(def, 'hp') > 0;
-      const healsMp = potionTotal(def, 'mp') > 0;
-      if ((needHp && healsHp) || (needMp && healsMp)) {
-        this.nextPotionAt = now + 1200;
-        this.bot.send(C2S.use, { index: i });
+
+    const pickPotion = (stat: 'hp' | 'mp', preferLargest: boolean, skipSlot = -1): { index: number; def: NonNullable<ReturnType<typeof itemDef>>; qty: number } | null => {
+      const missing = stat === 'hp' ? Math.max(1, me.maxHp - me.hp) : Math.max(1, me.maxMp - me.mp);
+      let best: { index: number; def: NonNullable<ReturnType<typeof itemDef>>; qty: number; score: number } | null = null;
+      for (let i = 0; i < this.bot.bag.length; i++) {
+        if (i === skipSlot) continue;
+        const item = this.bot.bag[i];
+        const def = itemDef(item);
+        if (!def) continue;
+        const heal = potionTotal(def, stat);
+        if (heal <= 0) continue;
+        const score = preferLargest
+          ? -heal
+          : heal >= missing ? heal - missing : 1_000_000 - heal;
+        if (!best || score < best.score) {
+          best = { index: i, def, qty: itemQty(item), score };
+        }
+      }
+      return best;
+    };
+
+    if (needHp) {
+      const preferLargest = hpTier >= 2;
+      const first = pickPotion('hp', preferLargest);
+      if (first) {
+        this.hpTierLast = hpTier;
+        const ms = hpTier === 3 ? 800 : hpTier === 2 ? 1000 : Math.max(900, potionMs(first.def) + 250);
+        this.nextHpPotionAt = now + ms;
+        this.bot.send(C2S.use, { index: first.index });
+        if (hpTier === 3) {
+          if (first.qty >= 2) {
+            this.bot.send(C2S.use, { index: first.index });
+          } else {
+            const second = pickPotion('hp', true, first.index);
+            if (second) this.bot.send(C2S.use, { index: second.index });
+          }
+        }
         return;
       }
     }
+
+    if (needMp) {
+      const mp = pickPotion('mp', mpRatio < 0.18);
+      if (mp) {
+        this.nextMpPotionAt = now + Math.max(900, potionMs(mp.def) + 250);
+        this.bot.send(C2S.use, { index: mp.index });
+      }
+    }
+  }
+
+  private pickupTkDrops(me: any, now: number, hasTarget: boolean): boolean {
+    const drops = this.bot.host.drops();
+    let bestInRange: { id: string; dist: number } | null = null;
+    let bestNearby: { id: string; x: number; y: number; dist: number } | null = null;
+
+    for (const d of drops) {
+      if (d.owner && d.owner !== me.id) continue;
+      const triedAt = this.pickTried.get(d.id);
+      if (triedAt && now - triedAt < 2500) continue;
+      const isMoney = d.def === 'money';
+      const def = isMoney ? undefined : ITEMS[d.def];
+      if (!isMoney && (!def || roomFor(this.bot.bag, def, d.q || 1) <= 0)) continue;
+
+      const isTkDrop = d.def.startsWith('tk-') || !!def?.tkItem;
+      const dist = isoDistance(me.x, me.y, d.x, d.y);
+      if (dist <= DROPS.pickupRange && (!bestInRange || dist < bestInRange.dist)) {
+        bestInRange = { id: d.id, dist };
+      } else if (!hasTarget && (isTkDrop || isMoney) && dist <= 480 && (!bestNearby || dist < bestNearby.dist)) {
+        bestNearby = { id: d.id, x: d.x, y: d.y, dist };
+      }
+    }
+
+    if (bestInRange && now >= this.nextPickAt) {
+      this.nextPickAt = now + 450;
+      this.pickTried.set(bestInRange.id, now);
+      if (this.pickTried.size > 200) this.pickTried.clear();
+      this.bot.send(C2S.pickup, { id: bestInRange.id });
+      return false;
+    }
+
+    if (!hasTarget && bestNearby) {
+      if (now >= this.nextMoveAt) {
+        this.nextMoveAt = now + 600;
+        this.bot.send(C2S.move, { x: bestNearby.x, y: bestNearby.y });
+      }
+      return true;
+    }
+    return false;
   }
 
   private upkeepBuffs(me: any, now: number): void {
@@ -234,33 +360,34 @@ export class TongKimBehavior implements Behavior {
 
   private advanceWaypoints(me: any, myCamp: TkCamp, now: number): void {
     const list = myCamp === 'tong' ? TONG_WAYPOINTS : KIM_WAYPOINTS;
-    // Khi mới ra khỏi doanh trại (vd: nhảy thẳng qua Đặc thám ra tiền tuyến), chọn waypoint gần nhất từ giữa bản đồ trở lên để không chạy ngược về Nguyên Soái nhà.
+    const lastIdx = list.length - 1;
+    // Khi mới ra khỏi doanh trại, chọn waypoint tiếp theo hướng thẳng sang phe địch (không quay lùi).
     if (this.wpIndex < 0) {
-      let bestIdx = 2;
+      let bestIdx = 0;
       let bestDist = Infinity;
-      for (let i = 1; i < list.length; i++) {
+      for (let i = 0; i < list.length; i++) {
         const d = isoDistance(me.x, me.y, list[i].x, list[i].y);
         if (d < bestDist) { bestDist = d; bestIdx = i; }
       }
-      this.wpIndex = Math.min(list.length - 1, bestIdx + 1);
+      this.wpIndex = Math.min(lastIdx, bestIdx + 1);
     }
 
-    const wp = list[Math.min(this.wpIndex, list.length - 1)];
+    const wp = list[Math.min(this.wpIndex, lastIdx)];
     const tx = wp.x + this.jitter.x;
     const ty = wp.y + this.jitter.y;
 
     if (isoDistance(me.x, me.y, wp.x, wp.y) < 320) {
-      this.wpIndex = this.wpIndex < list.length - 1 ? this.wpIndex + 1 : 2;
+      this.wpIndex = Math.min(lastIdx, this.wpIndex + 1);
       this.rollJitter();
     }
 
-    // Chống kẹt: nếu tọa độ không đổi quá 3.5 giây -> đổi jitter hoặc chuyển waypoint
+    // Chống kẹt: nếu tọa độ không đổi quá 3.5 giây -> đổi jitter hoặc tiến tiếp tới waypoint kế (không quay ngược).
     if (isoDistance(me.x, me.y, this.lastPos.x, this.lastPos.y) > 25) {
       this.lastPos = { x: me.x, y: me.y, at: now };
     } else if (now - this.lastPos.at > 3500) {
       this.lastPos.at = now;
       this.rollJitter();
-      this.wpIndex = this.wpIndex < list.length - 1 ? this.wpIndex + 1 : 2;
+      this.wpIndex = Math.min(lastIdx, this.wpIndex + 1);
     }
 
     if (now >= this.nextMoveAt) {

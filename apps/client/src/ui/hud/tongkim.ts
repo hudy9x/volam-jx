@@ -28,26 +28,6 @@ function phaseLabel(phase: TkStateMsg['phase']): string {
   }
 }
 
-function victoryIconSvg(): string {
-  return `<svg class="tk-result-svg tk-svg-win" viewBox="0 0 96 96" aria-hidden="true">
-    <circle cx="48" cy="48" r="44" fill="rgba(255, 206, 68, 0.16)" stroke="#ffd659" stroke-width="3"/>
-    <path d="M22 60 L28 32 L41 45 L48 24 L55 45 L68 32 L74 60 Z" fill="#ffd659" stroke="#fff2b2" stroke-width="2" stroke-linejoin="round"/>
-    <rect x="24" y="63" width="48" height="8" rx="3" fill="#e8a825"/>
-    <circle cx="48" cy="21" r="4" fill="#fff2b2"/>
-    <circle cx="27" cy="29" r="3.2" fill="#fff2b2"/>
-    <circle cx="69" cy="29" r="3.2" fill="#fff2b2"/>
-  </svg>`;
-}
-
-function defeatIconSvg(): string {
-  return `<svg class="tk-result-svg tk-svg-lose" viewBox="0 0 96 96" aria-hidden="true">
-    <circle cx="48" cy="48" r="44" fill="rgba(224, 72, 58, 0.16)" stroke="#e65c4f" stroke-width="3"/>
-    <path d="M48 18 L72 28 V48 C72 63 61 73 48 79 C35 73 24 63 24 48 V28 Z" fill="rgba(160, 42, 34, 0.85)" stroke="#ff8a7a" stroke-width="2.5" stroke-linejoin="round"/>
-    <path d="M47 22 L42 40 L53 49 L44 63 L50 76" fill="none" stroke="#1a1414" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M47 22 L42 40 L53 49 L44 63 L50 76" fill="none" stroke="#ffd2c9" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>`;
-}
-
 function drawIconSvg(): string {
   return `<svg class="tk-result-svg tk-svg-draw" viewBox="0 0 96 96" aria-hidden="true">
     <circle cx="48" cy="48" r="44" fill="rgba(170, 196, 224, 0.15)" stroke="#b7cbe0" stroke-width="3"/>
@@ -62,19 +42,16 @@ function drawIconSvg(): string {
  */
 export class TongKimHud {
   private readonly toggleBtn: HTMLButtonElement;
-  private readonly dialog: HTMLElement;
   private readonly boardModal: HTMLElement;
   private readonly endModal: HTMLElement;
   private mapId = 0;
   private send: ((msg: TkActionMsg) => void) | null = null;
   private panelOpen = false;
-  private boardOpen = false;
   private unsub: () => void;
   private readonly onKeyDown: (e: KeyboardEvent) => void;
 
   constructor(parent: HTMLElement) {
     this.toggleBtn = mount(parent, '<button type="button" id="tk-toggle" class="hidden" title="Bật/tắt bảng Tống Kim (phím `)">Tống Kim (`)</button>') as HTMLButtonElement;
-    this.dialog = mount(parent, '<div id="tk-hud" class="hidden"></div>');
     this.boardModal = mount(parent, '<div id="tk-board" class="hidden"></div>');
     this.endModal = mount(parent, '<div id="tk-end" class="hidden"></div>');
 
@@ -82,10 +59,14 @@ export class TongKimHud {
       this.panelOpen = !this.panelOpen;
       this.render();
     });
-    this.dialog.addEventListener('click', e => this.onClick(e));
     this.boardModal.addEventListener('click', e => {
-      const btn = (e.target as HTMLElement | null)?.closest<HTMLElement>('[data-tk-close]');
-      if (btn) { this.boardOpen = false; this.boardModal.classList.add('hidden'); }
+      const target = e.target as HTMLElement | null;
+      if (target === this.boardModal || target?.closest('[data-tk-close]')) {
+        this.panelOpen = false;
+        this.render();
+        return;
+      }
+      this.onClick(e);
     });
     this.endModal.addEventListener('click', e => {
       const btn = (e.target as HTMLElement | null)?.closest<HTMLElement>('[data-tk-end-close]');
@@ -113,7 +94,6 @@ export class TongKimHud {
     this.send = send;
     // Ở map báo danh (323) mở sẵn để dễ thao tác; ở map chiến trường (378) thu gọn, nhấn phím ` để bật/tắt.
     this.panelOpen = mapId === TK_SIGNUP_MAP_ID;
-    this.boardOpen = false;
     this.boardModal.classList.add('hidden');
     this.endModal.classList.add('hidden');
     this.render();
@@ -122,7 +102,6 @@ export class TongKimHud {
   hide(): void {
     this.mapId = 0;
     this.toggleBtn.classList.add('hidden');
-    this.dialog.classList.add('hidden');
     this.boardModal.classList.add('hidden');
     this.endModal.classList.add('hidden');
   }
@@ -131,7 +110,6 @@ export class TongKimHud {
     window.removeEventListener('keydown', this.onKeyDown);
     this.unsub();
     this.toggleBtn.remove();
-    this.dialog.remove();
     this.boardModal.remove();
     this.endModal.remove();
   }
@@ -140,16 +118,6 @@ export class TongKimHud {
     const btn = (e.target as HTMLElement | null)?.closest<HTMLElement>('[data-tk-act]');
     if (!btn || !this.send) return;
     const act = btn.dataset.tkAct;
-    if (act === 'closePanel') {
-      this.panelOpen = false;
-      this.render();
-      return;
-    }
-    if (act === 'board') {
-      this.boardOpen = !this.boardOpen;
-      this.renderBoard();
-      return;
-    }
     if (act === 'scout') this.send({ op: 'scout' });
     else if (act === 'exitGate') this.send({ op: 'exitGate' });
     else if (act === 'leave') this.send({ op: 'leave' });
@@ -165,7 +133,6 @@ export class TongKimHud {
     const st = tkState.get();
     if (!activeMap || !st) {
       this.toggleBtn.classList.add('hidden');
-      this.dialog.classList.add('hidden');
       this.boardModal.classList.add('hidden');
       this.endModal.classList.add('hidden');
       return;
@@ -182,14 +149,11 @@ export class TongKimHud {
       : 'Tống Kim (`)';
 
     if (!this.panelOpen) {
-      this.dialog.classList.add('hidden');
+      this.boardModal.classList.add('hidden');
     } else {
-      this.dialog.classList.remove('hidden');
+      this.boardModal.classList.remove('hidden');
 
       const actions: string[] = [];
-      if (st.phase !== 'closed') {
-        actions.push(`<button type="button" class="tk-btn" data-tk-act="board">Top 10</button>`);
-      }
       if (isBattle && st.phase === 'fighting' && me?.inCamp) {
         actions.push(`<button type="button" class="tk-btn tk-btn-go" data-tk-act="scout">Ra tiền tuyến</button>`);
         actions.push(`<button type="button" class="tk-btn" data-tk-act="exitGate">${me.gateWaitSec > 0 ? `Cổng (${me.gateWaitSec}s)` : 'Qua cổng'}</button>`);
@@ -226,27 +190,54 @@ export class TongKimHud {
         ? `<div class="tk-marshal">Nguyên Soái: <b class="tk-camp-tong">Tống ${st.tongMarshalAlive ? 'Còn' : 'Tử'}</b> · <b class="tk-camp-kim">Kim ${st.kimMarshalAlive ? 'Còn' : 'Tử'}</b></div>`
         : '';
 
-      this.dialog.innerHTML = `
-        <div class="tk-top">
-          <span class="tk-title">Tống Kim · ${st.phase === 'closed' ? phaseLabel(st.phase) : `${TK_MODE_NAMES[st.mode]} · ${phaseLabel(st.phase)}`}</span>
-          <div class="tk-top-right">
-            ${st.phase !== 'closed' ? `<span class="tk-clock">${fmtTime(st.remainSec)}</span>` : ''}
-            <button type="button" class="tk-x" data-tk-act="closePanel" title="Ẩn (phím \`)">×</button>
+      const rows = st.top10.length
+        ? st.top10.map(r => `
+          <tr>
+            <td>#${r.rankPos}</td>
+            <td class="tk-camp-${r.camp}">${r.name}</td>
+            <td>${tkTitleOf(r.camp, r.rank)}</td>
+            <td><b>${r.points.toLocaleString('vi-VN')}</b></td>
+            <td>${r.kills}/${r.deaths}</td>
+            <td>${r.npcKills}</td>
+            <td>${r.maxStreak}</td>
+          </tr>`).join('')
+        : '<tr><td colspan="7" class="tk-empty">Chưa có chiến công nào.</td></tr>';
+
+      const boardSection = st.phase !== 'closed'
+        ? `<div class="tk-board-rank">
+            <div class="tk-board-subhead">Bảng xếp hạng Chiến trường Tống Kim #${st.matchId}</div>
+            <table class="tk-table">
+              <thead><tr><th>Hạng</th><th>Nhân vật</th><th>Quân hàm</th><th>Điểm</th><th>PK</th><th>NPC</th><th>Max LT</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`
+        : '';
+
+      this.boardModal.innerHTML = `
+        <div class="tk-board-box">
+          <div class="tk-board-summary">
+            <div class="tk-board-head">
+              <span>Tống Kim · ${st.phase === 'closed' ? phaseLabel(st.phase) : `${TK_MODE_NAMES[st.mode]} · ${phaseLabel(st.phase)}`}</span>
+              <div class="tk-top-right">
+                ${st.phase !== 'closed' ? `<span class="tk-clock">${fmtTime(st.remainSec)}</span>` : ''}
+                <button type="button" class="tk-btn" data-tk-close="1">Đóng</button>
+              </div>
+            </div>
+            ${st.phase !== 'closed' ? `
+            <div class="tk-scores">
+              <span class="tk-camp-tong">Tống (${st.tongCount}): <b>${st.tongScore.toLocaleString('vi-VN')}</b></span>
+              <span class="tk-vs">VS</span>
+              <span class="tk-camp-kim">Kim (${st.kimCount}): <b>${st.kimScore.toLocaleString('vi-VN')}</b></span>
+            </div>` : ''}
+            ${marshalRow}
+            ${meRow}
+            ${actions.length ? `<div class="tk-actions">${actions.join('')}</div>` : ''}
           </div>
+          ${boardSection}
         </div>
-        ${st.phase !== 'closed' ? `
-        <div class="tk-scores">
-          <span class="tk-camp-tong">Tống (${st.tongCount}): <b>${st.tongScore.toLocaleString('vi-VN')}</b></span>
-          <span class="tk-vs">VS</span>
-          <span class="tk-camp-kim">Kim (${st.kimCount}): <b>${st.kimScore.toLocaleString('vi-VN')}</b></span>
-        </div>` : ''}
-        ${marshalRow}
-        ${meRow}
-        <div class="tk-actions">${actions.join('')}</div>
       `;
     }
 
-    if (this.boardOpen) this.renderBoard();
     this.renderEndDialog(st, isBattle);
   }
 
@@ -263,7 +254,9 @@ export class TongKimHud {
     const winScore = winCamp === 'tong' ? st.tongScore : winCamp === 'kim' ? st.kimScore : Math.max(st.tongScore, st.kimScore);
     const headline = isDraw ? 'TRẬN ĐẤU HÒA' : isWin ? 'CHIẾN THẮNG!' : 'THẤT BẠI';
     const headCls = isDraw ? 'tk-res-draw' : isWin ? 'tk-res-win' : 'tk-res-lose';
-    const icon = isDraw ? drawIconSvg() : isWin ? victoryIconSvg() : defeatIconSvg();
+    const icon = isDraw
+      ? drawIconSvg()
+      : `<img class="tk-end-badge" src="${isWin ? '/assets/ui/tk-win-badge.webp' : '/assets/ui/tk-lose-badge.webp'}" alt="${headline}">`;
     const myRankTitle = myCamp && st.me?.rank ? tkTitleOf(myCamp as TkCamp, st.me.rank) : '';
 
     this.endModal.innerHTML = `
@@ -291,40 +284,6 @@ export class TongKimHud {
         <div class="tk-end-foot">
           <button type="button" class="tk-btn tk-btn-go tk-end-close-btn" data-tk-end-close="1">Đóng (Về điểm báo danh)</button>
         </div>
-      </div>
-    `;
-  }
-
-  private renderBoard(): void {
-    const st = tkState.get();
-    if (!this.boardOpen || !st) {
-      this.boardModal.classList.add('hidden');
-      return;
-    }
-    this.boardModal.classList.remove('hidden');
-    const rows = st.top10.length
-      ? st.top10.map(r => `
-        <tr>
-          <td>#${r.rankPos}</td>
-          <td class="tk-camp-${r.camp}">${r.name}</td>
-          <td>${tkTitleOf(r.camp, r.rank)}</td>
-          <td><b>${r.points.toLocaleString('vi-VN')}</b></td>
-          <td>${r.kills}/${r.deaths}</td>
-          <td>${r.npcKills}</td>
-          <td>${r.maxStreak}</td>
-        </tr>`).join('')
-      : '<tr><td colspan="7" class="tk-empty">Chưa có chiến công nào.</td></tr>';
-
-    this.boardModal.innerHTML = `
-      <div class="tk-board-box">
-        <div class="tk-board-head">
-          <span>Bảng xếp hạng Chiến trường Tống Kim #${st.matchId}</span>
-          <button type="button" class="tk-btn" data-tk-close="1">Đóng</button>
-        </div>
-        <table class="tk-table">
-          <thead><tr><th>Hạng</th><th>Nhân vật</th><th>Quân hàm</th><th>Điểm</th><th>PK</th><th>NPC</th><th>Max LT</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
       </div>
     `;
   }

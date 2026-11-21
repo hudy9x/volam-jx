@@ -5,6 +5,8 @@ import {
   TK_CAMP_KICK_SEC,
   TK_CAMP_NAMES,
   TK_DEFAULT_TIMING,
+  TK_DROP_COMMON_IDS,
+  TK_DROP_OFFICER_IDS,
   TK_EXP_PER_ACCUM,
   TK_GATE_WAIT_SEC,
   TK_MAP_LAYOUT,
@@ -18,7 +20,10 @@ import {
   TK_SIGNUP_FEE,
   TK_SIGNUP_MAP_ID,
   addToBag,
+  createItem,
   getSkill,
+  isInTkSafeCamp,
+  isoDistance,
   maxLevelOf,
   nearestWalkable,
   tkHomeCampAt,
@@ -27,6 +32,7 @@ import {
   tkTitleOf,
   type Element,
   type Item,
+  type ItemDef,
   type MonsterDef,
   type Portal,
   type TkActionMsg,
@@ -44,7 +50,10 @@ import { Actor } from '../net/schema.js';
 import { BASIC_ATTACK, makeSim, type Sim } from './entity.js';
 import { gainExp, refreshStats } from './progress.js';
 import { revive } from './players.js';
+import { dropBattleItem } from './systems/drops.js';
 import { refreshMonsterCombat } from './systems/effects.js';
+import { drinkPotion } from './systems/potions.js';
+import { addState } from './systems/status.js';
 import type { World } from './World.js';
 
 interface TkPlayerEntry {
@@ -184,6 +193,7 @@ class TongKimManager {
   private npcsSpawned = false;
   private lastScheduleMinuteKey = '';
   private rewardsGranted = false;
+  private clarionUses: Record<TkCamp, number> = { tong: 0, kim: 0 };
 
   get currentPhase(): TkPhase { return this.phase; }
   get currentMatchId(): number { return this.matchId; }
@@ -239,6 +249,7 @@ class TongKimManager {
     this.npcRespawns = [];
     this.npcsSpawned = false;
     this.rewardsGranted = false;
+    this.clarionUses = { tong: 0, kim: 0 };
     return {
       ok: true,
       matchId: this.matchId,
@@ -343,8 +354,14 @@ class TongKimManager {
     if (!sim.charId) return false;
     const entry = this.entries.get(sim.charId);
     if (!entry || this.phase === 'closed') {
-      w.hooks.notify(sim, 'Chiến trường Tống Kim chưa mở hoặc bạn chưa báo danh.');
-      w.hooks.transfer(sim, TK_SIGNUP_MAP_ID, TK_SIGNUP_ENTRY.tong.x, TK_SIGNUP_ENTRY.tong.y);
+      const char = db.getCharacter(sim.charId);
+      const destId = char?.tkCampLast ? TK_SIGNUP_MAP_ID : 78;
+      const destPos = char?.tkCampLast ? TK_SIGNUP_ENTRY[char.tkCampLast] : { x: 12800, y: 8960 };
+      setTimeout(() => {
+        if (!w.sims.has(sim.id)) return;
+        w.hooks.notify(sim, 'Chiến trường Tống Kim đã kết thúc hoặc bạn chưa báo danh.');
+        w.hooks.transfer(sim, destId, destPos.x, destPos.y);
+      }, 250);
       return false;
     }
     entry.online = true;
@@ -445,7 +462,12 @@ class TongKimManager {
       return { ok: false, message: `Cần chờ thêm ${Math.ceil(waitMs / 1000)} giây mới có thể xuất trận qua cổng.` };
     }
     const target = TK_MAP_LAYOUT[entry.camp].gateExit;
-    const [x, y] = nearestWalkable(w.grid, target.x, target.y);
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 200 + Math.random() * 100;
+    let [x, y] = nearestWalkable(w.grid, Math.round(target.x + Math.cos(angle) * dist), Math.round(target.y + Math.sin(angle) * dist));
+    if (isInTkSafeCamp(TK_BATTLE_MAP_ID, x, y)) {
+      [x, y] = nearestWalkable(w.grid, target.x, target.y);
+    }
     sim.a.x = x;
     sim.a.y = y;
     sim.path = [];
@@ -671,6 +693,32 @@ class TongKimManager {
         const killerName = killer?.a.name ?? `phe ${TK_CAMP_NAMES[winCamp]}`;
         this.finishMatch(w, winCamp, `${target.a.name} đã bị ${killerName} hạ gục! Phe ${TK_CAMP_NAMES[winCamp]} đại thắng!`, w.now);
       } else {
+        // Rơi vật phẩm chiến trường khi hạ binh sĩ/tướng phe địch (không rơi trang bị/bạc)
+        if (creditPlayer) {
+          const dropPool = (role === 'commander' || role === 'deputy' || role === 'general')
+            ? TK_DROP_OFFICER_IDS
+            : TK_DROP_COMMON_IDS;
+          const dropChance = role === 'general' ? 1.0
+            : (role === 'commander' || role === 'deputy') ? 0.85
+            : role === 'captain' ? 0.65
+            : 0.45;
+          const dropCount = role === 'general' ? 2 : (role === 'commander' || role === 'deputy') && Math.random() < 0.4 ? 2 : 1;
+          if (Math.random() < dropChance) {
+            for (let di = 0; di < dropCount; di++) {
+              const dropId = dropPool[Math.floor(Math.random() * dropPool.length)];
+              const def = ITEMS[dropId];
+              if (def) {
+                dropBattleItem(
+                  w,
+                  target.a.x + (di ? 28 : 0),
+                  target.a.y + (di ? 14 : 0),
+                  createItem(def, `tkd-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`),
+                  creditPlayer.id,
+                );
+              }
+            }
+          }
+        }
         const respawnMs = TK_NPC_STATS[role].respawnMs;
         if (respawnMs > 0 && target.home) {
           this.npcRespawns.push({ camp: npcCamp, role, x: target.home.x, y: target.home.y, respawnAt: w.now + respawnMs });
@@ -679,6 +727,69 @@ class TongKimManager {
       return true;
     }
 
+    return false;
+  }
+
+  /** Sử dụng vật phẩm Tống Kim (18 Hoàn, Chiến Cổ, Lệnh Bài, Hiệu Phù, Càn Khôn Tạo Hóa Đan, Bí Bảo). */
+  useBattleItem(w: World, sim: Sim, def: ItemDef): boolean {
+    const eff = def.tkItem;
+    if (!eff) return false;
+    if (eff.kind === 'bibao') {
+      if (!sim.charId) return false;
+      const char = db.getCharacter(sim.charId);
+      if (!char) return false;
+      const bonus = eff.minAccum + Math.floor(Math.random() * (eff.maxAccum - eff.minAccum + 1));
+      db.updateCharacter(sim.charId, { tkAccum: (char.tkAccum ?? 0) + bonus });
+      w.hooks.notify(sim, `Mở ${def.name}: nhận +${bonus} điểm tích lũy Tống Kim!`);
+      w.hooks.log(sim, 'item', `Mở ${def.name}: +${bonus} điểm tích lũy Tống Kim.`);
+      return true;
+    }
+    if (w.meta.id !== TK_BATTLE_MAP_ID) {
+      w.hooks.notify(sim, `${def.name} chỉ có thể sử dụng trong Chiến trường Tống Kim.`);
+      return false;
+    }
+    if (eff.kind === 'battlePotion') {
+      drinkPotion(sim, def);
+      return true;
+    }
+    if (eff.kind === 'buff') {
+      const myCamp = sim.a.battleCamp;
+      if (eff.aoeRadius && myCamp) {
+        let count = 0;
+        for (const ally of w.sims.values()) {
+          if (ally.dead || ally.a.battleCamp !== myCamp) continue;
+          if (isoDistance(sim.a.x, sim.a.y, ally.a.x, ally.a.y) <= eff.aoeRadius) {
+            addState(w, ally, { skill: eff.stateId, kind: 'buff', ms: eff.durationMs, by: sim.id, attrs: eff.attrs });
+            count++;
+          }
+        }
+        w.hooks.notify(sim, `Kích hoạt ${def.name} (+3 phút cho ${count} đồng đội)!`);
+      } else {
+        addState(w, sim, { skill: eff.stateId, kind: 'buff', ms: eff.durationMs, by: sim.id, attrs: eff.attrs });
+        w.hooks.notify(sim, `Đã dùng ${def.name} (hiệu lực 3 phút).`);
+      }
+      return true;
+    }
+    if (eff.kind === 'clarion') {
+      const myCamp = sim.a.battleCamp;
+      if (myCamp !== 'tong' && myCamp !== 'kim') return false;
+      if (this.phase !== 'fighting') {
+        w.hooks.notify(sim, 'Chỉ có thể gọi binh sĩ chi viện khi trận đấu đang giao chiến.');
+        return false;
+      }
+      if (this.clarionUses[myCamp] >= 20) {
+        w.hooks.notify(sim, `Phe ${TK_CAMP_NAMES[myCamp]} đã dùng tối đa 20 lần Binh Sĩ Hiệu Phù trong trận này.`);
+        return false;
+      }
+      this.clarionUses[myCamp]++;
+      for (let i = 0; i < eff.count; i++) {
+        const ox = (i === 0 ? -45 : 45);
+        const [sx, sy] = nearestWalkable(w.grid, sim.a.x + ox, sim.a.y + 20);
+        this.spawnOneNpc(w, myCamp, 'soldier', sx, sy);
+      }
+      w.hooks.notify(sim, `Đã triệu hồi ${eff.count} Binh sĩ chi viện (${this.clarionUses[myCamp]}/20)!`);
+      return true;
+    }
     return false;
   }
 

@@ -174,6 +174,11 @@ export function throwItem(w: World, sim: Sim, item: Item): void {
   put(w, sim.a.x, sim.a.y, 1 + Math.floor(Math.random() * 6), 1, item, 0, sim.id, sim.a.team ?? '');
 }
 
+/** Rơi vật phẩm chiến trường Tống Kim (không rơi tiền/trang bị). */
+export function dropBattleItem(w: World, x: number, y: number, item: Item, owner: string): void {
+  put(w, x, y, 0, 1, item, 0, owner, '');
+}
+
 /** Every tick: remove drops whose time is over; open them to everyone after the owner time. */
 export function updateDrops(w: World): void {
   for (const [id, d] of w.ground) {

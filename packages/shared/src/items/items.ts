@@ -10,6 +10,7 @@ import { EXTRA_ITEMS } from './extra-items.js';
 import { BOOK_ITEMS, CANKHON_RING, TOKEN_ITEM, TOWN_PORTAL_ITEM, type BookEffect } from './books.js';
 import { ELIXIR_ITEMS, type ExpElixirEffect } from './elixirs.js';
 import { MANTLE_ITEMS } from './mantles.js';
+import { TK_ALL_ITEMS, type TkItemEffect } from './tongkim-items.js';
 import { MAX_BAG_POTIONS, POTION_STACK_MAX, resolveMaxStack } from './stack-config.js';
 import type { Gender } from '../characters/factions.js';
 import type { MagicLine } from './magic.js';
@@ -57,6 +58,10 @@ export type ItemDef = GenItem & {
   maxStack?: number;
   /** Optional Kỳ Trân Các price in KNB (Kim nguyên bảo) instead of silver (`price`). */
   knbPrice?: number;
+  /** Optional Quân Nhu Quan price in Tống Kim accumulated points (`tkAccum`). */
+  tkAccumPrice?: number;
+  /** Optional Tống Kim battlefield item effect. */
+  tkItem?: TkItemEffect;
 };
 
 /** Horses are items too (same id as in HORSES); `look` = horse part row. */
@@ -66,7 +71,7 @@ const HORSE_ITEMS: ItemDef[] = GEN_HORSES.map(h => ({
 }));
 
 export const ITEMS: Record<string, ItemDef> = Object.fromEntries(
-  [...GEN_ITEMS, ...EXTRA_ITEMS, ...HORSE_ITEMS, ...GEN_GOLD.filter(it => !EXCLUDED_GOLD_IDS.has(it.id)), ...EXTRA_GOLD, ...MANTLE_ITEMS, ...ELIXIR_ITEMS, ...BOOK_ITEMS, TOKEN_ITEM, CANKHON_RING, TOWN_PORTAL_ITEM].map(it => [it.id, it]),
+  [...GEN_ITEMS, ...EXTRA_ITEMS, ...HORSE_ITEMS, ...GEN_GOLD.filter(it => !EXCLUDED_GOLD_IDS.has(it.id)), ...EXTRA_GOLD, ...MANTLE_ITEMS, ...ELIXIR_ITEMS, ...BOOK_ITEMS, ...TK_ALL_ITEMS, TOKEN_ITEM, CANKHON_RING, TOWN_PORTAL_ITEM].map(it => [it.id, it]),
 );
 export const ITEM_LIST: ItemDef[] = Object.values(ITEMS);
 

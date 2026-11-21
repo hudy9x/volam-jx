@@ -313,6 +313,7 @@ export class Hud implements WorldUi {
       case 'shop': this.shop.toggle('smith', open); break;
       case 'drugstore': this.shop.toggle('drug', open); break;
       case 'kytran': this.shop.toggle('kytran', open); break;
+      case 'tkshop': this.shop.toggle('tongkim', open); break;
       case 'horse-shop': this.horseShop.toggle(open); break;
       case 'system': this.system.toggle(open); break;
       case 'team': this.team.toggle(open); break;

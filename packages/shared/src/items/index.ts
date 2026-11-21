@@ -14,6 +14,7 @@ export * from './gold.js';
 export * from './books.js';
 export * from './elixirs.js';
 export * from './mantles.js';
+export * from './tongkim-items.js';
 export * from './token.js';
 export * from './gold.gen.js';
 export * from './ground-objs.gen.js';

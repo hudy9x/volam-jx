@@ -99,6 +99,11 @@ icons.set('\\spr\\item\\questkey\\obj_item_lection02.spr', 'items/obj_item_lecti
 icons.set('\\spr\\item\\questkey\\taskobj126.spr', 'items/taskobj126');
 // Thổ Địa Phù vĩnh cửu (packages/shared/src/items/books.ts): townportal.txt sprite.
 icons.set('\\spr\\item\\special\\obj_townportal.spr', 'items/obj_townportal');
+// Vật phẩm Tống Kim (packages/shared/src/items/tongkim-items.ts): Chiến Cổ, Lệnh Bài, Hiệu Phù, Bí Bảo.
+icons.set('\\spr\\item\\songjin\\wardrum.spr', 'items/tk-wardrum');
+icons.set('\\spr\\item\\songjin\\token.spr', 'items/tk-token');
+icons.set('\\spr\\item\\songjin\\clarion.spr', 'items/tk-clarion');
+icons.set('\\spr\\item\\script\\songjinmibao.spr', 'items/tk-bibao');
 
 console.log(`looks borrowed from ordinary pieces: ${fallbackLooks}`);
 let written = 0;

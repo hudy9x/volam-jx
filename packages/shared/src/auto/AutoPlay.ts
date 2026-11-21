@@ -1,3 +1,4 @@
+import { canAttack, type Camp } from '../combat/rules.js';
 import { botTradeReasons } from '../bots/social.js';
 import { DROPS } from '../formulas/tuning.js';
 import { isoDistance } from '../geometry.js';
@@ -32,6 +33,11 @@ export interface AutoActorState {
   sprite: string;
   /** Players: team id ('' = none). */
   team?: string;
+  /** Players: PK mode, camp, Tống Kim battleCamp. */
+  pk?: number;
+  camp?: string;
+  battleCamp?: string;
+  protectedUntil?: number;
   /** Bùa lợi / bùa hại (skill ids) on it. */
   states?: Iterable<number>;
   /** Target of the latest attack actually started by the server (not a queued approach). */
@@ -63,6 +69,8 @@ export interface AutoHost {
   actors(): Iterable<AutoActor>;
   /** Town / safe map: no fighting. */
   safe(): boolean;
+  /** Optional host-authoritative hostility check (safe zones, battleCamp, PK rules). */
+  hostile?(target: AutoActor): boolean;
   /** Optional bot preparation (e.g. awaiting dismount); vitals and emergency travel still run first. */
   prepareCombat?(now: number): boolean;
   /** Skill in a bar slot ('left' or key 0–8), null if empty / unknown. */
@@ -653,14 +661,41 @@ export class AutoPlay {
     return undefined;
   }
 
-  private candidate(v: AutoActor, opts: Settings, now: number): boolean {
-    if (v.isSelf || v.state.kind !== 'monster' || v.state.hp <= 0 || DUMMY_SPRITES.has(v.state.sprite)) return false;
-    if (opts.autoSkipBoss && v.state.boss) return false;
-    if (opts.autoPriority === 'blue' && Number(v.state.boss) >= 2) return false;
-    return (this.bans.get(v.id) ?? 0) <= now;
+  private isHostilePlayer(v: AutoActor, self: AutoActor | undefined): boolean {
+    if (this.host.hostile) return this.host.hostile(v);
+    if (!self) return false;
+    return canAttack(
+      {
+        kind: 'player', id: self.id, dead: self.state.hp <= 0,
+        pk: self.state.pk ?? 0, camp: (self.state.camp || 'new') as Camp,
+        team: self.state.team ?? '', battleCamp: (self.state.battleCamp || '') as 'tong' | 'kim' | '',
+        protectedUntil: self.state.protectedUntil ?? 0,
+      },
+      {
+        kind: 'player', id: v.id, dead: v.state.hp <= 0,
+        pk: v.state.pk ?? 0, camp: (v.state.camp || 'new') as Camp,
+        team: v.state.team ?? '', battleCamp: (v.state.battleCamp || '') as 'tong' | 'kim' | '',
+        protectedUntil: v.state.protectedUntil ?? 0,
+      },
+      { safe: this.host.safe(), pvp: true },
+      Date.now(),
+    );
   }
 
-  /** Rank nearby enemies first. A travel destination is replaceable; a confirmed fight is not. */
+  private candidate(v: AutoActor, opts: Settings, now: number, self = this.host.self()): boolean {
+    if (v.isSelf || v.state.hp <= 0 || DUMMY_SPRITES.has(v.state.sprite)) return false;
+    if ((this.bans.get(v.id) ?? 0) > now) return false;
+    if (v.state.kind === 'player') {
+      return !!opts.autoPk && this.isHostilePlayer(v, self);
+    }
+    if (v.state.kind !== 'monster') return false;
+    if (self?.state.battleCamp && v.state.battleCamp && self.state.battleCamp === v.state.battleCamp) return false;
+    if (opts.autoSkipBoss && v.state.boss) return false;
+    if (opts.autoPriority === 'blue' && Number(v.state.boss) >= 2) return false;
+    return true;
+  }
+
+  /** Rank nearby enemies first (enemy players outrank all monsters/bosses when autoPk is on). */
   private pickTarget(now: number, self: AutoActor, radius: number, opts: Settings): AutoActor | undefined {
     if (this.focusPriority !== opts.autoPriority) {
       this.focus = this.engaged = null;
@@ -669,22 +704,25 @@ export class AutoPlay {
     }
     if (this.manualFocus) {
       const manual = this.find(this.manualFocus);
-      if (manual && !manual.isSelf && manual.state.kind === 'monster' && manual.state.hp > 0) return manual;
+      const validManual = manual && !manual.isSelf && manual.state.hp > 0
+        && (manual.state.kind === 'monster' || (manual.state.kind === 'player' && this.isHostilePlayer(manual, self)));
+      if (validManual) return manual;
       this.manualFocus = null;
     }
     const anchor = this.anchor!;
     let cur = this.focus ? this.find(this.focus) : undefined;
-    if (cur && !this.candidate(cur, opts, now)) cur = undefined;
+    if (cur && !this.candidate(cur, opts, now, self)) cur = undefined;
     if (cur && radius !== Infinity && isoDistance(anchor.x, anchor.y, cur.x, cur.y) > radius * 1.5) cur = undefined;
     if (!cur) this.engaged = null;
     if (cur && this.engaged === cur.id) return cur;
     let local: AutoActor | undefined, localD = Infinity, localRank = -1;
     let far: AutoActor | undefined, farD = Infinity, farRank = -1;
     for (const v of this.host.actors()) {
-      if (!this.candidate(v, opts, now)) continue;
+      if (!this.candidate(v, opts, now, self)) continue;
       if (radius !== Infinity && isoDistance(anchor.x, anchor.y, v.x, v.y) > radius) continue;
       const d = isoDistance(self.x, self.y, v.x, v.y);
-      const rank = opts.autoPriority === 'near' ? 0 : Number(v.state.boss);
+      // Đánh người có độ ưu tiên (10) cao hơn mọi loại quái & boss (0..2).
+      const rank = v.state.kind === 'player' ? 10 : opts.autoPriority === 'near' ? 0 : Number(v.state.boss);
       if (d <= AUTO_NEAR_RADIUS) {
         if (rank > localRank || rank === localRank && d < localD) { local = v; localD = d; localRank = rank; }
       } else if (rank > farRank || rank === farRank && d < farD) { far = v; farD = d; farRank = rank; }
@@ -711,9 +749,13 @@ export class AutoPlay {
   private wanted(d: AutoDrop, opts: Settings): boolean {
     if (d.def === 'money') return opts.autoMoney;
     if (!opts.autoPickup) return false;
-    if (opts.autoLoot === 'money') return false;
-    if (opts.autoLoot === 'magic' && d.q < QUALITY.magic) return false;
-    return this.canFitOrSort(itemDef({ def: d.def, uid: d.id }), opts).fits;
+    const def = itemDef({ def: d.def, uid: d.id });
+    // Vật phẩm Tống Kim (Hoàn, Chiến Cổ, Lệnh Bài, Bí Bảo...) có q = 0 nhưng vẫn cần nhặt khi bật Tự nhặt đồ.
+    if (!def?.tkItem) {
+      if (opts.autoLoot === 'money') return false;
+      if (opts.autoLoot === 'magic' && d.q < QUALITY.magic) return false;
+    }
+    return this.canFitOrSort(def, opts).fits;
   }
 
   private canTake(d: AutoDrop, self: AutoActor): boolean {

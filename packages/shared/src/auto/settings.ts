@@ -4,6 +4,8 @@ export interface AutoSettings {
   /** Bán kính quanh chỗ bắt đầu, bỏ qua boss, tự dùng bùa lợi đã học và duy trì hào quang, quay về chỗ cũ khi hết quái. */
   autoRadius: number;
   autoSkipBoss: boolean;
+  /** Tự động đánh người chơi địch (ưu tiên cao hơn quái/boss). */
+  autoPk: boolean;
   autoBuff: boolean;
   autoReturn: boolean;
   /** Tự tìm quái ở xa khi quanh đây hết quái; tự nhặt đồ / tiền rơi. */
@@ -46,7 +48,7 @@ export interface AutoSettings {
 }
 
 export const DEFAULT_AUTO: AutoSettings = {
-  autoRadius: 500, autoSkipBoss: false, autoBuff: true, autoReturn: true, autoSeek: true, autoPickup: true, autoSort: true,
+  autoRadius: 500, autoSkipBoss: false, autoPk: false, autoBuff: true, autoReturn: true, autoSeek: true, autoPickup: true, autoSort: true,
   autoPriority: 'boss', autoRotate: true, autoCurse: true, autoMap: true, autoReturnTraining: true, autoRevive: true, autoBuyPotion: true, autoJunk: true,
   autoMoney: true, autoLootPriority: false, autoSellBlue: false, autoSellAllBlue: false, autoKeepValuable: true,
   autoLoot: 'all', autoHp: 50, autoMp: 20, autoReachPct: 60, autoMeleeClose: true,

@@ -14,6 +14,8 @@ import { updateSpeed } from './systems/movement.js';
 import { drinkPotion } from './systems/potions.js';
 import { refreshStats, useBook, viewerOf } from './progress.js';
 import { throwItem } from './systems/drops.js';
+import { db } from '../account/db.js';
+import { tongKim } from './tongkim.js';
 import type { World } from './World.js';
 import { MAPS_DIR, devTools } from '../env.js';
 
@@ -76,6 +78,31 @@ export function buyItem(w: World, sim: Sim, defId: string, count = 1): boolean {
   if (!def || !SHOP_OF[defId] || sim.dead) return false;
   if (!combatRulesAt(w.meta, sim.a, w.rules).safe) { w.hooks.notify(sim, 'Chỉ mua được đồ trong thành hoặc Hậu doanh.'); return false; }
   const n = Math.max(1, Math.min(BUY_MAX, Math.floor(count) || 1));
+  if (def.tkAccumPrice && def.tkAccumPrice > 0) {
+    if (!sim.charId) return false;
+    const char = db.getCharacter(sim.charId);
+    if (!char) return false;
+    const cost = def.tkAccumPrice * n;
+    const have = Math.max(0, Math.floor(char.tkAccum ?? 0));
+    if (cost > have) {
+      w.hooks.notify(sim, `Không đủ điểm tích lũy Tống Kim (cần ${cost.toLocaleString('vi-VN')}, hiện có ${have.toLocaleString('vi-VN')}).`);
+      return false;
+    }
+    const room = roomFor(sim.bag!, def, n);
+    if (room < n) { w.hooks.notify(sim, room ? `Hành trang chỉ còn chỗ cho ${room} món.` : 'Hành trang không đủ chỗ.'); return false; }
+    db.updateCharacter(sim.charId, { tkAccum: have - cost });
+    let left = n;
+    while (left > 0) {
+      const take = Math.min(left, maxStackOf(def));
+      const piece = createItem(def, newItemUid());
+      if (take > 1) piece.qty = take;
+      addToBag(sim.bag!, piece);
+      left -= take;
+    }
+    w.hooks.notify(sim, `Mua ${n > 1 ? `${n} × ` : ''}${def.name} (-${cost.toLocaleString('vi-VN')} điểm tích lũy).`);
+    w.hooks.log(sim, 'buy', `Mua ${n > 1 ? `${n} × ` : ''}${def.name} (${cost.toLocaleString('vi-VN')} điểm tích lũy).`);
+    return true;
+  }
   if (def.knbPrice && def.knbPrice > 0) {
     const reqFortune = fortuneRequirement(def);
     if (reqFortune > 0 && (sim.fortune ?? 0) < reqFortune) {
@@ -341,6 +368,12 @@ export function useItem(w: World, sim: Sim, index: number): boolean {
   if (!usableItem(def)) { w.hooks.notify(sim, `${def.name} chưa dùng được.`); return false; }
   if (def.kind === 'token') { w.hooks.notify(sim, 'Mở Lệnh bài trong hành trang (chuột phải).'); return false; }
   if (def.kind === 'portal') { useTownPortal(w, sim); return false; } // vĩnh cửu: never used up
+  if (def.tkItem) {
+    if (!tongKim.useBattleItem(w, sim, def)) return false;
+    const qty = itemQty(item);
+    if (qty > 1) item.qty = qty - 1; else sim.bag![index] = null;
+    return true;
+  }
   if (def.book) {
     if (!useBook(w, sim, def.book)) return false;
     sim.bag![index] = null;

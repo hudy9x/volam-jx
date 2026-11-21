@@ -5,7 +5,8 @@ import type { Sim } from './entity.js';
 
 /** Remember the departure point only on a valid field → town transfer, including revival. */
 export function rememberTrainingReturn(sim: Sim, fromMapId: number, toMapId: number): void {
-  if (!sim.charId || !MAPS[fromMapId] || MAPS[fromMapId].safe || !MAPS[toMapId]?.safe || !mapAvailable(fromMapId)) return;
+  const fromMap = MAPS[fromMapId];
+  if (!sim.charId || !fromMap || fromMap.safe || fromMap.type === 'Battlefield' || !MAPS[toMapId]?.safe || !mapAvailable(fromMapId)) return;
   const { x, y } = sim.a;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return;
   db.updateCharacter(sim.charId, { trainingReturn: { mapId: fromMapId, x, y } });
@@ -16,6 +17,10 @@ export function resolveSavedTrainingReturn(char: CharacterRecord, currentMapId: 
   if (!MAPS[currentMapId]?.safe) return { error: 'Chỉ trở lại bãi luyện công từ trong thành.' };
   const point = char.trainingReturn;
   if (!point) return {};
+  if (MAPS[point.mapId]?.type === 'Battlefield') {
+    db.updateCharacter(char.id, { trainingReturn: undefined });
+    return {};
+  }
   if (!Number.isInteger(point.mapId) || !Number.isFinite(point.x) || !Number.isFinite(point.y) || !mapAvailable(point.mapId, true) || MAPS[point.mapId]?.safe) {
     return { error: 'Bãi luyện công đã lưu không còn hợp lệ hoặc chưa có dữ liệu. Hãy chọn bãi khác.' };
   }
