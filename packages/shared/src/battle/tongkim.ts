@@ -43,6 +43,8 @@ export const TK_POINTS = {
   killNpcSoldier: 6,
   killNpcCaptain: 30,
   killNpcCommander: 90,
+  killNpcDeputy: 120,
+  killNpcGeneral: 180,
   killMarshal: 1000,
   streakBase: 10,
   winBonusPerRank: 400,
@@ -114,7 +116,7 @@ export function tkKillPlayerPoints(victimRank: number, newStreak: number): { kil
   return { killPts, streakPts, total: killPts + streakPts };
 }
 
-export type TkNpcRole = 'soldier' | 'captain' | 'commander' | 'marshal';
+export type TkNpcRole = 'soldier' | 'captain' | 'commander' | 'deputy' | 'general' | 'marshal';
 
 export interface TkCampLayout {
   /** Điểm hồi sinh / vào Hậu doanh (an toàn). */
@@ -141,7 +143,8 @@ export const TK_MAP_LAYOUT: Record<TkCamp, TkCampLayout> = {
     spawn: { x: 2808, y: 9248 },
     safeRadius: 1150,
     gateExit: { x: 5648, y: 7472 },
-    marshal: { x: 7600, y: 6200 },
+    // 720/469 -> 720*8, 469*16
+    marshal: { x: 5760, y: 7504 },
     frontlines: [
       { x: 8200, y: 6100 },
       { x: 8600, y: 5800 },
@@ -156,13 +159,16 @@ export const TK_MAP_LAYOUT: Record<TkCamp, TkCampLayout> = {
       { role: 'captain', x: 8100, y: 6000, count: 2, radius: 220 },
       { role: 'captain', x: 9000, y: 5600, count: 2, radius: 220 },
       { role: 'commander', x: 7900, y: 6100, count: 2, radius: 180 },
+      { role: 'deputy', x: 6900, y: 6750, count: 2, radius: 180 },
+      { role: 'general', x: 6300, y: 7150, count: 1, radius: 80 },
     ],
   },
   kim: {
     spawn: { x: 17168, y: 1504 },
     safeRadius: 1250,
     gateExit: { x: 13168, y: 3560 },
-    marshal: { x: 11400, y: 4800 },
+    // 1677/224 -> 1677*8, 224*16
+    marshal: { x: 13416, y: 3584 },
     frontlines: [
       { x: 11000, y: 4800 },
       { x: 10600, y: 5000 },
@@ -177,6 +183,8 @@ export const TK_MAP_LAYOUT: Record<TkCamp, TkCampLayout> = {
       { role: 'captain', x: 11000, y: 4900, count: 2, radius: 220 },
       { role: 'captain', x: 10200, y: 5200, count: 2, radius: 220 },
       { role: 'commander', x: 11200, y: 4850, count: 2, radius: 180 },
+      { role: 'deputy', x: 12100, y: 4200, count: 2, radius: 180 },
+      { role: 'general', x: 12800, y: 3800, count: 1, radius: 80 },
     ],
   },
 };

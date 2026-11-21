@@ -1,3 +1,12 @@
+## 2026-11-21 · Đợt 2 Bot Tống Kim (Giai đoạn 1) & nâng cấp Nguyên Soái/Tướng (đã commit)
+
+- **USER yêu cầu:** triển khai Đợt 2 (Bot Tống Kim Giai đoạn 1 trong `tools/bots` dùng 200 profile có sẵn), cố định Nguyên Soái tại `720/469` (Tống) & `1677/224` (Kim) với phạm vi di chuyển `1000`, tách riêng hình ảnh 6 bậc NPC (`Binh sĩ / Hiệu úy / Thống lĩnh / Phó tướng / Đại tướng / Nguyên Soái`) và tăng tốc đánh/kháng/giảm hiệu ứng cho Nguyên Soái.
+- **Thay đổi:**
+  - `packages/shared/src/battle/tongkim.ts`, `apps/server/src/world/tongkim.ts`: thêm `deputy` (Phó tướng) & `general` (Đại tướng), gán sprite riêng cho từng cấp/phe, đặt Nguyên Soái tại `5760, 7504` (Tống) & `13416, 3584` (Kim) với `leash = 1000`, `boundedHome: true`, `attackCooldown = 0.6s`, `attackCycleMs = 420ms`, `resist = 0.75`, `controlReduction` (`95/77/95/90`), `hitRecover = 95`.
+  - `packages/shared/src/bots/index.ts`, `tools/bots/{run.ts,runner/BotClient.ts,runner/behaviors.ts,runner/TongKimBehavior.ts,ui/BotPanel.ts}`: thêm hoạt động **Tống Kim** vào UI kịch bản `tools/bots` và `TongKimBehavior` FSM 10 trạng thái (tự tới `323`, tự cân bằng phe, đăng ký, xuất trận qua cổng/Đặc thám, tự bơm thuốc/bùa/aura, ưu tiên mục tiêu, waypoint + chống kẹt, rời trận khi kết thúc, giữ nhịp `< 30 msg/s`).
+  - `tests/tong-kim.test.ts`: thêm test tọa độ Nguyên Soái và kiểm chứng `TongKimBehavior` không vượt ngưỡng `30 msg/s`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run build` thành công, `tests/tong-kim.test.ts` (**5/5 pass**), `npm run test:auto` (**67/67 pass**), `git diff --check` đạt. Đã commit trên `main`, không push.
+
 ## 2026-11-21 · Đợt 1 Chiến trường Tống Kim (map 323 → 378, theo `volam-3005`) (đã commit)
 
 - **USER yêu cầu:** triển khai core Chiến trường Tống Kim trên map báo danh `323` và chiến trường Xung phong `378` theo tài liệu `volam-3005` (2 chế độ Bảo vệ Nguyên soái & Cừu sát, điểm + Liên trảm + 5 quân hàm, thanh HP xanh/đỏ theo phe, tên lính màu trắng bỏ cấp và trộn 5 hệ, dialog trong suốt bật/tắt bằng phím `` ` ``, dialog thắng/thua khi kết thúc, mở lại 2 đảo nghỉ ngơi góc Tây Nam/Đông Bắc, 4 portal nội bộ map `378`, cho phép chỉnh NPC chiến trường trong Map Manager).

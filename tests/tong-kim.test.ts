@@ -1,13 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  C2S,
+  DEFAULT_BOT_SCENARIO,
   MAPS,
   TK_BATTLE_MAP_ID,
   TK_MAP_LAYOUT,
+  TK_SIGNUP_MAP_ID,
   canAttack,
   combatPairRules,
   combatRulesAt,
   isInTkSafeCamp,
+  normalizeBotScenario,
   tkHomeCampAt,
   tkKillPlayerPoints,
   tkRankForPoints,
@@ -17,6 +21,7 @@ import {
 import { tongKim } from '../apps/server/src/world/tongkim.js';
 import { Actor } from '../apps/server/src/net/schema.js';
 import { makeSim } from '../apps/server/src/world/entity.js';
+import { TongKimBehavior } from '../tools/bots/runner/TongKimBehavior.js';
 
 test('Tống Kim: công thức điểm PK + Liên trảm và 5 cấp quân hàm theo volam-3005', () => {
   // Binh sĩ (rank 1), liên trảm 1: kill = 60 + 60*1 = 120, streak = 10 + 1 = 11 -> 131
@@ -123,4 +128,63 @@ test('Tống Kim: đăng ký kiểm cấp >= 60, phí 3.000 lượng, cân bằn
   assert.equal(tongKim.registerPlayer(mkPlayer('tk_test_p4', 80, 10000), 'kim').ok, true);
 
   tongKim.stopMatch();
+});
+
+test('Tống Kim: tọa độ Nguyên Soái 720/469 (Tống) & 1677/224 (Kim), và Bot TongKimBehavior không vượt ngưỡng 30 msg/s', () => {
+  assert.deepEqual(TK_MAP_LAYOUT.tong.marshal, { x: 5760, y: 7504 });
+  assert.deepEqual(TK_MAP_LAYOUT.kim.marshal, { x: 13416, y: 3584 });
+
+  const sent: { type: string; msg: unknown }[] = [];
+  const sc = normalizeBotScenario({
+    ...DEFAULT_BOT_SCENARIO,
+    activities: { ...DEFAULT_BOT_SCENARIO.activities, grind: false, tongkim: true },
+  });
+  let meObj = { x: 2000, y: 2000, hp: 1000, maxHp: 1000, mp: 500, maxMp: 500, battleCamp: 'tong', states: [] as number[] };
+  const fakeBot = {
+    mapId: 37,
+    rand: () => 0.2,
+    bag: [],
+    levels: { 1: 1 },
+    autoSettings: sc.auto,
+    tkState: {
+      matchId: 1, mode: 1 as const, phase: 'fighting' as const, remainSec: 200,
+      tongCount: 1, kimCount: 2, tongScore: 0, kimScore: 0,
+      marshalSpawned: false, tongMarshalAlive: false, kimMarshalAlive: false, top10: [],
+      me: { camp: 'tong' as const, points: 0, rank: 1, kills: 0, deaths: 0, npcKills: 0, streak: 0, maxStreak: 0, accum: 0, inCamp: true, campRemainSec: 170, gateWaitSec: 0 },
+    },
+    me: () => meObj,
+    actors: () => [{ id: 'enemy1', isSelf: false, x: 9700, y: 5380, state: { kind: 'player', hp: 500, maxHp: 500, boss: 0, level: 80, mp: 100, maxMp: 100, sprite: '' } }],
+    room: { state: { actors: new Map([['enemy1', { battleCamp: 'kim' }]]) } },
+    host: { aura: () => {} },
+    prepareCombat: () => false,
+    attacks: () => [1],
+    ready: () => true,
+    range: () => 120,
+    levelOf: () => 1,
+    usable: () => true,
+    cast: (skill: number, targetId: string | undefined, x: number, y: number) => sent.push({ type: C2S.cast, msg: { skill, targetId, x, y } }),
+    send: (type: string, msg: unknown) => sent.push({ type, msg }),
+    reviveIfDead: () => false,
+  };
+
+  const beh = new TongKimBehavior(fakeBot as never, sc, 0);
+  // 1. Ở map 37 -> gửi teleport 323 đúng 1 lần dù update 20 lần trong 1 giây
+  for (let t = 0; t < 1000; t += 50) beh.update(t);
+  assert.equal(sent.length, 1);
+  assert.deepEqual(sent[0], { type: C2S.teleport, msg: { mapId: TK_SIGNUP_MAP_ID } });
+
+  // 2. Sang map 323 -> gửi register (chọn phe ít hơn = 'tong')
+  sent.length = 0;
+  fakeBot.mapId = TK_SIGNUP_MAP_ID;
+  for (let t = 1000; t < 2000; t += 50) beh.update(t);
+  assert.equal(sent.length, 1);
+  assert.deepEqual(sent[0], { type: C2S.tkAction, msg: { op: 'register', camp: 'tong' } });
+
+  // 3. Sang map 378 ngoài tiền tuyến giao tranh -> tổng gói gửi trong 1s luôn <= 10 (dưới ngưỡng 30 msg/s)
+  sent.length = 0;
+  fakeBot.mapId = TK_BATTLE_MAP_ID;
+  meObj = { ...meObj, x: 9600, y: 5380 };
+  fakeBot.tkState.me.inCamp = false;
+  for (let t = 2000; t < 3000; t += 50) beh.update(t);
+  assert.ok(sent.length > 0 && sent.length <= 10, `expected 1..10 msg/s, got ${sent.length}`);
 });

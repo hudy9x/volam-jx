@@ -94,7 +94,7 @@ async function runScenario(name: string, server?: string): Promise<void> {
   const run: RunStats = { orders: 0, dropped: 0, deaths: 0, rejoins: 0, transfers: 0, errors: 0, lastError: '' };
   const bots = logins.map((login, i) => {
     const bot = new BotClient(login, sc, rng(sc.seed * 7919 + i + 1), run);
-    bot.behavior = makeBehavior(bot, sc);
+    bot.behavior = makeBehavior(bot, sc, i);
     return bot;
   });
   prepared=true;

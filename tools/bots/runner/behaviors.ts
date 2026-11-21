@@ -1,8 +1,12 @@
 import { AutoPlay, type BotScenario } from '@vltk/shared';
 import type { Behavior, BotClient } from './BotClient.js';
+import { TongKimBehavior } from './TongKimBehavior.js';
 
 /** Activities run together; announcements and invitations are handled by BotClient. */
-export function makeBehavior(bot: BotClient, sc: BotScenario): Behavior {
+export function makeBehavior(bot: BotClient, sc: BotScenario, botIndex = 0): Behavior {
+  if (sc.activities.tongkim || (sc.behaviors.tongkim ?? 0) > 0) {
+    return new TongKimBehavior(bot, sc, botIndex);
+  }
   return sc.activities.grind ? new Grind(bot) : new Social(bot);
 }
 class Grind implements Behavior {

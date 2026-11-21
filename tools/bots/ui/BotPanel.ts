@@ -127,7 +127,15 @@ const PAGE = `
   <p class="bp-run-note">Chạy liên tục · không giới hạn thời gian · dừng bằng Ctrl+C</p>
   <fieldset id="sc-fields">
     <h3>Hoạt động</h3>
-    <div class="bp-activities">${chk('sc-grind', 'Luyện công')}${chk('sc-chat', 'Chat')}${chk('sc-sell', 'Rao bán đồ')}</div>
+    <div class="bp-activities">${chk('sc-grind', 'Luyện công')}${chk('sc-tongkim', 'Tống Kim')}${chk('sc-chat', 'Chat')}${chk('sc-sell', 'Rao bán đồ')}</div>
+    <fieldset id="sc-tk-options" class="bp-team-mode" hidden><legend>Cấu hình Chiến trường Tống Kim (Giai đoạn 1)</legend>
+      <div class="bp-grid">
+        ${f('Chọn phe', sel('sc-tk-camp', opt('auto', 'Tự cân bằng Tống / Kim') + opt('tong', 'Ưu tiên phe Tống') + opt('kim', 'Ưu tiên phe Kim')), 'Tự cân bằng sẽ chia xen kẽ Tống/Kim để không vướng lệch quân số.')}
+        ${f('Tỉ lệ qua Đặc thám (%)', '<input id="sc-tk-scout" type="number" min="0" max="100" value="50">', 'Xác suất bot nhảy thẳng ra tiền tuyến qua Đặc thám thay vì chạy qua cổng.')}
+        ${f('Ngưỡng bơm máu (%)', '<input id="sc-tk-hp" type="number" min="10" max="95" value="70">', 'Tự uống thuốc hồi sinh lực khi HP dưới ngưỡng này.')}
+        ${f('Bán kính quét địch (px)', '<input id="sc-tk-scan" type="number" min="200" max="1600" value="850">', 'Tầm phát hiện mục tiêu địch xung quanh bot.')}
+      </div>
+    </fieldset>
     <fieldset id="sc-team-options" class="bp-team-mode"><legend>Tổ đội khi luyện công</legend>
       <label class="bp-c"><input type="radio" name="sc-team-mode" id="sc-team-invite" value="invite">Chủ động mời người khác</label>
       <label class="bp-c"><input type="radio" name="sc-team-mode" id="sc-team" value="accept">Tự chấp nhận lời mời</label>
@@ -203,7 +211,7 @@ class BotPanel {
     this.$('sc-a-autoKeepValuable')?.addEventListener('change', () => {
       if (this.on_('sc-a-autoKeepValuable')) this.set('sc-a-autoSellAllBlue', false);
     });
-    for (const id of ['sc-grind', 'sc-chat', 'sc-sell']) this.$(id).addEventListener('change', () => this.showActivities());
+    for (const id of ['sc-grind', 'sc-tongkim', 'sc-chat', 'sc-sell']) this.$(id).addEventListener('change', () => this.showActivities());
     this.on('sc-save', () => void this.saveScenario());
     this.on('sc-delete', () => void this.deleteFile('scenarios'));
     this.on('bl-run', () => void this.runSelected());
@@ -371,7 +379,14 @@ class BotPanel {
     }
     return { ...this.scenarioBase, version: 1, buffVersion: 1, duration: 0, note: this.val('sc-note'), server: this.val('sc-server'),
       bots: { prefix: 'botfixed', count: 0, usernames: [...this.picked] }, joinPerSecond: this.n('sc-join'), reconnect: this.on_('sc-reconnect'),
-      activities: { grind: this.on_('sc-grind'), chat: this.on_('sc-chat'), sell: this.on_('sc-sell'), autoAcceptTeam: this.on_('sc-team'), autoInviteTeam: this.on_('sc-team-invite') }, auto: auto as unknown as AutoSettings };
+      activities: { grind: this.on_('sc-grind'), tongkim: this.on_('sc-tongkim'), chat: this.on_('sc-chat'), sell: this.on_('sc-sell'), autoAcceptTeam: this.on_('sc-team'), autoInviteTeam: this.on_('sc-team-invite') },
+      tongkim: {
+        campPreference: this.val('sc-tk-camp') as 'auto' | 'tong' | 'kim',
+        exitViaScoutRatio: Math.max(0, Math.min(100, this.n('sc-tk-scout'))) / 100,
+        hpHealThreshold: Math.max(10, Math.min(95, this.n('sc-tk-hp'))) / 100,
+        scanRadius: Math.max(200, Math.min(1600, this.n('sc-tk-scan'))),
+      },
+      auto: auto as unknown as AutoSettings };
   }
 
   private writeScenario(s: BotScenario): void {
@@ -379,7 +394,11 @@ class BotPanel {
     if (s.bots.usernames) { this.picked = new Set(s.bots.usernames); this.loadedSelection = undefined; }
     else { this.loadedSelection = [s.bots.prefix, String(s.bots.count)]; }
     this.set('sc-note', s.note); this.set('sc-server', s.server); this.set('sc-join', s.joinPerSecond); this.set('sc-reconnect', s.reconnect);
-    this.set('sc-grind', s.activities.grind); this.set('sc-chat', s.activities.chat); this.set('sc-sell', s.activities.sell); this.set('sc-team', !s.activities.autoInviteTeam && s.activities.autoAcceptTeam); this.set('sc-team-invite', s.activities.autoInviteTeam); this.set('sc-team-off', !s.activities.autoInviteTeam && !s.activities.autoAcceptTeam);
+    this.set('sc-grind', s.activities.grind); this.set('sc-tongkim', !!s.activities.tongkim); this.set('sc-chat', s.activities.chat); this.set('sc-sell', s.activities.sell); this.set('sc-team', !s.activities.autoInviteTeam && s.activities.autoAcceptTeam); this.set('sc-team-invite', s.activities.autoInviteTeam); this.set('sc-team-off', !s.activities.autoInviteTeam && !s.activities.autoAcceptTeam);
+    this.set('sc-tk-camp', s.tongkim?.campPreference ?? 'auto');
+    this.set('sc-tk-scout', Math.round((s.tongkim?.exitViaScoutRatio ?? 0.5) * 100));
+    this.set('sc-tk-hp', Math.round((s.tongkim?.hpHealThreshold ?? 0.7) * 100));
+    this.set('sc-tk-scan', s.tongkim?.scanRadius ?? 850);
     for (const k of Object.keys(DEFAULT_AUTO) as (keyof AutoSettings)[]) this.set(`sc-a-${k}`, s.auto[k] as string | number | boolean);
     this.showActivities(); this.renderList();
   }
@@ -404,7 +423,11 @@ class BotPanel {
   }
 
   private showActivities(): void {
-    this.$('sc-team-options').hidden = !this.on_('sc-grind'); this.$('sc-auto-options').hidden = !this.on_('sc-grind');
+    const tk = this.on_('sc-tongkim');
+    const grind = this.on_('sc-grind');
+    this.$('sc-tk-options').hidden = !tk;
+    this.$('sc-team-options').hidden = !grind || tk;
+    this.$('sc-auto-options').hidden = !grind;
   }
   private organize(): void {
     const cards = [...this.root.querySelectorAll<HTMLElement>('.bp-card')];
@@ -491,7 +514,7 @@ class BotPanel {
   private async saveScenario(): Promise<void> {
     if (this.savingScenario || this.loadingScenario || this.configBusy) return;
     const data = this.readScenario();
-    if (!data.activities.grind && !data.activities.chat && !data.activities.sell) { this.status('Bật ít nhất một hoạt động.', true); return; }
+    if (!data.activities.grind && !data.activities.tongkim && !data.activities.chat && !data.activities.sell) { this.status('Bật ít nhất một hoạt động.', true); return; }
     const title = await this.setupDialogs.askName('scenario'); if (!title) return;
     const name = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
     if (!name) { this.status('Tên kịch bản cần có ít nhất một chữ hoặc số.', true); return; }

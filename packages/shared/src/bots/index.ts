@@ -83,18 +83,33 @@ export const DEFAULT_BOT_TEMPLATE: BotTemplate = {
   map: { mode: 'both', maps: botMapIds('both'), radius: 200 },
 };
 
-export type BotBehavior = 'grind' | 'pk' | 'wander' | 'idle' | 'travel' | 'crowd';
+export type BotBehavior = 'grind' | 'pk' | 'tongkim' | 'wander' | 'idle' | 'travel' | 'crowd';
 
 export const BOT_BEHAVIORS: Record<BotBehavior, { name: string; note: string }> = {
   grind: { name: 'Luyện quái', note: 'Tự động đánh thật (AutoPlay) theo tùy chọn Auto bên dưới' },
   pk: { name: 'PK', note: 'Bật PK, đánh người chơi ở bãi luyện công' },
+  tongkim: { name: 'Tống Kim', note: 'Tự động báo danh và PK trên chiến trường Tống Kim (323 → 378)' },
   wander: { name: 'Đi dạo', note: 'Đi ngẫu nhiên quanh chỗ xuất hiện' },
   idle: { name: 'Đứng yên', note: 'Vào game rồi không làm gì' },
   travel: { name: 'Đi bản đồ', note: 'Đổi bản đồ mỗi X giây' },
   crowd: { name: 'Dồn một chỗ', note: 'Cùng đứng một điểm (va chạm + gửi trạng thái nặng nhất)' },
 };
 
-export const DEFAULT_BOT_ACTIVITIES = { grind: true, chat: true, sell: true, autoAcceptTeam: true, autoInviteTeam: false };
+export interface BotTongKimConfig {
+  campPreference: 'auto' | 'tong' | 'kim';
+  exitViaScoutRatio: number;
+  hpHealThreshold: number;
+  scanRadius: number;
+}
+
+export const DEFAULT_BOT_TONGKIM: BotTongKimConfig = {
+  campPreference: 'auto',
+  exitViaScoutRatio: 0.5,
+  hpHealThreshold: 0.7,
+  scanRadius: 850,
+};
+
+export const DEFAULT_BOT_ACTIVITIES = { grind: true, chat: true, sell: true, tongkim: false, autoAcceptTeam: true, autoInviteTeam: false };
 export interface BotScenario {
   title?: string;
   /** Optional presets used only to initialise missing selected accounts, never reset existing progress. */
@@ -120,6 +135,8 @@ export interface BotScenario {
   crowd: { mapId: number; x: number; y: number; radius: number; cast: boolean };
   /** Tùy chọn Auto của hành vi Luyện quái (như cửa sổ Tự động đánh). */
   auto: AutoSettings;
+  /** Cấu hình riêng cho hoạt động Chiến trường Tống Kim. */
+  tongkim?: BotTongKimConfig;
   /** Marks an explicit choice made after learned-skill buff migration. */
   buffVersion?: 1;
   /** Giống người: chu kỳ ra quyết định (ms), độ trễ phản ứng ngẫu nhiên [min, max] ms, lệnh tối đa / giây mỗi bot. */
@@ -136,6 +153,7 @@ export const DEFAULT_BOT_SCENARIO: BotScenario = {
   travel: { every: 60, maps: [37, 140] },
   crowd: { mapId: 37, x: 0, y: 0, radius: 80, cast: false },
   auto: { ...DEFAULT_AUTO }, buffVersion: 1,
+  tongkim: { ...DEFAULT_BOT_TONGKIM },
   human: { tickMs: 150, reactionMs: [80, 250], maxOrdersPerSec: 8 },
   reconnect: true,
 };
@@ -191,7 +209,7 @@ export function normalizeBotScenario(raw: unknown): BotScenario {
   const r = record(raw), d = DEFAULT_BOT_SCENARIO;
   const activities = record(r.activities);
   const b = record(r.bots), pk = record(r.pk), wa = record(r.wander), tr = record(r.travel), cr = record(r.crowd);
-  const h = record(r.human), a = record(r.auto), beh = record(r.behaviors);
+  const h = record(r.human), a = record(r.auto), beh = record(r.behaviors), tk = record(r.tongkim);
   const behaviors: Partial<Record<BotBehavior, number>> = {};
   for (const k of Object.keys(BOT_BEHAVIORS) as BotBehavior[]) {
     const w = num(beh[k], 0, 0, 1000);
@@ -214,7 +232,7 @@ export function normalizeBotScenario(raw: unknown): BotScenario {
     version: 1,
     title: typeof r.title === 'string' ? r.title.trim().slice(0, 80) : '',
     ...(Array.isArray(r.initialSetup) ? { initialSetup: r.initialSetup.flatMap(value => { const group = record(value); return typeof group.template === 'string' && BOT_FILE_RE.test(group.template) && Array.isArray(group.usernames) ? [{ template: group.template, usernames: group.usernames.filter((id): id is string => typeof id === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(id)).slice(0, 200) }] : []; }).slice(0, 20) } : {}),
-    activities: { grind: bool(activities.grind, true), chat: bool(activities.chat, true), sell: bool(activities.sell, true), autoAcceptTeam: !bool(activities.autoInviteTeam, false) && bool(activities.autoAcceptTeam, true), autoInviteTeam: bool(activities.autoInviteTeam, false) },
+    activities: { grind: bool(activities.grind, true), chat: bool(activities.chat, true), sell: bool(activities.sell, true), tongkim: bool(activities.tongkim, false), autoAcceptTeam: !bool(activities.autoInviteTeam, false) && bool(activities.autoAcceptTeam, true), autoInviteTeam: bool(activities.autoInviteTeam, false) },
     note: typeof r.note === 'string' ? r.note.slice(0, 500) : '',
     server: typeof r.server === 'string' && /^https?:\/\/[^\s]+$/.test(r.server) ? r.server.replace(/\/+$/, '') : d.server,
     bots: {
@@ -235,6 +253,12 @@ export function normalizeBotScenario(raw: unknown): BotScenario {
       radius: num(cr.radius, d.crowd.radius, 0, 2000), cast: bool(cr.cast, d.crowd.cast),
     },
     auto, buffVersion: 1,
+    tongkim: {
+      campPreference: pick(tk.campPreference, ['auto', 'tong', 'kim'] as const, DEFAULT_BOT_TONGKIM.campPreference),
+      exitViaScoutRatio: Math.max(0, Math.min(1, Number.isFinite(Number(tk.exitViaScoutRatio)) ? Number(tk.exitViaScoutRatio) : DEFAULT_BOT_TONGKIM.exitViaScoutRatio)),
+      hpHealThreshold: Math.max(0.1, Math.min(0.95, Number.isFinite(Number(tk.hpHealThreshold)) ? Number(tk.hpHealThreshold) : DEFAULT_BOT_TONGKIM.hpHealThreshold)),
+      scanRadius: num(tk.scanRadius, DEFAULT_BOT_TONGKIM.scanRadius, 200, 1600),
+    },
     human: {
       tickMs: num(h.tickMs, d.human.tickMs, 50, 5000),
       reactionMs: [Math.min(r0, r1), Math.max(r0, r1)],

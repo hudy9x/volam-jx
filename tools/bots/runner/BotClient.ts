@@ -3,7 +3,7 @@ import {
   applyMapRegistry, combatRulesAt, BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillResourceCost, canPaySkillCost,
   tuningOf, weaponOk, weaponTypeOf, autoAuraSkill, autoBuffSkills, isoDistance,
   type AutoSettings, type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type InventoryMsg, type Item,
-  type SkillDef, type SkillsMsg, type StatsMsg, type TransferMsg, type TeamMsg,
+  type SkillDef, type SkillsMsg, type StatsMsg, type TkStateMsg, type TransferMsg, type TeamMsg,
 } from '@vltk/shared';
 import { TeamInviter, type TeamCandidate } from './TeamInviter.js';
 import { LootAnnouncer } from './LootAnnouncer.js';
@@ -50,6 +50,7 @@ export class BotClient {
   equip: Partial<Record<string, Item>> = {};
   money = 0;
   stats: StatsMsg | null = null;
+  tkState: TkStateMsg | null = null;
   /** Skill bar: left hand + keys 1–9 (skill ids); the hào quang held by the hand slot. */
   left = BASIC_ATTACK;
   keys: (number | null)[] = Array(9).fill(null);
@@ -132,6 +133,7 @@ export class BotClient {
     });
     room.onMessage(S2C.skills, (msg: SkillsMsg) => { this.levels = msg.levels; this.bonus = msg.bonus ?? {}; this.layoutBar(); });
     room.onMessage(S2C.stats, (msg: StatsMsg) => { this.stats = msg; });
+    room.onMessage(S2C.tkState, (msg: TkStateMsg) => { this.tkState = msg; });
     room.onMessage(S2C.fx, (events: { t: string; id?: string }[]) => {
       for (const e of events) if (e.t === 'die' && e.id === room.sessionId) this.run.deaths++;
     });
