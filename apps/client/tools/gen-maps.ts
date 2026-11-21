@@ -39,8 +39,11 @@ interface Source { id: number; name: string; type: string; path: string; entry?:
  * keeps players out of the strip between the outer tree wall and the region edge with server data we don't have.
  */
 const ENTRIES: Record<number, [number, number]> = { 37: [20388, 13168], 140: [5280, 9600], 323: [766, 3035] };
-/** Additional disconnected walkable areas to keep (e.g. map 323 has separate Song south & Jin north camps). */
-const EXTRA_REACHABLE: Record<number, [number, number][]> = { 323: [[2693, 1163]] };
+/** Additional disconnected walkable areas to keep (e.g. map 323 has separate Song south & Jin north camps; map 378 has SW & NE resting camps). */
+const EXTRA_REACHABLE: Record<number, [number, number][]> = {
+  323: [[2693, 1163]],
+  378: [[2704, 9224], [3952, 8552], [17136, 1640], [15376, 2472]],
+};
 
 /** Every distinct map of settings/maplist.ini (several ids often share one map: the first one is kept). */
 function maplistSources(): Source[] {

@@ -35,7 +35,7 @@ export function decodeGrid(definition: GridDefinition, size: Size): NavigationGr
     sizes.push(tail);
     if (tail > free) { free = tail; largest = component; }
   }
-  const isl = sizes.map((length, id) => ({ length, id })).filter(part => part.length >= Math.max(300, free * 0.25))
+  const isl = sizes.map((length, id) => ({ length, id })).filter(part => part.length >= 300)
     .sort((a, b) => b.length - a.length).map(part => part.id);
   const kept = new Set(isl.length ? isl : largest >= 0 ? [largest] : []);
   // No component must mean no walkable cells, rather than matching all -1 labels.

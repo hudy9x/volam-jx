@@ -101,7 +101,14 @@ export function refreshStats(sim: Sim, fresh = false): void {
   const seriesIdx = seriesOf(pp.series);
   sim.fortune = equipmentFortune(equip, seriesIdx);
   sim.a.mantle = isMantleActive(equip, seriesIdx) ? lookOf(equip).mantle : -1;
-  const bag = mergeBag(mergeBag(equipmentBag(equip, seriesIdx, sim.a.mounted), passiveBag(levels, wtype)), stateBag(sim.states, wtype));
+  const rawBag = mergeBag(mergeBag(equipmentBag(equip, seriesIdx, sim.a.mounted), passiveBag(levels, wtype)), stateBag(sim.states, wtype));
+  // Tống Kim rank buff (SHXT skill 661): lifemax_p = 10 + 10*rank, allres_p = 5*(rank - 1).
+  const bag = sim.a.battleCamp && sim.a.battleRank > 0
+    ? mergeBag(rawBag, {
+        lifemax_p: [10 + 10 * sim.a.battleRank, 0, 0],
+        allres_p: [5 * Math.max(0, sim.a.battleRank - 1), 0, 0],
+      })
+    : rawBag;
   const stats = characterStats({
     series: pp.series, level: pp.prog.level, added: pp.prog.added, bag,
     weapon: { kind: !equip.weapon ? 'none' : wtype >= 100 ? 'ranged' : 'melee', min, max },

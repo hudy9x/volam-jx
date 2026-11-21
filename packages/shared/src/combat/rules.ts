@@ -43,6 +43,8 @@ export interface CombatantInfo {
   camp: Camp;
   /** Team id ('' = none). */
   team: string;
+  /** Chiến trường Tống Kim camp ('' = ngoài chiến trường). */
+  battleCamp?: 'tong' | 'kim' | '';
   protectedUntil: number;
 }
 
@@ -56,6 +58,11 @@ export function canAttack(a: CombatantInfo, b: CombatantInfo, rules: MapRules, n
   if (a.id === b.id || a.dead || b.dead) return false;
   if (rules.safe) return false;
   if (b.protectedUntil > now) return false;
+  // Trong chiến trường Tống Kim: battleCamp quyết định địch/ta cho cả người chơi lẫn NPC chiến trường.
+  if (a.battleCamp || b.battleCamp) {
+    if (!a.battleCamp || !b.battleCamp) return false;
+    return a.battleCamp !== b.battleCamp;
+  }
   if (a.kind === 'monster') return b.kind === 'player';
   if (b.kind === 'monster') return true;
   // player vs player

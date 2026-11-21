@@ -1,9 +1,10 @@
 import type { MapSchema } from '@colyseus/schema';
-import { MAPS, SkillEngine, getGrid, type EnginePort, type FxEvent, type LogKind, type MapMeta, type MapRules, type NavigationGrid } from '@vltk/shared';
+import { MAPS, SkillEngine, TK_BATTLE_MAP_ID, getGrid, type EnginePort, type FxEvent, type LogKind, type MapMeta, type MapRules, type NavigationGrid } from '@vltk/shared';
 import type { Actor, Ground } from '../net/schema.js';
 import { updateMonster } from './ai/monster.js';
 import type { Sim, SpawnSlot } from './entity.js';
 import { regen, updatePlayer } from './players.js';
+import { tongKim } from './tongkim.js';
 import { resolveAnim } from './systems/anim.js';
 import { applyHit, blink, dash, heal } from './systems/combat.js';
 import { startJump, updateJump } from './systems/jump.js';
@@ -109,6 +110,7 @@ export class World {
     this.astarBudget = MAX_ASTAR_PER_TICK;
 
     updateSlots(this);
+    if (this.meta.id === TK_BATTLE_MAP_ID) tongKim.tickBattleWorld(this, this.now);
     updateDrops(this);
     for (const sim of this.sims.values()) {
       if (sim.dead) {

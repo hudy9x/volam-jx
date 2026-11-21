@@ -65,6 +65,64 @@ export interface StallInspectMsg { charId: string }
 export interface StallPriceMsg { uid: string; price: number; currency: TradeCurrency }
 export interface StallOpenMsg { title: string }
 export interface StallBuyMsg { sellerCharId: string; uid: string; price: number; currency: TradeCurrency }
+/** Chiến trường Tống Kim actions (client -> server). */
+export interface TkActionMsg {
+  op: 'register' | 'exitGate' | 'scout' | 'leave' | 'exchangeExp' | 'devStart' | 'devStop';
+  camp?: 'tong' | 'kim';
+  mode?: 1 | 2;
+  /** Số điểm tích lũy muốn đổi lấy EXP (0 = đổi tất cả). */
+  amount?: number;
+  /** Dev overrides when opening a test match immediately. */
+  signupSec?: number;
+  durationSec?: number;
+  marshalDelaySec?: number;
+}
+export interface TkLeaderEntry {
+  rankPos: number;
+  charId: string;
+  name: string;
+  camp: 'tong' | 'kim';
+  faction: string;
+  points: number;
+  kills: number;
+  deaths: number;
+  npcKills: number;
+  maxStreak: number;
+  rank: number;
+}
+/** Chiến trường Tống Kim live state snapshot (server -> client). */
+export interface TkStateMsg {
+  matchId: number;
+  mode: 1 | 2;
+  phase: 'closed' | 'signup' | 'fighting' | 'ended';
+  remainSec: number;
+  tongCount: number;
+  kimCount: number;
+  tongScore: number;
+  kimScore: number;
+  marshalSpawned: boolean;
+  tongMarshalAlive: boolean;
+  kimMarshalAlive: boolean;
+  winner?: 'tong' | 'kim' | 'draw' | '';
+  winReason?: string;
+  nextSchedule?: string;
+  devTools?: boolean;
+  me?: {
+    camp: 'tong' | 'kim' | '';
+    points: number;
+    rank: number;
+    kills: number;
+    deaths: number;
+    npcKills: number;
+    streak: number;
+    maxStreak: number;
+    accum: number;
+    inCamp: boolean;
+    campRemainSec: number;
+    gateWaitSec: number;
+  };
+  top10: TkLeaderEntry[];
+}
 export interface ChatMsg { text: string; ch?: ChatChannel }
 /** `id` numbers the lines of the server run; `reacts` = emoji → names of who put it (CHAT.reactions only). */
 export interface ChatLine { id: number; ch: ChatChannel; offer?: TradeOffer; from: string; text: string; at: number; reacts?: Record<string, string[]> }
@@ -207,6 +265,7 @@ export const C2S = {
   stallOpen: 'stallOpen',
   stallClose: 'stallClose',
   stallBuy: 'stallBuy',
+  tkAction: 'tkAction',
 } as const;
 
 // ---------- server -> client ----------
@@ -305,6 +364,8 @@ export const S2C = {
   /** Player stall messages. */
   stallDetail: 'stallDetail',
   stallClosed: 'stallClosed',
+  /** Chiến trường Tống Kim state snapshot. */
+  tkState: 'tkState',
 } as const;
 
 // ---------- REST ----------

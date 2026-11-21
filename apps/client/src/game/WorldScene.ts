@@ -374,6 +374,7 @@ export class WorldScene extends Phaser.Scene {
       stallOpen: title => this.room.send(C2S.stallOpen, { title }),
       stallClose: () => this.room.send(C2S.stallClose, {}),
       stallBuy: (sellerCharId, uid, price, currency) => this.room.send(C2S.stallBuy, { sellerCharId, uid, price, currency }),
+      tkAction: msg => this.room.send(C2S.tkAction, msg),
     };
   }
 
@@ -464,15 +465,58 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     const line = NPC_LINES[npc.action];
-    const open = () => this.ui.toggleWindow(NPC_WINDOWS[npc.action], true);
+    if (npc.action === 'tkRecruit') {
+      const camp = npc.tkCamp === 'kim' ? 'kim' : 'tong';
+      const label = camp === 'kim' ? 'Báo danh phe Đại Kim (3.000 lượng)' : 'Báo danh phe Đại Tống (3.000 lượng)';
+      this.ui.talk({
+        name: npc.name, res: npc.res, text: line.text,
+        options: [
+          { label, run: () => this.actions.tkAction({ op: 'register', camp }) },
+          { label: camp === 'kim' ? 'Báo danh phe Đại Tống (3.000 lượng)' : 'Báo danh phe Đại Kim (3.000 lượng)', run: () => this.actions.tkAction({ op: 'register', camp: camp === 'kim' ? 'tong' : 'kim' }) },
+        ],
+      });
+      return;
+    }
+    if (npc.action === 'tkQuartermaster') {
+      this.ui.talk({
+        name: npc.name, res: npc.res, text: line.text,
+        options: [
+          { label: 'Đổi 500 điểm tích lũy (+50.000 EXP)', run: () => this.actions.tkAction({ op: 'exchangeExp', amount: 500 }) },
+          { label: 'Đổi 1.000 điểm tích lũy (+100.000 EXP)', run: () => this.actions.tkAction({ op: 'exchangeExp', amount: 1000 }) },
+          { label: 'Đổi 5.000 điểm tích lũy (+500.000 EXP)', run: () => this.actions.tkAction({ op: 'exchangeExp', amount: 5000 }) },
+          { label: 'Đổi tất cả điểm tích lũy', run: () => this.actions.tkAction({ op: 'exchangeExp', amount: 0 }) },
+        ],
+      });
+      return;
+    }
+    if (npc.action === 'tkScout') {
+      this.ui.talk({
+        name: npc.name, res: npc.res, text: line.text,
+        options: [{ label: line.option, run: () => this.actions.tkAction({ op: 'scout' }) }],
+      });
+      return;
+    }
+    if (npc.action === 'tkGate') {
+      this.ui.talk({
+        name: npc.name, res: npc.res, text: line.text,
+        options: [{ label: line.option, run: () => this.actions.tkAction({ op: 'exitGate' }) }],
+      });
+      return;
+    }
+    const winId = NPC_WINDOWS[npc.action];
+    if (!winId) return;
+    const open = () => this.ui.toggleWindow(winId, true);
     this.ui.talk({ name: npc.name, res: npc.res, text: line.text, options: [{ label: line.option, run: open }] });
   }
 
   /** Client-side hint only; the server decides with the same canAttack rules. */
   private isHostile(view: ActorView): boolean {
     if (view.state.hp <= 0 || !this.self || combatPairRules(this.meta, this.self.state, view.state).safe || view.state.kind === 'npc') return false;
+    const me = this.self.state;
+    if (me.battleCamp || view.state.battleCamp) {
+      return !!me.battleCamp && !!view.state.battleCamp && me.battleCamp !== view.state.battleCamp;
+    }
     if (view.state.kind === 'monster') return true;
-    const me = this.self?.state;
     return !!me && combatPairRules(this.meta, me, view.state).pvp && view.state.kind === 'player' && pvpAllowed(
       { pk: me.pk, camp: (me.camp || 'new') as Camp, team: me.team ?? '' },
       { camp: (view.state.camp || 'new') as Camp, team: view.state.team ?? '' });

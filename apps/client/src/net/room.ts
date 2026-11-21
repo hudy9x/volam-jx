@@ -5,10 +5,11 @@ import { marketResult, knbPurchaseResult } from '../state/market';
 import { receiveTeam, receiveTeamInvite } from '../state/team';
 import { chatOnlineCount, receiveChat, receiveOlder, receiveReacts } from '../state/chat';
 import { addSyslog } from '../state/syslog';
-import { MAP_ROOM, S2C, type InventoryMsg, type StashMsg, type SkillsMsg, type StatsMsg, type ChatLine, type ChatOlderMsg, type ChatReactsMsg, type LogMsg, type OnlineMsg, type StallClosedMsg, type StallDetailMsg } from '@vltk/shared';
+import { MAP_ROOM, S2C, type InventoryMsg, type StashMsg, type SkillsMsg, type StatsMsg, type ChatLine, type ChatOlderMsg, type ChatReactsMsg, type LogMsg, type OnlineMsg, type StallClosedMsg, type StallDetailMsg, type TkStateMsg } from '@vltk/shared';
 import { inventory } from '../state/inventory';
 import { stash } from '../state/stash';
 import { stallClosed, stallDetail } from '../state/stall';
+import { tkState } from '../state/tongkim';
 import { progress } from '../state/progress';
 import { skillbar } from '../state/skillbar';
 import { SERVER_URL, currentToken, Api, syncMapRegistry } from './api';
@@ -41,5 +42,6 @@ export async function joinMap(mapId: number, charId: string): Promise<Room> {
   room.onMessage(S2C.teamInvite, receiveTeamInvite);
   room.onMessage(S2C.stallDetail, (msg: StallDetailMsg) => stallDetail.set(msg));
   room.onMessage(S2C.stallClosed, (msg: StallClosedMsg) => stallClosed.set(msg));
+  room.onMessage(S2C.tkState, (msg: TkStateMsg) => tkState.set(msg));
   return room;
 }

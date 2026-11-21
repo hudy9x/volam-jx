@@ -15,6 +15,7 @@ import {
   type Point,
 } from '@vltk/shared';
 import { onMonsterKilled } from '../ai/boss.js';
+import { tongKim } from '../tongkim.js';
 import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
 import { playOnce } from './anim.js';
@@ -117,6 +118,10 @@ export function kill(w: World, target: Sim, killer: Sim | undefined): void {
   // Send the final values after both clearing states and removing mounted bonuses.
   if (target.kind === 'player' && target.progress) w.hooks.progress(target);
   w.events.push({ t: 'die', id: target.id, by: killer?.id ?? '' });
+  if (tongKim.onTkKill(w, target, killer)) {
+    if (target.kind === 'monster') target.removeAt = w.now + CORPSE_SECONDS * 1000;
+    return;
+  }
   if (target.kind === 'monster') {
     target.removeAt = w.now + CORPSE_SECONDS * 1000;
     const slot = target.slot!;

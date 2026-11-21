@@ -1,4 +1,4 @@
-import type { ActiveStates, CharacterStats, CombatStats, Bag, Element, Equipment, Item, MonsterDef, Point } from '@vltk/shared';
+import type { ActiveStates, CharacterStats, CombatStats, Bag, Element, Equipment, Item, MonsterDef, Point, TkCamp, TkNpcRole } from '@vltk/shared';
 import type { PlayerProgress } from './progress.js';
 import type { Effects } from './systems/effects.js';
 import type { Actor } from '../net/schema.js';
@@ -114,6 +114,10 @@ export interface Sim {
   wanderAt?: number;
   returning?: boolean;
   removeAt?: number;
+  // Tống Kim battlefield runtime fields
+  tkCamp?: TkCamp;
+  tkRole?: TkNpcRole;
+  tkRespawnAt?: number;
 }
 
 export function makeSim(id: string, kind: Sim['kind'], a: Actor, element: Element, speed: number): Sim {

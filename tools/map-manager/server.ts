@@ -30,7 +30,9 @@ const templates = DEFAULT_TOWN_NPCS[37].map(n => ({ ...n, label: NPC_ACTION_LABE
 const looks = [...templates.map(n => ({ res: n.res, name: n.name })),
   { res: 'passerby004_1', name: 'Thợ rèn · hình cũ cố định' },
   { res: 'passerby037_1', name: 'Bán ngựa · hình cũ cố định' },
-  { res: 'passerby040_1', name: 'Xa phu · hình cũ cố định' }];
+  { res: 'passerby040_1', name: 'Xa phu · hình cũ cố định' },
+  { res: 'enemy029', name: 'Binh sĩ Tống (Tống Kim)' },
+  { res: 'enemy031', name: 'Binh sĩ Kim (Tống Kim)' }];
 const allowedRes = new Set(looks.map(n => n.res));
 setNavLoader(id => {
   const file = path.join(assets, 'maps', mapAssetSuffix(id), 'nav.json');
@@ -85,7 +87,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && files.has(u.pathname)) { res.setHeader('Content-Type', u.pathname.endsWith('.css') ? 'text/css' : 'text/javascript'); res.end(files.get(u.pathname)); return; }
     if (req.method === 'GET' && u.pathname === '/api/bootstrap') {
       try { manifest = JSON.parse(fs.readFileSync(path.join(assets, 'manifest.json'), 'utf8')); } catch { /* keep existing versions */ }
-      const maps = Object.values(MAPS).filter(m => ['City', 'Capital', 'Field', 'Cave', 'Country', 'Tong', 'Battlefield', 'Others'].includes(m.type)).map(m => ({ id: m.id, name: m.name, size: m.raw.size, entry: m.raw.entry, enabled: m.enabled !== false, group: ['City', 'Capital'].includes(m.type) ? 'city' : 'training', editable: ['City', 'Capital'].includes(m.type),
+      const maps = Object.values(MAPS).filter(m => ['City', 'Capital', 'Field', 'Cave', 'Country', 'Tong', 'Battlefield', 'Others'].includes(m.type)).map(m => ({ id: m.id, name: m.name, size: m.raw.size, entry: m.raw.entry, enabled: m.enabled !== false, group: ['City', 'Capital'].includes(m.type) ? 'city' : 'training', editable: ['City', 'Capital', 'Battlefield'].includes(m.type),
         available: fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(m.id), 'nav.json')) && fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(m.id), 'map.json')) }));
       json({ monsters: Object.values(MONSTERS).filter(m => bossTierOf(m.boss) < 2 && !m.dummy).map(m => ({ id: m.id, name: m.name, level: m.level })), maps, templates, labels: NPC_ACTION_LABELS, versions: Object.fromEntries(maps.map(m => [m.id, manifest?.packs[`map/${m.id}`]?.v ?? ''])) }); return;
     }
@@ -109,7 +111,7 @@ const server = http.createServer(async (req, res) => {
     const match = /^\/api\/maps\/(\d+)\/(npcs|snap)$/.exec(u.pathname);
     if (match) {
       const id = Number(match[1]), meta = MAPS[id];
-      if (!meta || !['City', 'Capital'].includes(meta.type)) throw Error('Chỉ chỉnh NPC thành thị.');
+      if (!meta || !['City', 'Capital', 'Battlefield'].includes(meta.type)) throw Error('Chỉ chỉnh NPC thành thị hoặc chiến trường.');
       if (match[2] === 'npcs' && req.method === 'GET') { json(await store.read(id)); return; }
       if (match[2] === 'npcs' && req.method === 'PUT') { const b = await jsonBody(req); json(await store.save(id, b.npcs, b.revision)); return; }
       if (match[2] === 'snap' && req.method === 'POST') {

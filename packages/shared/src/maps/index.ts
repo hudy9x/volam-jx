@@ -51,6 +51,16 @@ const EXTRA: Record<number, Partial<MapMeta>> = {
     safe: true,
     pvp: false,
   },
+  378: {
+    safe: false,
+    pvp: true,
+    portals: [
+      { id: 'tk-tong-out', label: 'Ra chiến trường (Tống)', x: 3088, y: 9072, radius: 64, toMap: 378, toX: 5648, toY: 7472 },
+      { id: 'tk-tong-back', label: 'Về Hậu doanh (Tống)', x: 4592, y: 8080, radius: 64, toMap: 378, toX: 2808, toY: 9248 },
+      { id: 'tk-kim-out', label: 'Ra chiến trường (Kim)', x: 16480, y: 1904, radius: 64, toMap: 378, toX: 13168, toY: 3560 },
+      { id: 'tk-kim-back', label: 'Về Hậu doanh (Kim)', x: 14088, y: 3088, radius: 64, toMap: 378, toX: 17168, toY: 1504 },
+    ],
+  },
 };
 
 export const DEFAULT_MAP_PORTALS = Object.fromEntries(Object.entries(EXTRA).map(([id, m]) => [id, (m.portals ?? []).map(p => ({ ...p }))]));

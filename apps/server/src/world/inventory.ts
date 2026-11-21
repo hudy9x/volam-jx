@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, MAX_BAG_POTIONS, STALL_SIZE, STASH_SIZE, TOKEN_ITEM_ID, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF,
+  BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, MAX_BAG_POTIONS, STALL_SIZE, STASH_SIZE, TK_BATTLE_MAP_ID, TOKEN_ITEM_ID, combatRulesAt, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF,
   addToBag, bagPotionCount, bagValid, createGold, createItem, equipError, findPlace, fitsAt, forgeError, forgePrice, forgedMagic, fortuneRequirement,
   getExpElixirMultiplier, isStackablePotion, itemDef, itemQty, lookOf, maxStackOf, moveOrSwapInGrid, overlappingAt, packBag, restoreItem, roomFor, sellPrice,
   sortGridPage, splitStackInGrid, usableItem, weaponTypeOf,
@@ -74,7 +74,7 @@ export function buyItem(w: World, sim: Sim, defId: string, count = 1): boolean {
   if (sim.a.stallTitle) return false;
   const def = ITEMS[defId];
   if (!def || !SHOP_OF[defId] || sim.dead) return false;
-  if (!w.rules.safe) { w.hooks.notify(sim, 'Chỉ mua được đồ trong thành.'); return false; }
+  if (!combatRulesAt(w.meta, sim.a, w.rules).safe) { w.hooks.notify(sim, 'Chỉ mua được đồ trong thành hoặc Hậu doanh.'); return false; }
   const n = Math.max(1, Math.min(BUY_MAX, Math.floor(count) || 1));
   if (def.knbPrice && def.knbPrice > 0) {
     const reqFortune = fortuneRequirement(def);
@@ -364,6 +364,10 @@ export function useItem(w: World, sim: Sim, index: number): boolean {
 
 /** Thổ Địa Phù: back to the entrance of the nearest city (maps/index.ts nearestTown), Biện Kinh when unknown / not built. */
 function useTownPortal(w: World, sim: Sim): void {
+  if (w.meta.id === TK_BATTLE_MAP_ID) {
+    w.hooks.notify(sim, 'Không thể dùng Thổ Địa Phù trong chiến trường Tống Kim.');
+    return;
+  }
   const town = nearestTown(w.meta.id, id => fs.existsSync(path.join(MAPS_DIR, String(id), 'nav.json')));
   const entry = MAPS[town].raw.entry;
   sim.pending = null;

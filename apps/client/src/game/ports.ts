@@ -79,13 +79,15 @@ export interface WorldActions {
   stallOpen: (title: string) => void;
   stallClose: () => void;
   stallBuy: (sellerCharId: string, uid: string, price: number, currency: import('@vltk/shared').TradeCurrency) => void;
+  /** Chiến trường Tống Kim actions. */
+  tkAction: (msg: import('@vltk/shared').TkActionMsg) => void;
 }
 
 /** Windows the scene opens (keys, NPCs). */
 export type WindowId = 'bag' | 'char' | 'skills' | 'bigmap' | 'travel' | 'shop' | 'drugstore' | 'kytran' | 'horse-shop' | 'system' | 'team' | 'stash' | 'gm' | 'rankings';
 
 /** Which window each NPC action opens. */
-export const NPC_WINDOWS: Record<NpcAction, WindowId> = { shop: 'shop', drug: 'drugstore', kytran: 'kytran', travel: 'travel', horse: 'horse-shop', stash: 'stash' };
+export const NPC_WINDOWS: Partial<Record<NpcAction, WindowId>> = { shop: 'shop', drug: 'drugstore', kytran: 'kytran', travel: 'travel', horse: 'horse-shop', stash: 'stash' };
 
 /** One line of an NPC conversation. */
 export interface NpcTalk {

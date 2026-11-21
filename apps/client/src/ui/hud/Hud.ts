@@ -41,6 +41,7 @@ import { ChatBox } from './chat';
 import { ChatReactsWindow } from '../windows/chatReacts';
 import { Quickbar } from './quickbar';
 import { StatusIcons } from './status';
+import { TongKimHud } from './tongkim';
 import { Vitals } from './vitals';
 import './hud.css';
 import { bindHudViewport } from '../kit/viewport';
@@ -67,6 +68,7 @@ export class Hud implements WorldUi {
   private readonly minimap: MinimapPanel;
   private readonly quickbar: Quickbar;
   private readonly notices: Notices;
+  private readonly tongKimHud: TongKimHud;
   private readonly bag: InventoryWindow;
   private readonly stash: StashWindow;
   private readonly team: TeamWindow;
@@ -134,6 +136,7 @@ export class Hud implements WorldUi {
       useItem: defId => this.actions?.useItem(defId),
     });
     this.notices = new Notices(root);
+    this.tongKimHud = new TongKimHud(root);
     const chatBox = new ChatBox(root, ctx);
     const chatReacts = new ChatReactsWindow(root, () => this.self?.name);
     chatBox.onShowReacts = (id, emoji) => chatReacts.open(id, emoji);
@@ -200,6 +203,7 @@ export class Hud implements WorldUi {
     this.bigmap.tool?.mapChanged();
     this.last = { ...FRESH };
     this.travel.setMap(meta);
+    this.tongKimHud.bind(meta.id, msg => actions.tkAction(msg));
     this.enteredMap = meta.name;
     this.logMap();
   }
@@ -356,6 +360,7 @@ export class Hud implements WorldUi {
   hide(): void {
     if (this.autoOn) { this.autoOn = false; this.autoWin.setChecked(false); this.notices.setAutoBadge(false); this.quickbar.setAuto(false); }
     this.root.classList.add('hidden');
+    this.tongKimHud.hide();
     dialogs.closeAll(true);
     tooltip.hide();
   }

@@ -27,6 +27,8 @@ export const Actor = schema({
   maxMp: t.uint32(),
   pk: t.uint8(),             // PK mode: 0 Luyện công, 1 Chiến đấu, 2 Đồ sát (shared combat/rules.ts)
   camp: t.string(),          // players: camp shown by the name colour (own, or the team leader's); '' monsters
+  battleCamp: t.string(),    // Tống Kim battle camp: '' | 'tong' | 'kim'
+  battleRank: t.uint8(),     // Tống Kim rank: 0 (none) | 1..5 (Binh sĩ -> Đại tướng)
   teamLeader: t.boolean(), // authoritative captain marker visible to nearby players
   team: t.string(),          // players: team id ('' = none; world/teams.ts)
   stallTitle: t.string(),    // players: non-empty while player stall is open (world/stalls.ts)

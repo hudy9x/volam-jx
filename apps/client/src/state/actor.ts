@@ -35,6 +35,10 @@ export interface ActorState {
   pk: number;
   /** Players: camp shown by the name colour (own or the team leader's). */
   camp?: string;
+  /** Tống Kim camp: '' | 'tong' | 'kim'. */
+  battleCamp?: string;
+  /** Tống Kim rank: 0..5. */
+  battleRank?: number;
   /** Players: team id ('' = none). */
   team?: string;
   teamLeader?: boolean;

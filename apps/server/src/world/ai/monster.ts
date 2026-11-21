@@ -3,7 +3,7 @@ import type { Sim } from '../entity.js';
 import { castNow } from '../systems/combat.js';
 import { face, followPath, setPath } from '../systems/movement.js';
 import { syncVitals } from '../systems/sync.js';
-import { attackable, nearestPlayer } from '../targeting.js';
+import { attackable, nearestBattleEnemy, nearestPlayer } from '../targeting.js';
 import type { World } from '../World.js';
 import { leashes } from './boss.js';
 
@@ -39,7 +39,7 @@ export function updateMonster(w: World, sim: Sim, dt: number): void {
   let target = sim.target ? w.sims.get(sim.target) : undefined;
   if (target && !attackable(w, sim, target)) target = undefined;
   if (!target) {
-    target = nearestPlayer(w, sim, def.vision);
+    target = sim.a.battleCamp ? nearestBattleEnemy(w, sim, def.vision) : nearestPlayer(w, sim, def.vision);
     sim.target = target?.id ?? null;
   }
 

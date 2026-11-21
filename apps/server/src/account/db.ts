@@ -69,6 +69,10 @@ export interface CharacterRecord {
   progressVersion?: number;
   /** Bot characters only (dev/botAdmin.ts). */
   bot?: BotRecord;
+  /** Điểm tích lũy Tống Kim (lưu bền, dùng đổi EXP / mua Quân Nhu). */
+  tkAccum?: number;
+  /** Phe Tống Kim gần nhất (để reset công trạng khi đổi phe). */
+  tkCampLast?: 'tong' | 'kim';
 }
 
 interface DbShape {

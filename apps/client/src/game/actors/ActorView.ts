@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import {
-  coldMovement, CAMP_COLORS, SPEED, getActiveSpeedConfig, trackBasePercent, resolveSpeed, type Camp, jumpHeight,
+  coldMovement, CAMP_COLORS, SPEED, TK_CAMP_COLORS, tkTitleOf, getActiveSpeedConfig, trackBasePercent, resolveSpeed, type Camp, type TkCamp, jumpHeight,
   attackSpeedPct, castSpeedPct, speedPoints, totalSpeedPercents, attrOf,
 } from '@vltk/shared';
 import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
 import type { ActorState } from '../../state/actor';
+import { tkState } from '../../state/tongkim';
 import { progress } from '../../state/progress';
 import { FRAME_MS, JxSprite, type Source } from './PaperDoll';
 import { ui, uiPx, textResolution, zoomPlate } from '../display';
@@ -342,10 +343,15 @@ export class ActorView {
     }
     // Players: the colour of their camp (own, or the team leader's) — shared CAMP_COLORS; Đồ sát is marked.
     // Monsters (USER 2026-11-14): normal = white (#ffffff), Boss Xanh (1) = blue (#5cb8ff), Boss Hoàng Kim (2) = gold (#ffd700).
+    const tkCamp = s.battleCamp === 'tong' || s.battleCamp === 'kim' ? s.battleCamp as TkCamp : null;
     const color = s.kind === 'npc' ? '#9cf08a'
+      : tkCamp ? (s.kind === 'monster' ? '#ffffff' : TK_CAMP_COLORS[tkCamp])
       : s.kind === 'monster' ? (Number(s.boss) >= 2 || s.boss === true ? '#ffd700' : s.boss === 1 ? '#5cb8ff' : '#ffffff')
       : CAMP_COLORS[(s.camp || 'new') as Camp] ?? '#ffffff';
-    const text = s.kind === 'monster' ? `${s.name} (${s.level})` : `${s.name}${s.pk === 2 ? ' [Đồ sát]' : s.pk === 1 ? ' [Chiến đấu]' : ''}`;
+    const tkTag = tkCamp && s.kind === 'player' && (s.battleRank ?? 0) > 0 ? `[${tkTitleOf(tkCamp, s.battleRank!)}] ` : '';
+    const text = s.kind === 'monster'
+      ? (tkCamp ? s.name : `${s.name} (${s.level})`)
+      : `${tkTag}${s.name}${!tkCamp && s.pk === 2 ? ' [Đồ sát]' : !tkCamp && s.pk === 1 ? ' [Chiến đấu]' : ''}`;
     if (this.label.text !== text) this.label.setText(text);
     if (this.label.style.color !== color) this.label.setColor(color);
     if (this.label.scaleX !== plate.textScale) this.label.setScale(plate.textScale);
@@ -438,15 +444,19 @@ export class ActorView {
 
     const w = Math.max(10, ui(s.boss ? plate.barBossW : plate.barW)), bh = Math.max(2, ui(plate.barH));
     const ratio = s.maxHp ? Math.max(0, s.hp / s.maxHp) : 0;
-    const barKey = `${Math.round(this.x)},${top},${ratio.toFixed(3)},${s.pk},${plate.zoom}`;
+    const viewerCamp = tkState.get()?.me?.camp || '';
+    const barKey = `${Math.round(this.x)},${top},${ratio.toFixed(3)},${s.pk},${s.battleCamp ?? ''},${viewerCamp},${plate.zoom}`;
     if (barKey === this.lastBarKey) return;
     this.lastBarKey = barKey;
     this.bar.clear();
     if (s.hp <= 0 || s.kind === 'npc') return;
     const bx = Math.round(this.x - w / 2);
     this.bar.fillStyle(0x000000, 0.7).fillRect(bx - 1, top - bh - 1, w + 2, bh + 2);
-    // Players (self too): green, red once they turn PK on (Chiến đấu / Đồ sát) — USER 2026-11-13. Monsters red.
-    const barColor = s.kind === 'monster' ? 0xd8402f : s.pk > 0 ? 0xd8402f : 0x4fd16b;
+    // Trong Tống Kim: cùng phe = xanh lá, ngược phe = đỏ (áp dụng cho cả người chơi, bot và binh sĩ/tướng).
+    // Ngoài Tống Kim: quái đỏ; người chơi xanh lá, bật PK đỏ.
+    const barColor = s.battleCamp && viewerCamp
+      ? (s.battleCamp === viewerCamp ? 0x4fd16b : 0xd8402f)
+      : s.kind === 'monster' ? 0xd8402f : s.pk > 0 ? 0xd8402f : 0x4fd16b;
     this.bar.fillStyle(barColor, 1)
       .fillRect(bx, top - bh, Math.round(w * ratio), bh);
   }

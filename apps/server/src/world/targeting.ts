@@ -5,15 +5,24 @@ import type { World } from './World.js';
 // Who may hit whom on this map (shared canAttack + training dummies never fight) and nearest-enemy searches.
 
 function info(sim: Sim): CombatantInfo {
-  return { kind: sim.kind, id: sim.id, dead: sim.dead, pk: sim.a.pk, camp: (sim.a.camp || 'new') as Camp, team: sim.a.team, protectedUntil: sim.a.protectedUntil };
+  return {
+    kind: sim.kind, id: sim.id, dead: sim.dead, pk: sim.a.pk,
+    camp: (sim.a.camp || 'new') as Camp, team: sim.a.team,
+    battleCamp: (sim.a.battleCamp || '') as 'tong' | 'kim' | '',
+    protectedUntil: sim.a.protectedUntil,
+  };
 }
 
 /**
  * Allies for bùa lợi / hào quang / healing of skills: the same kind, not attackable, and for players the same team or the
- * same camp (name colour) — USER 2026-11-12.
+ * same camp (name colour) — USER 2026-11-12. Trong Tống Kim: cùng battleCamp là đồng minh.
  */
 export function friendly(w: World, a: Sim, b: Sim): boolean {
-  if (b.dead || a.kind !== b.kind) return false;
+  if (b.dead) return false;
+  if (a.a.battleCamp || b.a.battleCamp) {
+    return !!a.a.battleCamp && a.a.battleCamp === b.a.battleCamp;
+  }
+  if (a.kind !== b.kind) return false;
   if (a === b || a.kind === 'monster') return true;
   if (attackable(w, a, b)) return false;
   return (!!a.a.team && a.a.team === b.a.team) || (a.a.camp || 'new') === (b.a.camp || 'new');
@@ -41,3 +50,7 @@ export const nearestHostile = (w: World, sim: Sim, x: number, y: number, radius:
 /** Closest player a monster can see (line of sight). */
 export const nearestPlayer = (w: World, sim: Sim, radius: number) =>
   nearest(w, sim, sim.a.x, sim.a.y, radius, other => other.kind === 'player' && clearSegment(w.grid, sim.a, other.a, false));
+
+/** Closest enemy (player or opposing battlefield NPC) a Tống Kim NPC can see. */
+export const nearestBattleEnemy = (w: World, sim: Sim, radius: number) =>
+  nearest(w, sim, sim.a.x, sim.a.y, radius, other => clearSegment(w.grid, sim.a, other.a, false));

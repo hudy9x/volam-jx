@@ -1,6 +1,7 @@
 import source from './town-safe-zones.json';
 import type { MapMeta } from './types.js';
 import type { MapRules } from '../combat/rules.js';
+import { isInTkSafeCamp } from '../battle/tongkim.js';
 
 export interface ZonePoint { x: number; y: number }
 export interface SafeZone { id: string; name: string; points: ZonePoint[] }
@@ -49,6 +50,7 @@ export function validateSafeZones(value: unknown, meta: Pick<MapMeta, 'type' | '
 }
 /** No per-map record = old full-map policy. A configured city is combat-enabled outside all polygons. */
 export function combatRulesAt(meta: Pick<MapMeta, 'id' | 'safe' | 'pvp'>, point: ZonePoint, fallback: MapRules = meta, config: SafeZoneConfig = TOWN_SAFE_ZONES): MapRules {
+  if (isInTkSafeCamp(meta.id, point.x, point.y)) return { safe: true, pvp: false };
   const zones = config.maps[String(meta.id)];
   if (!zones?.length) return { safe: !!fallback.safe, pvp: !!fallback.pvp };
   const safe = zones.some(z => insideZone(point, z.points));
