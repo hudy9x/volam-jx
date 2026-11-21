@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Actor } from '../apps/server/src/net/schema.js';
 import { makeSim } from '../apps/server/src/world/entity.js';
+import { applyHit } from '../apps/server/src/world/systems/combat.js';
 import { applyHitEffects, updateEffects } from '../apps/server/src/world/systems/effects.js';
 import { SkillEngine } from '../packages/shared/src/skills/engine/SkillEngine.js';
 import type { World } from '../apps/server/src/world/World.js';
@@ -99,4 +100,46 @@ test('doubled stun keeps skill duration, equipment reduction, attacker enhanceme
   assert.equal(hitEffects(skill, 20, enhanced, attacker, hit, () => 0).stunMs, 4500);
   assert.equal(hitEffects(skill, 20, attacker, attacker, {...hit, miss: true}, () => 0).stunMs, 0);
   assert.equal(hitEffects(skill, 20, attacker, attacker, hit, () => .99).stunMs, 0);
+});
+
+test('poison DoT bypasses manashield_p (Toa Vong Vo Nga) and drains HP directly', async () => {
+  const {monsterCombat} = await import('../packages/shared/src/index.js');
+  const mkPlayer = (id: string, element: 'moc' | 'tho', hp: number, mp: number, manashieldPct = 0) => {
+    const a = new Actor();
+    Object.assign(a, {id, name: id, hp, maxHp: hp, mp, maxMp: mp, level: 80, pk: 1, camp: element === 'moc' ? 'evil' : 'justice'});
+    const sim = makeSim(id, 'player', a, element, hp);
+    sim.mp = mp;
+    sim.combat = monsterCombat(80, element, 0, 0, manashieldPct ? {manashield_p: [manashieldPct, 0, 0]} : {});
+    return sim;
+  };
+  const attacker = mkPlayer('wudu', 'moc', 2000, 1000, 0);
+  const target = mkPlayer('wudang', 'tho', 1000, 5000, 99);
+  const w = {
+    now: 1000,
+    meta: {id: 1, safe: false},
+    rules: {},
+    events: [],
+    sims: new Map([[attacker.id, attacker], [target.id, target]]),
+    engine: {cancel() {}, onDeath() {}, interrupt() {}},
+    hooks: {announce() {}, notify() {}, progress() {}},
+  } as unknown as World;
+
+  // Direct hit still uses manashield_p: 99% to MP, 1% to HP.
+  applyHit(w, attacker, target, {dmg: 100, crit: false});
+  assert.equal(target.mp, 4901);
+  assert.equal(target.hp, 999);
+
+  // Poison DoT ticks must bypass manashield_p: MP untouched, full damage to HP.
+  applyHitEffects(w, attacker, target, {stunMs: 0, slowMs: 0, hurtMs: 0, poison: {tick: 200, periodMs: 100, totalMs: 300}});
+  w.now = 1300;
+  updateEffects(w, target, (by, dmg) => applyHit(w, by ?? target, target, {dmg, crit: false, dot: true}));
+  assert.equal(target.mp, 4901, 'poison ticks must not drain MP via manashield_p');
+  assert.equal(target.hp, 399, 'all 3 poison ticks (600 dmg) must drain HP directly');
+  assert.equal(target.dead, false);
+
+  // Fatal poison DoT kills target even with ample MP remaining.
+  applyHit(w, attacker, target, {dmg: 500, crit: false, dot: true});
+  assert.equal(target.mp, 4901, 'fatal poison tick must not be absorbed by MP');
+  assert.equal(target.hp, 0);
+  assert.equal(target.dead, true);
 });

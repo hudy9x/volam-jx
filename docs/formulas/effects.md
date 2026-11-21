@@ -70,7 +70,7 @@ Ví dụ (thử): Kim Chung Tráo cấp 20 → kháng vật lý +50, băng +45, 
 | **Độc** | mỗi nhịp `poisondamage_v` P1 (sau kháng độc) − `poisondamagereduce_v`; chu kỳ P3 frame; tổng P2 frame × (1 − `poisontimereduce_p`/100, tối đa 95). Trúng thêm: **gộp** — cộng sát thương mỗi nhịp (trần người chơi **600**, quái 123456), lấy thời gian dài hơn, chu kỳ ngắn hơn | DATA (trần `PlayerPoisonDamageMax`) · SRC (gộp, đơn giản hóa) |
 | **Co giật** | xác suất `DoHurt` % của chiêu (`skill_dohurt` ghi đè); thời gian = khung bị thương (người 12, quái 10) × (100 − phục hồi %)/100; phục hồi ≥ 100 % → không co giật (710 quái `HitRecover 100`) | DATA · INFERRED (≥ 100) |
 
-- Choáng / co giật khóa hành động (`castUntil`); chậm qua `moveScale` và thời gian ra chiêu; độc là sát thương theo nhịp (ghi cho người đầu độc).
+- Choáng / co giật khóa hành động (`castUntil`); chậm qua `moveScale` và thời gian ra chiêu; độc là sát thương theo nhịp (ghi cho người đầu độc), **trừ thẳng vào Sinh lực và bỏ qua Nội lực hộ thân (`manashield_p` / Tọa Vọng Vô Ngã)**.
 - Client: chữ nổi "Chậm" / "Trúng độc", choáng dùng vòng sáng Status50 trên đầu (sự kiện `ctl`), `Actor.ctl` (1 choáng, 2 chậm, 4 độc).
 - Biểu hiện (USER 2026-11-15): băng nhuộm vàng thân, độc nhuộm xanh lá (độc ưu tiên màu khi có cả hai), không nhuộm bóng. Choáng giữ đúng tư thế/frame/hướng đang vẽ, loại thời gian đứng im khỏi đồng hồ hoạt ảnh khi hết choáng; chết vẫn phát ngay và bỏ màu. Áp dụng chung người chơi/quái/boss.
 - Băng giữ nhịp đứng chờ ×0,5. Vòng chạy dùng `coldMovement().cycleMs = 2000`, không nhân thêm `coldLoopRate`; sprite8/12/16frame vẫn cùng2giây/vòng, lần lượt4/6/8ảnh mỗi giây. Tốc đánh vẫn chụp thời lượng khi bắt đầu chiêu.

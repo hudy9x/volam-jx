@@ -1,3 +1,12 @@
+## 2026-11-22 · Độc sát (DoT) trừ thẳng HP, bỏ qua Tọa Vọng Vô Ngã (`manashield_p`) (đã commit)
+
+- **USER yêu cầu:** đảm bảo sát thương độc sát trừ trực tiếp vào sinh lực (HP), không bị Tọa Vọng Vô Ngã (`manashield_p`) chuyển sang nội lực để giữ đúng tương khắc hệ Mộc → hệ Thổ.
+- **Thay đổi:**
+  - `apps/server/src/world/systems/combat.ts`: thêm điều kiện `!hit.dot` vào nhánh `manashield_p` trong `applyHit` (đòn trực tiếp vẫn chuyển sang nội lực theo `manashield_p`; sát thương độc theo nhịp trừ thẳng HP).
+  - `tests/control-effects.test.ts`: bổ sung test kiểm chứng đòn trực tiếp vẫn dùng `manashield_p`, còn độc sát (`dot: true`, gồm cả qua `updateEffects` và tick kết liễu) giữ nguyên MP và trừ toàn bộ vào HP.
+  - `docs/formulas/effects.md`, `docs/formulas/damage.md`: cập nhật ghi chú độc sát DoT bỏ qua `manashield_p`.
+- **Kiểm tra:** `npm run test:effects` (**21/21 pass**), `npm run typecheck` (0 lỗi), `git diff --check` đạt. Luật chạy phía server nên dùng chung Web/Desktop/Mobile; cần restart server để nhận mã mới. Chưa commit/push.
+
 ## 2026-11-22 · Commit theo từng phần: PvP ngũ hành, Lệnh bài điểm tích lũy, tinh chỉnh Tống Kim & Bot 150–200 (đã commit)
 
 - **USER yêu cầu:** commit toàn bộ code hiện tại, chia theo từng phần (không push).

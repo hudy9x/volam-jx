@@ -23,7 +23,7 @@ resolveHit
   ▼
 hitEffects (effects.md)  ──►  choáng / chậm / độc / co giật
   ▼
-server applyHit: nội lực hộ thân, trừ sinh lực, ghi sát thương (chia exp), thục luyện, hiệu ứng
+server applyHit: nội lực hộ thân (chỉ đòn trực tiếp; độc DoT trừ thẳng sinh lực), trừ sinh lực, ghi sát thương (chia exp), thục luyện, hiệu ứng
 ```
 
 ## 1. Lực tay (`skillDamage`) — SRC `KPlayer::GetEchoDamage`, WEB 52pk 2004

@@ -54,9 +54,10 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
   if (target.kind === 'monster' && !target.def?.dummy && !target.target && !target.returning && attacker !== target) target.target = attacker.id;
   if (hit.miss) { w.events.push({ t: 'hit', id: target.id, dmg: 0, miss: true }); return; }
   let dmg = hit.dmg;
-  // Nội lực hộ thân (manashield_p, SRC): that % of the damage is taken from Nội lực while there is some.
+  // Nội lực hộ thân (manashield_p, SRC): that % of direct damage is taken from Nội lực while there is some;
+  // poison DoT (hit.dot) bypasses mana shield and drains HP directly.
   const shield = Math.min(100, attrOf(combatOf(target).bag, 'manashield_p'));
-  if (shield > 0 && target.mp > 0 && dmg > 0) {
+  if (!hit.dot && shield > 0 && target.mp > 0 && dmg > 0) {
     const fromMp = Math.min(target.mp, Math.round((dmg * shield) / 100));
     target.mp -= fromMp;
     dmg -= fromMp;
