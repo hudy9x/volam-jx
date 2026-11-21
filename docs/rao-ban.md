@@ -10,7 +10,7 @@ Kênh **Mua bán** nhận cả tin nhắn thường và tin gắn vật phẩm. 
 
 Người bán phải trực tuyến. Server kiểm tra món còn trong túi và chưa đổi thuộc tính, người mua đủ tiền/chỗ trống, ví người bán chưa vượt giới hạn. Chuyển tiền và món đồng bộ, đánh dấu tin đã bán, lưu hai nhân vật; không có đoạn chờ giữa kiểm tra và chuyển. Tin trùng cùng một món không mua được lần hai. Nếu người bán đã bán NPC/mặc/vứt/sửa món, tin cũ chỉ còn preview và việc mua bị từ chối. Không khóa/giữ hộ món khi đăng rao, không bán offline.
 
-Mua bán có lịch sử công khai trong giới hạn lịch sử chat chung; người đăng nhập sau vẫn thấy tin. Thế giới giữ lịch sử theo tài khoản như cũ. Ảnh/thuộc tính được chụp từ món trên server, không nhận snapshot do người rao tự gửi. Văn bản hiển thị bằng textContent.
+Mua bán có lịch sử công khai trong giới hạn cửa sổ **30 phút (`CHAT.tradeWindowMs`) và tối đa 50 tin (`CHAT.tradeMaxLines`)**; người đăng nhập sau vẫn thấy các tin còn trong bộ lọc này. Thế giới giữ lịch sử theo tài khoản như cũ. Ảnh/thuộc tính được chụp từ món trên server, không nhận snapshot do người rao tự gửi. Văn bản hiển thị bằng textContent.
 
 ## Tiền
 
@@ -91,14 +91,15 @@ Kiểm chứng mới: `test:market` có thêm `tests/market-pricing.test.mts`, k
 - `TradeCurrency`/`TradePostMsg` chỉ nhận money/knb; `TradeOffer` vẫn đọc được contact của lịch sử cũ. UI chỉ có hai lựa chọn tiền, giá bắt buộc; server chặn contact/đơn vị lạ, kể cả client cũ. `purchaseOffer` từ chối tin contact cũ.
 - `test:market`13ca đạt, gồm từ chối tin mới contact/đơn vị sai và mua tin cũ không đổi ví/túi. WS thật2568/DBriêng `/tmp/jx-bot-team-market/db.json` kiểm từ chối contact + mua lượng/KNB/lưu lịch sử. Chromium1440/390 kiểm form hai tiền/giá bắt buộc/preview contact cũ không nút mua. Chưa native/mobile thật.
 
-## Chợ Bày Bán theo thành thị (2026-11-19)
+## Bày bán trực tiếp trên Hành trang — Player Stall (2026-11-21, commit `eabe757`)
 
-Song song với kênh chat **Mua bán**, game có **Chợ Bày Bán theo thành thị** (`apps/server/src/world/stalls.ts`, `apps/client/src/ui/windows/bazaar.ts`):
-- Mở bằng icon **Chợ** cạnh Bảng xếp hạng trên thanh dưới; chỉ sử dụng được trong **thành thị** (`meta.safe`). Mỗi thành thị có danh sách gian hàng riêng theo `mapId`.
-- **1 nhân vật = tối đa 1 gian hàng**, gồm **2 tab × 60 ô (`STALL_PAGES = 2`, `STALL_SIZE = 120`)**. Không cho đặt Lệnh bài (`TOKEN_ITEM_ID`) và Thổ Địa Phù (`TOWN_PORTAL_ID`).
-- Chỉ hỗ trợ định giá bằng **Ngân lượng** hoặc **Kim nguyên bảo (KNB)**. Người bán đặt đồ từ Hành trang vào Quầy (kéo thả hoặc bật nút **Đặt đồ** để click nhanh trên Desktop/Mobile), bật **Định giá** để đặt giá từng món, rồi bấm **Bày bán ngay** và nhập **Lời mời chào** (1–48 ký tự).
-- Khi đang bày bán, quầy khóa chỉnh sửa; muốn sửa giá hoặc rút đồ cần bấm **Ngưng bày bán**. Người mua xem danh sách gian hàng → mở Quầy 2 tab → hover (Mobile: chạm lần 1) xem thuộc tính + giá bán → click (Mobile: chạm lần 2) mở `TradeConfirm` xác nhận giá → giao dịch nguyên tử.
-- **Vòng đời online & lưu ý cho Kỹ năng Ủy thác sau này:** hiện gian hàng chỉ hiển thị khi chủ sạp **online** (chuyển map có grace window 30s); khi chủ sạp thoát game, gian hàng tự đóng và hoàn trả toàn bộ vật phẩm về Hành trang (hoặc `bagSpill` nếu đầy). `StallState` đã thiết kế thuần dữ liệu JSON-serializable với trường dự phòng `entrustedUntil?: number` — khi triển khai **Kỹ năng Ủy thác (bán hàng offline)** sau này, cần lưu `StallState` vào DB và bỏ qua bước đóng/hoàn đồ trong `stallOffline()` khi `entrustedUntil > Date.now()`.
+Thay thế hoàn toàn cửa sổ Chợ thành thị danh sách trước đây bằng cơ chế **Bày bán trực tiếp trên Hành trang** theo JX1 (`volam-3005/documents/co-che-bay-ban.md`):
+- **Không có túi sạp riêng:** người chơi bật **Định giá** trong **Hành trang** (`apps/client/src/ui/windows/inventory.ts`) để đặt giá trực tiếp lên vật phẩm ở **2 trang đầu Hành trang (`0..STALL_SIZE-1 = 120` ô)** qua `Item.stallPrice?: { price, currency }`. Hỗ trợ **Ngân lượng** hoặc **Kim nguyên bảo (`knb`)**, giá nguyên dương `1..MAX_MONEY`, cấm định giá `TOKEN_ITEM_ID` và `TOWN_PORTAL_ID`.
+- **Điều kiện mở sạp (`PermitTrade`):** ở thành thị/thôn trấn an toàn (`MAPS[mapId]?.safe`), không tử vong, không ở trạng thái chiến đấu (`!attackTarget`), không cưỡi ngựa (`!mounted`), **đẳng cấp ≥ 60 (`STALL_MIN_LEVEL = 60`)**, đứng cách NPC chức năng **> 80 px (`STALL_NPC_CLEARANCE = 80`)**, có ít nhất 1 món đã định giá ở 2 trang đầu, và lời mời chào dài **1–20 ký tự (`STALL_TITLE_MAX = 20`)**. Đóng sạp (`stallClose`) không bị chặn bởi điều kiện mở.
+- **Hiển thị & tương tác thế giới:** khi mở sạp, `Actor.stallTitle` đồng bộ qua Colyseus schema; `ActorView` vẽ bảng hiệu 3 mảnh SPR gốc giải mã từ `VLTK-SHXT` (`stall-left.webp`, `stall-mid.webp`, `stall-right.webp` trong `tools/gen-ui.ts`) hiển thị đúng nguyên văn lời rao phía trên tên nhân vật. Người mua cùng thành thị click/chạm trực tiếp vào nhân vật (`WorldScene.ts` → `C2S.stallInspect`) để mở cửa sổ **Sạp hàng** (`apps/client/src/ui/windows/bazaar.ts`) gồm **1 trang lớn duy nhất 120 ô (`10 cột × 12 hàng`)** chứa các món đang bán. Hover xem thuộc tính + giá (style `.tip-stall-price` đồng bộ thanh tiêu đề `.dlg-title`); Desktop click / Mobile chạm lần 2 mở `TradeConfirm` để mua nguyên tử.
+- **Khóa thao tác & đổi chủ:** khi đang bày bán (`!!sim.a.stallTitle`), khóa di chuyển, tung chiêu, lên/xuống ngựa, đổi ô/xếp/tách túi, mặc/cởi đồ, mua/chế tạo, bán/vứt đồ, chuyển rương và không mua sạp người khác. Khi vật phẩm đổi chủ (mua sạp hoặc mua qua chat `market.ts`), rời 2 trang đầu hoặc xuất khỏi túi, `item.stallPrice` tự động bị xóa. Bán hết món cuối hoặc offline sẽ tự đóng sạp và gửi `S2C.stallClosed` đóng cửa sổ phía người mua.
+- **Bố cục Hành trang:** `.bag-actions` xếp lưới **2 nút / hàng** (`Tách | Vứt`, `Rao bán | Bán`, `Định giá | Bày bán`). Trạng thái nút `Bày bán` / `Ngưng bán` đồng bộ qua `ownStallTitle` (`state/stall.ts`).
+- **Bản đồ mã nguồn:** `packages/shared/src/items/items.ts`, `protocol.ts`; `apps/server/src/net/{schema,MapRoom}.ts`, `world/{stalls,commands,inventory,market,chat}.ts`; `apps/client/src/game/{WorldScene,actors/ActorView,ports}.ts`, `state/{actor,chat,stall}.ts`, `net/room.ts`, `ui/{hud/Hud,hud/quickbar,kit/tooltip.css,tips/itemTip,windows/bazaar,windows/inventory}.{ts,css}`, `tools/gen-ui.ts`; kiểm thử `tests/city-bazaar.test.ts`.
 
 ## Tài liệu liên quan
 

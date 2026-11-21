@@ -155,8 +155,9 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "mapId": 92,
       "x": 9840,
       "y": 16600,
-      "attackCooldown": 0.5,
-      "skillLevelsFixed": true
+      "attackCooldown": 0.2,
+      "skillLevelsFixed": true,
+      "damagePercent": 300
     },
     {
       "id": 516,
@@ -942,7 +943,15 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
         ],
         [
           128,
-          15
+          20
+        ],
+        [
+          1073,
+          20
+        ],
+        [
+          1074,
+          20
         ]
       ],
       "goldDrops": [
@@ -955,7 +964,14 @@ export const GOLDEN_BOSS_CONFIG: GoldenBossConfig = {
       "x": 3344,
       "y": 2216,
       "attackCooldown": 0.5,
-      "hp": 500000
+      "hp": 500000,
+      "skillLevelsFixed": true,
+      "controlReduction": {
+        "hurt": 80,
+        "cold": 40,
+        "stun": 40,
+        "poison": 40
+      }
     },
     {
       "id": 1199,
