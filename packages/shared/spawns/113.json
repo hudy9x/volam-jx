@@ -1,0 +1,25 @@
+{
+ "map": 113,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Mật thất Thiếu Lâm, cấp 40–50, vùng Hoa Bắc: Rết, Nhện, Dơi hút máu, Dơi Dong, Hoa Bắc sơn tặc 2, Hoa Bắc sơn tặc 1; Boss Xanh + Boss Hoàng Kim Mạnh Thương Lương.",
+ "zones": [
+  {"x":4080,"y":1064,"r":220,"monsters":[[29,46]],"count":4,"respawn":35},
+  {"x":4688,"y":4344,"r":220,"monsters":[[46,46]],"count":5,"respawn":35},
+  {"x":5072,"y":1544,"r":220,"monsters":[[159,44]],"count":6,"respawn":35},
+  {"x":8432,"y":1928,"r":220,"monsters":[[46,44]],"count":4,"respawn":35},
+  {"x":4912,"y":1944,"r":220,"monsters":[[30,43],[29,42]],"count":4,"respawn":34},
+  {"x":8144,"y":4312,"r":220,"monsters":[[46,46]],"count":7,"respawn":36},
+  {"x":5968,"y":968,"r":220,"monsters":[[46,47]],"count":7,"respawn":35},
+  {"x":2768,"y":1656,"r":220,"monsters":[[46,45],[45,45]],"count":5,"respawn":35},
+  {"x":2800,"y":2568,"r":220,"monsters":[[45,45]],"count":5,"respawn":35},
+  {"x":9136,"y":2120,"r":220,"monsters":[[45,45]],"count":4,"respawn":35},
+  {"x":5008,"y":1080,"r":220,"monsters":[[29,47],[45,46]],"count":5,"respawn":35},
+  {"x":7088,"y":3736,"r":220,"monsters":[[46,42],[45,42]],"count":7,"respawn":34},
+  {"x":4368,"y":4664,"r":220,"monsters":[[30,47]],"count":4,"respawn":36},
+  {"x":9776,"y":856,"r":220,"monsters":[[30,50]],"count":7,"respawn":37},
+  {"x":4560,"y":2472,"r":220,"monsters":[[45,42]],"count":5,"respawn":34},
+  {"x":4368,"y":4664,"r":60,"monsters":[[159,50]],"count":1,"respawn":60,"boss":1},
+  {"x":8144,"y":4312,"r":60,"monsters":[[159,50]],"count":1,"respawn":60,"boss":1},
+  {"x":9776,"y":856,"r":40,"monsters":[[583,50]],"count":1,"respawn":180,"boss":2}
+ ]
+}

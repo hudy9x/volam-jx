@@ -47,6 +47,10 @@ const EXTRA: Record<number, Partial<MapMeta>> = {
       { id: 'to-37', label: 'Biện Kinh', x: 4720, y: 10040, radius: 40, toMap: 37, toX: 20600, toY: 15860 },
     ],
   },
+  323: {
+    safe: true,
+    pvp: false,
+  },
 };
 
 export const DEFAULT_MAP_PORTALS = Object.fromEntries(Object.entries(EXTRA).map(([id, m]) => [id, (m.portals ?? []).map(p => ({ ...p }))]));
@@ -126,8 +130,14 @@ export function snapToMap(mapId: number, x: number, y: number): [number, number]
 /** Names of the map types for the map list. */
 export const MAP_TYPE_NAMES: Record<string, string> = {
   City: 'Thành thị', Capital: 'Thành thị', Field: 'Luyện công', Country: 'Thôn trấn', Cave: 'Hang động',
-  Tong: 'Bang hội', Battlefield: 'Chiến trường', Others: 'Khác', '': 'Khác',
+  Tong: 'Môn phái', Battlefield: 'Chiến trường', Others: 'Khác', '': 'Khác',
 };
+
+/** Display category for a map (splits Đơn đấu maps out of Chiến trường into their own tab). */
+export function mapTypeLabel(m: Pick<MapMeta, 'type' | 'name'>): string {
+  if (m.type === 'Battlefield' && /^Đơn đấu\b/i.test(m.name.trim())) return 'Đơn đấu';
+  return MAP_TYPE_NAMES[m.type] ?? 'Khác';
+}
 
 export type { MapMeta, MapCatalogEntry, NavFile, Portal, RawMapData } from './types.js';
 export * from './spawns.js';

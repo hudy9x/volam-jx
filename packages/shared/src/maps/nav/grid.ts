@@ -35,12 +35,18 @@ export function decodeGrid(definition: GridDefinition, size: Size): NavigationGr
     sizes.push(tail);
     if (tail > free) { free = tail; largest = component; }
   }
+  const isl = sizes.map((length, id) => ({ length, id })).filter(part => part.length >= Math.max(300, free * 0.25))
+    .sort((a, b) => b.length - a.length).map(part => part.id);
+  const kept = new Set(isl.length ? isl : largest >= 0 ? [largest] : []);
   // No component must mean no walkable cells, rather than matching all -1 labels.
-  for (let cell = 0; cell < count; cell++) walkable[cell] = largest >= 0 && components[cell] === largest ? 1 : 0;
+  let keptFree = 0;
+  for (let cell = 0; cell < count; cell++) {
+    const ok = kept.has(components[cell]);
+    walkable[cell] = ok ? 1 : 0;
+    if (ok) keptFree++;
+  }
   return { w: size.width, h: size.height, gw, gh, cw: cellSize.width, ch: cellSize.height,
-    ok: walkable, free, comp: components,
-    isl: sizes.map((length, id) => ({ length, id })).filter(part => part.length >= Math.max(300, free * 0.25))
-      .sort((a, b) => b.length - a.length).map(part => part.id) };
+    ok: walkable, free: keptFree, comp: components, isl };
 }
 
 export function isWalkable(grid: NavigationGrid | null, x: number, y: number): boolean {

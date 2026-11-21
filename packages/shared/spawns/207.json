@@ -1,0 +1,18 @@
+{
+ "map": 207,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tần Lăng tầng 3, cấp 80–90, vùng Tây Bắc: Bạch Hổ, Đông Bắc hổ, Kim Điêu, Sói tuyết, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Đoan Mộc Duệ.",
+ "zones": [
+  {"x":1584,"y":2248,"r":220,"monsters":[[2,86],[0,87]],"count":4,"respawn":49},
+  {"x":3440,"y":696,"r":220,"monsters":[[2,82]],"count":7,"respawn":48},
+  {"x":5648,"y":1496,"r":220,"monsters":[[24,83],[0,83]],"count":6,"respawn":48},
+  {"x":6064,"y":2936,"r":220,"monsters":[[8,90]],"count":4,"respawn":50},
+  {"x":1776,"y":2808,"r":220,"monsters":[[8,87],[150,89]],"count":4,"respawn":49},
+  {"x":1072,"y":1560,"r":220,"monsters":[[0,87]],"count":5,"respawn":49},
+  {"x":7024,"y":2088,"r":220,"monsters":[[24,91],[8,90]],"count":6,"respawn":50},
+  {"x":5296,"y":2696,"r":220,"monsters":[[24,87]],"count":6,"respawn":49},
+  {"x":7024,"y":2088,"r":60,"monsters":[[150,90]],"count":1,"respawn":60,"boss":1},
+  {"x":1776,"y":2808,"r":60,"monsters":[[150,90]],"count":1,"respawn":60,"boss":1},
+  {"x":6064,"y":2936,"r":40,"monsters":[[565,90]],"count":1,"respawn":180,"boss":2}
+ ]
+}

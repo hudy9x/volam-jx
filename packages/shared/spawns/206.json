@@ -1,0 +1,15 @@
+{
+ "map": 206,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Tần Lăng tầng 2, cấp 70–80, vùng Tây Bắc: Xích Luyện mãng xà, Tuyết Quái, Dơi chúa đỏ, Kim Hoàn Mãng Xà, Tây Bắc sơn tặc 1, Tây Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Hoàn Nhan Tuyết Y.",
+ "zones": [
+  {"x":6544,"y":1880,"r":220,"monsters":[[150,80],[22,79]],"count":4,"respawn":47},
+  {"x":1744,"y":904,"r":220,"monsters":[[40,80]],"count":4,"respawn":46},
+  {"x":5744,"y":2056,"r":220,"monsters":[[23,78],[40,76]],"count":5,"respawn":46},
+  {"x":3504,"y":632,"r":220,"monsters":[[23,76],[40,75]],"count":7,"respawn":45},
+  {"x":4048,"y":968,"r":220,"monsters":[[40,71],[22,73]],"count":7,"respawn":44},
+  {"x":1744,"y":904,"r":60,"monsters":[[150,80]],"count":1,"respawn":60,"boss":1},
+  {"x":5744,"y":2056,"r":60,"monsters":[[150,80]],"count":1,"respawn":60,"boss":1},
+  {"x":6544,"y":1880,"r":40,"monsters":[[564,80]],"count":1,"respawn":180,"boss":2}
+ ]
+}

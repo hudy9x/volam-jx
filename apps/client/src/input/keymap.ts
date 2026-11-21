@@ -38,7 +38,7 @@ export function shortcutHelp(): [string, string][] {
     ['Click quái / người', 'Khóa mục tiêu, đánh liên tục bằng chiêu chuột trái (T)'],
     ['Chuột phải', 'Chiêu chuột phải (P)'],
     ['1 – 9', 'Chiêu trên thanh phím tắt'],
-    [`${k('char')} · ${k('skills')} · ${k('bag')} · ${k('travel')} · ${k('bigmap')}`, 'Trang bị và Thuộc tính · Kỹ năng · Hành trang · Chuyển map · Bản đồ lớn'],
+    [`${k('char')} · ${k('skills')} · ${k('bag')} · ${k('travel')} / Shift+${k('bigmap')} · ${k('bigmap')}`, 'Trang bị và Thuộc tính · Kỹ năng · Hành trang · Chuyển map (Xa phu) · Bản đồ'],
     [`${k('mount')} · ${k('pk')}`, 'Lên / xuống ngựa · Đổi chế độ PK (Luyện công → Chiến đấu → Đồ sát)'],
     [`${k('team')} · ${k('kytran')} · ${k('shop')}`, 'Tổ đội · Kỳ Trân Các · Thợ rèn (trong thành)'],
     [`${k('auto')} · Shift+${k('auto')}`, 'Mở cài đặt Auto · Bật / tắt nhanh Auto'],

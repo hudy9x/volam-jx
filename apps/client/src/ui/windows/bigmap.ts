@@ -7,6 +7,7 @@ import { $, mount } from '../kit/dom';
 import './bigmap.css';
 import { assetUrl } from '../../art/assets';
 import { hudSize } from '../kit/viewport';
+import { drawFlag } from '../hud/minimap';
 
 const REDRAW_MS = 150;
 
@@ -49,6 +50,7 @@ export class BigMap {
       e.preventDefault();
       const [x, y] = this.toWorld(e);
       if (this.overlay?.click(Math.round(x), Math.round(y))) { this.lastDraw = 0; return; }
+      this.lastDraw = 0;
       onPick(Math.round(x), Math.round(y));
     });
     this.canvas.addEventListener('pointermove', e => {
@@ -124,7 +126,7 @@ export class BigMap {
   }
 
   /** Throttled redraw while open. */
-  draw(actors: Iterable<MapActor>, selfId: string, labels: MapLabel[]): void {
+  draw(actors: Iterable<MapActor>, selfId: string, labels: MapLabel[], flag: { x: number; y: number } | null = null): void {
     const now = performance.now();
     if (!this.isOpen || !this.meta || now - this.lastDraw < REDRAW_MS) return;
     this.lastDraw = now;
@@ -154,12 +156,8 @@ export class BigMap {
       if (outline) { ctx.lineWidth = 1.5 * dpr; ctx.strokeStyle = '#000'; ctx.stroke(); }
     };
     for (const p of this.meta.portals) {
-      ctx.beginPath();
-      ctx.arc(p.x * k, p.y * k, 6 * dpr, 0, Math.PI * 2);
-      ctx.lineWidth = 2 * dpr;
-      ctx.strokeStyle = '#6fd2ff';
-      ctx.stroke();
-      text(`➜ ${p.label}`, p.x * k, p.y * k - 10 * dpr, '#bfeaff');
+      dot(p.x, p.y, 3, '#ffffff', true);
+      text(p.label, p.x * k, p.y * k - 8 * dpr, '#ffffff');
     }
     for (const l of labels) {
       dot(l.x, l.y, 3, '#7fe08a', true);
@@ -175,6 +173,18 @@ export class BigMap {
         dot(a.x, a.y, gold ? 4.5 : s.boss === 1 ? 3.4 : 2, gold ? '#ffd700' : s.boss === 1 ? '#5cb8ff' : '#e0503c', !!s.boss);
       }
       else dot(a.x, a.y, 3, (CAMP_COLORS[(s.camp || 'new') as Camp] ?? '#ffffff'), true);
+    }
+    if (flag) {
+      const fx = flag.x * k, fy = flag.y * k;
+      if (self) {
+        ctx.strokeStyle = 'rgba(255, 224, 138, 0.85)';
+        ctx.lineWidth = 1.5 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(self.x * k, self.y * k);
+        ctx.lineTo(fx, fy);
+        ctx.stroke();
+      }
+      drawFlag(ctx, fx, fy, dpr);
     }
     if (self) {
       dot(self.x, self.y, 5, '#ffe08a', true);

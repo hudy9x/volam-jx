@@ -1,5 +1,5 @@
 import { syncMapRegistry } from '../../net/api';
-import { isMapEnabled, MAPS, MAP_TYPE_NAMES, mapLevelBand, type MapMeta } from '@vltk/shared';
+import { isMapEnabled, MAPS, mapLevelBand, mapTypeLabel, type MapMeta } from '@vltk/shared';
 import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
 import type { HudContext } from '../hud/context';
@@ -68,17 +68,18 @@ export class TravelWindow {
       || (mapLevelBand(a.id)?.[0] ?? Infinity) - (mapLevelBand(b.id)?.[0] ?? Infinity)
       || (mapLevelBand(a.id)?.[1] ?? Infinity) - (mapLevelBand(b.id)?.[1] ?? Infinity)
       || a.name.localeCompare(b.name, 'vi'));
-    const kinds = [...new Set(all.map(m => MAP_TYPE_NAMES[m.type] ?? 'Khác'))];
+    const kinds = [...new Set(all.map(m => mapTypeLabel(m)))];
+    if (!kinds.includes(this.type)) this.type = kinds[0] ?? '';
     dialogs.setTitle(ID, `Xa phu · Chuyển bản đồ (${all.length})`);
-    $('travel-types').replaceChildren(...['', ...kinds].map(k => {
+    $('travel-types').replaceChildren(...kinds.map(k => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = `tab${k === this.type ? ' on' : ''}`;
-      btn.textContent = k || 'Tất cả';
+      btn.textContent = k;
       btn.addEventListener('click', () => { this.type = k; this.render(); });
       return btn;
     }));
-    const list = all.filter(m => (!this.type || (MAP_TYPE_NAMES[m.type] ?? 'Khác') === this.type)
+    const list = all.filter(m => (!this.type || mapTypeLabel(m) === this.type)
       && (!this.query || fold(m.name).includes(this.query) || String(m.id) === this.query));
     $('travel-list').replaceChildren(...list.map(m => {
       const here = m.id === this.meta?.id;

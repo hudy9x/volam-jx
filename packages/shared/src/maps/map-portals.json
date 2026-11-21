@@ -215,6 +215,16 @@
     ],
     "7": [
       {
+        "id": "portal-7-to-8",
+        "label": "Tới Lăng Tần Thủy Hoàng",
+        "x": 6763,
+        "y": 3640,
+        "radius": 40,
+        "toMap": 8,
+        "toX": 6160,
+        "toY": 5112
+      },
+      {
         "id": "portal-7-to-1",
         "label": "Tới Phượng Tường",
         "x": 538,
@@ -225,7 +235,93 @@
         "toY": 9659
       }
     ],
+    "8": [
+      {
+        "id": "portal-8-to-7",
+        "label": "Tới Tần Lăng",
+        "x": 6341,
+        "y": 5216,
+        "radius": 40,
+        "toMap": 7,
+        "toX": 6753,
+        "toY": 3760
+      },
+      {
+        "id": "portal-8-to-206",
+        "label": "Tới Tần Lăng tầng 2",
+        "x": 8371,
+        "y": 768,
+        "radius": 40,
+        "toMap": 206,
+        "toX": 899,
+        "toY": 666
+      }
+    ],
+    "9": [
+      {
+        "id": "portal-9-to-10",
+        "label": "Tới Nhạn Thạch động",
+        "x": 14352,
+        "y": 3432,
+        "radius": 40,
+        "toMap": 10,
+        "toX": 1104,
+        "toY": 5160
+      },
+      {
+        "id": "portal-9-to-11",
+        "label": "Tới Thành Đô",
+        "x": 12119,
+        "y": 1112,
+        "radius": 40,
+        "toMap": 11,
+        "toX": 2525,
+        "toY": 13157
+      },
+      {
+        "id": "portal-9-to-13",
+        "label": "Tới Nga My phái",
+        "x": 4312,
+        "y": 2390,
+        "radius": 40,
+        "toMap": 13,
+        "toX": 6718,
+        "toY": 12249
+      }
+    ],
+    "10": [
+      {
+        "id": "portal-10-to-9",
+        "label": "Tới Trường Giang Nguyên Đầu",
+        "x": 1008,
+        "y": 5192,
+        "radius": 40,
+        "toMap": 9,
+        "toX": 14245,
+        "toY": 3486
+      }
+    ],
     "11": [
+      {
+        "id": "portal-11-to-12",
+        "label": "Tới Địa đạo hậu viện Tín Tướng tự",
+        "x": 19728,
+        "y": 8984,
+        "radius": 40,
+        "toMap": 12,
+        "toX": 647,
+        "toY": 1799
+      },
+      {
+        "id": "portal-11-to-9",
+        "label": "Tới Trường Giang Nguyên Đầu",
+        "x": 2416,
+        "y": 13208,
+        "radius": 40,
+        "toMap": 9,
+        "toX": 12051,
+        "toY": 1211
+      },
       {
         "id": "portal-11-to-13",
         "label": "Tới Nga My phái",
@@ -277,6 +373,18 @@
         "toY": 19493
       }
     ],
+    "12": [
+      {
+        "id": "portal-12-to-11",
+        "label": "Tới Thành Đô",
+        "x": 528,
+        "y": 1784,
+        "radius": 40,
+        "toMap": 11,
+        "toX": 19609,
+        "toY": 8966
+      }
+    ],
     "13": [
       {
         "id": "portal-13-to-14",
@@ -297,6 +405,16 @@
         "toMap": 11,
         "toX": 6432,
         "toY": 9319
+      },
+      {
+        "id": "portal-13-to-9",
+        "label": "Tới Trường Giang Nguyên Đầu",
+        "x": 6608,
+        "y": 12296,
+        "radius": 40,
+        "toMap": 9,
+        "toX": 4399,
+        "toY": 2473
       }
     ],
     "14": [
@@ -343,6 +461,16 @@
         "toMap": 11,
         "toX": 24534,
         "toY": 12671
+      },
+      {
+        "id": "portal-20-to-202",
+        "label": "Tới Phù Dung động",
+        "x": 12053,
+        "y": 10520,
+        "radius": 40,
+        "toMap": 202,
+        "toX": 11072,
+        "toY": 3124
       }
     ],
     "21": [
@@ -639,6 +767,36 @@
     ],
     "41": [
       {
+        "id": "portal-41-to-42",
+        "label": "Tới Thiên Tâm động",
+        "x": 12320,
+        "y": 4208,
+        "radius": 40,
+        "toMap": 42,
+        "toX": 4245,
+        "toY": 781
+      },
+      {
+        "id": "portal-41-to-42-2",
+        "label": "Tới Thiên Tâm động",
+        "x": 7134,
+        "y": 5780,
+        "radius": 40,
+        "toMap": 42,
+        "toX": 4245,
+        "toY": 781
+      },
+      {
+        "id": "portal-41-to-42-3",
+        "label": "Tới Thiên Tâm động",
+        "x": 3768,
+        "y": 8664,
+        "radius": 40,
+        "toMap": 42,
+        "toX": 4245,
+        "toY": 781
+      },
+      {
         "id": "portal-41-to-37",
         "label": "Tới Biện Kinh",
         "x": 16639,
@@ -649,7 +807,79 @@
         "toY": 15434
       }
     ],
+    "42": [
+      {
+        "id": "portal-42-to-41",
+        "label": "Tới Phục Ngưu Sơn Tây",
+        "x": 4272,
+        "y": 664,
+        "radius": 40,
+        "toMap": 41,
+        "toX": 12260,
+        "toY": 4312
+      },
+      {
+        "id": "portal-42-to-41-2",
+        "label": "Tới Phục Ngưu Sơn Tây",
+        "x": 5776,
+        "y": 792,
+        "radius": 40,
+        "toMap": 41,
+        "toX": 12260,
+        "toY": 4312
+      },
+      {
+        "id": "portal-42-to-41-3",
+        "label": "Tới Phục Ngưu Sơn Tây",
+        "x": 2928,
+        "y": 5848,
+        "radius": 40,
+        "toMap": 41,
+        "toX": 12260,
+        "toY": 4312
+      },
+      {
+        "id": "portal-42-to-43",
+        "label": "Tới Kiếm Các Trung Nguyên",
+        "x": 4976,
+        "y": 4248,
+        "radius": 40,
+        "toMap": 43,
+        "toX": 6128,
+        "toY": 9064
+      },
+      {
+        "id": "portal-42-to-91",
+        "label": "Tới Mê cung Kê Quán động",
+        "x": 6894,
+        "y": 2560,
+        "radius": 40,
+        "toMap": 91,
+        "toX": 11376,
+        "toY": 3672
+      },
+      {
+        "id": "portal-42-to-91-2",
+        "label": "Tới Mê cung Kê Quán động",
+        "x": 2107,
+        "y": 3216,
+        "radius": 40,
+        "toMap": 91,
+        "toX": 11376,
+        "toY": 3672
+      }
+    ],
     "43": [
+      {
+        "id": "portal-43-to-42",
+        "label": "Tới Thiên Tâm động",
+        "x": 5979,
+        "y": 9120,
+        "radius": 40,
+        "toMap": 42,
+        "toX": 5116,
+        "toY": 4248
+      },
       {
         "id": "portal-43-to-6",
         "label": "Tới Tỏa Vân động",
@@ -671,6 +901,30 @@
         "toMap": 37,
         "toX": 35799,
         "toY": 14435
+      }
+    ],
+    "51": [
+      {
+        "id": "portal-51-to-52",
+        "label": "Tới Thánh động tầng 2",
+        "x": 6282,
+        "y": 2261,
+        "radius": 40,
+        "toMap": 52,
+        "toX": 4912,
+        "toY": 3128
+      }
+    ],
+    "52": [
+      {
+        "id": "portal-52-to-51",
+        "label": "Tới Thánh động tầng 1",
+        "x": 4688,
+        "y": 3192,
+        "radius": 40,
+        "toMap": 51,
+        "toX": 6204,
+        "toY": 2352
       }
     ],
     "53": [
@@ -703,6 +957,16 @@
         "toMap": 74,
         "toX": 15907,
         "toY": 3939
+      },
+      {
+        "id": "portal-53-to-199",
+        "label": "Tới Vũ Lăng động",
+        "x": 15974,
+        "y": 9739,
+        "radius": 40,
+        "toMap": 199,
+        "toX": 9730,
+        "toY": 1948
       }
     ],
     "54": [
@@ -727,6 +991,18 @@
         "toY": 9676
       }
     ],
+    "55": [
+      {
+        "id": "portal-55-to-73",
+        "label": "Tới Phục Lưu động",
+        "x": 9702,
+        "y": 6307,
+        "radius": 40,
+        "toMap": 73,
+        "toX": 5884,
+        "toY": 1752
+      }
+    ],
     "56": [
       {
         "id": "portal-56-to-54",
@@ -739,7 +1015,189 @@
         "toY": 2468
       }
     ],
+    "59": [
+      {
+        "id": "portal-59-to-65",
+        "label": "Tới Thiên Vương đảo sơn động",
+        "x": 14320,
+        "y": 2392,
+        "radius": 40,
+        "toMap": 65,
+        "toX": 2905,
+        "toY": 5438
+      },
+      {
+        "id": "portal-59-to-66",
+        "label": "Tới Đáy Động Đình hồ tầng 1",
+        "x": 12058,
+        "y": 7552,
+        "radius": 40,
+        "toMap": 66,
+        "toX": 10604,
+        "toY": 633
+      }
+    ],
+    "65": [
+      {
+        "id": "portal-65-to-59",
+        "label": "Tới Thiên Vương Bang",
+        "x": 2800,
+        "y": 5496,
+        "radius": 40,
+        "toMap": 59,
+        "toX": 14320,
+        "toY": 2472
+      }
+    ],
+    "66": [
+      {
+        "id": "portal-66-to-59",
+        "label": "Tới Thiên Vương Bang",
+        "x": 10717,
+        "y": 592,
+        "radius": 40,
+        "toMap": 59,
+        "toX": 12176,
+        "toY": 7576
+      },
+      {
+        "id": "portal-66-to-67",
+        "label": "Tới Đáy Động Đình hồ tầng 2",
+        "x": 864,
+        "y": 2016,
+        "radius": 40,
+        "toMap": 67,
+        "toX": 6337,
+        "toY": 3491
+      }
+    ],
+    "67": [
+      {
+        "id": "portal-67-to-66",
+        "label": "Tới Đáy Động Đình hồ tầng 1",
+        "x": 6448,
+        "y": 3536,
+        "radius": 40,
+        "toMap": 66,
+        "toX": 976,
+        "toY": 2040
+      }
+    ],
+    "68": [
+      {
+        "id": "portal-68-to-69",
+        "label": "Tới Thanh Loa đảo sơn động",
+        "x": 3760,
+        "y": 1384,
+        "radius": 40,
+        "toMap": 69,
+        "toX": 931,
+        "toY": 3775
+      }
+    ],
+    "69": [
+      {
+        "id": "portal-69-to-68",
+        "label": "Tới Thanh Loa đảo",
+        "x": 811,
+        "y": 3776,
+        "radius": 40,
+        "toMap": 68,
+        "toX": 3781,
+        "toY": 1502
+      }
+    ],
     "70": [
+      {
+        "id": "portal-70-to-71",
+        "label": "Tới Bạch Thủy động",
+        "x": 29928,
+        "y": 7832,
+        "radius": 40,
+        "toMap": 71,
+        "toX": 9104,
+        "toY": 4088
+      },
+      {
+        "id": "portal-70-to-71-2",
+        "label": "Tới Bạch Thủy động",
+        "x": 25299,
+        "y": 8160,
+        "radius": 40,
+        "toMap": 71,
+        "toX": 8546,
+        "toY": 2572
+      },
+      {
+        "id": "portal-70-to-73",
+        "label": "Tới Phục Lưu động",
+        "x": 11355,
+        "y": 3784,
+        "radius": 40,
+        "toMap": 73,
+        "toX": 6672,
+        "toY": 333
+      },
+      {
+        "id": "portal-70-to-73-2",
+        "label": "Tới Phục Lưu động",
+        "x": 3984,
+        "y": 5080,
+        "radius": 40,
+        "toMap": 73,
+        "toX": 6672,
+        "toY": 333
+      },
+      {
+        "id": "portal-70-to-73-3",
+        "label": "Tới Phục Lưu động",
+        "x": 6219,
+        "y": 7544,
+        "radius": 40,
+        "toMap": 73,
+        "toX": 6672,
+        "toY": 333
+      },
+      {
+        "id": "portal-70-to-72",
+        "label": "Tới Đại Tù động",
+        "x": 9360,
+        "y": 1064,
+        "radius": 40,
+        "toMap": 72,
+        "toX": 7863,
+        "toY": 805
+      },
+      {
+        "id": "portal-70-to-72-2",
+        "label": "Tới Đại Tù động",
+        "x": 16846,
+        "y": 6660,
+        "radius": 40,
+        "toMap": 72,
+        "toX": 7863,
+        "toY": 805
+      },
+      {
+        "id": "portal-70-to-72-3",
+        "label": "Tới Đại Tù động",
+        "x": 20592,
+        "y": 7048,
+        "radius": 40,
+        "toMap": 72,
+        "toX": 7863,
+        "toY": 805
+      },
+      {
+        "id": "portal-70-to-72-4",
+        "label": "Tới Đại Tù động",
+        "x": 16120,
+        "y": 8254,
+        "radius": 40,
+        "toMap": 72,
+        "toX": 7863,
+        "toY": 805
+      },
       {
         "id": "portal-70-to-53",
         "label": "Tới Ba Lăng huyện",
@@ -749,9 +1207,245 @@
         "toMap": 53,
         "toX": 739,
         "toY": 7335
+      },
+      {
+        "id": "portal-70-to-71-3",
+        "label": "Tới Bạch Thủy động",
+        "x": 19701,
+        "y": 9864,
+        "radius": 40,
+        "toMap": 71,
+        "toX": 7856,
+        "toY": 1480
+      }
+    ],
+    "71": [
+      {
+        "id": "portal-71-to-70",
+        "label": "Tới Vũ Lăng sơn",
+        "x": 7986,
+        "y": 1504,
+        "radius": 40,
+        "toMap": 70,
+        "toX": 19600,
+        "toY": 9800
+      },
+      {
+        "id": "portal-71-to-70-2",
+        "label": "Tới Vũ Lăng sơn",
+        "x": 8661,
+        "y": 2539,
+        "radius": 40,
+        "toMap": 70,
+        "toX": 25180,
+        "toY": 8143
+      },
+      {
+        "id": "portal-71-to-70-3",
+        "label": "Tới Vũ Lăng sơn",
+        "x": 9213,
+        "y": 4114,
+        "radius": 40,
+        "toMap": 70,
+        "toX": 29808,
+        "toY": 7823
+      },
+      {
+        "id": "portal-71-to-73",
+        "label": "Tới Phục Lưu động",
+        "x": 6653,
+        "y": 5703,
+        "radius": 40,
+        "toMap": 73,
+        "toX": 6704,
+        "toY": 6744
+      }
+    ],
+    "72": [
+      {
+        "id": "portal-72-to-70",
+        "label": "Tới Vũ Lăng sơn",
+        "x": 7891,
+        "y": 688,
+        "radius": 40,
+        "toMap": 70,
+        "toX": 16728,
+        "toY": 6682
+      },
+      {
+        "id": "portal-72-to-70-2",
+        "label": "Tới Vũ Lăng sơn",
+        "x": 5103,
+        "y": 2570,
+        "radius": 40,
+        "toMap": 70,
+        "toX": 16728,
+        "toY": 6682
+      },
+      {
+        "id": "portal-72-to-70-3",
+        "label": "Tới Vũ Lăng sơn",
+        "x": 10704,
+        "y": 4280,
+        "radius": 40,
+        "toMap": 70,
+        "toX": 16728,
+        "toY": 6682
+      },
+      {
+        "id": "portal-72-to-70-4",
+        "label": "Tới Vũ Lăng sơn",
+        "x": 6656,
+        "y": 7739,
+        "radius": 40,
+        "toMap": 70,
+        "toX": 16728,
+        "toY": 6682
+      }
+    ],
+    "73": [
+      {
+        "id": "portal-73-to-70",
+        "label": "Tới Vũ Lăng sơn",
+        "x": 6700,
+        "y": 216,
+        "radius": 40,
+        "toMap": 70,
+        "toX": 4103,
+        "toY": 5097
+      },
+      {
+        "id": "portal-73-to-70-2",
+        "label": "Tới Vũ Lăng sơn",
+        "x": 7931,
+        "y": 3248,
+        "radius": 40,
+        "toMap": 70,
+        "toX": 4103,
+        "toY": 5097
+      },
+      {
+        "id": "portal-73-to-70-3",
+        "label": "Tới Vũ Lăng sơn",
+        "x": 4432,
+        "y": 4568,
+        "radius": 40,
+        "toMap": 70,
+        "toX": 4103,
+        "toY": 5097
+      },
+      {
+        "id": "portal-73-to-71",
+        "label": "Tới Bạch Thủy động",
+        "x": 6803,
+        "y": 6816,
+        "radius": 40,
+        "toMap": 71,
+        "toX": 6736,
+        "toY": 5736
+      },
+      {
+        "id": "portal-73-to-55",
+        "label": "Tới Đào Hoa Nguyên",
+        "x": 5744,
+        "y": 1752,
+        "radius": 40,
+        "toMap": 55,
+        "toX": 9552,
+        "toY": 6264
       }
     ],
     "74": [
+      {
+        "id": "portal-74-to-77",
+        "label": "Tới Yến Tử động",
+        "x": 12659,
+        "y": 1712,
+        "radius": 40,
+        "toMap": 77,
+        "toX": 5104,
+        "toY": 2984
+      },
+      {
+        "id": "portal-74-to-77-2",
+        "label": "Tới Yến Tử động",
+        "x": 15864,
+        "y": 5722,
+        "radius": 40,
+        "toMap": 77,
+        "toX": 5104,
+        "toY": 2984
+      },
+      {
+        "id": "portal-74-to-77-3",
+        "label": "Tới Yến Tử động",
+        "x": 18075,
+        "y": 8600,
+        "radius": 40,
+        "toMap": 77,
+        "toX": 5104,
+        "toY": 2984
+      },
+      {
+        "id": "portal-74-to-77-4",
+        "label": "Tới Yến Tử động",
+        "x": 14192,
+        "y": 10776,
+        "radius": 40,
+        "toMap": 77,
+        "toX": 5104,
+        "toY": 2984
+      },
+      {
+        "id": "portal-74-to-76",
+        "label": "Tới Sơn Bảo động",
+        "x": 6363,
+        "y": 912,
+        "radius": 40,
+        "toMap": 76,
+        "toX": 4048,
+        "toY": 676
+      },
+      {
+        "id": "portal-74-to-76-2",
+        "label": "Tới Sơn Bảo động",
+        "x": 10296,
+        "y": 2344,
+        "radius": 40,
+        "toMap": 76,
+        "toX": 4048,
+        "toY": 676
+      },
+      {
+        "id": "portal-74-to-76-3",
+        "label": "Tới Sơn Bảo động",
+        "x": 8014,
+        "y": 5856,
+        "radius": 40,
+        "toMap": 76,
+        "toX": 4048,
+        "toY": 676
+      },
+      {
+        "id": "portal-74-to-76-4",
+        "label": "Tới Sơn Bảo động",
+        "x": 7221,
+        "y": 6760,
+        "radius": 40,
+        "toMap": 76,
+        "toX": 4048,
+        "toY": 676
+      },
+      {
+        "id": "portal-74-to-76-5",
+        "label": "Tới Sơn Bảo động",
+        "x": 10396,
+        "y": 7080,
+        "radius": 40,
+        "toMap": 76,
+        "toX": 4048,
+        "toY": 676
+      },
       {
         "id": "portal-74-to-53",
         "label": "Tới Ba Lăng huyện",
@@ -763,7 +1457,193 @@
         "toY": 8061
       }
     ],
+    "75": [
+      {
+        "id": "portal-75-to-77",
+        "label": "Tới Yến Tử động",
+        "x": 8000,
+        "y": 440,
+        "radius": 40,
+        "toMap": 77,
+        "toX": 12234,
+        "toY": 1049
+      },
+      {
+        "id": "portal-75-to-77-2",
+        "label": "Tới Yến Tử động",
+        "x": 9832,
+        "y": 1448,
+        "radius": 40,
+        "toMap": 77,
+        "toX": 12234,
+        "toY": 1049
+      },
+      {
+        "id": "portal-75-to-76",
+        "label": "Tới Sơn Bảo động",
+        "x": 939,
+        "y": 4509,
+        "radius": 40,
+        "toMap": 76,
+        "toX": 9884,
+        "toY": 1720
+      },
+      {
+        "id": "portal-75-to-76-2",
+        "label": "Tới Sơn Bảo động",
+        "x": 3400,
+        "y": 5816,
+        "radius": 40,
+        "toMap": 76,
+        "toX": 9884,
+        "toY": 1720
+      }
+    ],
+    "76": [
+      {
+        "id": "portal-76-to-74",
+        "label": "Tới Miêu Lĩnh",
+        "x": 3981,
+        "y": 576,
+        "radius": 40,
+        "toMap": 74,
+        "toX": 8133,
+        "toY": 5870
+      },
+      {
+        "id": "portal-76-to-74-2",
+        "label": "Tới Miêu Lĩnh",
+        "x": 6768,
+        "y": 1032,
+        "radius": 40,
+        "toMap": 74,
+        "toX": 8133,
+        "toY": 5870
+      },
+      {
+        "id": "portal-76-to-74-3",
+        "label": "Tới Miêu Lĩnh",
+        "x": 1995,
+        "y": 1747,
+        "radius": 40,
+        "toMap": 74,
+        "toX": 8133,
+        "toY": 5870
+      },
+      {
+        "id": "portal-76-to-74-4",
+        "label": "Tới Miêu Lĩnh",
+        "x": 1024,
+        "y": 3588,
+        "radius": 40,
+        "toMap": 74,
+        "toX": 8133,
+        "toY": 5870
+      },
+      {
+        "id": "portal-76-to-74-5",
+        "label": "Tới Miêu Lĩnh",
+        "x": 3829,
+        "y": 7216,
+        "radius": 40,
+        "toMap": 74,
+        "toX": 8133,
+        "toY": 5870
+      },
+      {
+        "id": "portal-76-to-75",
+        "label": "Tới Khoả Lang động",
+        "x": 9744,
+        "y": 1720,
+        "radius": 40,
+        "toMap": 75,
+        "toX": 1040,
+        "toY": 4504
+      },
+      {
+        "id": "portal-76-to-75-2",
+        "label": "Tới Khoả Lang động",
+        "x": 8565,
+        "y": 4720,
+        "radius": 40,
+        "toMap": 75,
+        "toX": 1040,
+        "toY": 4504
+      }
+    ],
+    "77": [
+      {
+        "id": "portal-77-to-74",
+        "label": "Tới Miêu Lĩnh",
+        "x": 5020,
+        "y": 2942,
+        "radius": 40,
+        "toMap": 74,
+        "toX": 12607,
+        "toY": 1820
+      },
+      {
+        "id": "portal-77-to-74-2",
+        "label": "Tới Miêu Lĩnh",
+        "x": 16678,
+        "y": 4512,
+        "radius": 40,
+        "toMap": 74,
+        "toX": 12607,
+        "toY": 1820
+      },
+      {
+        "id": "portal-77-to-74-3",
+        "label": "Tới Miêu Lĩnh",
+        "x": 18848,
+        "y": 4851,
+        "radius": 40,
+        "toMap": 74,
+        "toX": 12607,
+        "toY": 1820
+      },
+      {
+        "id": "portal-77-to-74-4",
+        "label": "Tới Miêu Lĩnh",
+        "x": 7536,
+        "y": 8488,
+        "radius": 40,
+        "toMap": 74,
+        "toX": 12607,
+        "toY": 1820
+      },
+      {
+        "id": "portal-77-to-75",
+        "label": "Tới Khoả Lang động",
+        "x": 12263,
+        "y": 933,
+        "radius": 40,
+        "toMap": 75,
+        "toX": 7924,
+        "toY": 533
+      },
+      {
+        "id": "portal-77-to-75-2",
+        "label": "Tới Khoả Lang động",
+        "x": 21472,
+        "y": 5568,
+        "radius": 40,
+        "toMap": 75,
+        "toX": 7924,
+        "toY": 533
+      }
+    ],
     "78": [
+      {
+        "id": "portal-78-to-79",
+        "label": "Tới Mật đạo Nha môn Tương Dương",
+        "x": 13200,
+        "y": 6344,
+        "radius": 40,
+        "toMap": 79,
+        "toX": 879,
+        "toY": 1770
+      },
       {
         "id": "portal-78-to-81",
         "label": "Tới Võ Đang phái",
@@ -793,6 +1673,28 @@
         "toMap": 101,
         "toX": 1690,
         "toY": 11312
+      },
+      {
+        "id": "portal-78-to-323",
+        "label": "Tới Điểm báo danh Tống Kim",
+        "x": 16800,
+        "y": 4295,
+        "radius": 40,
+        "toMap": 323,
+        "toX": 766,
+        "toY": 3035
+      }
+    ],
+    "79": [
+      {
+        "id": "portal-79-to-78",
+        "label": "Tới Tương Dương",
+        "x": 760,
+        "y": 1784,
+        "radius": 40,
+        "toMap": 78,
+        "toX": 13340,
+        "toY": 6344
       }
     ],
     "80": [
@@ -829,6 +1731,26 @@
     ],
     "81": [
       {
+        "id": "portal-81-to-83",
+        "label": "Tới Hỏa Lang động",
+        "x": 16123,
+        "y": 3952,
+        "radius": 40,
+        "toMap": 83,
+        "toX": 3632,
+        "toY": 11800
+      },
+      {
+        "id": "portal-81-to-82",
+        "label": "Tới Mê cung Đáy giếng",
+        "x": 4784,
+        "y": 10408,
+        "radius": 40,
+        "toMap": 82,
+        "toX": 9929,
+        "toY": 4958
+      },
+      {
         "id": "portal-81-to-78",
         "label": "Tới Tương Dương",
         "x": 6432,
@@ -839,7 +1761,91 @@
         "toY": 1535
       }
     ],
+    "82": [
+      {
+        "id": "portal-82-to-81",
+        "label": "Tới Võ Đang phái",
+        "x": 10048,
+        "y": 4944,
+        "radius": 40,
+        "toMap": 81,
+        "toX": 4883,
+        "toY": 10340
+      },
+      {
+        "id": "portal-82-to-81-2",
+        "label": "Tới Võ Đang phái",
+        "x": 12048,
+        "y": 4728,
+        "radius": 40,
+        "toMap": 81,
+        "toX": 4883,
+        "toY": 10340
+      }
+    ],
+    "83": [
+      {
+        "id": "portal-83-to-81",
+        "label": "Tới Võ Đang phái",
+        "x": 3483,
+        "y": 11913,
+        "radius": 40,
+        "toMap": 81,
+        "toX": 16016,
+        "toY": 4006
+      }
+    ],
     "90": [
+      {
+        "id": "portal-90-to-91",
+        "label": "Tới Mê cung Kê Quán động",
+        "x": 10064,
+        "y": 968,
+        "radius": 40,
+        "toMap": 91,
+        "toX": 4038,
+        "toY": 629
+      },
+      {
+        "id": "portal-90-to-91-2",
+        "label": "Tới Mê cung Kê Quán động",
+        "x": 3424,
+        "y": 4336,
+        "radius": 40,
+        "toMap": 91,
+        "toX": 4038,
+        "toY": 629
+      },
+      {
+        "id": "portal-90-to-91-3",
+        "label": "Tới Mê cung Kê Quán động",
+        "x": 3051,
+        "y": 6569,
+        "radius": 40,
+        "toMap": 91,
+        "toX": 4038,
+        "toY": 629
+      },
+      {
+        "id": "portal-90-to-91-4",
+        "label": "Tới Mê cung Kê Quán động",
+        "x": 12880,
+        "y": 8984,
+        "radius": 40,
+        "toMap": 91,
+        "toX": 4038,
+        "toY": 629
+      },
+      {
+        "id": "portal-90-to-91-5",
+        "label": "Tới Mê cung Kê Quán động",
+        "x": 8576,
+        "y": 11920,
+        "radius": 40,
+        "toMap": 91,
+        "toX": 11109,
+        "toY": 3170
+      },
       {
         "id": "portal-90-to-78",
         "label": "Tới Tương Dương",
@@ -851,7 +1857,129 @@
         "toY": 2847
       }
     ],
+    "91": [
+      {
+        "id": "portal-91-to-90",
+        "label": "Tới Phục Ngưu Sơn Đông",
+        "x": 3989,
+        "y": 520,
+        "radius": 40,
+        "toMap": 90,
+        "toX": 12752,
+        "toY": 8936
+      },
+      {
+        "id": "portal-91-to-90-2",
+        "label": "Tới Phục Ngưu Sơn Đông",
+        "x": 5760,
+        "y": 1672,
+        "radius": 40,
+        "toMap": 90,
+        "toX": 3525,
+        "toY": 4401
+      },
+      {
+        "id": "portal-91-to-90-3",
+        "label": "Tới Phục Ngưu Sơn Đông",
+        "x": 2059,
+        "y": 3683,
+        "radius": 40,
+        "toMap": 90,
+        "toX": 3525,
+        "toY": 4401
+      },
+      {
+        "id": "portal-91-to-90-4",
+        "label": "Tới Phục Ngưu Sơn Đông",
+        "x": 787,
+        "y": 3840,
+        "radius": 40,
+        "toMap": 90,
+        "toX": 3525,
+        "toY": 4401
+      },
+      {
+        "id": "portal-91-to-90-5",
+        "label": "Tới Phục Ngưu Sơn Đông",
+        "x": 11221,
+        "y": 3127,
+        "radius": 40,
+        "toMap": 90,
+        "toX": 8560,
+        "toY": 11800
+      },
+      {
+        "id": "portal-91-to-90-6",
+        "label": "Tới Phục Ngưu Sơn Đông",
+        "x": 4336,
+        "y": 8232,
+        "radius": 40,
+        "toMap": 90,
+        "toX": 3525,
+        "toY": 4401
+      },
+      {
+        "id": "portal-91-to-42",
+        "label": "Tới Thiên Tâm động",
+        "x": 11477,
+        "y": 3624,
+        "radius": 40,
+        "toMap": 42,
+        "toX": 6779,
+        "toY": 2593
+      },
+      {
+        "id": "portal-91-to-42-2",
+        "label": "Tới Thiên Tâm động",
+        "x": 4816,
+        "y": 9368,
+        "radius": 40,
+        "toMap": 42,
+        "toX": 6779,
+        "toY": 2593
+      }
+    ],
     "92": [
+      {
+        "id": "portal-92-to-94",
+        "label": "Tới Linh Cốc động",
+        "x": 10011,
+        "y": 1168,
+        "radius": 40,
+        "toMap": 94,
+        "toX": 5008,
+        "toY": 1288
+      },
+      {
+        "id": "portal-92-to-94-2",
+        "label": "Tới Linh Cốc động",
+        "x": 7668,
+        "y": 3341,
+        "radius": 40,
+        "toMap": 94,
+        "toX": 5008,
+        "toY": 1288
+      },
+      {
+        "id": "portal-92-to-94-3",
+        "label": "Tới Linh Cốc động",
+        "x": 12019,
+        "y": 3152,
+        "radius": 40,
+        "toMap": 94,
+        "toX": 5008,
+        "toY": 1288
+      },
+      {
+        "id": "portal-92-to-94-4",
+        "label": "Tới Linh Cốc động",
+        "x": 4507,
+        "y": 9872,
+        "radius": 40,
+        "toMap": 94,
+        "toX": 5008,
+        "toY": 1288
+      },
       {
         "id": "portal-92-to-93",
         "label": "Tới Tiến Cúc động",
@@ -867,6 +1995,16 @@
         "label": "Tới Tiến Cúc động",
         "x": 11024,
         "y": 13352,
+        "radius": 40,
+        "toMap": 93,
+        "toX": 6320,
+        "toY": 1032
+      },
+      {
+        "id": "portal-92-to-93-3",
+        "label": "Tới Tiến Cúc động",
+        "x": 9763,
+        "y": 13906,
         "radius": 40,
         "toMap": 93,
         "toX": 6320,
@@ -913,6 +2051,58 @@
         "toMap": 92,
         "toX": 15217,
         "toY": 10515
+      },
+      {
+        "id": "portal-93-to-94",
+        "label": "Tới Linh Cốc động",
+        "x": 7124,
+        "y": 2051,
+        "radius": 40,
+        "toMap": 94,
+        "toX": 2462,
+        "toY": 3609
+      }
+    ],
+    "94": [
+      {
+        "id": "portal-94-to-92",
+        "label": "Tới Thục Cương sơn",
+        "x": 5068,
+        "y": 1230,
+        "radius": 40,
+        "toMap": 92,
+        "toX": 10003,
+        "toY": 1288
+      },
+      {
+        "id": "portal-94-to-92-2",
+        "label": "Tới Thục Cương sơn",
+        "x": 7451,
+        "y": 2008,
+        "radius": 40,
+        "toMap": 92,
+        "toX": 10003,
+        "toY": 1288
+      },
+      {
+        "id": "portal-94-to-92-3",
+        "label": "Tới Thục Cương sơn",
+        "x": 3600,
+        "y": 4648,
+        "radius": 40,
+        "toMap": 92,
+        "toX": 10003,
+        "toY": 1288
+      },
+      {
+        "id": "portal-94-to-93",
+        "label": "Tới Tiến Cúc động",
+        "x": 2360,
+        "y": 3672,
+        "radius": 40,
+        "toMap": 93,
+        "toX": 7014,
+        "toY": 2098
       }
     ],
     "99": [
@@ -935,6 +2125,16 @@
         "toMap": 2,
         "toX": 1254,
         "toY": 11045
+      },
+      {
+        "id": "portal-99-to-201",
+        "label": "Tới Băng Hà động",
+        "x": 4336,
+        "y": 9928,
+        "radius": 40,
+        "toMap": 201,
+        "toX": 963,
+        "toY": 1626
       }
     ],
     "100": [
@@ -947,6 +2147,26 @@
         "toMap": 37,
         "toX": 27063,
         "toY": 25439
+      },
+      {
+        "id": "portal-100-to-204",
+        "label": "Tới Phi Thiên động",
+        "x": 18758,
+        "y": 9504,
+        "radius": 40,
+        "toMap": 204,
+        "toX": 16208,
+        "toY": 4856
+      },
+      {
+        "id": "portal-100-to-323",
+        "label": "Tới Điểm báo danh Tống Kim",
+        "x": 4528,
+        "y": 11960,
+        "radius": 40,
+        "toMap": 323,
+        "toX": 2693,
+        "toY": 1163
       }
     ],
     "101": [
@@ -969,6 +2189,16 @@
         "toMap": 80,
         "toX": 4167,
         "toY": 5112
+      },
+      {
+        "id": "portal-101-to-205",
+        "label": "Tới Dương Trung động",
+        "x": 15536,
+        "y": 1880,
+        "radius": 40,
+        "toMap": 205,
+        "toX": 14448,
+        "toY": 7256
       }
     ],
     "103": [
@@ -981,6 +2211,50 @@
         "toMap": 37,
         "toX": 14851,
         "toY": 23381
+      },
+      {
+        "id": "portal-103-to-113",
+        "label": "Tới Mật thất Thiếu Lâm",
+        "x": 3224,
+        "y": 1000,
+        "radius": 40,
+        "toMap": 113,
+        "toX": 3845,
+        "toY": 4659
+      },
+      {
+        "id": "portal-103-to-114",
+        "label": "Tới 108 La Hán trận",
+        "x": 11728,
+        "y": 7688,
+        "radius": 40,
+        "toMap": 114,
+        "toX": 807,
+        "toY": 2970
+      }
+    ],
+    "113": [
+      {
+        "id": "portal-113-to-103",
+        "label": "Tới Thiếu Lâm phái",
+        "x": 3760,
+        "y": 4744,
+        "radius": 40,
+        "toMap": 103,
+        "toX": 3316,
+        "toY": 1077
+      }
+    ],
+    "114": [
+      {
+        "id": "portal-114-to-103",
+        "label": "Tới Thiếu Lâm phái",
+        "x": 688,
+        "y": 2952,
+        "radius": 40,
+        "toMap": 103,
+        "toX": 11792,
+        "toY": 7768
       }
     ],
     "115": [
@@ -993,6 +2267,126 @@
         "toMap": 80,
         "toX": 20464,
         "toY": 1032
+      },
+      {
+        "id": "portal-115-to-116",
+        "label": "Tới Tường Vân động tầng 1",
+        "x": 14544,
+        "y": 6072,
+        "radius": 40,
+        "toMap": 116,
+        "toX": 988,
+        "toY": 4339
+      }
+    ],
+    "116": [
+      {
+        "id": "portal-116-to-115",
+        "label": "Tới Cái Bang",
+        "x": 880,
+        "y": 4392,
+        "radius": 40,
+        "toMap": 115,
+        "toX": 14448,
+        "toY": 6143
+      },
+      {
+        "id": "portal-116-to-117",
+        "label": "Tới Tường Vân động tầng 2",
+        "x": 7104,
+        "y": 498,
+        "radius": 40,
+        "toMap": 117,
+        "toX": 2808,
+        "toY": 4808
+      }
+    ],
+    "117": [
+      {
+        "id": "portal-117-to-116",
+        "label": "Tới Tường Vân động tầng 1",
+        "x": 2736,
+        "y": 4904,
+        "radius": 40,
+        "toMap": 116,
+        "toX": 7012,
+        "toY": 575
+      },
+      {
+        "id": "portal-117-to-118",
+        "label": "Tới Tường Vân động tầng 3",
+        "x": 4816,
+        "y": 456,
+        "radius": 40,
+        "toMap": 118,
+        "toX": 6144,
+        "toY": 4979
+      }
+    ],
+    "118": [
+      {
+        "id": "portal-118-to-117",
+        "label": "Tới Tường Vân động tầng 2",
+        "x": 6205,
+        "y": 5082,
+        "radius": 40,
+        "toMap": 117,
+        "toX": 4785,
+        "toY": 572
+      },
+      {
+        "id": "portal-118-to-119",
+        "label": "Tới Tường Vân động tầng 4",
+        "x": 3536,
+        "y": 1208,
+        "radius": 40,
+        "toMap": 119,
+        "toX": 6017,
+        "toY": 2585
+      }
+    ],
+    "119": [
+      {
+        "id": "portal-119-to-118",
+        "label": "Tới Tường Vân động tầng 3",
+        "x": 6137,
+        "y": 2586,
+        "radius": 40,
+        "toMap": 118,
+        "toX": 3613,
+        "toY": 1300
+      },
+      {
+        "id": "portal-119-to-120",
+        "label": "Tới Tường Vân động tầng 5",
+        "x": 2421,
+        "y": 728,
+        "radius": 40,
+        "toMap": 120,
+        "toX": 6553,
+        "toY": 3050
+      }
+    ],
+    "120": [
+      {
+        "id": "portal-120-to-119",
+        "label": "Tới Tường Vân động tầng 4",
+        "x": 1936,
+        "y": 3448,
+        "radius": 40,
+        "toMap": 119,
+        "toX": 2475,
+        "toY": 835
+      },
+      {
+        "id": "portal-120-to-119-2",
+        "label": "Tới Tường Vân động tầng 4",
+        "x": 6672,
+        "y": 3064,
+        "radius": 40,
+        "toMap": 119,
+        "toX": 2475,
+        "toY": 835
       }
     ],
     "121": [
@@ -1027,6 +2421,16 @@
         "toY": 9966
       },
       {
+        "id": "portal-121-to-200",
+        "label": "Tới Cổ Dương động",
+        "x": 9276,
+        "y": 4120,
+        "radius": 40,
+        "toMap": 200,
+        "toX": 6128,
+        "toY": 552
+      },
+      {
         "id": "portal-121-to-340",
         "label": "Tới Mạc Cao Quật",
         "x": 1072,
@@ -1047,9 +2451,375 @@
         "toMap": 121,
         "toX": 840,
         "toY": 7363
+      },
+      {
+        "id": "portal-122-to-123",
+        "label": "Tới Lão Hổ động",
+        "x": 6790,
+        "y": 4448,
+        "radius": 40,
+        "toMap": 123,
+        "toX": 6096,
+        "toY": 3224
+      },
+      {
+        "id": "portal-122-to-124",
+        "label": "Tới Cán Viên động",
+        "x": 4400,
+        "y": 2728,
+        "radius": 40,
+        "toMap": 124,
+        "toX": 1392,
+        "toY": 504
+      },
+      {
+        "id": "portal-122-to-124-2",
+        "label": "Tới Cán Viên động",
+        "x": 7312,
+        "y": 3704,
+        "radius": 40,
+        "toMap": 124,
+        "toX": 1392,
+        "toY": 504
+      },
+      {
+        "id": "portal-122-to-125",
+        "label": "Tới Lưu Tiên động tầng 1",
+        "x": 6096,
+        "y": 2520,
+        "radius": 40,
+        "toMap": 125,
+        "toX": 3856,
+        "toY": 1304
+      },
+      {
+        "id": "portal-122-to-125-2",
+        "label": "Tới Lưu Tiên động tầng 1",
+        "x": 4091,
+        "y": 4659,
+        "radius": 40,
+        "toMap": 125,
+        "toX": 7428,
+        "toY": 4563
+      }
+    ],
+    "123": [
+      {
+        "id": "portal-123-to-122",
+        "label": "Tới Hoàng Hà Nguyên Đầu",
+        "x": 6096,
+        "y": 3400,
+        "radius": 40,
+        "toMap": 122,
+        "toX": 6672,
+        "toY": 4392
+      },
+      {
+        "id": "portal-123-to-124",
+        "label": "Tới Cán Viên động",
+        "x": 4080,
+        "y": 1896,
+        "radius": 40,
+        "toMap": 124,
+        "toX": 3964,
+        "toY": 1608
+      }
+    ],
+    "124": [
+      {
+        "id": "portal-124-to-122",
+        "label": "Tới Hoàng Hà Nguyên Đầu",
+        "x": 1264,
+        "y": 456,
+        "radius": 40,
+        "toMap": 122,
+        "toX": 4518,
+        "toY": 2752
+      },
+      {
+        "id": "portal-124-to-122-2",
+        "label": "Tới Hoàng Hà Nguyên Đầu",
+        "x": 3472,
+        "y": 4024,
+        "radius": 40,
+        "toMap": 122,
+        "toX": 7199,
+        "toY": 3663
+      },
+      {
+        "id": "portal-124-to-123",
+        "label": "Tới Lão Hổ động",
+        "x": 3824,
+        "y": 1608,
+        "radius": 40,
+        "toMap": 123,
+        "toX": 4016,
+        "toY": 1992
+      }
+    ],
+    "125": [
+      {
+        "id": "portal-125-to-122",
+        "label": "Tới Hoàng Hà Nguyên Đầu",
+        "x": 4112,
+        "y": 1128,
+        "radius": 40,
+        "toMap": 122,
+        "toX": 5980,
+        "toY": 2549
+      },
+      {
+        "id": "portal-125-to-122-2",
+        "label": "Tới Hoàng Hà Nguyên Đầu",
+        "x": 7536,
+        "y": 4616,
+        "radius": 40,
+        "toMap": 122,
+        "toX": 5980,
+        "toY": 2549
+      },
+      {
+        "id": "portal-125-to-126",
+        "label": "Tới Lưu Tiên động tầng 2",
+        "x": 1488,
+        "y": 1112,
+        "radius": 40,
+        "toMap": 126,
+        "toX": 1380,
+        "toY": 2405
+      },
+      {
+        "id": "portal-125-to-126-2",
+        "label": "Tới Lưu Tiên động tầng 2",
+        "x": 4048,
+        "y": 2392,
+        "radius": 40,
+        "toMap": 126,
+        "toX": 1380,
+        "toY": 2405
+      },
+      {
+        "id": "portal-125-to-126-3",
+        "label": "Tới Lưu Tiên động tầng 2",
+        "x": 496,
+        "y": 4728,
+        "radius": 40,
+        "toMap": 126,
+        "toX": 1380,
+        "toY": 2405
+      }
+    ],
+    "126": [
+      {
+        "id": "portal-126-to-125",
+        "label": "Tới Lưu Tiên động tầng 1",
+        "x": 4752,
+        "y": 488,
+        "radius": 40,
+        "toMap": 125,
+        "toX": 3952,
+        "toY": 2440
+      },
+      {
+        "id": "portal-126-to-125-2",
+        "label": "Tới Lưu Tiên động tầng 1",
+        "x": 1264,
+        "y": 2376,
+        "radius": 40,
+        "toMap": 125,
+        "toX": 3952,
+        "toY": 2440
+      },
+      {
+        "id": "portal-126-to-125-3",
+        "label": "Tới Lưu Tiên động tầng 1",
+        "x": 4080,
+        "y": 3080,
+        "radius": 40,
+        "toMap": 125,
+        "toX": 3952,
+        "toY": 2440
+      },
+      {
+        "id": "portal-126-to-127",
+        "label": "Tới Lưu Tiên động tầng 3",
+        "x": 1136,
+        "y": 584,
+        "radius": 40,
+        "toMap": 127,
+        "toX": 3390,
+        "toY": 767
+      },
+      {
+        "id": "portal-126-to-127-2",
+        "label": "Tới Lưu Tiên động tầng 3",
+        "x": 6704,
+        "y": 3128,
+        "radius": 40,
+        "toMap": 127,
+        "toX": 3390,
+        "toY": 767
+      }
+    ],
+    "127": [
+      {
+        "id": "portal-127-to-126",
+        "label": "Tới Lưu Tiên động tầng 2",
+        "x": 3376,
+        "y": 648,
+        "radius": 40,
+        "toMap": 126,
+        "toX": 912,
+        "toY": 680
+      },
+      {
+        "id": "portal-127-to-126-2",
+        "label": "Tới Lưu Tiên động tầng 2",
+        "x": 1168,
+        "y": 2136,
+        "radius": 40,
+        "toMap": 126,
+        "toX": 912,
+        "toY": 680
+      },
+      {
+        "id": "portal-127-to-128",
+        "label": "Tới Lưu Tiên động tầng 4",
+        "x": 6613,
+        "y": 4226,
+        "radius": 40,
+        "toMap": 128,
+        "toX": 3587,
+        "toY": 399
+      },
+      {
+        "id": "portal-127-to-128-2",
+        "label": "Tới Lưu Tiên động tầng 4",
+        "x": 4197,
+        "y": 4552,
+        "radius": 40,
+        "toMap": 128,
+        "toX": 3587,
+        "toY": 399
+      }
+    ],
+    "128": [
+      {
+        "id": "portal-128-to-127",
+        "label": "Tới Lưu Tiên động tầng 3",
+        "x": 3600,
+        "y": 280,
+        "radius": 40,
+        "toMap": 127,
+        "toX": 6512,
+        "toY": 4200
+      },
+      {
+        "id": "portal-128-to-127-2",
+        "label": "Tới Lưu Tiên động tầng 3",
+        "x": 5907,
+        "y": 2240,
+        "radius": 40,
+        "toMap": 127,
+        "toX": 6512,
+        "toY": 4200
+      },
+      {
+        "id": "portal-128-to-127-3",
+        "label": "Tới Lưu Tiên động tầng 3",
+        "x": 3548,
+        "y": 4009,
+        "radius": 40,
+        "toMap": 127,
+        "toX": 6512,
+        "toY": 4200
+      },
+      {
+        "id": "portal-128-to-129",
+        "label": "Tới Lưu Tiên động tầng 5",
+        "x": 944,
+        "y": 1752,
+        "radius": 40,
+        "toMap": 129,
+        "toX": 5456,
+        "toY": 920
+      }
+    ],
+    "129": [
+      {
+        "id": "portal-129-to-128",
+        "label": "Tới Lưu Tiên động tầng 4",
+        "x": 5328,
+        "y": 888,
+        "radius": 40,
+        "toMap": 128,
+        "toX": 1058,
+        "toY": 1791
+      },
+      {
+        "id": "portal-129-to-128-2",
+        "label": "Tới Lưu Tiên động tầng 4",
+        "x": 1584,
+        "y": 2056,
+        "radius": 40,
+        "toMap": 128,
+        "toX": 1058,
+        "toY": 1791
+      },
+      {
+        "id": "portal-129-to-130",
+        "label": "Tới Lưu Tiên động tầng 6",
+        "x": 3824,
+        "y": 2680,
+        "radius": 40,
+        "toMap": 130,
+        "toX": 2762,
+        "toY": 685
+      }
+    ],
+    "130": [
+      {
+        "id": "portal-130-to-129",
+        "label": "Tới Lưu Tiên động tầng 5",
+        "x": 2736,
+        "y": 568,
+        "radius": 40,
+        "toMap": 129,
+        "toX": 3920,
+        "toY": 2728
       }
     ],
     "131": [
+      {
+        "id": "portal-131-to-136",
+        "label": "Tới Khoái Hoạt Lâm",
+        "x": 2528,
+        "y": 760,
+        "radius": 40,
+        "toMap": 136,
+        "toX": 1250,
+        "toY": 3602
+      },
+      {
+        "id": "portal-131-to-135",
+        "label": "Tới Kiến Tính Phong sơn động",
+        "x": 10864,
+        "y": 1000,
+        "radius": 40,
+        "toMap": 135,
+        "toX": 8395,
+        "toY": 8390
+      },
+      {
+        "id": "portal-131-to-132",
+        "label": "Tới Băng Huyệt động",
+        "x": 14406,
+        "y": 9920,
+        "radius": 40,
+        "toMap": 132,
+        "toX": 8304,
+        "toY": 5192
+      },
       {
         "id": "portal-131-to-121",
         "label": "Tới Long Môn trấn",
@@ -1059,6 +2829,42 @@
         "toMap": 121,
         "toX": 5664,
         "toY": 2605
+      }
+    ],
+    "132": [
+      {
+        "id": "portal-132-to-131",
+        "label": "Tới Côn Lôn phái",
+        "x": 8454,
+        "y": 5248,
+        "radius": 40,
+        "toMap": 131,
+        "toX": 14320,
+        "toY": 9896
+      }
+    ],
+    "135": [
+      {
+        "id": "portal-135-to-131",
+        "label": "Tới Côn Lôn phái",
+        "x": 8464,
+        "y": 8488,
+        "radius": 40,
+        "toMap": 131,
+        "toX": 10856,
+        "toY": 1120
+      }
+    ],
+    "136": [
+      {
+        "id": "portal-136-to-131",
+        "label": "Tới Côn Lôn phái",
+        "x": 1136,
+        "y": 3640,
+        "radius": 40,
+        "toMap": 131,
+        "toX": 2627,
+        "toY": 827
       }
     ],
     "140": [
@@ -1071,6 +2877,410 @@
         "toMap": 121,
         "toX": 19528,
         "toY": 7560
+      },
+      {
+        "id": "portal-140-to-145",
+        "label": "Tới Tuyết Báo động tầng 1",
+        "x": 1152,
+        "y": 1776,
+        "radius": 40,
+        "toMap": 145,
+        "toX": 5104,
+        "toY": 2920
+      },
+      {
+        "id": "portal-140-to-142",
+        "label": "Tới Dược Vương động tầng 2",
+        "x": 5264,
+        "y": 2632,
+        "radius": 40,
+        "toMap": 142,
+        "toX": 3824,
+        "toY": 2456
+      },
+      {
+        "id": "portal-140-to-141",
+        "label": "Tới Dược Vương động tầng 1",
+        "x": 1067,
+        "y": 2800,
+        "radius": 40,
+        "toMap": 141,
+        "toX": 4080,
+        "toY": 3944
+      }
+    ],
+    "141": [
+      {
+        "id": "portal-141-to-140",
+        "label": "Tới Dược Vương Cốc",
+        "x": 4208,
+        "y": 4008,
+        "radius": 40,
+        "toMap": 140,
+        "toX": 1130,
+        "toY": 2902
+      },
+      {
+        "id": "portal-141-to-142",
+        "label": "Tới Dược Vương động tầng 2",
+        "x": 6544,
+        "y": 1544,
+        "radius": 40,
+        "toMap": 142,
+        "toX": 5571,
+        "toY": 1146
+      },
+      {
+        "id": "portal-141-to-142-2",
+        "label": "Tới Dược Vương động tầng 2",
+        "x": 560,
+        "y": 2472,
+        "radius": 40,
+        "toMap": 142,
+        "toX": 1063,
+        "toY": 2300
+      },
+      {
+        "id": "portal-141-to-142-3",
+        "label": "Tới Dược Vương động tầng 2",
+        "x": 3696,
+        "y": 3032,
+        "radius": 40,
+        "toMap": 142,
+        "toX": 1063,
+        "toY": 2300
+      },
+      {
+        "id": "portal-141-to-142-4",
+        "label": "Tới Dược Vương động tầng 2",
+        "x": 5040,
+        "y": 3752,
+        "radius": 40,
+        "toMap": 142,
+        "toX": 2394,
+        "toY": 2703
+      },
+      {
+        "id": "portal-141-to-143",
+        "label": "Tới Dược Vương động tầng 3",
+        "x": 3312,
+        "y": 568,
+        "radius": 40,
+        "toMap": 143,
+        "toX": 6224,
+        "toY": 3160
+      }
+    ],
+    "142": [
+      {
+        "id": "portal-142-to-140",
+        "label": "Tới Dược Vương Cốc",
+        "x": 3888,
+        "y": 2536,
+        "radius": 40,
+        "toMap": 140,
+        "toX": 5264,
+        "toY": 2752
+      },
+      {
+        "id": "portal-142-to-141",
+        "label": "Tới Dược Vương động tầng 1",
+        "x": 4400,
+        "y": 584,
+        "radius": 40,
+        "toMap": 141,
+        "toX": 4944,
+        "toY": 3624
+      },
+      {
+        "id": "portal-142-to-141-2",
+        "label": "Tới Dược Vương động tầng 1",
+        "x": 5680,
+        "y": 1096,
+        "radius": 40,
+        "toMap": 141,
+        "toX": 6480,
+        "toY": 1608
+      },
+      {
+        "id": "portal-142-to-141-3",
+        "label": "Tới Dược Vương động tầng 1",
+        "x": 944,
+        "y": 2312,
+        "radius": 40,
+        "toMap": 141,
+        "toX": 624,
+        "toY": 2520
+      },
+      {
+        "id": "portal-142-to-141-4",
+        "label": "Tới Dược Vương động tầng 1",
+        "x": 2288,
+        "y": 2760,
+        "radius": 40,
+        "toMap": 141,
+        "toX": 4944,
+        "toY": 3624
+      }
+    ],
+    "143": [
+      {
+        "id": "portal-143-to-141",
+        "label": "Tới Dược Vương động tầng 1",
+        "x": 6576,
+        "y": 3144,
+        "radius": 40,
+        "toMap": 141,
+        "toX": 3280,
+        "toY": 728
+      },
+      {
+        "id": "portal-143-to-144",
+        "label": "Tới Dược Vương động tầng 4",
+        "x": 3344,
+        "y": 1208,
+        "radius": 40,
+        "toMap": 144,
+        "toX": 4017,
+        "toY": 795
+      }
+    ],
+    "144": [
+      {
+        "id": "portal-144-to-143",
+        "label": "Tới Dược Vương động tầng 3",
+        "x": 4055,
+        "y": 681,
+        "radius": 40,
+        "toMap": 143,
+        "toX": 3280,
+        "toY": 1368
+      },
+      {
+        "id": "portal-144-to-143-2",
+        "label": "Tới Dược Vương động tầng 3",
+        "x": 557,
+        "y": 2016,
+        "radius": 40,
+        "toMap": 143,
+        "toX": 3280,
+        "toY": 1368
+      }
+    ],
+    "145": [
+      {
+        "id": "portal-145-to-140",
+        "label": "Tới Dược Vương Cốc",
+        "x": 5195,
+        "y": 2968,
+        "radius": 40,
+        "toMap": 140,
+        "toX": 1208,
+        "toY": 1882
+      },
+      {
+        "id": "portal-145-to-148",
+        "label": "Tới Tuyết Báo động tầng 4",
+        "x": 2643,
+        "y": 1680,
+        "radius": 40,
+        "toMap": 148,
+        "toX": 5104,
+        "toY": 3464
+      },
+      {
+        "id": "portal-145-to-146",
+        "label": "Tới Tuyết Báo động tầng 2",
+        "x": 3728,
+        "y": 1224,
+        "radius": 40,
+        "toMap": 146,
+        "toX": 5104,
+        "toY": 3416
+      },
+      {
+        "id": "portal-145-to-152",
+        "label": "Tới Tuyết Báo động tầng 8",
+        "x": 1584,
+        "y": 2088,
+        "radius": 40,
+        "toMap": 152,
+        "toX": 5955,
+        "toY": 2975
+      }
+    ],
+    "146": [
+      {
+        "id": "portal-146-to-145",
+        "label": "Tới Tuyết Báo động tầng 1",
+        "x": 5198,
+        "y": 3472,
+        "radius": 40,
+        "toMap": 145,
+        "toX": 3952,
+        "toY": 1352
+      },
+      {
+        "id": "portal-146-to-150",
+        "label": "Tới Tuyết Báo động tầng 6",
+        "x": 3728,
+        "y": 1736,
+        "radius": 40,
+        "toMap": 150,
+        "toX": 3248,
+        "toY": 1592
+      },
+      {
+        "id": "portal-146-to-152",
+        "label": "Tới Tuyết Báo động tầng 8",
+        "x": 2608,
+        "y": 2216,
+        "radius": 40,
+        "toMap": 152,
+        "toX": 1191,
+        "toY": 1573
+      }
+    ],
+    "147": [
+      {
+        "id": "portal-147-to-148",
+        "label": "Tới Tuyết Báo động tầng 4",
+        "x": 2832,
+        "y": 2152,
+        "radius": 40,
+        "toMap": 148,
+        "toX": 2981,
+        "toY": 2164
+      },
+      {
+        "id": "portal-147-to-149",
+        "label": "Tới Tuyết Báo động tầng 5",
+        "x": 5198,
+        "y": 3488,
+        "radius": 40,
+        "toMap": 149,
+        "toX": 2512,
+        "toY": 1768
+      }
+    ],
+    "148": [
+      {
+        "id": "portal-148-to-145",
+        "label": "Tới Tuyết Báo động tầng 1",
+        "x": 5222,
+        "y": 3504,
+        "radius": 40,
+        "toMap": 145,
+        "toX": 2755,
+        "toY": 1724
+      },
+      {
+        "id": "portal-148-to-147",
+        "label": "Tới Tuyết Báo động tầng 3",
+        "x": 2864,
+        "y": 2136,
+        "radius": 40,
+        "toMap": 147,
+        "toX": 2949,
+        "toY": 2176
+      },
+      {
+        "id": "portal-148-to-146",
+        "label": "Tới Tuyết Báo động tầng 2",
+        "x": 1552,
+        "y": 2600,
+        "radius": 40,
+        "toMap": 146,
+        "toX": 3600,
+        "toY": 2312
+      },
+      {
+        "id": "portal-148-to-152",
+        "label": "Tới Tuyết Báo động tầng 8",
+        "x": 5222,
+        "y": 3504,
+        "radius": 40,
+        "toMap": 152,
+        "toX": 3344,
+        "toY": 1800
+      }
+    ],
+    "149": [
+      {
+        "id": "portal-149-to-147",
+        "label": "Tới Tuyết Báo động tầng 3",
+        "x": 2638,
+        "y": 1824,
+        "radius": 40,
+        "toMap": 147,
+        "toX": 5101,
+        "toY": 3417
+      }
+    ],
+    "150": [
+      {
+        "id": "portal-150-to-146",
+        "label": "Tới Tuyết Báo động tầng 2",
+        "x": 3280,
+        "y": 1672,
+        "radius": 40,
+        "toMap": 146,
+        "toX": 3824,
+        "toY": 1800
+      }
+    ],
+    "151": [
+      {
+        "id": "portal-151-to-152",
+        "label": "Tới Tuyết Báo động tầng 8",
+        "x": 3248,
+        "y": 1672,
+        "radius": 40,
+        "toMap": 152,
+        "toX": 2288,
+        "toY": 1240
+      }
+    ],
+    "152": [
+      {
+        "id": "portal-152-to-145",
+        "label": "Tới Tuyết Báo động tầng 1",
+        "x": 6064,
+        "y": 3024,
+        "radius": 40,
+        "toMap": 145,
+        "toX": 1704,
+        "toY": 2086
+      },
+      {
+        "id": "portal-152-to-151",
+        "label": "Tới Tuyết Báo động tầng 7",
+        "x": 3376,
+        "y": 632,
+        "radius": 40,
+        "toMap": 151,
+        "toX": 3152,
+        "toY": 1624
+      },
+      {
+        "id": "portal-152-to-151-2",
+        "label": "Tới Tuyết Báo động tầng 7",
+        "x": 2160,
+        "y": 1192,
+        "radius": 40,
+        "toMap": 151,
+        "toX": 3152,
+        "toY": 1624
+      },
+      {
+        "id": "portal-152-to-146",
+        "label": "Tới Tuyết Báo động tầng 2",
+        "x": 1072,
+        "y": 1560,
+        "radius": 40,
+        "toMap": 146,
+        "toX": 2727,
+        "toY": 2228
       }
     ],
     "153": [
@@ -1083,6 +3293,16 @@
         "toMap": 162,
         "toX": 15920,
         "toY": 10648
+      },
+      {
+        "id": "portal-153-to-203",
+        "label": "Tới Vô Danh động",
+        "x": 3086,
+        "y": 3993,
+        "radius": 40,
+        "toMap": 203,
+        "toX": 4592,
+        "toY": 2088
       }
     ],
     "154": [
@@ -1095,6 +3315,28 @@
         "toMap": 162,
         "toX": 21131,
         "toY": 8430
+      },
+      {
+        "id": "portal-154-to-158",
+        "label": "Tới Mê cung cấm địa",
+        "x": 18256,
+        "y": 11320,
+        "radius": 40,
+        "toMap": 158,
+        "toX": 6243,
+        "toY": 4268
+      }
+    ],
+    "158": [
+      {
+        "id": "portal-158-to-154",
+        "label": "Tới Thúy Yên môn",
+        "x": 6320,
+        "y": 4360,
+        "radius": 40,
+        "toMap": 154,
+        "toX": 18160,
+        "toY": 11272
       }
     ],
     "162": [
@@ -1127,6 +3369,114 @@
         "toMap": 154,
         "toX": 1296,
         "toY": 20696
+      },
+      {
+        "id": "portal-162-to-164",
+        "label": "Tới Thiên Tầm tháp tầng 1",
+        "x": 17240,
+        "y": 6280,
+        "radius": 40,
+        "toMap": 164,
+        "toX": 2648,
+        "toY": 5085
+      },
+      {
+        "id": "portal-162-to-163",
+        "label": "Tới ác bá địa đạo",
+        "x": 16640,
+        "y": 5360,
+        "radius": 40,
+        "toMap": 163,
+        "toX": 1128,
+        "toY": 1948
+      }
+    ],
+    "163": [
+      {
+        "id": "portal-163-to-162",
+        "label": "Tới Đại Lý phủ",
+        "x": 1008,
+        "y": 1944,
+        "radius": 40,
+        "toMap": 162,
+        "toX": 16521,
+        "toY": 5378
+      }
+    ],
+    "164": [
+      {
+        "id": "portal-164-to-162",
+        "label": "Tới Đại Lý phủ",
+        "x": 2544,
+        "y": 5144,
+        "radius": 40,
+        "toMap": 162,
+        "toX": 17040,
+        "toY": 6296
+      },
+      {
+        "id": "portal-164-to-165",
+        "label": "Tới Thiên Tầm tháp tầng 2",
+        "x": 5648,
+        "y": 664,
+        "radius": 40,
+        "toMap": 165,
+        "toX": 2244,
+        "toY": 2101
+      },
+      {
+        "id": "portal-164-to-165-2",
+        "label": "Tới Thiên Tầm tháp tầng 2",
+        "x": 3797,
+        "y": 4504,
+        "radius": 40,
+        "toMap": 165,
+        "toX": 5936,
+        "toY": 4568
+      }
+    ],
+    "165": [
+      {
+        "id": "portal-165-to-164",
+        "label": "Tới Thiên Tầm tháp tầng 1",
+        "x": 2128,
+        "y": 2072,
+        "radius": 40,
+        "toMap": 164,
+        "toX": 5680,
+        "toY": 760
+      },
+      {
+        "id": "portal-165-to-164-2",
+        "label": "Tới Thiên Tầm tháp tầng 1",
+        "x": 5968,
+        "y": 4648,
+        "radius": 40,
+        "toMap": 164,
+        "toX": 3888,
+        "toY": 4456
+      },
+      {
+        "id": "portal-165-to-166",
+        "label": "Tới Thiên Tầm tháp tầng 3",
+        "x": 3664,
+        "y": 4728,
+        "radius": 40,
+        "toMap": 166,
+        "toX": 6238,
+        "toY": 2899
+      }
+    ],
+    "166": [
+      {
+        "id": "portal-166-to-165",
+        "label": "Tới Thiên Tầm tháp tầng 2",
+        "x": 6352,
+        "y": 2936,
+        "radius": 40,
+        "toMap": 165,
+        "toX": 3696,
+        "toY": 4600
       }
     ],
     "167": [
@@ -1141,6 +3491,56 @@
         "toY": 6657
       },
       {
+        "id": "portal-167-to-168",
+        "label": "Tới Phụng Nhãn động",
+        "x": 16528,
+        "y": 6904,
+        "radius": 40,
+        "toMap": 168,
+        "toX": 9778,
+        "toY": 7729
+      },
+      {
+        "id": "portal-167-to-169",
+        "label": "Tới Long Nhãn động",
+        "x": 5264,
+        "y": 5656,
+        "radius": 40,
+        "toMap": 169,
+        "toX": 4912,
+        "toY": 9304
+      },
+      {
+        "id": "portal-167-to-170",
+        "label": "Tới Thổ Phỉ động",
+        "x": 17552,
+        "y": 6216,
+        "radius": 40,
+        "toMap": 170,
+        "toX": 2128,
+        "toY": 4104
+      },
+      {
+        "id": "portal-167-to-171",
+        "label": "Tới Điểm Thương động tầng 1",
+        "x": 10864,
+        "y": 6104,
+        "radius": 40,
+        "toMap": 171,
+        "toX": 8098,
+        "toY": 5002
+      },
+      {
+        "id": "portal-167-to-171-2",
+        "label": "Tới Điểm Thương động tầng 1",
+        "x": 18928,
+        "y": 12808,
+        "radius": 40,
+        "toMap": 171,
+        "toX": 8144,
+        "toY": 3432
+      },
+      {
         "id": "portal-167-to-332",
         "label": "Tới Thiên Long Tự",
         "x": 15568,
@@ -1149,6 +3549,238 @@
         "toMap": 332,
         "toX": 1457,
         "toY": 11521
+      }
+    ],
+    "168": [
+      {
+        "id": "portal-168-to-167",
+        "label": "Tới Điểm Thương sơn",
+        "x": 9840,
+        "y": 7832,
+        "radius": 40,
+        "toMap": 167,
+        "toX": 16411,
+        "toY": 6932
+      },
+      {
+        "id": "portal-168-to-169",
+        "label": "Tới Long Nhãn động",
+        "x": 2352,
+        "y": 3992,
+        "radius": 40,
+        "toMap": 169,
+        "toX": 7088,
+        "toY": 1080
+      },
+      {
+        "id": "portal-168-to-169-2",
+        "label": "Tới Long Nhãn động",
+        "x": 7952,
+        "y": 5144,
+        "radius": 40,
+        "toMap": 169,
+        "toX": 7088,
+        "toY": 1080
+      },
+      {
+        "id": "portal-168-to-169-3",
+        "label": "Tới Long Nhãn động",
+        "x": 11760,
+        "y": 7176,
+        "radius": 40,
+        "toMap": 169,
+        "toX": 7088,
+        "toY": 1080
+      },
+      {
+        "id": "portal-168-to-169-4",
+        "label": "Tới Long Nhãn động",
+        "x": 7152,
+        "y": 6888,
+        "radius": 40,
+        "toMap": 169,
+        "toX": 7088,
+        "toY": 1080
+      }
+    ],
+    "169": [
+      {
+        "id": "portal-169-to-167",
+        "label": "Tới Điểm Thương sơn",
+        "x": 4816,
+        "y": 9336,
+        "radius": 40,
+        "toMap": 167,
+        "toX": 5382,
+        "toY": 5679
+      },
+      {
+        "id": "portal-169-to-168",
+        "label": "Tới Phụng Nhãn động",
+        "x": 7154,
+        "y": 1006,
+        "radius": 40,
+        "toMap": 168,
+        "toX": 11664,
+        "toY": 7176
+      },
+      {
+        "id": "portal-169-to-168-2",
+        "label": "Tới Phụng Nhãn động",
+        "x": 752,
+        "y": 4376,
+        "radius": 40,
+        "toMap": 168,
+        "toX": 2352,
+        "toY": 4088
+      },
+      {
+        "id": "portal-169-to-168-3",
+        "label": "Tới Phụng Nhãn động",
+        "x": 11184,
+        "y": 3624,
+        "radius": 40,
+        "toMap": 168,
+        "toX": 2352,
+        "toY": 4088
+      },
+      {
+        "id": "portal-169-to-168-4",
+        "label": "Tới Phụng Nhãn động",
+        "x": 13200,
+        "y": 5496,
+        "radius": 40,
+        "toMap": 168,
+        "toX": 2352,
+        "toY": 4088
+      }
+    ],
+    "170": [
+      {
+        "id": "portal-170-to-167",
+        "label": "Tới Điểm Thương sơn",
+        "x": 2032,
+        "y": 4104,
+        "radius": 40,
+        "toMap": 167,
+        "toX": 17440,
+        "toY": 6259
+      }
+    ],
+    "171": [
+      {
+        "id": "portal-171-to-167",
+        "label": "Tới Điểm Thương sơn",
+        "x": 8373,
+        "y": 3384,
+        "radius": 40,
+        "toMap": 167,
+        "toX": 18832,
+        "toY": 12808
+      },
+      {
+        "id": "portal-171-to-167-2",
+        "label": "Tới Điểm Thương sơn",
+        "x": 8197,
+        "y": 5069,
+        "radius": 40,
+        "toMap": 167,
+        "toX": 10928,
+        "toY": 6200
+      },
+      {
+        "id": "portal-171-to-172",
+        "label": "Tới Điểm Thương động tầng 2",
+        "x": 2827,
+        "y": 1000,
+        "radius": 40,
+        "toMap": 172,
+        "toX": 5264,
+        "toY": 4264
+      },
+      {
+        "id": "portal-171-to-172-2",
+        "label": "Tới Điểm Thương động tầng 2",
+        "x": 7749,
+        "y": 1008,
+        "radius": 40,
+        "toMap": 172,
+        "toX": 5264,
+        "toY": 4264
+      },
+      {
+        "id": "portal-171-to-172-3",
+        "label": "Tới Điểm Thương động tầng 2",
+        "x": 3248,
+        "y": 3976,
+        "radius": 40,
+        "toMap": 172,
+        "toX": 5264,
+        "toY": 4264
+      }
+    ],
+    "172": [
+      {
+        "id": "portal-172-to-171",
+        "label": "Tới Điểm Thương động tầng 1",
+        "x": 5168,
+        "y": 4216,
+        "radius": 40,
+        "toMap": 171,
+        "toX": 2928,
+        "toY": 1064
+      },
+      {
+        "id": "portal-172-to-171-2",
+        "label": "Tới Điểm Thương động tầng 1",
+        "x": 8208,
+        "y": 6616,
+        "radius": 40,
+        "toMap": 171,
+        "toX": 2928,
+        "toY": 1064
+      },
+      {
+        "id": "portal-172-to-173",
+        "label": "Tới Điểm Thương động tầng 3",
+        "x": 2480,
+        "y": 5384,
+        "radius": 40,
+        "toMap": 173,
+        "toX": 3868,
+        "toY": 3572
+      },
+      {
+        "id": "portal-172-to-173-2",
+        "label": "Tới Điểm Thương động tầng 3",
+        "x": 7408,
+        "y": 7048,
+        "radius": 40,
+        "toMap": 173,
+        "toX": 3868,
+        "toY": 3572
+      }
+    ],
+    "173": [
+      {
+        "id": "portal-173-to-172",
+        "label": "Tới Điểm Thương động tầng 2",
+        "x": 3760,
+        "y": 3624,
+        "radius": 40,
+        "toMap": 172,
+        "toX": 2598,
+        "toY": 5362
+      },
+      {
+        "id": "portal-173-to-172-2",
+        "label": "Tới Điểm Thương động tầng 2",
+        "x": 7248,
+        "y": 4600,
+        "radius": 40,
+        "toMap": 172,
+        "toX": 2598,
+        "toY": 5362
       }
     ],
     "174": [
@@ -1181,6 +3813,16 @@
         "toMap": 193,
         "toX": 20848,
         "toY": 8184
+      },
+      {
+        "id": "portal-174-to-198",
+        "label": "Tới Thanh khê động",
+        "x": 4208,
+        "y": 3064,
+        "radius": 40,
+        "toMap": 198,
+        "toX": 1639,
+        "toY": 3723
       },
       {
         "id": "portal-174-to-183",
@@ -1237,6 +3879,272 @@
         "toMap": 176,
         "toX": 28653,
         "toY": 19524
+      },
+      {
+        "id": "portal-179-to-180",
+        "label": "Tới Long Cung động",
+        "x": 4016,
+        "y": 9912,
+        "radius": 40,
+        "toMap": 180,
+        "toX": 4624,
+        "toY": 2664
+      },
+      {
+        "id": "portal-179-to-180-2",
+        "label": "Tới Long Cung động",
+        "x": 8262,
+        "y": 7568,
+        "radius": 40,
+        "toMap": 180,
+        "toX": 4624,
+        "toY": 2664
+      },
+      {
+        "id": "portal-179-to-181",
+        "label": "Tới Lưỡng Thủy động",
+        "x": 2688,
+        "y": 10832,
+        "radius": 40,
+        "toMap": 181,
+        "toX": 8914,
+        "toY": 4925
+      },
+      {
+        "id": "portal-179-to-181-2",
+        "label": "Tới Lưỡng Thủy động",
+        "x": 6544,
+        "y": 7960,
+        "radius": 40,
+        "toMap": 181,
+        "toX": 8914,
+        "toY": 4925
+      },
+      {
+        "id": "portal-179-to-182",
+        "label": "Tới Nghiệt Long động",
+        "x": 1520,
+        "y": 11552,
+        "radius": 40,
+        "toMap": 182,
+        "toX": 16720,
+        "toY": 6776
+      },
+      {
+        "id": "portal-179-to-182-2",
+        "label": "Tới Nghiệt Long động",
+        "x": 10835,
+        "y": 12656,
+        "radius": 40,
+        "toMap": 182,
+        "toX": 16720,
+        "toY": 6776
+      }
+    ],
+    "180": [
+      {
+        "id": "portal-180-to-179",
+        "label": "Tới La Tiêu sơn",
+        "x": 4720,
+        "y": 2536,
+        "radius": 40,
+        "toMap": 179,
+        "toX": 8400,
+        "toY": 7608
+      },
+      {
+        "id": "portal-180-to-195",
+        "label": "Tới Nhạn Đãng sơn",
+        "x": 2768,
+        "y": 4552,
+        "radius": 40,
+        "toMap": 195,
+        "toX": 30736,
+        "toY": 13816
+      },
+      {
+        "id": "portal-180-to-195-2",
+        "label": "Tới Nhạn Đãng sơn",
+        "x": 10768,
+        "y": 1960,
+        "radius": 40,
+        "toMap": 195,
+        "toX": 37136,
+        "toY": 8648
+      },
+      {
+        "id": "portal-180-to-196",
+        "label": "Tới Dương Giác động",
+        "x": 4496,
+        "y": 5320,
+        "radius": 40,
+        "toMap": 196,
+        "toX": 1808,
+        "toY": 4136
+      },
+      {
+        "id": "portal-180-to-196-2",
+        "label": "Tới Dương Giác động",
+        "x": 6160,
+        "y": 4248,
+        "radius": 40,
+        "toMap": 196,
+        "toX": 7048,
+        "toY": 6066
+      },
+      {
+        "id": "portal-180-to-196-3",
+        "label": "Tới Dương Giác động",
+        "x": 12240,
+        "y": 2568,
+        "radius": 40,
+        "toMap": 196,
+        "toX": 12432,
+        "toY": 6360
+      }
+    ],
+    "181": [
+      {
+        "id": "portal-181-to-179",
+        "label": "Tới La Tiêu sơn",
+        "x": 9008,
+        "y": 5000,
+        "radius": 40,
+        "toMap": 179,
+        "toX": 2768,
+        "toY": 10840
+      },
+      {
+        "id": "portal-181-to-179-2",
+        "label": "Tới La Tiêu sơn",
+        "x": 7344,
+        "y": 440,
+        "radius": 40,
+        "toMap": 179,
+        "toX": 6658,
+        "toY": 7924
+      },
+      {
+        "id": "portal-181-to-193",
+        "label": "Tới Vũ Di sơn",
+        "x": 4112,
+        "y": 2248,
+        "radius": 40,
+        "toMap": 193,
+        "toX": 15856,
+        "toY": 11160
+      },
+      {
+        "id": "portal-181-to-193-2",
+        "label": "Tới Vũ Di sơn",
+        "x": 8784,
+        "y": 1624,
+        "radius": 40,
+        "toMap": 193,
+        "toX": 14422,
+        "toY": 10968
+      },
+      {
+        "id": "portal-181-to-193-3",
+        "label": "Tới Vũ Di sơn",
+        "x": 13520,
+        "y": 4744,
+        "radius": 40,
+        "toMap": 193,
+        "toX": 20903,
+        "toY": 5224
+      },
+      {
+        "id": "portal-181-to-195",
+        "label": "Tới Nhạn Đãng sơn",
+        "x": 6672,
+        "y": 5368,
+        "radius": 40,
+        "toMap": 195,
+        "toX": 18773,
+        "toY": 12080
+      },
+      {
+        "id": "portal-181-to-195-2",
+        "label": "Tới Nhạn Đãng sơn",
+        "x": 8656,
+        "y": 7400,
+        "radius": 40,
+        "toMap": 195,
+        "toX": 33040,
+        "toY": 13144
+      },
+      {
+        "id": "portal-181-to-195-3",
+        "label": "Tới Nhạn Đãng sơn",
+        "x": 12496,
+        "y": 4296,
+        "radius": 40,
+        "toMap": 195,
+        "toX": 31736,
+        "toY": 7812
+      },
+      {
+        "id": "portal-181-to-196",
+        "label": "Tới Dương Giác động",
+        "x": 5456,
+        "y": 2088,
+        "radius": 40,
+        "toMap": 196,
+        "toX": 8080,
+        "toY": 5848
+      }
+    ],
+    "182": [
+      {
+        "id": "portal-182-to-179",
+        "label": "Tới La Tiêu sơn",
+        "x": 16848,
+        "y": 6824,
+        "radius": 40,
+        "toMap": 179,
+        "toX": 10704,
+        "toY": 12584
+      },
+      {
+        "id": "portal-182-to-179-2",
+        "label": "Tới La Tiêu sơn",
+        "x": 13904,
+        "y": 10824,
+        "radius": 40,
+        "toMap": 179,
+        "toX": 1660,
+        "toY": 11552
+      },
+      {
+        "id": "portal-182-to-193",
+        "label": "Tới Vũ Di sơn",
+        "x": 11280,
+        "y": 2056,
+        "radius": 40,
+        "toMap": 193,
+        "toX": 20464,
+        "toY": 7864
+      },
+      {
+        "id": "portal-182-to-193-2",
+        "label": "Tới Vũ Di sơn",
+        "x": 10256,
+        "y": 3560,
+        "radius": 40,
+        "toMap": 193,
+        "toX": 14544,
+        "toY": 4280
+      },
+      {
+        "id": "portal-182-to-196",
+        "label": "Tới Dương Giác động",
+        "x": 14000,
+        "y": 2280,
+        "radius": 40,
+        "toMap": 196,
+        "toX": 2192,
+        "toY": 3656
       }
     ],
     "183": [
@@ -1273,6 +4181,46 @@
         "toY": 9228
       },
       {
+        "id": "portal-193-to-181",
+        "label": "Tới Lưỡng Thủy động",
+        "x": 14320,
+        "y": 11032,
+        "radius": 40,
+        "toMap": 181,
+        "toX": 8464,
+        "toY": 1896
+      },
+      {
+        "id": "portal-193-to-181-2",
+        "label": "Tới Lưỡng Thủy động",
+        "x": 15856,
+        "y": 11256,
+        "radius": 40,
+        "toMap": 181,
+        "toX": 4220,
+        "toY": 2301
+      },
+      {
+        "id": "portal-193-to-182",
+        "label": "Tới Nghiệt Long động",
+        "x": 14544,
+        "y": 4184,
+        "radius": 40,
+        "toMap": 182,
+        "toX": 10352,
+        "toY": 3528
+      },
+      {
+        "id": "portal-193-to-182-2",
+        "label": "Tới Nghiệt Long động",
+        "x": 20560,
+        "y": 7832,
+        "radius": 40,
+        "toMap": 182,
+        "toX": 11280,
+        "toY": 2176
+      },
+      {
         "id": "portal-193-to-183",
         "label": "Tới Ngũ Độc Giáo",
         "x": 19952,
@@ -1281,6 +4229,58 @@
         "toMap": 183,
         "toX": 15952,
         "toY": 15256
+      },
+      {
+        "id": "portal-193-to-194",
+        "label": "Tới Ngọc Hoa động",
+        "x": 7408,
+        "y": 7448,
+        "radius": 40,
+        "toMap": 194,
+        "toX": 6154,
+        "toY": 9145
+      },
+      {
+        "id": "portal-193-to-194-2",
+        "label": "Tới Ngọc Hoa động",
+        "x": 9200,
+        "y": 5016,
+        "radius": 40,
+        "toMap": 194,
+        "toX": 9980,
+        "toY": 6408
+      },
+      {
+        "id": "portal-193-to-181-3",
+        "label": "Tới Lưỡng Thủy động",
+        "x": 20976,
+        "y": 5128,
+        "radius": 40,
+        "toMap": 181,
+        "toX": 13401,
+        "toY": 4730
+      }
+    ],
+    "194": [
+      {
+        "id": "portal-194-to-193",
+        "label": "Tới Vũ Di sơn",
+        "x": 6064,
+        "y": 9224,
+        "radius": 40,
+        "toMap": 193,
+        "toX": 7472,
+        "toY": 7384
+      },
+      {
+        "id": "portal-194-to-193-2",
+        "label": "Tới Vũ Di sơn",
+        "x": 9840,
+        "y": 6408,
+        "radius": 40,
+        "toMap": 193,
+        "toX": 9072,
+        "toY": 5048
       }
     ],
     "195": [
@@ -1303,6 +4303,310 @@
         "toMap": 175,
         "toX": 1234,
         "toY": 3795
+      },
+      {
+        "id": "portal-195-to-180",
+        "label": "Tới Long Cung động",
+        "x": 30800,
+        "y": 13896,
+        "radius": 40,
+        "toMap": 180,
+        "toX": 2864,
+        "toY": 4504
+      },
+      {
+        "id": "portal-195-to-180-2",
+        "label": "Tới Long Cung động",
+        "x": 37232,
+        "y": 8696,
+        "radius": 40,
+        "toMap": 180,
+        "toX": 10908,
+        "toY": 1960
+      },
+      {
+        "id": "portal-195-to-181",
+        "label": "Tới Lưỡng Thủy động",
+        "x": 18768,
+        "y": 12200,
+        "radius": 40,
+        "toMap": 181,
+        "toX": 6755,
+        "toY": 5282
+      },
+      {
+        "id": "portal-195-to-181-2",
+        "label": "Tới Lưỡng Thủy động",
+        "x": 31856,
+        "y": 7816,
+        "radius": 40,
+        "toMap": 181,
+        "toX": 6755,
+        "toY": 5282
+      },
+      {
+        "id": "portal-195-to-181-3",
+        "label": "Tới Lưỡng Thủy động",
+        "x": 33104,
+        "y": 13208,
+        "radius": 40,
+        "toMap": 181,
+        "toX": 12336,
+        "toY": 4248
+      },
+      {
+        "id": "portal-195-to-196",
+        "label": "Tới Dương Giác động",
+        "x": 15632,
+        "y": 1416,
+        "radius": 40,
+        "toMap": 196,
+        "toX": 3184,
+        "toY": 3320
+      },
+      {
+        "id": "portal-195-to-196-2",
+        "label": "Tới Dương Giác động",
+        "x": 22544,
+        "y": 3416,
+        "radius": 40,
+        "toMap": 196,
+        "toX": 9648,
+        "toY": 3000
+      },
+      {
+        "id": "portal-195-to-196-3",
+        "label": "Tới Dương Giác động",
+        "x": 21552,
+        "y": 8120,
+        "radius": 40,
+        "toMap": 196,
+        "toX": 3312,
+        "toY": 5864
+      }
+    ],
+    "196": [
+      {
+        "id": "portal-196-to-180",
+        "label": "Tới Long Cung động",
+        "x": 1744,
+        "y": 4056,
+        "radius": 40,
+        "toMap": 180,
+        "toX": 6224,
+        "toY": 4136
+      },
+      {
+        "id": "portal-196-to-180-2",
+        "label": "Tới Long Cung động",
+        "x": 7024,
+        "y": 6184,
+        "radius": 40,
+        "toMap": 180,
+        "toX": 6224,
+        "toY": 4136
+      },
+      {
+        "id": "portal-196-to-180-3",
+        "label": "Tới Long Cung động",
+        "x": 12496,
+        "y": 6424,
+        "radius": 40,
+        "toMap": 180,
+        "toX": 12380,
+        "toY": 2568
+      },
+      {
+        "id": "portal-196-to-181",
+        "label": "Tới Lưỡng Thủy động",
+        "x": 7984,
+        "y": 6024,
+        "radius": 40,
+        "toMap": 181,
+        "toX": 5648,
+        "toY": 2120
+      },
+      {
+        "id": "portal-196-to-182",
+        "label": "Tới Nghiệt Long động",
+        "x": 2192,
+        "y": 3464,
+        "radius": 40,
+        "toMap": 182,
+        "toX": 14140,
+        "toY": 2280
+      },
+      {
+        "id": "portal-196-to-195",
+        "label": "Tới Nhạn Đãng sơn",
+        "x": 3088,
+        "y": 3272,
+        "radius": 40,
+        "toMap": 195,
+        "toX": 15600,
+        "toY": 1528
+      },
+      {
+        "id": "portal-196-to-195-2",
+        "label": "Tới Nhạn Đãng sơn",
+        "x": 9520,
+        "y": 2984,
+        "radius": 40,
+        "toMap": 195,
+        "toX": 22608,
+        "toY": 3592
+      },
+      {
+        "id": "portal-196-to-195-3",
+        "label": "Tới Nhạn Đãng sơn",
+        "x": 2992,
+        "y": 5896,
+        "radius": 40,
+        "toMap": 195,
+        "toX": 21456,
+        "toY": 8056
+      }
+    ],
+    "198": [
+      {
+        "id": "portal-198-to-174",
+        "label": "Tới Long Tuyền thôn",
+        "x": 1520,
+        "y": 3704,
+        "radius": 40,
+        "toMap": 174,
+        "toX": 4336,
+        "toY": 3112
+      }
+    ],
+    "199": [
+      {
+        "id": "portal-199-to-53",
+        "label": "Tới Ba Lăng huyện",
+        "x": 9763,
+        "y": 1833,
+        "radius": 40,
+        "toMap": 53,
+        "toX": 15872,
+        "toY": 9676
+      }
+    ],
+    "200": [
+      {
+        "id": "portal-200-to-121",
+        "label": "Tới Long Môn trấn",
+        "x": 6160,
+        "y": 408,
+        "radius": 40,
+        "toMap": 121,
+        "toX": 9232,
+        "toY": 4312
+      }
+    ],
+    "201": [
+      {
+        "id": "portal-201-to-99",
+        "label": "Tới Vĩnh Lạc trấn",
+        "x": 848,
+        "y": 1592,
+        "radius": 40,
+        "toMap": 99,
+        "toX": 4464,
+        "toY": 9992
+      }
+    ],
+    "202": [
+      {
+        "id": "portal-202-to-20",
+        "label": "Tới Giang Tân Thôn",
+        "x": 11184,
+        "y": 3080,
+        "radius": 40,
+        "toMap": 20,
+        "toX": 11920,
+        "toY": 10472
+      }
+    ],
+    "203": [
+      {
+        "id": "portal-203-to-153",
+        "label": "Tới Thạch Cổ trấn",
+        "x": 4720,
+        "y": 2056,
+        "radius": 40,
+        "toMap": 153,
+        "toX": 3184,
+        "toY": 4056
+      }
+    ],
+    "204": [
+      {
+        "id": "portal-204-to-100",
+        "label": "Tới Chu Tiên trấn",
+        "x": 16304,
+        "y": 4856,
+        "radius": 40,
+        "toMap": 100,
+        "toX": 18640,
+        "toY": 9480
+      }
+    ],
+    "205": [
+      {
+        "id": "portal-205-to-101",
+        "label": "Tới Đạo Hương thôn",
+        "x": 14587,
+        "y": 7288,
+        "radius": 40,
+        "toMap": 101,
+        "toX": 15450,
+        "toY": 1964
+      }
+    ],
+    "206": [
+      {
+        "id": "portal-206-to-8",
+        "label": "Tới Lăng Tần Thủy Hoàng",
+        "x": 784,
+        "y": 632,
+        "radius": 40,
+        "toMap": 8,
+        "toX": 8271,
+        "toY": 835
+      },
+      {
+        "id": "portal-206-to-207",
+        "label": "Tới Tần Lăng tầng 3",
+        "x": 7251,
+        "y": 1456,
+        "radius": 40,
+        "toMap": 207,
+        "toX": 6640,
+        "toY": 1944
+      }
+    ],
+    "207": [
+      {
+        "id": "portal-207-to-206",
+        "label": "Tới Tần Lăng tầng 2",
+        "x": 6736,
+        "y": 1992,
+        "radius": 40,
+        "toMap": 206,
+        "toX": 7131,
+        "toY": 1459
+      }
+    ],
+    "224": [
+      {
+        "id": "portal-224-to-136",
+        "label": "Tới Khoái Hoạt Lâm",
+        "x": 8624,
+        "y": 8056,
+        "radius": 40,
+        "toMap": 136,
+        "toX": 6768,
+        "toY": 984
       }
     ],
     "319": [
@@ -1337,6 +4641,112 @@
         "toMap": 319,
         "toX": 15274,
         "toY": 6110
+      },
+      {
+        "id": "portal-320-to-321",
+        "label": "Tới Trường Bạch sơn Nam",
+        "x": 17004,
+        "y": 13689,
+        "radius": 40,
+        "toMap": 321,
+        "toX": 20784,
+        "toY": 16368
+      },
+      {
+        "id": "portal-320-to-321-2",
+        "label": "Tới Trường Bạch sơn Nam",
+        "x": 11120,
+        "y": 16520,
+        "radius": 40,
+        "toMap": 321,
+        "toX": 1235,
+        "toY": 2284
+      },
+      {
+        "id": "portal-320-to-322",
+        "label": "Tới Trường Bạch sơn Bắc",
+        "x": 17227,
+        "y": 2993,
+        "radius": 40,
+        "toMap": 322,
+        "toX": 17038,
+        "toY": 16771
+      },
+      {
+        "id": "portal-320-to-322-2",
+        "label": "Tới Trường Bạch sơn Bắc",
+        "x": 10920,
+        "y": 1484,
+        "radius": 40,
+        "toMap": 322,
+        "toX": 1762,
+        "toY": 1087
+      }
+    ],
+    "321": [
+      {
+        "id": "portal-321-to-320",
+        "label": "Tới Chân núi Trường Bạch",
+        "x": 20880,
+        "y": 16440,
+        "radius": 40,
+        "toMap": 320,
+        "toX": 16903,
+        "toY": 13624
+      },
+      {
+        "id": "portal-321-to-320-2",
+        "label": "Tới Chân núi Trường Bạch",
+        "x": 1136,
+        "y": 2216,
+        "radius": 40,
+        "toMap": 320,
+        "toX": 11092,
+        "toY": 16403
+      }
+    ],
+    "322": [
+      {
+        "id": "portal-322-to-320",
+        "label": "Tới Chân núi Trường Bạch",
+        "x": 17123,
+        "y": 16856,
+        "radius": 40,
+        "toMap": 320,
+        "toX": 17129,
+        "toY": 3063
+      },
+      {
+        "id": "portal-322-to-320-2",
+        "label": "Tới Chân núi Trường Bạch",
+        "x": 1680,
+        "y": 1000,
+        "radius": 40,
+        "toMap": 320,
+        "toX": 10893,
+        "toY": 1601
+      }
+    ],
+    "323": [
+      {
+        "id": "portal-323-to-78",
+        "label": "Tới Tương Dương",
+        "x": 510,
+        "y": 3122,
+        "radius": 40,
+        "toMap": 78,
+        "toX": 16687,
+        "toY": 4336
+      },
+      {
+        "id": "portal-323-to-100",
+        "label": "Tới Chu Tiên trấn",
+        "x": 2991,
+        "y": 942,
+        "radius": 40,
+        "toMap": 100,
+        "toX": 4618,
+        "toY": 11880
       }
     ],
     "332": [

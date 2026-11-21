@@ -1,0 +1,27 @@
+{
+ "map": 114,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): 108 La Hán trận, cấp 60–70, vùng Hoa Bắc: Dơi chúa đỏ, Kền Kền, Voi Châu á, Hoa Nam hổ, Hoa Bắc sơn tặc 1, Hoa Bắc sơn tặc 2; Boss Xanh + Boss Hoàng Kim Hà Nhân Ngã.",
+ "zones": [
+  {"x":7184,"y":6040,"r":220,"monsters":[[13,67],[28,66]],"count":5,"respawn":42},
+  {"x":7632,"y":5336,"r":220,"monsters":[[28,65]],"count":7,"respawn":41},
+  {"x":6448,"y":4840,"r":220,"monsters":[[28,62],[13,63]],"count":5,"respawn":41},
+  {"x":1392,"y":2552,"r":220,"monsters":[[1,69],[28,69]],"count":6,"respawn":43},
+  {"x":5808,"y":312,"r":220,"monsters":[[13,71],[1,71]],"count":4,"respawn":43},
+  {"x":4336,"y":2872,"r":220,"monsters":[[159,62]],"count":6,"respawn":41},
+  {"x":8464,"y":5608,"r":220,"monsters":[[28,66],[1,64]],"count":6,"respawn":42},
+  {"x":6320,"y":6632,"r":220,"monsters":[[28,68],[26,68]],"count":5,"respawn":43},
+  {"x":6000,"y":2872,"r":220,"monsters":[[1,62],[13,63]],"count":5,"respawn":41},
+  {"x":2320,"y":2792,"r":220,"monsters":[[1,67],[159,65]],"count":7,"respawn":42},
+  {"x":9168,"y":3336,"r":220,"monsters":[[28,63],[26,65]],"count":4,"respawn":41},
+  {"x":8080,"y":6328,"r":220,"monsters":[[13,68]],"count":4,"respawn":42},
+  {"x":4880,"y":4920,"r":220,"monsters":[[13,62]],"count":7,"respawn":41},
+  {"x":10064,"y":4632,"r":220,"monsters":[[28,64]],"count":6,"respawn":42},
+  {"x":6800,"y":7192,"r":220,"monsters":[[159,69]],"count":5,"respawn":43},
+  {"x":5840,"y":1048,"r":220,"monsters":[[28,67],[26,67]],"count":5,"respawn":43},
+  {"x":10992,"y":4152,"r":220,"monsters":[[1,66]],"count":6,"respawn":42},
+  {"x":6800,"y":7192,"r":60,"monsters":[[160,70]],"count":1,"respawn":60,"boss":1},
+  {"x":1392,"y":2552,"r":60,"monsters":[[160,70]],"count":1,"respawn":60,"boss":1},
+  {"x":5808,"y":312,"r":40,"monsters":[[745,70]],"count":1,"respawn":180,"boss":2}
+ ]
+}

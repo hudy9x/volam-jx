@@ -6,6 +6,11 @@ import { applyTownPlacements, type TownPlacementConfig } from './placements.js';
 
 export type NpcAction = 'shop' | 'drug' | 'kytran' | 'travel' | 'horse' | 'stash';
 
+export interface TownNpcTalk {
+  text: string;
+  options: { label: string; toMap: number }[];
+}
+
 export interface TownNpc {
   id: string;
   name: string;
@@ -16,6 +21,8 @@ export interface TownNpc {
   dx: number;
   dy: number;
   dir: number;
+  /** Optional custom talk dialog with direct map travel options. */
+  talk?: TownNpcTalk;
 }
 
 /** What each NPC says (our original-style lines: the NPC scripts are server files, not in the client). */
@@ -39,11 +46,56 @@ const CITY: TownNpc[] = [
   { id: 'npc-ruong', name: 'Rương chứa đồ', res: 'passerby198', action: 'stash', dx: -70, dy: -130, dir: 0 },
 ];
 
+const BATTLE_EXIT_NPCS: TownNpc[] = [
+  {
+    id: 'npc-tk-tong-ve', name: 'Binh sĩ báo danh (Tống)', res: 'enemy029', action: 'travel', dx: -120, dy: 40, dir: 0,
+    talk: {
+      text: 'Chiến sự đang ác liệt. Hiệp sĩ muốn rút lui về Điểm báo danh Tống Kim chỉnh đốn binh mã không?',
+      options: [{ label: 'Quay lại Điểm báo danh Tống Kim', toMap: 323 }],
+    },
+  },
+  {
+    id: 'npc-tk-kim-ve', name: 'Binh sĩ báo danh (Kim)', res: 'enemy031', action: 'travel', dx: 120, dy: 40, dir: 0,
+    talk: {
+      text: 'Đại quân Kim quốc đang trấn giữ tiền tuyến. Dũng sĩ cần quay về Điểm báo danh Tống Kim chăng?',
+      options: [{ label: 'Quay lại Điểm báo danh Tống Kim', toMap: 323 }],
+    },
+  },
+];
+
 export const DEFAULT_TOWN_NPCS: Record<number, TownNpc[]> = {
   ...Object.fromEntries(Object.values(MAPS).filter(m => m.type === 'Capital' || m.type === 'City').map(m => [m.id, CITY])),
   140: [
     { id: 'npc-xaphu', name: 'Xa phu', res: 'passerby040_4', action: 'travel', dx: 120, dy: -40, dir: 0 },
   ],
+  323: [
+    // Trại Tống (hướng Nam, gần điểm vào 766, 3035 từ Tương Dương)
+    { id: 'npc-ruong-tong', name: 'Rương chứa đồ', res: 'passerby198', action: 'stash', dx: 354, dy: -215, dir: 0 },
+    {
+      id: 'npc-tong-baodanh', name: 'Binh sĩ báo danh (Tống)', res: 'enemy029', action: 'travel', dx: 214, dy: -135, dir: 0,
+      talk: {
+        text: 'Quân Kim xâm phạm biên cương, Đại Tống đang chiêu mộ hào kiệt xuất chinh! Hiệp sĩ muốn tiến vào chiến trường nào?',
+        options: [
+          { label: 'Vào chiến trường Bình nguyên (326)', toMap: 326 },
+          { label: 'Vào chiến trường Hà Tân (329)', toMap: 329 },
+        ],
+      },
+    },
+    // Trại Kim (hướng Bắc, gần điểm vào 2693, 1163 từ Chu Tiên trấn)
+    { id: 'npc-ruong-kim', name: 'Rương chứa đồ', res: 'passerby198', action: 'stash', dx: 1574, dy: -1675, dir: 0 },
+    {
+      id: 'npc-kim-baodanh', name: 'Binh sĩ báo danh (Kim)', res: 'enemy031', action: 'travel', dx: 1714, dy: -1755, dir: 0,
+      talk: {
+        text: 'Thiết kỵ Đại Kim sắp nam tiến, hào kiệt thiên hạ ai muốn lập công hãy theo ta! Ngươi chọn chiến trường nào?',
+        options: [
+          { label: 'Vào chiến trường Bình nguyên (326)', toMap: 326 },
+          { label: 'Vào chiến trường Hà Tân (329)', toMap: 329 },
+        ],
+      },
+    },
+  ],
+  326: BATTLE_EXIT_NPCS,
+  329: BATTLE_EXIT_NPCS,
 };
 
 /** Per-city settings saved by tools/map-manager; other maps keep their defaults. */

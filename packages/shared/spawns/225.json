@@ -1,0 +1,29 @@
+{
+ "map": 225,
+ "auto": true,
+ "note": "Tự sinh (ước lượng): Sa Mạc 1, cấp 90–100, vùng Tây Bắc: Rết, Sài, Kim Điêu, Cá sấu, Tây Bắc sơn tặc 2, Tây Bắc sơn tặc 1; Boss Xanh + Boss Hoàng Kim Vương Tá.",
+ "zones": [
+  {"x":4688,"y":3944,"r":220,"monsters":[[39,95]],"count":4,"respawn":52},
+  {"x":8464,"y":1800,"r":220,"monsters":[[46,96],[39,97]],"count":5,"respawn":52},
+  {"x":9808,"y":6232,"r":220,"monsters":[[39,98],[24,97]],"count":4,"respawn":53},
+  {"x":6512,"y":1480,"r":220,"monsters":[[46,97]],"count":4,"respawn":53},
+  {"x":13296,"y":4424,"r":220,"monsters":[[150,98],[18,99]],"count":6,"respawn":53},
+  {"x":5648,"y":5816,"r":220,"monsters":[[150,98],[18,98]],"count":7,"respawn":53},
+  {"x":6448,"y":4328,"r":220,"monsters":[[18,91],[46,91]],"count":5,"respawn":51},
+  {"x":6256,"y":3192,"r":220,"monsters":[[149,92],[46,92]],"count":4,"respawn":51},
+  {"x":12848,"y":5000,"r":220,"monsters":[[24,98]],"count":4,"respawn":53},
+  {"x":5488,"y":3592,"r":220,"monsters":[[18,93]],"count":6,"respawn":51},
+  {"x":8560,"y":5064,"r":220,"monsters":[[46,94],[149,92]],"count":5,"respawn":51},
+  {"x":10352,"y":3416,"r":220,"monsters":[[149,94],[46,92]],"count":4,"respawn":51},
+  {"x":4016,"y":4712,"r":220,"monsters":[[39,96]],"count":5,"respawn":52},
+  {"x":7696,"y":5496,"r":220,"monsters":[[149,94]],"count":4,"respawn":52},
+  {"x":8816,"y":2456,"r":220,"monsters":[[18,95],[46,95]],"count":5,"respawn":51},
+  {"x":7920,"y":1496,"r":220,"monsters":[[149,97]],"count":6,"respawn":53},
+  {"x":5392,"y":1992,"r":220,"monsters":[[149,96]],"count":4,"respawn":52},
+  {"x":6960,"y":6760,"r":220,"monsters":[[46,101]],"count":7,"respawn":53},
+  {"x":3568,"y":2904,"r":220,"monsters":[[39,97],[18,97]],"count":6,"respawn":53},
+  {"x":13296,"y":4424,"r":60,"monsters":[[149,100]],"count":1,"respawn":60,"boss":1},
+  {"x":12848,"y":5000,"r":60,"monsters":[[149,100]],"count":1,"respawn":60,"boss":1},
+  {"x":6960,"y":6760,"r":40,"monsters":[[739,100]],"count":1,"respawn":180,"boss":2}
+ ]
+}

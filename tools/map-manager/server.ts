@@ -85,7 +85,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && files.has(u.pathname)) { res.setHeader('Content-Type', u.pathname.endsWith('.css') ? 'text/css' : 'text/javascript'); res.end(files.get(u.pathname)); return; }
     if (req.method === 'GET' && u.pathname === '/api/bootstrap') {
       try { manifest = JSON.parse(fs.readFileSync(path.join(assets, 'manifest.json'), 'utf8')); } catch { /* keep existing versions */ }
-      const maps = Object.values(MAPS).filter(m => ['City', 'Capital', 'Field', 'Cave', 'Country'].includes(m.type)).map(m => ({ id: m.id, name: m.name, size: m.raw.size, entry: m.raw.entry, enabled: m.enabled !== false, group: ['City', 'Capital'].includes(m.type) ? 'city' : 'training', editable: ['City', 'Capital'].includes(m.type),
+      const maps = Object.values(MAPS).filter(m => ['City', 'Capital', 'Field', 'Cave', 'Country', 'Tong', 'Battlefield', 'Others'].includes(m.type)).map(m => ({ id: m.id, name: m.name, size: m.raw.size, entry: m.raw.entry, enabled: m.enabled !== false, group: ['City', 'Capital'].includes(m.type) ? 'city' : 'training', editable: ['City', 'Capital'].includes(m.type),
         available: fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(m.id), 'nav.json')) && fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(m.id), 'map.json')) }));
       json({ monsters: Object.values(MONSTERS).filter(m => bossTierOf(m.boss) < 2 && !m.dummy).map(m => ({ id: m.id, name: m.name, level: m.level })), maps, templates, labels: NPC_ACTION_LABELS, versions: Object.fromEntries(maps.map(m => [m.id, manifest?.packs[`map/${m.id}`]?.v ?? ''])) }); return;
     }

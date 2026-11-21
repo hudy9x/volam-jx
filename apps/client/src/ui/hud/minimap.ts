@@ -15,15 +15,9 @@ const REDRAW_MS = 100;
  */
 const SPAN = 5600;
 
-/**
- * Flag of a minimap click (destination). The server finds the path and does not say when the order ends, so the
- * flag goes away when the player is there, has stood still for a while (arrived at the nearest walkable point,
- * blocked, or stopped by another order) or walks clearly away from it (another order).
- */
-const FLAG_ARRIVE = 48;
-const FLAG_STILL_MS = 1200;
-const FLAG_AWAY = 320;
-interface Flag { x: number; y: number; at: number; still: number; lx: number; ly: number; min: number }
+/** Flag of a minimap / bigmap click (destination). Stays visible until arrival or map change. */
+const FLAG_ARRIVE = 64;
+interface Flag { x: number; y: number }
 
 /** Minimap from the generated minimap.webp: portals, actors, camera rectangle. Click = walk there. */
 class Minimap {
@@ -36,13 +30,6 @@ class Minimap {
   /** Current window: world x/y of the canvas' top-left corner and canvas px per world px. */
   private win = { x: 0, y: 0, k: 1 };
   private flag: Flag | null = null;
-  private zoom = 1;
-
-  cycleZoom(): number {
-    this.zoom = this.zoom === 4 ? 1 : this.zoom * 2;
-    this.lastDraw = 0;
-    return this.zoom;
-  }
 
   constructor(private readonly canvas: HTMLCanvasElement, onPick: (x: number, y: number) => void) {
     this.ctx = canvas.getContext('2d')!;
@@ -59,9 +46,13 @@ class Minimap {
 
   /** Flag at a destination the player was sent to (world px); a line joins the player to it until arrival. */
   plant(x: number, y: number): void {
-    const now = performance.now();
-    this.flag = { x, y, at: now, still: now, lx: NaN, ly: NaN, min: Infinity };
+    this.flag = { x, y };
     this.lastDraw = 0;
+  }
+
+  /** Current planted flag in world px, if any. */
+  flagPoint(): { x: number; y: number } | null {
+    return this.flag ? { x: this.flag.x, y: this.flag.y } : null;
   }
 
   setMap(meta: MapMeta): void {
@@ -88,7 +79,14 @@ class Minimap {
     this.lastDraw = now;
     const { ctx, canvas } = this;
     const width = canvas.clientWidth, height = canvas.clientHeight;
-    if (!width || !height) return;
+    if (!width || !height) {
+      if (this.flag) {
+        for (const a of actors) {
+          if (a.id === selfId) { this.trackFlag(this.flag, a, now); break; }
+        }
+      }
+      return;
+    }
     const fit = canvas.getBoundingClientRect().width / canvas.offsetWidth;
     const density = Math.max(1, Math.min(4, (window.devicePixelRatio || 1) * fit));
     const bw = Math.round(width * density), bh = Math.round(height * density);
@@ -97,7 +95,7 @@ class Minimap {
     const { width: mw, height: mh } = this.meta.raw.size;
 
     // Window centred on the camera, clamped to the map (whole map when it is small enough).
-    const span = Math.min(SPAN / this.zoom, Math.max(mw, mh));
+    const span = Math.min(SPAN, Math.max(mw, mh));
     const k = Math.min(width, height) / span;
     const vw = width / k, vh = height / k;
     const cx = view.x + view.width / 2, cy = view.y + view.height / 2;
@@ -115,11 +113,13 @@ class Minimap {
       ctx.drawImage(this.image, wx * s, wy * s, vw * s, vh * s, 0, 0, width, height);
     }
 
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = '#6fd2ff';
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
     for (const p of this.meta.portals) {
       ctx.beginPath();
-      ctx.arc(toX(p.x), toY(p.y), 4, 0, Math.PI * 2);
+      ctx.arc(toX(p.x), toY(p.y), 2.5, 0, Math.PI * 2);
+      ctx.fill();
       ctx.stroke();
     }
 
@@ -163,35 +163,32 @@ class Minimap {
     }
   }
 
-  private trackFlag(f: Flag, self: MapActor, now: number): void {
-    const d = Math.hypot(self.x - f.x, self.y - f.y);
-    if (Math.hypot(self.x - f.lx, self.y - f.ly) > 2 || Number.isNaN(f.lx)) { f.still = now; f.lx = self.x; f.ly = self.y; }
-    f.min = Math.min(f.min, d);
-    if (d <= FLAG_ARRIVE || d > f.min + FLAG_AWAY || (now - f.at > FLAG_STILL_MS && now - f.still > FLAG_STILL_MS)) this.flag = null;
+  private trackFlag(f: Flag, self: MapActor, _now: number): void {
+    if (Math.hypot(self.x - f.x, self.y - f.y) <= FLAG_ARRIVE) this.flag = null;
   }
 }
 
 /** Small red flag planted at (x, y): pole + pennant, dark outline so it shows on any ground. */
-function drawFlag(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-  ctx.lineWidth = 1;
+export function drawFlag(ctx: CanvasRenderingContext2D, x: number, y: number, scale = 1): void {
+  ctx.lineWidth = 1 * scale;
   ctx.strokeStyle = '#000';
   ctx.fillStyle = '#e8402c';
   ctx.beginPath();
-  ctx.moveTo(x + 0.5, y - 12);
-  ctx.lineTo(x + 9, y - 9);
-  ctx.lineTo(x + 0.5, y - 6);
+  ctx.moveTo(x + 0.5 * scale, y - 12 * scale);
+  ctx.lineTo(x + 9 * scale, y - 9 * scale);
+  ctx.lineTo(x + 0.5 * scale, y - 6 * scale);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
   ctx.strokeStyle = '#f2e6c0';
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1.5 * scale;
   ctx.beginPath();
-  ctx.moveTo(x, y + 1);
-  ctx.lineTo(x, y - 12);
+  ctx.moveTo(x, y + 1 * scale);
+  ctx.lineTo(x, y - 12 * scale);
   ctx.stroke();
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.beginPath();
-  ctx.ellipse(x, y + 1, 3, 1.5, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y + 1 * scale, 3 * scale, 1.5 * scale, 0, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -206,7 +203,6 @@ const HTML = `
     <span class="mm-btns">
       <button type="button" class="mm-btn" id="minimap-flag" title="Cắm cờ: chọn điểm trên bản đồ" aria-label="Cắm cờ" aria-pressed="false">⚑</button>
       <button type="button" class="mm-btn switch" id="bigmap-open" title="Bản đồ lớn (${keyLabel('bigmap')})" aria-label="Mở rộng bản đồ">⛶</button>
-      <button type="button" class="mm-btn" id="minimap-zoom" title="Độ phóng minimap: 1×" aria-label="Đổi độ phóng minimap">＋</button>
       <button type="button" class="mm-btn world" id="travel-open" title="Chuyển bản đồ (${keyLabel('travel')})" aria-label="Chuyển bản đồ">▧</button>
       <button type="button" class="mm-btn fold" id="minimap-toggle" title="Thu gọn bản đồ nhỏ" aria-label="Thu gọn bản đồ nhỏ">–</button>
     </span>
@@ -237,12 +233,6 @@ export class MinimapPanel {
       $('minimap-flag').setAttribute('aria-pressed', String(active));
       $('hud-minimap').classList.toggle('planting', active);
     });
-    $('minimap-zoom').addEventListener('click', () => {
-      settings.set({ minimap: true });
-      const zoom = this.map.cycleZoom();
-      $('minimap-zoom').title = `Độ phóng minimap: ${zoom}× (bấm để đổi)`;
-      $('minimap-zoom').setAttribute('aria-label', `Độ phóng minimap ${zoom}×, bấm để đổi`);
-    });
     $('travel-open').addEventListener('click', () => handlers.openTravel());
     $('bigmap-open').addEventListener('click', () => handlers.toggleBigMap());
     $('minimap-toggle').addEventListener('click', () => settings.set({ minimap: !settings.get().minimap }));
@@ -264,6 +254,11 @@ export class MinimapPanel {
   /** Destination chosen elsewhere (Bản đồ lớn): same flag + line as a minimap click. */
   plant(x: number, y: number): void {
     this.map.plant(x, y);
+  }
+
+  /** Current planted flag in world px, if any. */
+  flagPoint(): { x: number; y: number } | null {
+    return this.map.flagPoint();
   }
 
   setPos(text: string): void {

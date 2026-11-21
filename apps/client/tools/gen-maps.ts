@@ -38,7 +38,9 @@ interface Source { id: number; name: string; type: string; path: string; entry?:
  * use the middle of their largest walkable area. Only cells reachable from the entry stay walkable: the original
  * keeps players out of the strip between the outer tree wall and the region edge with server data we don't have.
  */
-const ENTRIES: Record<number, [number, number]> = { 37: [20388, 13168], 140: [5280, 9600] };
+const ENTRIES: Record<number, [number, number]> = { 37: [20388, 13168], 140: [5280, 9600], 323: [766, 3035] };
+/** Additional disconnected walkable areas to keep (e.g. map 323 has separate Song south & Jin north camps). */
+const EXTRA_REACHABLE: Record<number, [number, number][]> = { 323: [[2693, 1163]] };
 
 /** Every distinct map of settings/maplist.ini (several ids often share one map: the first one is kept). */
 function maplistSources(): Source[] {
@@ -206,18 +208,21 @@ async function generate(src: Source): Promise<void> {
     }
   };
   if (!src.entry) src.entry = autoEntry();
-  const start = (() => {
-    const ex = Math.floor(src.entry![0] / CELL_W), ey = Math.floor(src.entry![1] / CELL_H);
+  const findStart = (pt: [number, number]) => {
+    const ex = Math.floor(pt[0] / CELL_W), ey = Math.floor(pt[1] / CELL_H);
     for (let r = 0; r < 64; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
       const x = ex + dx, y = ey + dy;
       if (x >= 0 && y >= 0 && x < gw && y < gh && isFree(y * gw + x)) return y * gw + x;
     }
-    throw new Error(`[${src.id}] entry ${src.entry} is not near walkable ground`);
-  })();
+    throw new Error(`[${src.id}] entry ${pt} is not near walkable ground`);
+  };
   const reached = new Uint8Array(gw * gh);
   const queue = new Int32Array(gw * gh);
   let head = 0, tail = 0;
-  queue[tail++] = start; reached[start] = 1;
+  for (const pt of [src.entry!, ...(EXTRA_REACHABLE[src.id] ?? [])]) {
+    const s = findStart(pt);
+    if (!reached[s]) { queue[tail++] = s; reached[s] = 1; }
+  }
   while (head < tail) neighbours(queue[head++], n => { if (!reached[n]) { reached[n] = 1; queue[tail++] = n; } });
   for (let c = 0; c < gw * gh; c++) if (!reached[c] && isFree(c)) { blocked[c >> 3] |= 1 << (c & 7); freeCells--; }
 

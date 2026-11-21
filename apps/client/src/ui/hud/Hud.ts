@@ -5,6 +5,7 @@ import type { ActorState } from '../../state/actor';
 import { FACTIONS, isoDistance } from '@vltk/shared';
 import { keyLabel } from '../../input/keymap';
 import { progress } from '../../state/progress';
+import { settings as userSettings } from '../../state/settings';
 import { skillbar } from '../../state/skillbar';
 import { addSyslog, syslogFor, syslogReady } from '../../state/syslog';
 import { dialogs } from '../kit/dialog';
@@ -286,7 +287,7 @@ export class Hud implements WorldUi {
   }
 
   drawBigMap(actors: Iterable<MapActor>, selfId: string, labels: MapLabel[]): void {
-    this.bigmap.draw(actors, selfId, labels);
+    this.bigmap.draw(actors, selfId, labels, this.minimap.flagPoint());
   }
 
   toggleWindow(id: WindowId, open?: boolean): void {
@@ -295,7 +296,13 @@ export class Hud implements WorldUi {
       case 'stash': this.stash.toggle(open); break;
       case 'char': this.character.toggle(open); break;
       case 'skills': this.skills.toggle(open); break;
-      case 'bigmap': this.bigmap.toggle(open); break;
+      case 'bigmap':
+        if (open !== undefined) { this.bigmap.toggle(open); break; }
+        // Tab cycles map state: 1 (minimap) -> 2 (bigmap) -> 0 (hidden) -> 1
+        if (this.bigmap.isOpen) { this.bigmap.toggle(false); userSettings.set({ minimap: false }); }
+        else if (userSettings.get().minimap) { this.bigmap.toggle(true); }
+        else { userSettings.set({ minimap: true }); }
+        break;
       case 'travel': this.travel.toggle(open); break;
       case 'shop': this.shop.toggle('smith', open); break;
       case 'drugstore': this.shop.toggle('drug', open); break;

@@ -294,7 +294,10 @@ export class WorldScene extends Phaser.Scene {
       // Tab would move the browser focus: keep it for the big map.
       keys.addCapture(KEYS.bigmap.code);
       bind('skills', () => this.ui.toggleWindow('skills'));
-      bind('bigmap', () => this.ui.toggleWindow('bigmap'));
+      bind('bigmap', event => {
+        if (event?.shiftKey) this.ui.toggleWindow('travel');
+        else this.ui.toggleWindow('bigmap');
+      });
       bind('pk', () => this.actions.pk());
       bind('team', () => this.ui.toggleWindow('team'));
       bind('kytran', () => this.ui.toggleWindow('kytran'));
@@ -449,6 +452,15 @@ export class WorldScene extends Phaser.Scene {
   private talkTo(view: ActorView): void {
     const npc = this.npcs.find(n => n.view === view)?.npc;
     if (!npc) return;
+    if (npc.talk) {
+      this.ui.talk({
+        name: npc.name,
+        res: npc.res,
+        text: npc.talk.text,
+        options: npc.talk.options.map(opt => ({ label: opt.label, run: () => this.actions.teleport(opt.toMap) })),
+      });
+      return;
+    }
     const line = NPC_LINES[npc.action];
     const open = () => this.ui.toggleWindow(NPC_WINDOWS[npc.action], true);
     this.ui.talk({ name: npc.name, res: npc.res, text: line.text, options: [{ label: line.option, run: open }] });
