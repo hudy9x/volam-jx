@@ -81,8 +81,8 @@ export const CRIT = {
   maxCritPct: 75,
 } as const;
 
-/** Player vs player damage (DATA pkrate.ini rate=20 -> 20% = 0.20; tránh 1-2 đòn chết ngay trong PK/Tống Kim). */
-export const PVP = { damageScale: 0.2 } as const;
+/** Player vs player damage (0.20 thông thường; 0.40 khi hệ tấn công khắc hệ mục tiêu, vd Kim đánh Mộc). */
+export const PVP = { damageScale: 0.2, counterDamageScale: 0.3 } as const;
 
 /** Hút sinh lực / nội lực (formulas/damage.ts lifeSteal): cap of skill + item % (CHỌN, no data). */
 export const STEAL = { maxPct: 50 } as const;

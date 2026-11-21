@@ -167,11 +167,15 @@ export function resolveHit(parts: DamageParts, ctx: HitContext, rng: () => numbe
     if (out.heavy) v *= HEAVY_HIT.multiplier;
     out.parts[el] = after(el, v);
   }
+  const attackSeries = (skill.series ?? -1) >= 0 ? SERIES_ORDER[skill.series!] : a.series;
+  const pvpScale = ctx.pvp
+    ? (ELEMENT_COUNTERS[attackSeries] === t.series ? PVP.counterDamageScale : PVP.damageScale)
+    : 1;
   let dmg = out.parts.phys + out.parts.cold + out.parts.fire + out.parts.light;
-  if (ctx.pvp) dmg *= PVP.damageScale;
+  if (ctx.pvp) dmg *= pvpScale;
   out.dmg = dmg > 0 ? Math.max(1, Math.round(dmg)) : 0;
   if (parts.poison && parts.poison.tick > 0) {
-    const tick = (parts.poison.tick * (100 - effectiveResist('poison', ctx))) / 100 * (ctx.pvp ? PVP.damageScale : 1);
+    const tick = (parts.poison.tick * (100 - effectiveResist('poison', ctx))) / 100 * pvpScale;
     if (tick > 0) out.poison = { ...parts.poison, tick: Math.max(1, Math.round(tick)) };
   }
   return out;
