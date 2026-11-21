@@ -1,3 +1,5 @@
+import { SPAWN_LEVEL_BANDS } from './spawn-levels.gen.js';
+
 /** USER 2026-11-13: 40 bãi (Luyện công + Hang động), hai bản đồ mỗi mốc cấp 10–200.
  * These are project spawn levels, not levels recovered from the original client.
  * Phượng Tường (1) is a town and is deliberately outside this list.
@@ -29,5 +31,5 @@ export const TRAINING_BANDS = new Map(TRAINING_STAGES.flatMap(s => s.maps.map(id
 
 /** Configured monster levels shown in the map picker; legacy Dược Vương Cốc keeps its existing spawn range. */
 export function mapLevelBand(id: number): [number, number] | undefined {
-  return TRAINING_BANDS.get(id) ?? (id === 140 ? [3, 7] : undefined);
+  return TRAINING_BANDS.get(id) ?? (id === 140 ? [3, 7] : SPAWN_LEVEL_BANDS[id]);
 }

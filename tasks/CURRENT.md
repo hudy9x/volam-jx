@@ -1,3 +1,9 @@
+## 2026-11-21 · Đồng bộ dải cấp quái từ spawn files vào mapLevelBand (đã commit)
+
+- **USER yêu cầu:** hiển thị đầy đủ cấp quái cho các bãi luyện công/hang động mới trong hộp thoại Xa phu thay vì `"Chưa có dữ liệu cấp quái"`.
+- **Thay đổi:** sinh [packages/shared/src/maps/spawn-levels.gen.ts](packages/shared/src/maps/spawn-levels.gen.ts) cho **145 bản đồ** có file spawn, cập nhật [gen-spawns.ts](apps/client/tools/gen-spawns.ts) tự đồng bộ file này khi chạy, và cập nhật `mapLevelBand` trong [training-levels.ts](packages/shared/src/maps/training-levels.ts) fallback sang `SPAWN_LEVEL_BANDS[id]` (dùng chung Web/Desktop/Mobile).
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run build` thành công, `git diff --check` đạt. Giữ ngoài commit `theme.css`, `bosses/config.json`, `bosses/config.ts`. Đã commit trên `main`, không push.
+
 ## 2026-11-21 · Nạp map Tống Kim + 86 bãi luyện công, nối 453 cổng, sửa minimap/Tab/Xa phu (đã commit)
 
 - **Thay đổi:**
