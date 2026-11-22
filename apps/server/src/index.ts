@@ -4,7 +4,7 @@ import { WebSocketTransport } from '@colyseus/ws-transport';
 import { Encoder } from '@colyseus/schema';
 import fs from 'node:fs';
 import path from 'node:path';
-import { MAP_ROOM, TK_BATTLE_MAP_ID, getExpElixirConfig, mapAssetSuffix, setExpElixirConfig, setNavLoader, setSpawnLoader, type NavFile, type SpawnFile } from '@vltk/shared';
+import { MAP_ROOM, getExpElixirConfig, mapAssetSuffix, setExpElixirConfig, setNavLoader, setSpawnLoader, type NavFile, type SpawnFile } from '@vltk/shared';
 import { registerAuthRoutes } from './account/auth.js';
 import { db } from './account/db.js';
 import { registerDevRoutes } from './dev/devtools.js';
@@ -81,14 +81,14 @@ const server = new Server({
     });
     app.post('/api/dev/tongkim/stop', (_req, res) => {
       if (!devTools()) { res.status(403).json({ error: 'DEV_TOOLS tắt.' }); return; }
-      res.json(tongKim.stopMatch(LIVE_WORLDS.get(TK_BATTLE_MAP_ID)));
+      res.json(tongKim.stopMatch(LIVE_WORLDS.get(tongKim.battleMapId)));
     });
   },
 });
 
 // Đồng hồ Tống Kim chạy nền ngay cả khi map 378 chưa có phòng mở.
 setInterval(() => {
-  if (!LIVE_WORLDS.has(TK_BATTLE_MAP_ID)) tongKim.tickBattleWorld(undefined, Date.now());
+  if (!LIVE_WORLDS.has(tongKim.battleMapId)) tongKim.tickBattleWorld(undefined, Date.now());
 }, 1000).unref();
 
 // One room per map: clients join with { mapId } and Colyseus routes them to that map's instance.

@@ -1,5 +1,5 @@
 import type { MapSchema } from '@colyseus/schema';
-import { MAPS, SkillEngine, TK_BATTLE_MAP_ID, attrOf, getGrid, type EnginePort, type FxEvent, type LogKind, type MapMeta, type MapRules, type NavigationGrid } from '@vltk/shared';
+import { MAPS, SkillEngine, attrOf, getGrid, type EnginePort, type FxEvent, type LogKind, type MapMeta, type MapRules, type NavigationGrid } from '@vltk/shared';
 import type { Actor, Ground } from '../net/schema.js';
 import { updateMonster } from './ai/monster.js';
 import type { Sim, SpawnSlot } from './entity.js';
@@ -121,7 +121,7 @@ export class World {
     this.astarBudget = MAX_ASTAR_PER_TICK;
 
     updateSlots(this);
-    if (this.meta.id === TK_BATTLE_MAP_ID) tongKim.tickBattleWorld(this, this.now);
+    if (this.meta.id === tongKim.battleMapId) tongKim.tickBattleWorld(this, this.now);
     updateDrops(this);
     for (const sim of this.sims.values()) {
       if (sim.dead) {

@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, MAX_BAG_POTIONS, STALL_SIZE, STASH_SIZE, TK_BATTLE_MAP_ID, TOKEN_ITEM_ID, combatRulesAt, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF,
+  BAG_SIZE, BUY_MAX, HORSES, ITEMS, MAPS, MAX_BAG_POTIONS, STALL_SIZE, STASH_SIZE, TOKEN_ITEM_ID, combatRulesAt, isTkBattleMap, nearestTown, KIND_SLOTS, MAX_MONEY, QUALITY, SHOP_OF,
   addToBag, bagPotionCount, bagValid, createGold, createItem, equipError, findPlace, fitsAt, forgeError, forgePrice, forgedMagic, fortuneRequirement,
   getExpElixirMultiplier, isStackablePotion, itemDef, itemQty, lookOf, maxStackOf, moveOrSwapInGrid, overlappingAt, packBag, restoreItem, roomFor, sellPrice,
   sortGridPage, splitStackInGrid, usableItem, weaponTypeOf,
@@ -435,7 +435,7 @@ export function useItem(w: World, sim: Sim, index: number): boolean {
 
 /** Thổ Địa Phù: back to the entrance of the nearest city (maps/index.ts nearestTown), Biện Kinh when unknown / not built. */
 function useTownPortal(w: World, sim: Sim): void {
-  if (w.meta.id === TK_BATTLE_MAP_ID) {
+  if (isTkBattleMap(w.meta.id)) {
     w.hooks.notify(sim, 'Không thể dùng Thổ Địa Phù trong chiến trường Tống Kim.');
     return;
   }

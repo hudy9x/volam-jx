@@ -663,3 +663,116 @@ test('Thưởng kết thúc Tống Kim cho bot: 200 vạn + 50M EXP & hệ số 
   assert.equal(tkBotRewardMultiplier(0, 100), 1);
   assert.equal(tkBotRewardMultiplier(1, 0), 1);
 });
+
+test('Đa map Tống Kim: cấu hình nhiều map, startMatch/register chuyển đúng battleMapId & vùng an toàn', async () => {
+  const {
+    TK_MAPS, applyTkMaps, isTkBattleMap, isInTkSafeCamp, tkHomeCampAt,
+    TK_BATTLE_MAP_ID, TK_SIGNUP_MAP_ID, MAPS,
+  } = await import('../packages/shared/src/index.js');
+  const { tongKim } = await import('../apps/server/src/world/tongkim.js');
+
+  const snapshotOriginal = structuredClone(TK_MAPS);
+  try {
+    applyTkMaps({
+      version: 1,
+      maps: {
+        ...snapshotOriginal,
+        '381': {
+          id: 381,
+          name: 'Thâm lâm (sơ cấp)',
+          tong: {
+            spawn: { x: 2000, y: 10000 },
+            safeRadius: 800,
+            gateExit: { x: 4000, y: 8000 },
+            marshal: { x: 4200, y: 7800 },
+            frontlines: [{ x: 8000, y: 6000 }],
+            npcSpawns: [],
+          },
+          kim: {
+            spawn: { x: 16000, y: 2000 },
+            safeRadius: 800,
+            gateExit: { x: 13000, y: 4000 },
+            marshal: { x: 12800, y: 4200 },
+            frontlines: [{ x: 9000, y: 6000 }],
+            npcSpawns: [],
+          },
+        },
+      },
+    });
+
+    assert.equal(isTkBattleMap(378), true);
+    assert.equal(isTkBattleMap(381), true);
+    assert.equal(tkHomeCampAt(381, 2000, 10000), 'tong');
+    assert.equal(tkHomeCampAt(381, 16000, 2000), 'kim');
+    assert.equal(isInTkSafeCamp(381, 8000, 6000), false);
+
+    const mgr = tongKim;
+    mgr.stopMatch();
+    const bad = mgr.startMatch({ battleMapId: 999999 });
+    assert.equal(bad.ok, false);
+
+    const okStart = mgr.startMatch({ mode: 1, battleMapId: 381, signupSec: 20, durationSec: 300, allowSolo: true });
+    assert.equal(okStart.ok, true);
+    assert.equal(mgr.battleMapId, 381);
+    assert.equal(mgr.snapshotFor().battleMapId, 381);
+
+    const fakeSim: any = {
+      charId: 'tk-multi-1',
+      a: { name: 'Tester', faction: 'shaolin', level: 100 },
+      progress: { prog: { level: 100 } },
+      money: 50000,
+    };
+    const fakeWorld: any = {
+      meta: MAPS[TK_SIGNUP_MAP_ID],
+      hooks: { notify: () => {} },
+    };
+    const reg = mgr.handleAction(fakeWorld, fakeSim, { op: 'register', camp: 'tong' });
+    assert.deepEqual(reg.transfer, { mapId: 381, x: 2000, y: 10000 });
+    mgr.stopMatch();
+    assert.equal(TK_BATTLE_MAP_ID, 378);
+  } finally {
+    applyTkMaps({ version: 1, maps: snapshotOriginal });
+  }
+});
+
+test('TkMapStore & PortalStore.replaceTkPortals: lưu atomic, chống stale revision và giữ portal khác', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const { MAPS, DEFAULT_MAP_PORTALS } = await import('../packages/shared/src/index.js');
+  const { TkMapStore } = await import('../tools/map-manager/TkMapStore.js');
+  const { PortalStore } = await import('../tools/map-manager/PortalStore.js');
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tk-map-store-'));
+  const tkFile = path.join(tmpDir, 'tk-maps.json');
+  const portalFile = path.join(tmpDir, 'map-portals.json');
+  try {
+    const tkStore = new TkMapStore(tkFile, MAPS, () => true);
+    const pStore = new PortalStore(portalFile, MAPS, DEFAULT_MAP_PORTALS, () => true);
+
+    const init = await tkStore.read(381);
+    assert.equal(init.configured, false);
+
+    const saved = await tkStore.save(381, {
+      id: 381,
+      tong: { spawn: { x: 2000, y: 10000 }, safeRadius: 900, gateExit: { x: 4000, y: 8000 }, marshal: { x: 4100, y: 7900 }, frontlines: [], npcSpawns: [] },
+      kim: { spawn: { x: 16000, y: 2000 }, safeRadius: 900, gateExit: { x: 13000, y: 4000 }, marshal: { x: 12900, y: 4100 }, frontlines: [], npcSpawns: [] },
+    }, init.revision);
+    assert.equal(saved.configured, true);
+
+    await assert.rejects(() => tkStore.save(381, saved.config, init.revision), /đổi ở tab khác/);
+
+    // Giữ nguyên portal khác khi replaceTkPortals
+    const pInit = await pStore.read(381);
+    await pStore.save(381, [{ id: 'custom-other', label: 'Khác', x: 1000, y: 1000, radius: 40, toMap: 323, toX: 1500, toY: 1500 }], pInit.revision);
+    const replaced = await pStore.replaceTkPortals(381, [
+      { id: 'tk-tong-out', label: 'Ra chiến trường (Tống)', x: 2400, y: 9600, radius: 64, toMap: 381, toX: 4000, toY: 8000 },
+      { id: 'tk-tong-back', label: 'Về Hậu doanh (Tống)', x: 3200, y: 8800, radius: 64, toMap: 381, toX: 2000, toY: 10000 },
+    ]);
+    assert.equal(replaced.portals.some(p => p.id === 'custom-other'), true);
+    assert.equal(replaced.portals.some(p => p.id === 'tk-tong-out'), true);
+    assert.equal(replaced.portals.some(p => p.id === 'tk-tong-back'), true);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});

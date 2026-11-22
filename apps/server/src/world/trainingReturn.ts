@@ -22,7 +22,8 @@ export function resolveSavedTrainingReturn(char: CharacterRecord, currentMapId: 
     return {};
   }
   if (!Number.isInteger(point.mapId) || !Number.isFinite(point.x) || !Number.isFinite(point.y) || !mapAvailable(point.mapId, true) || MAPS[point.mapId]?.safe) {
-    return { error: 'Bãi luyện công đã lưu không còn hợp lệ hoặc chưa có dữ liệu. Hãy chọn bãi khác.' };
+    db.updateCharacter(char.id, { trainingReturn: undefined });
+    return { error: 'Bãi luyện công đã lưu không còn hợp lệ hoặc đã bị tắt. Đã xóa điểm trở lại.' };
   }
   const size = MAPS[point.mapId].raw.size;
   if (point.x < 0 || point.y < 0 || point.x >= size.width || point.y >= size.height) return { error: 'Tọa độ quay lại đã lưu không hợp lệ.' };

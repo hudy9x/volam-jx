@@ -12,6 +12,13 @@ Mở **http://localhost:4570**. Chỉ bind127.0.0.1, không mở LAN, không n�
 
 - `MAP_MANAGER_PORT`: cổng, mặc định4570.
 - `MAP_MANAGER_CONFIG`: file cấu hình đích; mặc định `packages/shared/src/npcs/town-placements.json`. Khi kiểm thử dùng đường dẫn riêng trong /tmp, không sửa cấu hình thật.
+- `MAP_MANAGER_TK_MAPS_CONFIG`: file cấu hình map Tống Kim; mặc định `packages/shared/src/battle/tk-maps.json`.
+
+## Cấu hình Chiến trường Tống Kim (phím K)
+
+1. Chọn map ở sidebar → công cụ **Tống Kim (K)**. Nếu map chưa có cấu hình, bấm **Khởi tạo cấu hình Tống Kim** để tạo bộ điểm mặc định cho cả hai phe.
+2. Chọn **Phe Đại Tống** hoặc **Phe Đại Kim**, chọn loại điểm cần đặt (Điểm tập trung + bán kính an toàn, Điểm nhảy ra ngoài trong trại, Điểm đáp ngoài doanh trại, Điểm nhảy về tập trung ngoài trại, Nguyên Soái, Tiền tuyến Đặc thám, Cụm sinh lính/tướng) rồi click hoặc kéo trực tiếp trên bản đồ.
+3. Bấm **Lưu Tống Kim** (`Ctrl/Cmd+S`): lưu nguyên tử vào `packages/shared/src/battle/tk-maps.json` và tự đồng bộ 4 portal `tk-tong-out`, `tk-tong-back`, `tk-kim-out`, `tk-kim-back` vào `packages/shared/src/maps/map-portals.json` (giữ nguyên các portal khác của map). Khởi động lại server game (và build lại nếu chạy production) để nhận map mới trong Dialog Tống Kim.
 
 ## Cài NPC
 
@@ -91,7 +98,7 @@ Toolbar dùng icon + tooltip có mô tả/phím tắt, công cụ đang chọn c
 
 | Phím | Thao tác |
 |---|---|
-| V / B / T / M | NPC / Pen vùng an toàn / Điểm chuyển map / Quái và Boss Xanh |
+| V / B / T / M / K / N | NPC / Pen vùng an toàn / Điểm chuyển map / Quái và Boss Xanh / Tống Kim / Sửa vùng chặn |
 | H / giữ Space + kéo | Bật kéo khung / kéo tạm thời |
 | Z | Chuyển Minimap / Map thật (Realistic) |
 | 0 / + / − | Vừa toàn map / zoom vào / zoom ra |

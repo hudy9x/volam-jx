@@ -14,7 +14,7 @@ export function validatePortals(value: unknown, from: MapMeta, maps: Record<numb
     ids.add(p.id);
     if (typeof p.label !== 'string' || !p.label.trim() || p.label.length > 80) throw Error('Tên điểm chuyển không được trống, tối đa80ký tự.');
     const dest = maps[p.toMap];
-    if (!Number.isInteger(p.toMap) || !dest || dest.id === from.id) throw Error('Chọn một map đích khác map đang chỉnh.');
+    if (!Number.isInteger(p.toMap) || !dest || (dest.id === from.id && !p.id.startsWith('tk-'))) throw Error('Chọn một map đích khác map đang chỉnh.');
     if (!point(p.x, p.y, from) || !point(p.toX, p.toY, dest)) throw Error(`${p.label}: tọa độ nằm ngoài bản đồ.`);
     if (!Number.isInteger(p.radius) || p.radius < 8 || p.radius > 256) throw Error('Bán kính điểm chuyển phải từ8đến256pixel.');
   }

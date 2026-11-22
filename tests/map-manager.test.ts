@@ -73,3 +73,49 @@ test('all eight facings survive save/reopen and runtime adaptation without chang
     }
   } finally { await fs.rm(root, { recursive: true, force: true }); }
 });
+
+test('DisabledMapStore & applyDisabledMaps: bật/tắt bất kỳ map nào (trừ Biện Kinh 37) và isMapEnabled cập nhật ngay', async () => {
+  const { MAPS, isMapEnabled, applyDisabledMaps, TOWN_MAP_ID } = await import('../packages/shared/src/maps/index.js');
+  const { DisabledMapStore } = await import('../tools/map-manager/DisabledMapStore.js');
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'jx-disabled-'));
+  const file = path.join(root, 'disabled-maps.json');
+  try {
+    const store = new DisabledMapStore(file, MAPS);
+    await assert.rejects(() => store.setEnabled(TOWN_MAP_ID, false), /Không thể tắt Biện Kinh/);
+    const off = await store.setEnabled(70, false);
+    assert.equal(off.enabled, false);
+    assert.equal(isMapEnabled(70), false);
+    const on = await store.setEnabled(70, true);
+    assert.equal(on.enabled, true);
+    assert.equal(isMapEnabled(70), true);
+  } finally {
+    applyDisabledMaps({ version: 1, disabled: [] });
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
+test('NavOverrideStore & applyMapNavOverride: tẩy ô bị chặn / vẽ chặn thêm, chống stale revision', async () => {
+  const { MAPS, applyNavOverrides, applyMapNavOverride } = await import('../packages/shared/src/maps/index.js');
+  const { NavOverrideStore } = await import('../tools/map-manager/NavOverrideStore.js');
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'jx-nav-ov-'));
+  const file = path.join(root, 'nav-overrides.json');
+  try {
+    const store = new NavOverrideStore(file, MAPS);
+    const init = await store.read(70);
+    assert.deepEqual(init.override, { unblock: [], block: [] });
+
+    // Cell 0 đang chặn (1), cell 1 đang mở (0) -> byte 0 = 0b00000001
+    const baseDef = { kind: 'grid' as const, columns: 8, rows: 1, cellSize: { width: 32, height: 16 }, blockedBase64: btoa(String.fromCharCode(0b00000001)) };
+    const saved = await store.save(70, { unblock: [0], block: [1] }, init.revision);
+    assert.deepEqual(saved.override, { unblock: [0], block: [1] });
+    await assert.rejects(() => store.save(70, { unblock: [], block: [] }, init.revision), /đổi ở tab khác/);
+
+    const patched = applyMapNavOverride(baseDef, 70);
+    const byte0 = atob(patched.blockedBase64).charCodeAt(0);
+    assert.equal(byte0 & 1, 0, 'cell 0 phải được tẩy chặn');
+    assert.equal((byte0 >> 1) & 1, 1, 'cell 1 phải bị chặn thêm');
+  } finally {
+    applyNavOverrides({ version: 1, maps: {} });
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});

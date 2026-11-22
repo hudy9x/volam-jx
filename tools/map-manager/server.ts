@@ -6,11 +6,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import sharp from 'sharp';
-import { applyMapRegistry, mapAssetSuffix, MAPS, DEFAULT_MAP_PORTALS, DEFAULT_TOWN_NPCS, setNavLoader, getGrid, nearestWalkable, canStandAt, type NavFile } from '../../packages/shared/src/index.js';
+import { applyDisabledMaps, applyMapRegistry, applyNavOverrides, mapAssetSuffix, MAPS, DEFAULT_MAP_PORTALS, DEFAULT_TOWN_NPCS, setNavLoader, getGrid, nearestWalkable, canStandAt, type NavFile } from '../../packages/shared/src/index.js';
 import { NPC_ACTION_LABELS } from '../../packages/shared/src/npcs/placements.js';
 import { JX_SHEETS, NPC_SHEETS, JX_FOOT } from '../../apps/client/src/art/jx/data.gen.js';
 import { SafeZoneStore } from './SafeZoneStore.js';
 import { PortalStore } from './PortalStore.js';
+import { TkMapStore } from './TkMapStore.js';
+import { DisabledMapStore } from './DisabledMapStore.js';
+import { NavOverrideStore } from './NavOverrideStore.js';
 import { MONSTERS, bossTierOf } from '../../packages/shared/src/index.js';
 import { SpawnStore } from './SpawnStore.js';
 import { handleBossRequest } from '../boss/server.js';
@@ -19,9 +22,15 @@ import { NpcConfigStore } from './ConfigStore.js';
 const here = path.dirname(fileURLToPath(import.meta.url)), root = path.resolve(here, '../..');
 const assets = path.join(root, 'apps/client/public/assets'), port = Number(process.env.MAP_MANAGER_PORT ?? 4570);
 const registryFile = path.resolve(process.env.MAP_REGISTRY_FILE ?? path.join(root, 'packages/shared/src/maps/custom-maps.json'));
+const disabledFile = path.resolve(process.env.MAP_DISABLED_FILE ?? path.join(root, 'packages/shared/src/maps/disabled-maps.json'));
+const navOverridesFile = path.resolve(process.env.MAP_NAV_OVERRIDES_FILE ?? path.join(root, 'packages/shared/src/maps/nav-overrides.json'));
 function refreshRegistry() {
   const cfg = fs.existsSync(registryFile) ? JSON.parse(fs.readFileSync(registryFile, 'utf8')) : { version: 1, maps: {} };
   applyMapRegistry(cfg);
+  const dCfg = fs.existsSync(disabledFile) ? JSON.parse(fs.readFileSync(disabledFile, 'utf8')) : { version: 1, disabled: [] };
+  applyDisabledMaps(dCfg);
+  const nCfg = fs.existsSync(navOverridesFile) ? JSON.parse(fs.readFileSync(navOverridesFile, 'utf8')) : { version: 1, maps: {} };
+  applyNavOverrides(nCfg);
 }
 refreshRegistry();
 const configFile = path.resolve(process.env.MAP_MANAGER_CONFIG ?? path.join(root, 'packages/shared/src/npcs/town-placements.json'));
@@ -44,6 +53,9 @@ const defaults = (id: number) => (DEFAULT_TOWN_NPCS[id] ?? []).map(n => {
 });
 const zoneStore = new SafeZoneStore(path.resolve(process.env.MAP_MANAGER_ZONES_CONFIG ?? path.join(root, 'packages/shared/src/maps/town-safe-zones.json')), MAPS);
 const portalStore = new PortalStore(path.resolve(process.env.MAP_MANAGER_PORTALS_CONFIG ?? path.join(root, 'packages/shared/src/maps/map-portals.json')), MAPS, DEFAULT_MAP_PORTALS, (id, x, y) => canStandAt(getGrid(id), x, y));
+const tkMapStore = new TkMapStore(path.resolve(process.env.MAP_MANAGER_TK_MAPS_CONFIG ?? path.join(root, 'packages/shared/src/battle/tk-maps.json')), MAPS, (id, x, y) => canStandAt(getGrid(id), x, y));
+const disabledStore = new DisabledMapStore(disabledFile, MAPS);
+const navOverrideStore = new NavOverrideStore(navOverridesFile, MAPS);
 const spawnStore = new SpawnStore(path.resolve(process.env.MAP_MANAGER_SPAWNS_DIR ?? path.join(root, 'packages/shared/spawns')), MAPS, id => !!MONSTERS[id], (id, x, y) => canStandAt(getGrid(id), x, y));
 const store = new NpcConfigStore(configFile, MAPS, allowedRes, defaults, (id, x, y) => canStandAt(getGrid(id), x, y));
 const bundle = await build({ entryPoints: [path.join(here, 'ui/main.ts')], outdir: path.join(here, '.bundle'), bundle: true, write: false, platform: 'browser', format: 'esm', target: 'es2022', plugins: [{ name: 'tool-dialog-style', setup(b) { b.onLoad({ filter: /[/\\]ui[/\\]kit[/\\](dialog|tooltip)\.css$/ }, () => ({ contents: '', loader: 'css' })); } }] });
@@ -87,7 +99,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && files.has(u.pathname)) { res.setHeader('Content-Type', u.pathname.endsWith('.css') ? 'text/css' : 'text/javascript'); res.end(files.get(u.pathname)); return; }
     if (req.method === 'GET' && u.pathname === '/api/bootstrap') {
       try { manifest = JSON.parse(fs.readFileSync(path.join(assets, 'manifest.json'), 'utf8')); } catch { /* keep existing versions */ }
-      const maps = Object.values(MAPS).filter(m => ['City', 'Capital', 'Field', 'Cave', 'Country', 'Tong', 'Battlefield', 'Others'].includes(m.type)).map(m => ({ id: m.id, name: m.name, size: m.raw.size, entry: m.raw.entry, enabled: m.enabled !== false, group: ['City', 'Capital'].includes(m.type) ? 'city' : 'training', editable: ['City', 'Capital', 'Battlefield'].includes(m.type),
+      const maps = Object.values(MAPS).filter(m => ['City', 'Capital', 'Field', 'Cave', 'Country', 'Tong', 'Battlefield', 'Others'].includes(m.type)).map(m => ({ id: m.id, name: m.name, type: m.type === 'Battlefield' && /^Đơn đấu/i.test(m.name) ? 'Duel' : m.type, size: m.raw.size, entry: m.raw.entry, enabled: m.enabled !== false, group: ['City', 'Capital'].includes(m.type) ? 'city' : 'training', editable: ['City', 'Capital'].includes(m.type), battlefield: m.type === 'Battlefield',
         available: fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(m.id), 'nav.json')) && fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(m.id), 'map.json')) }));
       json({ monsters: Object.values(MONSTERS).filter(m => bossTierOf(m.boss) < 2 && !m.dummy).map(m => ({ id: m.id, name: m.name, level: m.level })), maps, templates, labels: NPC_ACTION_LABELS, versions: Object.fromEntries(maps.map(m => [m.id, manifest?.packs[`map/${m.id}`]?.v ?? ''])) }); return;
     }
@@ -100,6 +112,63 @@ const server = http.createServer(async (req, res) => {
         if (req.method === 'PUT') { const b = await jsonBody(req); json(await portalStore.save(id, b.portals, b.revision)); return; }
       } else if (req.method === 'GET') {
         const e = MAPS[id].raw.entry, [x, y] = nearestWalkable(getGrid(id), e.x, e.y); json({ x: Math.round(x), y: Math.round(y) }); return;
+      }
+    }
+    const enabledMatch = /^\/api\/maps\/(\d+)\/enabled$/.exec(u.pathname);
+    if (enabledMatch && req.method === 'POST') {
+      const id = Number(enabledMatch[1]);
+      const b = await jsonBody(req);
+      json(await disabledStore.setEnabled(id, Boolean(b?.enabled)));
+      return;
+    }
+    const navOvMatch = /^\/api\/maps\/(\d+)\/nav-overrides$/.exec(u.pathname);
+    if (navOvMatch) {
+      const id = Number(navOvMatch[1]);
+      if (req.method === 'GET') { json(await navOverrideStore.read(id)); return; }
+      if (req.method === 'PUT') { const b = await jsonBody(req); json(await navOverrideStore.save(id, b.override, b.revision)); return; }
+    }
+    const tkMatch = /^\/api\/maps\/(\d+)\/tongkim$/.exec(u.pathname);
+    if (tkMatch) {
+      const id = Number(tkMatch[1]), meta = MAPS[id];
+      if (!meta) throw Error('Không có bản đồ này.');
+      if (req.method === 'GET') {
+        const [tk, p] = await Promise.all([tkMapStore.read(id), portalStore.read(id)]);
+        const findP = (pid: string) => p.portals.find(x => x.id === pid);
+        const tongOut = findP('tk-tong-out'), tongBack = findP('tk-tong-back'), kimOut = findP('tk-kim-out'), kimBack = findP('tk-kim-back');
+        json({
+          ...tk,
+          portals: {
+            tongOut: tongOut ? { x: tongOut.x, y: tongOut.y } : null,
+            tongBack: tongBack ? { x: tongBack.x, y: tongBack.y } : null,
+            kimOut: kimOut ? { x: kimOut.x, y: kimOut.y } : null,
+            kimBack: kimBack ? { x: kimBack.x, y: kimBack.y } : null,
+          },
+        });
+        return;
+      }
+      if (req.method === 'PUT') {
+        const b = await jsonBody(req);
+        const saved = await tkMapStore.save(id, b.config, b.revision);
+        if (b.portals && typeof b.portals === 'object') {
+          const tkPortals = [];
+          const cfg = saved.config;
+          const pt = (v: unknown) => v && typeof v === 'object' && Number.isFinite(Number((v as { x?: unknown }).x)) && Number.isFinite(Number((v as { y?: unknown }).y))
+            ? { x: Math.round(Number((v as { x: number }).x)), y: Math.round(Number((v as { y: number }).y)) }
+            : null;
+          const tOut = pt(b.portals.tongOut), tBack = pt(b.portals.tongBack), kOut = pt(b.portals.kimOut), kBack = pt(b.portals.kimBack);
+          if (tOut) tkPortals.push({ id: 'tk-tong-out', label: 'Ra chiến trường (Tống)', x: tOut.x, y: tOut.y, radius: 64, toMap: id, toX: cfg.tong.gateExit.x, toY: cfg.tong.gateExit.y });
+          if (tBack) tkPortals.push({ id: 'tk-tong-back', label: 'Về Hậu doanh (Tống)', x: tBack.x, y: tBack.y, radius: 64, toMap: id, toX: cfg.tong.spawn.x, toY: cfg.tong.spawn.y });
+          if (kOut) tkPortals.push({ id: 'tk-kim-out', label: 'Ra chiến trường (Kim)', x: kOut.x, y: kOut.y, radius: 64, toMap: id, toX: cfg.kim.gateExit.x, toY: cfg.kim.gateExit.y });
+          if (kBack) tkPortals.push({ id: 'tk-kim-back', label: 'Về Hậu doanh (Kim)', x: kBack.x, y: kBack.y, radius: 64, toMap: id, toX: cfg.kim.spawn.x, toY: cfg.kim.spawn.y });
+          await portalStore.replaceTkPortals(id, tkPortals);
+        }
+        json({ ...saved, portals: b.portals ?? null });
+        return;
+      }
+      if (req.method === 'DELETE') {
+        const b = await jsonBody(req);
+        json(await tkMapStore.remove(id, b.revision));
+        return;
       }
     }
     const zoneMatch = /^\/api\/maps\/(\d+)\/safe-zones$/.exec(u.pathname);

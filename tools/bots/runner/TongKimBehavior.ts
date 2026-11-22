@@ -6,23 +6,26 @@ import {
   SHOP_ITEMS,
   TK_BATTLE_MAP_ID,
   TK_MAP_LAYOUT,
+  TK_MAPS,
   TK_SIGNUP_MAP_ID,
   autoAuraSkill,
   autoBuffSkills,
   isInTkSafeCamp,
+  isTkBattleMap,
   isoDistance,
   itemDef,
   itemQty,
   potionMs,
   potionTotal,
   roomFor,
+  tkMapLayout,
   type BotScenario,
   type TkCamp,
 } from '@vltk/shared';
 import type { Behavior, BotClient } from './BotClient.js';
 
 // 3 mũi tiến công gọng kìm (Trung lộ, Cánh Trái Tây Bắc, Cánh Phải Đông Nam) — tọa độ lấy từ TK_MAP_LAYOUT walkable.
-const TONG_LANES: readonly (readonly { x: number; y: number }[])[] = [
+const TONG_LANES_378: readonly (readonly { x: number; y: number }[])[] = [
   // Mũi 0: Trung lộ
   [{ x: 5648, y: 7472 }, { x: 7600, y: 6200 }, { x: 9744, y: 5384 }, { x: 11400, y: 4800 }, TK_MAP_LAYOUT.kim.marshal],
   // Mũi 1: Vòng cung Cánh Trái (Tây Bắc)
@@ -31,7 +34,7 @@ const TONG_LANES: readonly (readonly { x: number; y: number }[])[] = [
   [{ x: 5648, y: 7472 }, { x: 7800, y: 7200 }, { x: 8816, y: 6792 }, { x: 11200, y: 5800 }, { x: 12200, y: 5400 }, TK_MAP_LAYOUT.kim.marshal],
 ];
 
-const KIM_LANES: readonly (readonly { x: number; y: number }[])[] = [
+const KIM_LANES_378: readonly (readonly { x: number; y: number }[])[] = [
   // Mũi 0: Trung lộ
   [{ x: 13168, y: 3560 }, { x: 11400, y: 4800 }, { x: 9744, y: 5384 }, { x: 7600, y: 6200 }, TK_MAP_LAYOUT.tong.marshal],
   // Mũi 1: Vòng cung Cánh Trái (Tây Bắc)
@@ -39,6 +42,25 @@ const KIM_LANES: readonly (readonly { x: number; y: number }[])[] = [
   // Mũi 2: Vòng cung Cánh Phải (Đông Nam)
   [{ x: 13168, y: 3560 }, { x: 12200, y: 5400 }, { x: 11200, y: 5800 }, { x: 9520, y: 6168 }, { x: 7800, y: 7200 }, TK_MAP_LAYOUT.tong.marshal],
 ];
+
+function lanesFor(battleMapId: number, camp: TkCamp): readonly (readonly { x: number; y: number }[])[] {
+  if (battleMapId === 378) return camp === 'tong' ? TONG_LANES_378 : KIM_LANES_378;
+  const cfg = tkMapLayout(battleMapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
+  const mine = cfg[camp];
+  const enemy = cfg[camp === 'tong' ? 'kim' : 'tong'];
+  const midX = Math.round((mine.gateExit.x + enemy.gateExit.x) / 2);
+  const midY = Math.round((mine.gateExit.y + enemy.gateExit.y) / 2);
+  const dx = enemy.gateExit.x - mine.gateExit.x;
+  const dy = enemy.gateExit.y - mine.gateExit.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = Math.round((-dy / len) * 550);
+  const ny = Math.round((dx / len) * 550);
+  return [
+    [mine.gateExit, { x: midX, y: midY }, enemy.marshal],
+    [mine.gateExit, { x: midX + nx, y: midY + ny }, enemy.marshal],
+    [mine.gateExit, { x: midX - nx, y: midY - ny }, enemy.marshal],
+  ];
+}
 
 const OUTGOING_PORTAL: Record<TkCamp, { x: number; y: number }> = {
   tong: { x: 3088, y: 9072 },
@@ -107,8 +129,9 @@ export class TongKimBehavior implements Behavior {
     const me = this.bot.me();
     if (!me) return;
 
-    // 1. Nếu chưa ở map báo danh (323) hoặc chiến trường (378) -> dịch chuyển tới 323.
-    if (this.bot.mapId !== TK_SIGNUP_MAP_ID && this.bot.mapId !== TK_BATTLE_MAP_ID) {
+    // 1. Nếu chưa ở map báo danh (323) hoặc chiến trường -> dịch chuyển tới 323.
+    const battleMapId = this.bot.tkState?.battleMapId ?? TK_BATTLE_MAP_ID;
+    if (this.bot.mapId !== TK_SIGNUP_MAP_ID && this.bot.mapId !== battleMapId && !isTkBattleMap(this.bot.mapId)) {
       if (me.hp <= 0) { this.bot.reviveIfDead(now, 2000); return; }
       if (now >= this.nextTeleportAt) {
         this.nextTeleportAt = now + 4000;
@@ -158,7 +181,7 @@ export class TongKimBehavior implements Behavior {
     this.trackDamageStreak(me, now);
 
     const myCamp = (me.battleCamp || st?.me?.camp || (this.botIndex % 2 === 0 ? 'tong' : 'kim')) as TkCamp;
-    const inCamp = !!st?.me?.inCamp || isInTkSafeCamp(TK_BATTLE_MAP_ID, me.x, me.y);
+    const inCamp = !!st?.me?.inCamp || isInTkSafeCamp(battleMapId, me.x, me.y);
 
     // Bơm máu / nội lực (Survival Loop) & dùng vật phẩm Tống Kim nhặt được
     this.upkeepPotions(me, now);
@@ -374,7 +397,7 @@ export class TongKimBehavior implements Behavior {
       const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
       const otherCamp = raw?.battleCamp as string | undefined;
       if (!otherCamp || otherCamp === myCamp) continue;
-      if (isInTkSafeCamp(TK_BATTLE_MAP_ID, a.x, a.y)) continue;
+      if (isInTkSafeCamp(this.bot.mapId, a.x, a.y)) continue;
       const dist = isoDistance(me.x, me.y, a.x, a.y);
       if (dist > scanRadius) continue;
 
@@ -394,7 +417,7 @@ export class TongKimBehavior implements Behavior {
   }
 
   private advanceWaypoints(me: any, myCamp: TkCamp, now: number): void {
-    const lanes = myCamp === 'tong' ? TONG_LANES : KIM_LANES;
+    const lanes = lanesFor(this.bot.mapId, myCamp);
     const list = lanes[this.botIndex % lanes.length];
     const lastIdx = list.length - 1;
     // Khi mới ra khỏi doanh trại, chọn waypoint tiếp theo hướng thẳng sang phe địch (không quay lùi).
@@ -454,7 +477,7 @@ export class TongKimBehavior implements Behavior {
       const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
       const otherCamp = raw?.battleCamp as string | undefined;
       if (!otherCamp || otherCamp === myCamp) continue;
-      if (isInTkSafeCamp(TK_BATTLE_MAP_ID, a.x, a.y)) continue;
+      if (isInTkSafeCamp(this.bot.mapId, a.x, a.y)) continue;
       const dist = isoDistance(me.x, me.y, a.x, a.y);
       if (dist <= 340 || (raw?.attackTarget === me.id && dist <= 400)) {
         nearby.push({ x: a.x, y: a.y, dist: Math.max(1, dist) });

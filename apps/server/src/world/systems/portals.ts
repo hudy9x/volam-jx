@@ -1,4 +1,4 @@
-import { TK_BATTLE_MAP_ID, isoDistance, nearestWalkable } from '@vltk/shared';
+import { isoDistance, nearestWalkable } from '@vltk/shared';
 import type { Sim } from '../entity.js';
 import { tongKim } from '../tongkim.js';
 import type { World } from '../World.js';
@@ -15,7 +15,7 @@ export function checkPortals(w: World, sim: Sim): void {
   for (const portal of w.meta.portals) {
     if (isoDistance(sim.a.x, sim.a.y, portal.x, portal.y) <= portal.radius) {
       if (portal.toMap === w.meta.id) {
-        if (w.meta.id === TK_BATTLE_MAP_ID && tongKim.useBattlePortal(w, sim, portal)) return;
+        if (w.meta.id === tongKim.battleMapId && tongKim.useBattlePortal(w, sim, portal)) return;
         const [x, y] = nearestWalkable(w.grid, portal.toX, portal.toY);
         sim.a.x = x;
         sim.a.y = y;

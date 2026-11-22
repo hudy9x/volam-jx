@@ -70,6 +70,8 @@ export interface TkActionMsg {
   op: 'register' | 'exitGate' | 'scout' | 'leave' | 'exchangeExp' | 'devStart' | 'devStop';
   camp?: 'tong' | 'kim';
   mode?: 1 | 2;
+  /** Map chiến trường muốn mở (chỉ dùng với devStart; mặc định 378). */
+  battleMapId?: number;
   /** Số điểm tích lũy muốn đổi lấy EXP (0 = đổi tất cả). */
   amount?: number;
   /** Dev overrides when opening a test match immediately. */
@@ -93,6 +95,8 @@ export interface TkLeaderEntry {
 /** Chiến trường Tống Kim live state snapshot (server -> client). */
 export interface TkStateMsg {
   matchId: number;
+  battleMapId: number;
+  availableMaps?: { id: number; name: string }[];
   mode: 1 | 2;
   phase: 'closed' | 'signup' | 'fighting' | 'ended';
   remainSec: number;

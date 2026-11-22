@@ -3,6 +3,8 @@ import {
   TK_CAMP_NAMES,
   TK_MODE_NAMES,
   TK_SIGNUP_MAP_ID,
+  isTkBattleMap,
+  tkBattleMapOptions,
   tkTitleOf,
   type TkActionMsg,
   type TkCamp,
@@ -45,6 +47,7 @@ export class TongKimHud {
   private readonly boardModal: HTMLElement;
   private readonly endModal: HTMLElement;
   private mapId = 0;
+  private selectedBattleMapId = TK_BATTLE_MAP_ID;
   private send: ((msg: TkActionMsg) => void) | null = null;
   private panelOpen = false;
   private unsub: () => void;
@@ -58,6 +61,13 @@ export class TongKimHud {
     this.toggleBtn.addEventListener('click', () => {
       this.panelOpen = !this.panelOpen;
       this.render();
+    });
+    this.boardModal.addEventListener('change', e => {
+      const sel = (e.target as HTMLElement | null)?.closest<HTMLSelectElement>('[data-tk-map-select]');
+      if (sel) {
+        const id = Number(sel.value);
+        if (Number.isInteger(id) && id > 0) this.selectedBattleMapId = id;
+      }
     });
     this.boardModal.addEventListener('click', e => {
       const target = e.target as HTMLElement | null;
@@ -78,7 +88,7 @@ export class TongKimHud {
 
     this.onKeyDown = (e: KeyboardEvent) => {
       if (e.code !== 'Backquote' && e.key !== '`') return;
-      if (this.mapId !== TK_SIGNUP_MAP_ID && this.mapId !== TK_BATTLE_MAP_ID) return;
+      if (this.mapId !== TK_SIGNUP_MAP_ID && !isTkBattleMap(this.mapId) && this.mapId !== tkState.get()?.battleMapId) return;
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
       e.preventDefault();
@@ -121,16 +131,17 @@ export class TongKimHud {
     if (act === 'scout') this.send({ op: 'scout' });
     else if (act === 'exitGate') this.send({ op: 'exitGate' });
     else if (act === 'leave') this.send({ op: 'leave' });
-    else if (act === 'devStart1') this.send({ op: 'devStart', mode: 1, signupSec: 20, durationSec: 600, marshalDelaySec: 45 });
-    else if (act === 'devStart2') this.send({ op: 'devStart', mode: 2, signupSec: 20, durationSec: 600 });
+    else if (act === 'devStart1') this.send({ op: 'devStart', mode: 1, battleMapId: this.selectedBattleMapId, signupSec: 20, durationSec: 600, marshalDelaySec: 45 });
+    else if (act === 'devStart2') this.send({ op: 'devStart', mode: 2, battleMapId: this.selectedBattleMapId, signupSec: 20, durationSec: 600 });
     else if (act === 'devStop') this.send({ op: 'devStop' });
     else if (act === 'regTong') this.send({ op: 'register', camp: 'tong' });
     else if (act === 'regKim') this.send({ op: 'register', camp: 'kim' });
   }
 
   private render(): void {
-    const activeMap = this.mapId === TK_SIGNUP_MAP_ID || this.mapId === TK_BATTLE_MAP_ID;
     const st = tkState.get();
+    const isBattle = this.mapId !== TK_SIGNUP_MAP_ID && (this.mapId === st?.battleMapId || isTkBattleMap(this.mapId));
+    const activeMap = this.mapId === TK_SIGNUP_MAP_ID || isBattle;
     if (!activeMap || !st) {
       this.toggleBtn.classList.add('hidden');
       this.boardModal.classList.add('hidden');
@@ -138,7 +149,6 @@ export class TongKimHud {
       return;
     }
 
-    const isBattle = this.mapId === TK_BATTLE_MAP_ID;
     const me = st.me;
     const rankTitle = me?.camp && me.rank ? tkTitleOf(me.camp as TkCamp, me.rank) : '';
 
@@ -167,6 +177,16 @@ export class TongKimHud {
       }
       if (st.devTools) {
         if (st.phase === 'closed') {
+          const mapChoices = st.availableMaps?.length ? st.availableMaps : tkBattleMapOptions();
+          if (mapChoices.length && !mapChoices.some(m => m.id === this.selectedBattleMapId)) {
+            this.selectedBattleMapId = mapChoices.some(m => m.id === st.battleMapId) ? st.battleMapId : mapChoices[0].id;
+          }
+          if (mapChoices.length) {
+            const optsHtml = mapChoices.map(m =>
+              `<option value="${m.id}"${m.id === this.selectedBattleMapId ? ' selected' : ''}>${m.id} · ${m.name}</option>`
+            ).join('');
+            actions.push(`<select class="tk-map-select" data-tk-map-select aria-label="Chọn map Tống Kim">${optsHtml}</select>`);
+          }
           actions.push(`<button type="button" class="btn sm" data-tk-act="devStart1">Mở Nguyên Soái (Test)</button>`);
           actions.push(`<button type="button" class="btn sm" data-tk-act="devStart2">Mở Cừu Sát (Test)</button>`);
         } else {

@@ -6,9 +6,11 @@ import './main.css';
 import { labelAction } from '../../ui/actions.js';
 import { PortalEditor, type PortalDocument } from './PortalEditor.js';
 import { SpawnEditor, type SpawnDocument, type SpawnMonster } from './SpawnEditor.js';
+import { TkEditor, type TkDocument } from './TkEditor.js';
+import { NavEditor, type NavOverrideDoc } from './NavEditor.js';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const field = (id: string) => $<HTMLInputElement>(id);
-interface Town { id: number; name: string; size: { width: number; height: number }; entry: { x: number; y: number }; available: boolean; enabled?: boolean; group: 'city' | 'training'; editable: boolean }
+interface Town { id: number; name: string; type?: string; size: { width: number; height: number }; entry: { x: number; y: number }; available: boolean; enabled?: boolean; group: 'city' | 'training'; editable: boolean; battlefield?: boolean }
 interface Template { id: string; name: string; res: string; action: NpcPlacement['action']; dir: number }
 interface Look { res: string; label: string; available: boolean; directions: number; width: number; height: number; anchorX: number; anchorY: number }
 interface MapJson { regionSize: number; cols: number; rows: number; chunk: number; regions: string; chunks: string[] }
@@ -20,13 +22,15 @@ let zoom = 1, panX = 0, panY = 0, meta: MapJson | null = null, nav: { columns: n
 let blocked = new Uint8Array(0), regions = new Uint8Array(0);
 const images = new Map<string, HTMLImageElement>(), pending = new Set<string>(), failed = new Set<string>(), chunks = new Map<string, Chunk>();
 let epoch = 0;
-let mode: 'npc' | 'zones' | 'portals' | 'spawns' = 'npc';
+let mode: 'npc' | 'zones' | 'portals' | 'spawns' | 'tongkim' | 'nav' = 'npc';
 let mapView: 'mini' | 'detail' = 'mini';
 let showBlocked = false;
 const pen = new SafeZonePen(() => { controls(); draw(); }, confirmDraft, (s, error) => status(s, error));
 const portals = new PortalEditor(() => towns, () => { controls(); draw(); }, confirmDraft, (s, error) => status(s, error), id => api(`/api/maps/${id}/portal-entry`), standable);
 const spawns = new SpawnEditor(() => { controls(); draw(); }, standable);
-const unsaved = () => dirty || pen.unsaved || portals.dirty || spawns.dirty;
+const tk = new TkEditor(() => { controls(); draw(); }, standable, nearestWalkablePt);
+const navEd = new NavEditor(() => { controls(); draw(); });
+const unsaved = () => dirty || pen.unsaved || portals.dirty || spawns.dirty || tk.dirty || navEd.dirty;
 const current = () => npcs.find(n => n.id === selected);
 let resolveConfirm: ((value: boolean) => void) | null = null;
 let returnFocus: HTMLElement | null = null;
@@ -59,7 +63,15 @@ async function run(task: () => Promise<void>) {
 }
 function controls() {
   $('map-list').querySelectorAll<HTMLButtonElement>('button[data-map]').forEach(b => { b.disabled = busy || b.dataset.available !== 'true'; });
-  $<HTMLButtonElement>('save').disabled = !(mode === 'portals' || mode === 'spawns' ? town?.available : town?.editable) || busy || mode === 'portals' && portals.loading;
+  $<HTMLButtonElement>('save').disabled = !(mode === 'portals' || mode === 'spawns' || mode === 'nav' ? town?.available : mode === 'tongkim' ? (town?.available && !!tk.config) : town?.editable) || busy || mode === 'portals' && portals.loading;
+  const toggleBtn = $<HTMLButtonElement>('toggle-enabled');
+  toggleBtn.hidden = !town;
+  if (town) {
+    const isEnabled = town.enabled !== false;
+    toggleBtn.textContent = isEnabled ? 'Tắt map này' : 'Bật map này';
+    toggleBtn.disabled = busy || (isEnabled && town.id === 37);
+    toggleBtn.title = town.id === 37 ? 'Không thể tắt Biện Kinh (map an toàn mặc định).' : isEnabled ? 'Ẩn map khỏi danh sách người chơi và chuyển người đang ở đây về Biện Kinh.' : 'Mở lại map cho người chơi vào.';
+  }
   $<HTMLButtonElement>('reload').disabled = !town || busy;
   $<HTMLFieldSetElement>('add-fields').disabled = !town?.editable || busy;
   $<HTMLFieldSetElement>('edit-fields').disabled = !current() || busy;
@@ -75,16 +87,22 @@ function controls() {
   $<HTMLFieldSetElement>('spawns-panel').disabled = !town || busy;
   $('portals-panel').hidden = mode !== 'portals';
   $<HTMLFieldSetElement>('portals-panel').disabled = !town || busy;
+  $('tongkim-panel').hidden = mode !== 'tongkim';
+  $<HTMLFieldSetElement>('tongkim-panel').disabled = !town?.available || busy;
+  $('nav-panel').hidden = mode !== 'nav';
+  $<HTMLFieldSetElement>('nav-panel').disabled = !town?.available || busy;
   $<HTMLFieldSetElement>('portal-fields').disabled = !portals.current() || busy;
   document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(b => { b.setAttribute('aria-pressed', String(mode === b.dataset.mode)); b.disabled = busy; });
   $('pan-tool').setAttribute('aria-pressed', String(field('pan').checked));
-  $('mode-hint').textContent = mode === 'spawns' ? 'M · Bấm vùng trống để tạo điểm sinh; bấm điểm để chọn, kéo để di chuyển.' : mode === 'npc' ? 'V · Chọn NPC rồi bấm/kéo trên map để đặt.' : mode === 'zones' ? 'B · Vẽ và chỉnh đường bao vùng an toàn.' : 'T · Chọn điểm chuyển rồi bấm/kéo để di chuyển; lưu riêng với NPC và vùng an toàn.';
+  $('mode-hint').textContent = mode === 'nav' ? 'N · Bấm/kéo trên bản đồ để tẩy hoặc vẽ vùng chặn (cọ ô 32×16).' : mode === 'tongkim' ? 'K · Chọn phe và điểm cần đặt, bấm/kéo trên bản đồ để cấu hình Tống Kim.' : mode === 'spawns' ? 'M · Bấm vùng trống để tạo điểm sinh; bấm điểm để chọn, kéo để di chuyển.' : mode === 'npc' ? 'V · Chọn NPC rồi bấm/kéo trên map để đặt.' : mode === 'zones' ? 'B · Vẽ và chỉnh đường bao vùng an toàn.' : 'T · Chọn điểm chuyển rồi bấm/kéo để di chuyển; lưu riêng với NPC và vùng an toàn.';
   $<HTMLFieldSetElement>('zones-panel').disabled = !town?.editable || busy;
-  labelAction($('save'), 'save', mode === 'spawns' ? 'Lưu điểm sinh quái' : mode === 'zones' ? 'Lưu vùng an toàn' : mode === 'portals' ? 'Lưu điểm chuyển' : 'Lưu NPC', 'Ghi cấu hình của công cụ đang chọn vào nguồn game.', 'Ctrl/Cmd+S');
+  labelAction($('save'), 'save', mode === 'nav' ? 'Lưu vùng chặn' : mode === 'tongkim' ? 'Lưu Tống Kim' : mode === 'spawns' ? 'Lưu điểm sinh quái' : mode === 'zones' ? 'Lưu vùng an toàn' : mode === 'portals' ? 'Lưu điểm chuyển' : 'Lưu NPC', 'Ghi cấu hình của công cụ đang chọn vào nguồn game.', 'Ctrl/Cmd+S');
+  if (mode === 'nav') { $('position').textContent = `Cọ: ${navEd.brush === 'unblock' ? 'Tẩy chặn (Mở đường)' : 'Vẽ chặn'} · ${navEd.brushSize}×${navEd.brushSize}`; }
+  if (mode === 'tongkim') { $('position').textContent = tk.config ? `Tống Kim · ${tk.camp === 'tong' ? 'Phe Tống' : 'Phe Kim'}` : 'Chưa khởi tạo Tống Kim'; }
   if (mode === 'spawns') { const z = spawns.current(); $('position').textContent = z ? z.x === undefined ? 'Auto · Server chọn vị trí khi khởi tạo map' : `${standable(z.x, z.y!) ? 'Đi được' : 'Vị trí bị chặn'} · ${z.x}, ${z.y}` : 'Chưa chọn khu sinh quái'; }
   if (mode === 'portals') { const p = portals.current(); $('position').textContent = p ? `${p.label} · ${p.x}, ${p.y}` : 'Chưa chọn điểm chuyển'; }
   $('stage').style.pointerEvents = busy ? 'none' : '';
-  $('summary').textContent = town ? `${town.name} · ${mode === 'spawns' ? `${spawns.file.zones.length} khu sinh · ${unsaved() ? 'Chưa lưu' : 'Đã nạp bản lưu'}` : mode === 'portals' ? `${portals.portals.length} điểm chuyển · ${unsaved() ? 'Có bản nháp chưa lưu' : 'Đã nạp bản lưu'}` : town.editable ? `${npcs.length} NPC · ${unsaved() ? 'Chưa lưu' : 'Đã nạp bản lưu'}` : 'Luyện công · Xem trước'}` : 'Chưa chọn bản đồ';
+  $('summary').textContent = town ? `${town.name}${town.enabled === false ? ' (Đã tắt)' : ''} · ${mode === 'nav' ? `Vùng chặn · ${unsaved() ? 'Chưa lưu' : 'Đã nạp bản lưu'}` : mode === 'tongkim' ? `${tk.config ? 'Đã cấu hình Tống Kim' : 'Chưa cấu hình Tống Kim'} · ${unsaved() ? 'Chưa lưu' : 'Đã nạp bản lưu'}` : mode === 'spawns' ? `${spawns.file.zones.length} khu sinh · ${unsaved() ? 'Chưa lưu' : 'Đã nạp bản lưu'}` : mode === 'portals' ? `${portals.portals.length} điểm chuyển · ${unsaved() ? 'Có bản nháp chưa lưu' : 'Đã nạp bản lưu'}` : town.editable ? `${npcs.length} NPC · ${unsaved() ? 'Chưa lưu' : 'Đã nạp bản lưu'}` : 'Luyện công · Xem trước'}` : 'Chưa chọn bản đồ';
 }
 function loadImage(key: string, src: string): HTMLImageElement | null {
   if (images.has(key)) return images.get(key)!;
@@ -97,6 +115,21 @@ function loadImage(key: string, src: string): HTMLImageElement | null {
 function standable(x: number, y: number): boolean {
   if (!nav) return false;
   return [x - 9, x, x + 9].every(xx => { const col = Math.floor(xx / nav!.cellSize.width), row = Math.floor(y / nav!.cellSize.height), i = row * nav!.columns + col; return col >= 0 && row >= 0 && col < nav!.columns && row < nav!.rows && !(blocked[i >> 3] >> (i & 7) & 1); });
+}
+function nearestWalkablePt(x: number, y: number): { x: number; y: number } {
+  if (!town) return { x, y };
+  const cx = Math.max(0, Math.min(town.size.width - 1, Math.round(x)));
+  const cy = Math.max(0, Math.min(town.size.height - 1, Math.round(y)));
+  if (standable(cx, cy)) return { x: cx, y: cy };
+  for (let r = 32; r <= 2400; r += 32) {
+    for (let a = 0; a < 16; a++) {
+      const ang = (Math.PI * 2 * a) / 16;
+      const px = Math.max(0, Math.min(town.size.width - 1, Math.round(cx + Math.cos(ang) * r)));
+      const py = Math.max(0, Math.min(town.size.height - 1, Math.round(cy + Math.sin(ang) * r * 0.5)));
+      if (standable(px, py)) return { x: px, y: py };
+    }
+  }
+  return { x: Math.round(town.entry.x), y: Math.round(town.entry.y) };
 }
 function renderList() {
   const q = field('search').value.toLocaleLowerCase('vi');
@@ -141,19 +174,26 @@ function change(edit: () => void) {
 async function openTown(id: number) {
   const t = towns.find(t => t.id === id); if (!t?.available) throw Error('Map này chưa có tài nguyên. Hãy sinh map trước.');
   const e = ++epoch;
-  const [data, map, navFile, zoneDoc, portalDoc, spawnDoc] = await Promise.all([
+  const [data, map, navFile, zoneDoc, portalDoc, spawnDoc, tkDoc, navOvDoc] = await Promise.all([
     t.editable ? api<{ npcs: NpcPlacement[]; revision: string }>(`/api/maps/${id}/npcs`) : Promise.resolve({ npcs: [] as NpcPlacement[], revision: '' }),
     api<MapJson>(`/assets/maps/${id}/map.json`),
     api<{ navigation: NonNullable<typeof nav> }>(`/assets/maps/${id}/nav.json`),
     t.editable ? api<ZoneDocument>(`/api/maps/${id}/safe-zones`) : Promise.resolve({ zones: [], custom: false, revision: '' }),
     api<PortalDocument>(`/api/maps/${id}/portals`),
     api<SpawnDocument>(`/api/maps/${id}/spawns`),
+    api<TkDocument>(`/api/maps/${id}/tongkim`),
+    api<NavOverrideDoc>(`/api/maps/${id}/nav-overrides`),
   ]);
   if (e !== epoch) return;
   town = t; npcs = data.npcs; revision = data.revision; selected = npcs[0]?.id ?? ''; dirty = false;
-  meta = map; nav = navFile.navigation; blocked = Uint8Array.from(atob(nav.blockedBase64), c => c.charCodeAt(0)); regions = Uint8Array.from(atob(meta.regions), c => c.charCodeAt(0));
+  meta = map; nav = navFile.navigation;
+  const baseBlocked = Uint8Array.from(atob(nav.blockedBase64), c => c.charCodeAt(0));
+  blocked = new Uint8Array(baseBlocked);
+  navEd.setup(nav.columns, nav.rows, nav.cellSize.width, nav.cellSize.height, baseBlocked, blocked, navOvDoc);
+  regions = Uint8Array.from(atob(meta.regions), c => c.charCodeAt(0));
   spawns.load(spawnDoc, t.entry);
   portals.load(t, portalDoc);
+  tk.setup(t.id, t.size, tkDoc);
   pen.load({ type: t.editable ? 'City' : 'Field', raw: { size: t.size, entry: t.entry } }, zoneDoc);
   images.clear(); pending.clear(); failed.clear(); chunks.clear();
   $('empty').hidden = true; renderList(); inspector(); mapView = 'mini'; syncMapView(); fitMap(); renderMaps(); controls(); status(t.editable ? `Đã mở ${t.name}. Chọn NPC rồi click hoặc kéo trên map để đặt vị trí.` : `Đã mở ${t.name} để cấu hình. Chọn M để đặt quái / Boss Xanh.`);
@@ -215,9 +255,9 @@ function draw() {
     }
     drawables.sort((a, b) => a.depth - b.depth).forEach(d => d.run());
   }
-  if (showBlocked && nav) {
+  if ((showBlocked || mode === 'nav') && nav) {
     const cw = nav.cellSize.width, ch = nav.cellSize.height; ctx.fillStyle = '#f2ad9b55';
-    const stride = zoom < .1 ? 4 : 1;
+    const stride = zoom < .1 && mode !== 'nav' ? 4 : 1;
     for (let y = Math.max(0, Math.floor(y0 / ch)); y < Math.min(nav.rows, Math.ceil(y1 / ch)); y += stride) for (let x = Math.max(0, Math.floor(x0 / cw)); x < Math.min(nav.columns, Math.ceil(x1 / cw)); x += stride) {
       const i = y * nav.columns + x; if (blocked[i >> 3] >> (i & 7) & 1) ctx.fillRect(x * cw, y * ch, cw * stride, ch * stride);
     }
@@ -233,12 +273,23 @@ function draw() {
   if (mode === 'zones') pen.draw(ctx, zoom);
   if (mode === 'portals') portals.draw(ctx, zoom);
   if (mode === 'spawns') spawns.draw(ctx, zoom);
+  if (mode === 'tongkim') tk.draw(ctx, zoom);
+  if (mode === 'nav') navEd.drawCursor(ctx, zoom);
 }
 function point(e: PointerEvent | WheelEvent) { const r = canvas.getBoundingClientRect(); return { x: Math.round((e.clientX - r.left - panX) / zoom), y: Math.round((e.clientY - r.top - panY) / zoom) }; }
-let drag: { id: number; pan: boolean; clientX: number; clientY: number; x: number; y: number; panX: number; panY: number; npc?: NpcPlacement; zone?: boolean; portal?: boolean; spawn?: boolean } | null = null;
+let drag: { id: number; pan: boolean; clientX: number; clientY: number; x: number; y: number; panX: number; panY: number; npc?: NpcPlacement; zone?: boolean; portal?: boolean; spawn?: boolean; tk?: boolean; nav?: boolean } | null = null;
 canvas.addEventListener('pointerdown', e => {
   if (!town || busy || drag) return; canvas.focus(); const p = point(e);
   const pan = field('pan').checked || spacePan || e.button === 1;
+  if (mode === 'nav' && !pan && e.button === 0) {
+    navEd.paint(p.x, p.y);
+    drag = { id: e.pointerId, pan: false, nav: true, clientX: e.clientX, clientY: e.clientY, x: p.x, y: p.y, panX, panY };
+    canvas.setPointerCapture(e.pointerId); e.preventDefault(); return;
+  }
+  if (mode === 'tongkim' && !pan && e.button === 0) {
+    if (tk.pointerDown(p.x, p.y, zoom)) { drag = { id: e.pointerId, pan: false, tk: true, clientX: e.clientX, clientY: e.clientY, x: p.x, y: p.y, panX, panY }; canvas.setPointerCapture(e.pointerId); }
+    e.preventDefault(); return;
+  }
   if (mode === 'spawns' && !pan && e.button === 0) {
     if (spawns.down(p, zoom)) { drag = { id: e.pointerId, pan: false, spawn: true, clientX: e.clientX, clientY: e.clientY, x: p.x, y: p.y, panX, panY }; canvas.setPointerCapture(e.pointerId); }
     e.preventDefault(); return;
@@ -263,19 +314,22 @@ canvas.addEventListener('pointerdown', e => {
 canvas.addEventListener('pointermove', e => {
   const p = point(e); $('coords').textContent = `X: ${p.x} · Y: ${p.y}`;
   if (mode === 'zones' && town?.editable) $('position').textContent = pen.describe(p);
+  if (mode === 'nav' && nav) { navEd.hoverCell = { col: Math.floor(p.x / nav.cellSize.width), row: Math.floor(p.y / nav.cellSize.height) }; if (!drag) draw(); }
   if (!drag || e.pointerId !== drag.id || !town) return;
   if (drag.pan) { panX = drag.panX + e.clientX - drag.clientX; panY = drag.panY + e.clientY - drag.clientY; }
   else if (drag.zone) pen.move(p);
   else if (drag.spawn) spawns.move(p);
   else if (drag.portal) portals.move(p);
+  else if (drag.tk) tk.pointerMove(p.x, p.y);
+  else if (drag.nav) navEd.paint(p.x, p.y);
   else if (drag.npc) { drag.npc.x = Math.max(0, Math.min(town.size.width - 1, p.x)); drag.npc.y = Math.max(0, Math.min(town.size.height - 1, p.y)); dirty = true; field('x').value = String(drag.npc.x); field('y').value = String(drag.npc.y); positionStatus(); controls(); }
   draw();
 });
-function endDrag(e: PointerEvent) { if (drag?.id === e.pointerId) { if (drag.zone) pen.up(); drag = null; if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId); renderList(); } }
+function endDrag(e: PointerEvent) { if (drag?.id === e.pointerId) { if (drag.zone) pen.up(); if (drag.tk) tk.pointerUp(); drag = null; if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId); renderList(); } }
 canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
 canvas.addEventListener('wheel', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * .0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
 new ResizeObserver(draw).observe($('stage'));
-function setMode(next: typeof mode) { mode = next; field('editor-mode').value = mode; if (mode === 'npc') positionStatus(); controls(); draw(); status(mode === 'spawns' ? 'Bấm lên map để tạo điểm sinh quái mới (5 con/điểm).' : mode === 'portals' ? 'Chọn điểm chuyển rồi bấm/kéo trên map để đặt lại vị trí.' : mode === 'zones' ? 'Dùng Pen để vẽ hoặc chỉnh vùng an toàn.' : 'Chọn NPC rồi bấm/kéo trên map để đặt vị trí.'); }
+function setMode(next: typeof mode) { mode = next; field('editor-mode').value = mode; if (mode === 'npc') positionStatus(); controls(); draw(); status(mode === 'nav' ? 'Bấm hoặc kéo chuột trên bản đồ để tẩy hoặc vẽ vùng chặn.' : mode === 'tongkim' ? 'Chọn phe và điểm cần đặt, bấm/kéo trực tiếp trên bản đồ để cấu hình Tống Kim.' : mode === 'spawns' ? 'Bấm lên map để tạo điểm sinh quái mới (5 con/điểm).' : mode === 'portals' ? 'Chọn điểm chuyển rồi bấm/kéo trên map để đặt lại vị trí.' : mode === 'zones' ? 'Dùng Pen để vẽ hoặc chỉnh vùng an toàn.' : 'Chọn NPC rồi bấm/kéo trên map để đặt vị trí.'); }
 field('editor-mode').onchange = () => setMode(field('editor-mode').value as typeof mode);
 document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(b => b.onclick = () => setMode(b.dataset.mode as typeof mode));
 $('pan-tool').onclick = () => { field('pan').checked = !field('pan').checked; controls(); };
@@ -320,6 +374,20 @@ $('add').onclick = () => change(() => {
 $('remove').onclick = async () => { const n = current(); if (n && await confirmDraft(`Xóa NPC “${n.name}” khỏi bản nháp của ${town!.name}? Chỉ ghi vào game khi bấm Lưu.`)) change(() => { npcs = npcs.filter(o => o.id !== n.id); selected = npcs[0]?.id ?? ''; }); };
 async function save() {
   if (!town) return;
+  if (mode === 'nav') {
+    const data = await api<NavOverrideDoc>(`/api/maps/${town.id}/nav-overrides`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(navEd.payload()) });
+    navEd.saved(data);
+    status('Đã lưu chỉnh sửa vùng chặn vào nav-overrides.json. Server tự nhận ngay; client cần reload (hoặc build lại bản production).');
+    return;
+  }
+  if (mode === 'tongkim') {
+    const data = await api<TkDocument>(`/api/maps/${town.id}/tongkim`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tk.payload()) });
+    tk.saved(data);
+    const portalDoc = await api<PortalDocument>(`/api/maps/${town.id}/portals`);
+    portals.load(town, portalDoc);
+    status('Đã lưu cấu hình Tống Kim & 4 cổng doanh trại. Khởi động lại server game (hoặc build lại nếu chạy production) để nhận map mới.');
+    return;
+  }
   if (mode === 'spawns') {
     const data = await api<SpawnDocument>(`/api/maps/${town.id}/spawns`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ file: spawns.file, revision: spawns.revision }) });
     spawns.saved(data); status('Đã lưu điểm sinh quái. Khởi động lại server game để nhận cấu hình mới.'); return;
@@ -339,16 +407,43 @@ async function save() {
   status('Đã ghi cấu hình NPC vào mã nguồn game. Game dev có thể reload; bản game đã build cần build lại và tải lại client.');
 }
 $('save').onclick = () => void run(save);
+$('toggle-enabled').onclick = () => void run(async () => {
+  if (!town) return;
+  const next = town.enabled === false;
+  const res = await api<{ id: number; enabled: boolean }>(`/api/maps/${town.id}/enabled`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: next }) });
+  town.enabled = res.enabled;
+  const item = towns.find(m => m.id === res.id);
+  if (item) item.enabled = res.enabled;
+  renderMaps(); controls();
+  status(res.enabled ? `Đã bật lại bản đồ ${town.name}.` : `Đã tắt bản đồ ${town.name} (ẩn khỏi danh sách map người chơi; ai đang ở đây sẽ được đưa về Biện Kinh).`);
+});
 $('reload').onclick = async () => { if (town && (!unsaved() || await confirmDraft('Bỏ mọi thay đổi NPC/vùng an toàn/điểm chuyển/sinh quái chưa lưu và mở lại cấu hình đã lưu?'))) void run(() => openTown(town!.id)); };
+const MAP_TYPE_LABELS: Record<string, string> = {
+  City: 'Thành thị',
+  Capital: 'Kinh đô',
+  Battlefield: 'Chiến trường',
+  Duel: 'Đơn đấu',
+  Field: 'Bãi luyện công',
+  Cave: 'Hang động',
+  Country: 'Thôn trấn',
+  Tong: 'Môn phái',
+  Others: 'Khác',
+};
 function renderMaps() {
   const query = field('map-search').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase().trim();
-  const visible = towns.filter(m => `${m.name} ${m.id}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase().includes(query));
+  const typeFilter = $<HTMLSelectElement>('map-type-filter').value;
+  const matchesType = (m: Town) => typeFilter === 'all'
+    ? true
+    : typeFilter === 'city'
+      ? (m.type === 'City' || m.type === 'Capital' || m.group === 'city')
+      : m.type === typeFilter;
+  const visible = towns.filter(m => matchesType(m) && `${m.name} ${m.id}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase().includes(query));
   const list = $('map-list'); list.replaceChildren();
   for (const group of ['city', 'training'] as const) {
     const items = visible.filter(m => m.group === group).sort((a, b) => a.name.localeCompare(b.name, 'vi'));
     if (!items.length) continue;
     const section = document.createElement('section'), head = document.createElement('h3');
-    head.textContent = `${group === 'city' ? 'Thành thị' : 'Luyện công'} (${items.length})`; section.append(head);
+    head.textContent = `${group === 'city' ? 'Thành thị' : 'Luyện công & Khác'} (${items.length})`; section.append(head);
     for (const m of items) {
       const b = document.createElement('button'); b.type = 'button'; b.dataset.map = String(m.id); b.dataset.available = String(m.available);
       b.className = 'map-card' + (town?.id === m.id ? ' selected' : ''); b.setAttribute('aria-pressed', String(town?.id === m.id));
@@ -358,7 +453,8 @@ function renderMaps() {
       image.src = base + 'thumb.webp' + version;
       image.onerror = () => { image.onerror = () => { image.hidden = true; }; image.src = base + 'minimap.webp' + version; };
       const text = document.createElement('span'), name = document.createElement('strong'), hint = document.createElement('small');
-      name.textContent = m.name; hint.textContent = m.available ? `Map ${m.id}${m.enabled === false ? ' · Đã tắt' : ''}${m.editable ? '' : ' · Quái / Chuyển map'}` : 'Chưa sinh tài nguyên';
+      const typeLabel = m.type ? (MAP_TYPE_LABELS[m.type] ?? m.type) : '';
+      name.textContent = m.name; hint.textContent = m.available ? `Map ${m.id}${typeLabel ? ` · ${typeLabel}` : ''}${m.enabled === false ? ' · Đã tắt' : ''}` : 'Chưa sinh tài nguyên';
       text.append(name, hint); b.append(image, text);
       b.onclick = async () => {
         if (busy || town?.id === m.id) return;
@@ -372,6 +468,7 @@ function renderMaps() {
   if (!visible.length) list.textContent = 'Không tìm thấy bản đồ phù hợp.';
 }
 field('map-search').oninput = renderMaps;
+$<HTMLSelectElement>('map-type-filter').onchange = renderMaps;
 window.addEventListener('beforeunload', e => { if (unsaved()) { e.preventDefault(); e.returnValue = ''; } });
 let spacePan = false;
 const dialogOpen = () => !!document.querySelector('.dlg:not(.hidden)');
@@ -388,6 +485,8 @@ window.addEventListener('keydown', e => {
   if (key === 'b') { e.preventDefault(); field('pan').checked = false; setMode('zones'); }
   if (key === 't') { e.preventDefault(); field('pan').checked = false; setMode('portals'); }
   if (key === 'm') { e.preventDefault(); field('pan').checked = false; setMode('spawns'); }
+  if (key === 'k') { e.preventDefault(); field('pan').checked = false; setMode('tongkim'); }
+  if (key === 'n') { e.preventDefault(); field('pan').checked = false; setMode('nav'); }
   if (key === 'h') { e.preventDefault(); $('pan-tool').click(); }
   if (key === ' ') { e.preventDefault(); spacePan = true; canvas.style.cursor = 'grab'; }
   if (key === 'z') { e.preventDefault(); $('map-view').click(); }
@@ -425,7 +524,7 @@ const actions: [string, string, string, string, string?, boolean?][] = [
   ['portal-remove', 'delete', 'Xóa điểm', 'Xóa điểm chuyển khỏi bản nháp.', 'Delete'],
 ];
 for (const [id, icon, label, hint, key, compact] of actions) labelAction($(id), icon, label, hint, key, compact);
-for (const [name, icon, label, hint, key] of [['spawns', 'npc', 'Quái / Boss Xanh', 'Bấm map để tạo điểm sinh, bấm điểm để chọn, kéo để di chuyển.', 'M'], ['npc', 'npc', 'Đặt NPC', 'Đặt, kéo và xoay NPC dịch vụ.', 'V'], ['zones', 'zone', 'Vùng an toàn', 'Vẽ đường bao bằng Pen.', 'B'], ['portals', 'portal', 'Điểm chuyển map', 'Đặt lối đi tới map khác.', 'T']]) { const button = document.querySelector<HTMLElement>(`[data-mode="${name}"]`)!; labelAction(button, icon, label, hint, key, true); const badge = document.createElement('span'); badge.className = 'tool-key'; badge.textContent = key; badge.setAttribute('aria-hidden', 'true'); button.append(badge); }
+for (const [name, icon, label, hint, key] of [['spawns', 'npc', 'Quái / Boss Xanh', 'Bấm map để tạo điểm sinh, bấm điểm để chọn, kéo để di chuyển.', 'M'], ['npc', 'npc', 'Đặt NPC', 'Đặt, kéo và xoay NPC dịch vụ.', 'V'], ['zones', 'zone', 'Vùng an toàn', 'Vẽ đường bao bằng Pen.', 'B'], ['portals', 'portal', 'Điểm chuyển map', 'Đặt lối đi tới map khác.', 'T'], ['tongkim', 'zone', 'Tống Kim', 'Cấu hình điểm tập trung, cổng ra/vào, Nguyên Soái & lính Tống Kim.', 'K'], ['nav', 'grid', 'Sửa vùng chặn', 'Tẩy vùng chặn bị sai hoặc vẽ chặn thêm.', 'N']]) { const button = document.querySelector<HTMLElement>(`[data-mode="${name}"]`)!; labelAction(button, icon, label, hint, key, true); const badge = document.createElement('span'); badge.className = 'tool-key'; badge.textContent = key; badge.setAttribute('aria-hidden', 'true'); button.append(badge); }
 let helpFocus: HTMLElement | null = null;
 dialogs.register('shortcuts-dialog', { onClose: () => helpFocus?.focus() });
 $('shortcut-help').onclick = () => { helpFocus = document.activeElement as HTMLElement; dialogs.open('shortcuts-dialog'); $('close-shortcuts').focus(); };

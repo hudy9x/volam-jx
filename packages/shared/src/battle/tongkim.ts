@@ -1,6 +1,8 @@
-// Chiến trường Tống Kim (theo tài liệu volam-3005/documents/tong-kim, map báo danh 323 -> chiến trường Xung phong 378).
+// Chiến trường Tống Kim (theo tài liệu volam-3005/documents/tong-kim, map báo danh 323 -> chiến trường tùy chọn, mặc định 378).
 // TS thuần, dùng chung cho server, client và bot runner.
 import { isoDistance } from '../geometry.js';
+import type { MapMeta } from '../maps/types.js';
+import tkMapsSource from './tk-maps.json' with { type: 'json' };
 
 export type TkCamp = 'tong' | 'kim';
 export type TkMode = 1 | 2; // 1: Bảo vệ Nguyên soái, 2: Cừu sát
@@ -148,89 +150,127 @@ export interface TkCampLayout {
   npcSpawns: readonly { role: Exclude<TkNpcRole, 'marshal'>; x: number; y: number; count: number; radius: number }[];
 }
 
-/**
- * Bố trí chiến trường Xung phong (Map 378 — 19456x10752):
- * - Tống ở Tây Nam (SW), Kim ở Đông Bắc (NE), giao tranh dọc trục chéo qua trung tâm (9744, 5384).
- * Tất cả điểm đều đã kiểm tra walkable trên nav.json của map 378.
- */
+export interface TkBattleMapConfig {
+  id: number;
+  name?: string;
+  tong: TkCampLayout;
+  kim: TkCampLayout;
+}
+
+export interface TkMapsFile {
+  version: 1;
+  maps: Record<string, TkBattleMapConfig>;
+}
+
+const TK_NPC_ROLES = new Set<Exclude<TkNpcRole, 'marshal'>>(['soldier', 'captain', 'commander', 'deputy', 'general']);
+
+function cloneCampLayout(c: TkCampLayout): TkCampLayout {
+  return {
+    spawn: { x: c.spawn.x, y: c.spawn.y },
+    safeRadius: c.safeRadius,
+    gateExit: { x: c.gateExit.x, y: c.gateExit.y },
+    marshal: { x: c.marshal.x, y: c.marshal.y },
+    frontlines: c.frontlines.map(p => ({ x: p.x, y: p.y })),
+    npcSpawns: c.npcSpawns.map(g => ({ role: g.role, x: g.x, y: g.y, count: g.count, radius: g.radius })),
+  };
+}
+
+function validatePoint(p: unknown, label: string, meta?: MapMeta): { x: number; y: number } {
+  if (!p || typeof p !== 'object') throw Error(`${label}: thiếu tọa độ.`);
+  const x = Number((p as { x?: unknown }).x), y = Number((p as { y?: unknown }).y);
+  if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || y < 0) throw Error(`${label}: tọa độ không hợp lệ.`);
+  if (meta && (x >= meta.raw.size.width || y >= meta.raw.size.height)) throw Error(`${label}: tọa độ nằm ngoài kích thước bản đồ.`);
+  return { x: Math.round(x), y: Math.round(y) };
+}
+
+export function validateTkCampLayout(value: unknown, campName: string, meta?: MapMeta): TkCampLayout {
+  if (!value || typeof value !== 'object') throw Error(`Phe ${campName}: thiếu dữ liệu bố trí.`);
+  const raw = value as Partial<TkCampLayout>;
+  const spawn = validatePoint(raw.spawn, `Phe ${campName} · Điểm tập trung`, meta);
+  const safeRadius = Number(raw.safeRadius);
+  if (!Number.isFinite(safeRadius) || safeRadius < 100 || safeRadius > 5000) {
+    throw Error(`Phe ${campName} · Bán kính an toàn phải từ 100 đến 5000 px.`);
+  }
+  const gateExit = validatePoint(raw.gateExit, `Phe ${campName} · Điểm ngoài cổng`, meta);
+  const marshal = validatePoint(raw.marshal, `Phe ${campName} · Nguyên Soái`, meta);
+  const frontlinesRaw = Array.isArray(raw.frontlines) ? raw.frontlines : [];
+  if (frontlinesRaw.length > 24) throw Error(`Phe ${campName} · Tối đa 24 điểm tiền tuyến.`);
+  const frontlines = frontlinesRaw.map((p, idx) => validatePoint(p, `Phe ${campName} · Tiền tuyến #${idx + 1}`, meta));
+  const npcSpawnsRaw = Array.isArray(raw.npcSpawns) ? raw.npcSpawns : [];
+  if (npcSpawnsRaw.length > 64) throw Error(`Phe ${campName} · Tối đa 64 cụm sinh lính/tướng.`);
+  const npcSpawns = npcSpawnsRaw.map((g, idx) => {
+    if (!g || typeof g !== 'object') throw Error(`Phe ${campName} · Cụm NPC #${idx + 1} không hợp lệ.`);
+    const role = (g as { role?: unknown }).role as Exclude<TkNpcRole, 'marshal'>;
+    if (!TK_NPC_ROLES.has(role)) throw Error(`Phe ${campName} · Loại NPC không hợp lệ.`);
+    const pt = validatePoint(g, `Phe ${campName} · Cụm NPC #${idx + 1}`, meta);
+    const count = Math.round(Number((g as { count?: unknown }).count));
+    const radius = Math.round(Number((g as { radius?: unknown }).radius));
+    if (!Number.isFinite(count) || count < 1 || count > 30) throw Error(`Phe ${campName} · Số lượng cụm NPC #${idx + 1} phải từ 1 đến 30.`);
+    if (!Number.isFinite(radius) || radius < 0 || radius > 2000) throw Error(`Phe ${campName} · Bán kính cụm NPC #${idx + 1} phải từ 0 đến 2000 px.`);
+    return { role, x: pt.x, y: pt.y, count, radius };
+  });
+  return { spawn, safeRadius: Math.round(safeRadius), gateExit, marshal, frontlines, npcSpawns };
+}
+
+export function validateTkBattleMap(value: unknown, meta?: MapMeta): TkBattleMapConfig {
+  if (!value || typeof value !== 'object') throw Error('Cấu hình map Tống Kim không hợp lệ.');
+  const raw = value as Partial<TkBattleMapConfig>;
+  const id = Math.round(Number(raw.id));
+  if (!Number.isInteger(id) || id <= 0) throw Error('ID map Tống Kim không hợp lệ.');
+  const name = typeof raw.name === 'string' && raw.name.trim() ? raw.name.trim().slice(0, 80) : meta?.name;
+  return {
+    id,
+    ...(name ? { name } : {}),
+    tong: validateTkCampLayout(raw.tong, 'Tống', meta),
+    kim: validateTkCampLayout(raw.kim, 'Kim', meta),
+  };
+}
+
+/** Toàn bộ các map Tống Kim đã cấu hình (đọc từ tk-maps.json). */
+export const TK_MAPS: Record<number, TkBattleMapConfig> = {};
+
+export function applyTkMaps(value: unknown): void {
+  const file = value as Partial<TkMapsFile> | null;
+  if (!file || file.version !== 1 || !file.maps || typeof file.maps !== 'object' || Array.isArray(file.maps)) {
+    throw Error('tk-maps.json không hợp lệ.');
+  }
+  const next: Record<number, TkBattleMapConfig> = {};
+  for (const [k, v] of Object.entries(file.maps)) {
+    const cfg = validateTkBattleMap({ ...(v as object), id: (v as TkBattleMapConfig)?.id ?? Number(k) });
+    next[cfg.id] = cfg;
+  }
+  for (const k of Object.keys(TK_MAPS)) delete TK_MAPS[Number(k)];
+  for (const [k, v] of Object.entries(next)) TK_MAPS[Number(k)] = v;
+}
+
+applyTkMaps(tkMapsSource);
+
+/** Alias giữ tương thích cho map mặc định 378. */
 export const TK_MAP_LAYOUT: Record<TkCamp, TkCampLayout> = {
-  tong: {
-    spawn: { x: 2808, y: 9248 },
-    safeRadius: 1150,
-    gateExit: { x: 5648, y: 7472 },
-    // 720/469 -> 720*8, 469*16
-    marshal: { x: 5760, y: 7504 },
-    frontlines: [
-      { x: 8200, y: 6100 },
-      { x: 8600, y: 5800 },
-      { x: 9000, y: 5600 },
-      { x: 9200, y: 5900 },
-      { x: 8800, y: 5300 },
-      { x: 9400, y: 5500 },
-    ],
-    npcSpawns: [
-      // Trung lộ Tống
-      { role: 'soldier', x: 7600, y: 6200, count: 6, radius: 320 },
-      { role: 'soldier', x: 8600, y: 5800, count: 8, radius: 420 },
-      { role: 'captain', x: 8100, y: 6000, count: 2, radius: 220 },
-      { role: 'captain', x: 9000, y: 5600, count: 2, radius: 220 },
-      { role: 'commander', x: 7900, y: 6100, count: 2, radius: 180 },
-      { role: 'deputy', x: 6900, y: 6750, count: 2, radius: 180 },
-      { role: 'general', x: 6300, y: 7150, count: 1, radius: 80 },
-      // Cánh trái (Tây Bắc) Tống
-      { role: 'soldier', x: 7568, y: 5224, count: 6, radius: 320 },
-      { role: 'captain', x: 7568, y: 5224, count: 2, radius: 200 },
-      { role: 'soldier', x: 9232, y: 4792, count: 6, radius: 320 },
-      { role: 'commander', x: 9232, y: 4792, count: 1, radius: 160 },
-      // Cánh phải (Đông Nam) Tống
-      { role: 'soldier', x: 7800, y: 7200, count: 6, radius: 320 },
-      { role: 'captain', x: 8816, y: 6792, count: 2, radius: 220 },
-      { role: 'soldier', x: 9520, y: 6168, count: 6, radius: 320 },
-      { role: 'commander', x: 8816, y: 6792, count: 1, radius: 160 },
-    ],
-  },
-  kim: {
-    spawn: { x: 17168, y: 1504 },
-    safeRadius: 1250,
-    gateExit: { x: 13168, y: 3560 },
-    // 1677/224 -> 1677*8, 224*16
-    marshal: { x: 13416, y: 3584 },
-    frontlines: [
-      { x: 11000, y: 4800 },
-      { x: 10600, y: 5000 },
-      { x: 10200, y: 5200 },
-      { x: 10400, y: 4700 },
-      { x: 10000, y: 5400 },
-      { x: 10800, y: 5200 },
-    ],
-    npcSpawns: [
-      // Trung lộ Kim
-      { role: 'soldier', x: 11400, y: 4800, count: 6, radius: 320 },
-      { role: 'soldier', x: 10500, y: 5100, count: 8, radius: 420 },
-      { role: 'captain', x: 11000, y: 4900, count: 2, radius: 220 },
-      { role: 'captain', x: 10200, y: 5200, count: 2, radius: 220 },
-      { role: 'commander', x: 11200, y: 4850, count: 2, radius: 180 },
-      { role: 'deputy', x: 12100, y: 4200, count: 2, radius: 180 },
-      { role: 'general', x: 12800, y: 3800, count: 1, radius: 80 },
-      // Cánh trái (Tây Bắc) Kim
-      { role: 'soldier', x: 10500, y: 3500, count: 6, radius: 320 },
-      { role: 'captain', x: 11504, y: 3192, count: 2, radius: 220 },
-      { role: 'soldier', x: 12400, y: 3000, count: 6, radius: 320 },
-      { role: 'commander', x: 11504, y: 3192, count: 1, radius: 160 },
-      // Cánh phải (Đông Nam) Kim
-      { role: 'soldier', x: 11200, y: 5800, count: 6, radius: 320 },
-      { role: 'captain', x: 12200, y: 5400, count: 2, radius: 220 },
-      { role: 'soldier', x: 13104, y: 4760, count: 6, radius: 320 },
-      { role: 'commander', x: 12200, y: 5400, count: 1, radius: 160 },
-    ],
-  },
+  get tong() { return TK_MAPS[TK_BATTLE_MAP_ID]?.tong ?? cloneCampLayout(Object.values(TK_MAPS)[0].tong); },
+  get kim() { return TK_MAPS[TK_BATTLE_MAP_ID]?.kim ?? cloneCampLayout(Object.values(TK_MAPS)[0].kim); },
 };
 
-/** Kiểm tra một điểm trên map 378 có nằm trong Hậu doanh an toàn của phe nào không. */
+export function tkMapLayout(mapId: number): TkBattleMapConfig | undefined {
+  return TK_MAPS[mapId];
+}
+
+export function isTkBattleMap(mapId: number): boolean {
+  return Boolean(TK_MAPS[mapId]);
+}
+
+export function tkBattleMapOptions(): { id: number; name: string }[] {
+  return Object.values(TK_MAPS)
+    .sort((a, b) => a.id - b.id)
+    .map(m => ({ id: m.id, name: m.name || `Chiến trường #${m.id}` }));
+}
+
+/** Kiểm tra một điểm trên map Tống Kim có nằm trong Hậu doanh an toàn của phe nào không. */
 export function tkHomeCampAt(mapId: number, x: number, y: number): TkCamp | null {
-  if (mapId !== TK_BATTLE_MAP_ID) return null;
+  const layout = TK_MAPS[mapId];
+  if (!layout) return null;
   for (const camp of ['tong', 'kim'] as const) {
-    const { spawn, safeRadius } = TK_MAP_LAYOUT[camp];
+    const { spawn, safeRadius } = layout[camp];
     if (isoDistance(x, y, spawn.x, spawn.y) <= safeRadius) return camp;
   }
   return null;

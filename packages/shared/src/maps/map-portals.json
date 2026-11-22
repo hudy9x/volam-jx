@@ -4749,6 +4749,48 @@
         "toY": 11880
       }
     ],
+    "329": [
+      {
+        "id": "tk-tong-out",
+        "label": "Ra chiến trường (Tống)",
+        "x": 2965,
+        "y": 14872,
+        "radius": 64,
+        "toMap": 329,
+        "toX": 5207,
+        "toY": 13887
+      },
+      {
+        "id": "tk-tong-back",
+        "label": "Về Hậu doanh (Tống)",
+        "x": 3552,
+        "y": 13881,
+        "radius": 64,
+        "toMap": 329,
+        "toX": 2633,
+        "toY": 15198
+      },
+      {
+        "id": "tk-kim-out",
+        "label": "Ra chiến trường (Kim)",
+        "x": 14580,
+        "y": 2048,
+        "radius": 64,
+        "toMap": 329,
+        "toX": 13861,
+        "toY": 3676
+      },
+      {
+        "id": "tk-kim-back",
+        "label": "Về Hậu doanh (Kim)",
+        "x": 15029,
+        "y": 2752,
+        "radius": 64,
+        "toMap": 329,
+        "toX": 15272,
+        "toY": 1726
+      }
+    ],
     "332": [
       {
         "id": "portal-332-to-167",
@@ -4827,6 +4869,174 @@
         "toMap": 319,
         "toX": 2160,
         "toY": 8208
+      }
+    ],
+    "384": [
+      {
+        "id": "tk-tong-out",
+        "label": "Ra chiến trường (Tống)",
+        "x": 5251,
+        "y": 14896,
+        "radius": 64,
+        "toMap": 384,
+        "toX": 4687,
+        "toY": 12481
+      },
+      {
+        "id": "tk-tong-back",
+        "label": "Về Hậu doanh (Tống)",
+        "x": 5252,
+        "y": 12921,
+        "radius": 64,
+        "toMap": 384,
+        "toX": 4417,
+        "toY": 15260
+      },
+      {
+        "id": "tk-kim-out",
+        "label": "Ra chiến trường (Kim)",
+        "x": 3483,
+        "y": 2047,
+        "radius": 64,
+        "toMap": 384,
+        "toX": 4014,
+        "toY": 3813
+      },
+      {
+        "id": "tk-kim-back",
+        "label": "Về Hậu doanh (Kim)",
+        "x": 4223,
+        "y": 3506,
+        "radius": 64,
+        "toMap": 384,
+        "toX": 4366,
+        "toY": 1692
+      }
+    ],
+    "868": [
+      {
+        "id": "tk-tong-out",
+        "label": "Ra chiến trường (Tống)",
+        "x": 3404,
+        "y": 15908,
+        "radius": 64,
+        "toMap": 868,
+        "toX": 7065,
+        "toY": 13728
+      },
+      {
+        "id": "tk-tong-back",
+        "label": "Về Hậu doanh (Tống)",
+        "x": 5146,
+        "y": 14764,
+        "radius": 64,
+        "toMap": 868,
+        "toX": 2647,
+        "toY": 16340
+      },
+      {
+        "id": "tk-kim-out",
+        "label": "Ra chiến trường (Kim)",
+        "x": 21879,
+        "y": 2122,
+        "radius": 64,
+        "toMap": 868,
+        "toX": 19046,
+        "toY": 3744
+      },
+      {
+        "id": "tk-kim-back",
+        "label": "Về Hậu doanh (Kim)",
+        "x": 20749,
+        "y": 3444,
+        "radius": 64,
+        "toMap": 868,
+        "toX": 22735,
+        "toY": 1710
+      }
+    ],
+    "876": [
+      {
+        "id": "tk-tong-out",
+        "label": "Ra chiến trường (Tống)",
+        "x": 3111,
+        "y": 13600,
+        "radius": 64,
+        "toMap": 876,
+        "toX": 5033,
+        "toY": 12346
+      },
+      {
+        "id": "tk-tong-back",
+        "label": "Về Hậu doanh (Tống)",
+        "x": 4158,
+        "y": 12638,
+        "radius": 64,
+        "toMap": 876,
+        "toX": 2407,
+        "toY": 14028
+      },
+      {
+        "id": "tk-kim-out",
+        "label": "Ra chiến trường (Kim)",
+        "x": 22003,
+        "y": 2013,
+        "radius": 64,
+        "toMap": 876,
+        "toX": 20413,
+        "toY": 3182
+      },
+      {
+        "id": "tk-kim-back",
+        "label": "Về Hậu doanh (Kim)",
+        "x": 21039,
+        "y": 2885,
+        "radius": 64,
+        "toMap": 876,
+        "toX": 22720,
+        "toY": 1593
+      }
+    ],
+    "902": [
+      {
+        "id": "tk-tong-out",
+        "label": "Ra chiến trường (Tống)",
+        "x": 2931,
+        "y": 10220,
+        "radius": 64,
+        "toMap": 902,
+        "toX": 4355,
+        "toY": 8673
+      },
+      {
+        "id": "tk-tong-back",
+        "label": "Về Hậu doanh (Tống)",
+        "x": 4391,
+        "y": 9208,
+        "radius": 64,
+        "toMap": 902,
+        "toX": 2291,
+        "toY": 10499
+      },
+      {
+        "id": "tk-kim-out",
+        "label": "Ra chiến trường (Kim)",
+        "x": 14882,
+        "y": 1845,
+        "radius": 64,
+        "toMap": 902,
+        "toX": 13330,
+        "toY": 2964
+      },
+      {
+        "id": "tk-kim-back",
+        "label": "Về Hậu doanh (Kim)",
+        "x": 13416,
+        "y": 2719,
+        "radius": 64,
+        "toMap": 902,
+        "toX": 15268,
+        "toY": 1532
       }
     ]
   }

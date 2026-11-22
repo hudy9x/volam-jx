@@ -1,0 +1,545 @@
+{
+  "version": 1,
+  "maps": {
+    "329": {
+      "id": 329,
+      "name": "Khu vực Hà Tân (sơ cấp)",
+      "tong": {
+        "spawn": {
+          "x": 2633,
+          "y": 15198
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 5207,
+          "y": 13887
+        },
+        "marshal": {
+          "x": 4504,
+          "y": 13415
+        },
+        "frontlines": [
+          {
+            "x": 8448,
+            "y": 7936
+          }
+        ],
+        "npcSpawns": []
+      },
+      "kim": {
+        "spawn": {
+          "x": 15272,
+          "y": 1726
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 13861,
+          "y": 3676
+        },
+        "marshal": {
+          "x": 14911,
+          "y": 4292
+        },
+        "frontlines": [
+          {
+            "x": 8448,
+            "y": 7936
+          }
+        ],
+        "npcSpawns": []
+      }
+    },
+    "378": {
+      "id": 378,
+      "name": "Xung phong (Sơ cấp)",
+      "tong": {
+        "spawn": {
+          "x": 2808,
+          "y": 9248
+        },
+        "safeRadius": 1150,
+        "gateExit": {
+          "x": 5648,
+          "y": 7472
+        },
+        "marshal": {
+          "x": 5760,
+          "y": 7504
+        },
+        "frontlines": [
+          {
+            "x": 8200,
+            "y": 6100
+          },
+          {
+            "x": 8600,
+            "y": 5800
+          },
+          {
+            "x": 9000,
+            "y": 5600
+          },
+          {
+            "x": 9200,
+            "y": 5900
+          },
+          {
+            "x": 8800,
+            "y": 5300
+          },
+          {
+            "x": 9400,
+            "y": 5500
+          }
+        ],
+        "npcSpawns": [
+          {
+            "role": "soldier",
+            "x": 7600,
+            "y": 6200,
+            "count": 6,
+            "radius": 320
+          },
+          {
+            "role": "soldier",
+            "x": 8600,
+            "y": 5800,
+            "count": 8,
+            "radius": 420
+          },
+          {
+            "role": "captain",
+            "x": 8100,
+            "y": 6000,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "captain",
+            "x": 9000,
+            "y": 5600,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "commander",
+            "x": 7900,
+            "y": 6100,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "deputy",
+            "x": 6900,
+            "y": 6750,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "general",
+            "x": 6300,
+            "y": 7150,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "soldier",
+            "x": 7568,
+            "y": 5224,
+            "count": 6,
+            "radius": 320
+          },
+          {
+            "role": "captain",
+            "x": 7568,
+            "y": 5224,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "soldier",
+            "x": 9232,
+            "y": 4792,
+            "count": 6,
+            "radius": 320
+          },
+          {
+            "role": "commander",
+            "x": 9232,
+            "y": 4792,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 7800,
+            "y": 7200,
+            "count": 6,
+            "radius": 320
+          },
+          {
+            "role": "captain",
+            "x": 8816,
+            "y": 6792,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 9520,
+            "y": 6168,
+            "count": 6,
+            "radius": 320
+          },
+          {
+            "role": "commander",
+            "x": 8816,
+            "y": 6792,
+            "count": 1,
+            "radius": 160
+          }
+        ]
+      },
+      "kim": {
+        "spawn": {
+          "x": 17168,
+          "y": 1504
+        },
+        "safeRadius": 1250,
+        "gateExit": {
+          "x": 13168,
+          "y": 3560
+        },
+        "marshal": {
+          "x": 13416,
+          "y": 3584
+        },
+        "frontlines": [
+          {
+            "x": 11000,
+            "y": 4800
+          },
+          {
+            "x": 10600,
+            "y": 5000
+          },
+          {
+            "x": 10200,
+            "y": 5200
+          },
+          {
+            "x": 10400,
+            "y": 4700
+          },
+          {
+            "x": 10000,
+            "y": 5400
+          },
+          {
+            "x": 10800,
+            "y": 5200
+          }
+        ],
+        "npcSpawns": [
+          {
+            "role": "soldier",
+            "x": 11400,
+            "y": 4800,
+            "count": 6,
+            "radius": 320
+          },
+          {
+            "role": "soldier",
+            "x": 10500,
+            "y": 5100,
+            "count": 8,
+            "radius": 420
+          },
+          {
+            "role": "captain",
+            "x": 11000,
+            "y": 4900,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "captain",
+            "x": 10200,
+            "y": 5200,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "commander",
+            "x": 11200,
+            "y": 4850,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "deputy",
+            "x": 12100,
+            "y": 4200,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "general",
+            "x": 12800,
+            "y": 3800,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "soldier",
+            "x": 10500,
+            "y": 3500,
+            "count": 6,
+            "radius": 320
+          },
+          {
+            "role": "captain",
+            "x": 11504,
+            "y": 3192,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 12400,
+            "y": 3000,
+            "count": 6,
+            "radius": 320
+          },
+          {
+            "role": "commander",
+            "x": 11504,
+            "y": 3192,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 11200,
+            "y": 5800,
+            "count": 6,
+            "radius": 320
+          },
+          {
+            "role": "captain",
+            "x": 12200,
+            "y": 5400,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 13104,
+            "y": 4760,
+            "count": 6,
+            "radius": 320
+          },
+          {
+            "role": "commander",
+            "x": 12200,
+            "y": 5400,
+            "count": 1,
+            "radius": 160
+          }
+        ]
+      }
+    },
+    "384": {
+      "id": 384,
+      "name": "Cầu ranh giới (sơ cấp)",
+      "tong": {
+        "spawn": {
+          "x": 4417,
+          "y": 15260
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 4687,
+          "y": 12481
+        },
+        "marshal": {
+          "x": 4035,
+          "y": 12777
+        },
+        "frontlines": [
+          {
+            "x": 4578,
+            "y": 8305
+          }
+        ],
+        "npcSpawns": []
+      },
+      "kim": {
+        "spawn": {
+          "x": 4366,
+          "y": 1692
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 4014,
+          "y": 3813
+        },
+        "marshal": {
+          "x": 4567,
+          "y": 4044
+        },
+        "frontlines": [
+          {
+            "x": 4578,
+            "y": 8305
+          }
+        ],
+        "npcSpawns": []
+      }
+    },
+    "868": {
+      "id": 868,
+      "name": "Chiến trường Hoang Mạc (sơ)",
+      "tong": {
+        "spawn": {
+          "x": 2647,
+          "y": 16340
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 7065,
+          "y": 13728
+        },
+        "marshal": {
+          "x": 6497,
+          "y": 14013
+        },
+        "frontlines": [
+          {
+            "x": 12544,
+            "y": 8960
+          }
+        ],
+        "npcSpawns": []
+      },
+      "kim": {
+        "spawn": {
+          "x": 22735,
+          "y": 1710
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 19046,
+          "y": 3744
+        },
+        "marshal": {
+          "x": 19637,
+          "y": 4068
+        },
+        "frontlines": [
+          {
+            "x": 12544,
+            "y": 8960
+          }
+        ],
+        "npcSpawns": []
+      }
+    },
+    "876": {
+      "id": 876,
+      "name": "Cổ thành (sơ cấp)",
+      "tong": {
+        "spawn": {
+          "x": 2407,
+          "y": 14028
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 5033,
+          "y": 12346
+        },
+        "marshal": {
+          "x": 5400,
+          "y": 12038
+        },
+        "frontlines": [
+          {
+            "x": 12544,
+            "y": 7680
+          }
+        ],
+        "npcSpawns": []
+      },
+      "kim": {
+        "spawn": {
+          "x": 22720,
+          "y": 1593
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 20413,
+          "y": 3182
+        },
+        "marshal": {
+          "x": 19820,
+          "y": 3349
+        },
+        "frontlines": [
+          {
+            "x": 12544,
+            "y": 7680
+          }
+        ],
+        "npcSpawns": []
+      }
+    },
+    "902": {
+      "id": 902,
+      "name": "Chiến trường tùng lâm (sơ)",
+      "tong": {
+        "spawn": {
+          "x": 2291,
+          "y": 10499
+        },
+        "safeRadius": 900,
+        "gateExit": {
+          "x": 4355,
+          "y": 8673
+        },
+        "marshal": {
+          "x": 4806,
+          "y": 8748
+        },
+        "frontlines": [
+          {
+            "x": 8960,
+            "y": 6400
+          }
+        ],
+        "npcSpawns": []
+      },
+      "kim": {
+        "spawn": {
+          "x": 15268,
+          "y": 1532
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 13330,
+          "y": 2964
+        },
+        "marshal": {
+          "x": 12723,
+          "y": 3236
+        },
+        "frontlines": [
+          {
+            "x": 8960,
+            "y": 6400
+          }
+        ],
+        "npcSpawns": []
+      }
+    }
+  }
+}

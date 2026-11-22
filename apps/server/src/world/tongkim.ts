@@ -10,7 +10,6 @@ import {
   TK_DROP_OFFICER_IDS,
   TK_EXP_PER_ACCUM,
   TK_GATE_WAIT_SEC,
-  TK_MAP_LAYOUT,
   TK_MAX_PER_CAMP,
   TK_MIN_LEVEL,
   TK_MODE_NAMES,
@@ -27,9 +26,11 @@ import {
   isoDistance,
   maxLevelOf,
   nearestWalkable,
+  tkBattleMapOptions,
   tkBotRewardMultiplier,
   tkHomeCampAt,
   tkKillPlayerPoints,
+  tkMapLayout,
   tkRankForPoints,
   tkTitleOf,
   type Element,
@@ -38,6 +39,7 @@ import {
   type MonsterDef,
   type Portal,
   type TkActionMsg,
+  type TkBattleMapConfig,
   type TkCamp,
   type TkLeaderEntry,
   type TkMode,
@@ -180,6 +182,7 @@ function makeTkMonsterDef(camp: TkCamp, role: TkNpcRole, element: Element): Mons
 
 class TongKimManager {
   private matchId = 0;
+  private currentBattleMapId = TK_BATTLE_MAP_ID;
   private mode: TkMode = 1;
   private phase: TkPhase = 'closed';
   private phaseEndsAt = 0;
@@ -200,6 +203,8 @@ class TongKimManager {
 
   get currentPhase(): TkPhase { return this.phase; }
   get currentMatchId(): number { return this.matchId; }
+  get battleMapId(): number { return this.currentBattleMapId; }
+  private layout(): TkBattleMapConfig { return tkMapLayout(this.currentBattleMapId) ?? tkMapLayout(TK_BATTLE_MAP_ID)!; }
 
   /** Kiểm tra lịch tự động (gọi mỗi giây từ server). */
   tickSchedule(now = Date.now()): void {
@@ -226,12 +231,18 @@ class TongKimManager {
   }
 
   /** Mở trận mới (tự động hoặc qua dev/admin). */
-  startMatch(opts: TkStartOptions = {}): { ok: boolean; message: string; matchId: number } {
+  startMatch(opts: TkStartOptions & { battleMapId?: number } = {}): { ok: boolean; message: string; matchId: number } {
     if (this.phase !== 'closed') {
       return { ok: false, message: `Chiến trường Tống Kim trận #${this.matchId} đang ở giai đoạn ${this.phase}.`, matchId: this.matchId };
     }
+    const requestedMapId = Number.isInteger(opts.battleMapId) ? Number(opts.battleMapId) : TK_BATTLE_MAP_ID;
+    const cfg = tkMapLayout(requestedMapId);
+    if (!cfg) {
+      return { ok: false, message: `Map #${requestedMapId} chưa được cấu hình cho chiến trường Tống Kim.`, matchId: this.matchId };
+    }
     const now = Date.now();
     this.matchId++;
+    this.currentBattleMapId = cfg.id;
     this.mode = opts.mode === 2 ? 2 : 1;
     this.timing = {
       signupSec: Math.max(5, Math.min(1800, Math.floor(opts.signupSec ?? TK_DEFAULT_TIMING.signupSec))),
@@ -304,7 +315,7 @@ class TongKimManager {
       if (existing.camp !== camp) {
         return { ok: false, message: `Bạn đã báo danh phe ${TK_CAMP_NAMES[existing.camp]} trong trận này, không thể đổi phe.` };
       }
-      return { ok: true, message: `Quay lại doanh trại phe ${TK_CAMP_NAMES[camp]}!`, spawn: TK_MAP_LAYOUT[camp].spawn };
+      return { ok: true, message: `Quay lại doanh trại phe ${TK_CAMP_NAMES[camp]}!`, spawn: this.layout()[camp].spawn };
     }
     const { tong, kim } = this.counts();
     const myCount = camp === 'tong' ? tong : kim;
@@ -348,7 +359,7 @@ class TongKimManager {
     return {
       ok: true,
       message: `Báo danh phe ${TK_CAMP_NAMES[camp]} thành công (-${TK_SIGNUP_FEE.toLocaleString('vi-VN')} lượng)${campSwitchedNote}!`,
-      spawn: TK_MAP_LAYOUT[camp].spawn,
+      spawn: this.layout()[camp].spawn,
     };
   }
 
@@ -373,7 +384,7 @@ class TongKimManager {
     sim.a.battleCamp = entry.camp;
     sim.a.battleRank = entry.rank;
     sim.a.pk = this.phase === 'fighting' ? 1 : 0;
-    const [sx, sy] = nearestWalkable(w.grid, TK_MAP_LAYOUT[entry.camp].spawn.x, TK_MAP_LAYOUT[entry.camp].spawn.y);
+    const [sx, sy] = nearestWalkable(w.grid, this.layout()[entry.camp].spawn.x, this.layout()[entry.camp].spawn.y);
     sim.a.x = sx;
     sim.a.y = sy;
     sim.path = [];
@@ -400,9 +411,9 @@ class TongKimManager {
     }
   }
 
-  /** Bước qua cổng hoặc portal trên map 378 (xuất trận ngẫu nhiên quanh điểm đích, hoặc về Hậu doanh). */
+  /** Bước qua cổng hoặc portal trên map chiến trường (xuất trận ngẫu nhiên quanh điểm đích, hoặc về Hậu doanh). */
   useBattlePortal(w: World, sim: Sim, portal: Portal): boolean {
-    if (!sim.charId || w.meta.id !== TK_BATTLE_MAP_ID) return false;
+    if (!sim.charId || w.meta.id !== this.currentBattleMapId) return false;
     const entry = this.entries.get(sim.charId);
     if (!entry) return false;
     const portalCamp: TkCamp | null = portal.id.includes('-tong-') ? 'tong' : portal.id.includes('-kim-') ? 'kim' : null;
@@ -457,18 +468,18 @@ class TongKimManager {
   exitGate(w: World, sim: Sim): { ok: boolean; message: string } {
     if (!sim.charId) return { ok: false, message: 'Không xác định được nhân vật.' };
     const entry = this.entries.get(sim.charId);
-    if (!entry || w.meta.id !== TK_BATTLE_MAP_ID) return { ok: false, message: 'Bạn không ở trong chiến trường Tống Kim.' };
+    if (!entry || w.meta.id !== this.currentBattleMapId) return { ok: false, message: 'Bạn không ở trong chiến trường Tống Kim.' };
     if (this.phase !== 'fighting') return { ok: false, message: 'Trận đấu chưa khai chiến, hãy chờ trong doanh trại.' };
     if (sim.dead) return { ok: false, message: 'Đang chờ hồi sinh.' };
     const waitMs = TK_GATE_WAIT_SEC * 1000 - (w.now - entry.enteredCampAt);
     if (entry.inCamp && waitMs > 0) {
       return { ok: false, message: `Cần chờ thêm ${Math.ceil(waitMs / 1000)} giây mới có thể xuất trận qua cổng.` };
     }
-    const target = TK_MAP_LAYOUT[entry.camp].gateExit;
+    const target = this.layout()[entry.camp].gateExit;
     const angle = Math.random() * Math.PI * 2;
     const dist = 200 + Math.random() * 100;
     let [x, y] = nearestWalkable(w.grid, Math.round(target.x + Math.cos(angle) * dist), Math.round(target.y + Math.sin(angle) * dist));
-    if (isInTkSafeCamp(TK_BATTLE_MAP_ID, x, y)) {
+    if (isInTkSafeCamp(this.currentBattleMapId, x, y)) {
       [x, y] = nearestWalkable(w.grid, target.x, target.y);
     }
     sim.a.x = x;
@@ -485,10 +496,11 @@ class TongKimManager {
   scoutToFrontline(w: World, sim: Sim): { ok: boolean; message: string } {
     if (!sim.charId) return { ok: false, message: 'Không xác định được nhân vật.' };
     const entry = this.entries.get(sim.charId);
-    if (!entry || w.meta.id !== TK_BATTLE_MAP_ID) return { ok: false, message: 'Bạn không ở trong chiến trường Tống Kim.' };
+    if (!entry || w.meta.id !== this.currentBattleMapId) return { ok: false, message: 'Bạn không ở trong chiến trường Tống Kim.' };
     if (this.phase !== 'fighting') return { ok: false, message: 'Trận đấu chưa khai chiến.' };
     if (sim.dead) return { ok: false, message: 'Đang chờ hồi sinh.' };
-    const list = TK_MAP_LAYOUT[entry.camp].frontlines;
+    const layoutCamp = this.layout()[entry.camp];
+    const list = layoutCamp.frontlines.length ? layoutCamp.frontlines : [layoutCamp.gateExit];
     const pick = list[Math.floor(Math.random() * list.length)];
     const [x, y] = nearestWalkable(w.grid, pick.x, pick.y);
     sim.a.x = x;
@@ -589,7 +601,7 @@ class TongKimManager {
 
       if (sim.dead && sim.tkRespawnAt && now >= sim.tkRespawnAt) {
         sim.tkRespawnAt = undefined;
-        const [rx, ry] = nearestWalkable(w.grid, TK_MAP_LAYOUT[entry.camp].spawn.x, TK_MAP_LAYOUT[entry.camp].spawn.y);
+        const [rx, ry] = nearestWalkable(w.grid, this.layout()[entry.camp].spawn.x, this.layout()[entry.camp].spawn.y);
         revive(w, sim, rx, ry);
         sim.a.pk = this.phase === 'fighting' ? 1 : 0;
         entry.inCamp = true;
@@ -599,10 +611,10 @@ class TongKimManager {
       }
       if (sim.dead) continue;
 
-      const campHere = tkHomeCampAt(TK_BATTLE_MAP_ID, sim.a.x, sim.a.y);
+      const campHere = tkHomeCampAt(this.currentBattleMapId, sim.a.x, sim.a.y);
       if (campHere && campHere !== entry.camp) {
         // Không cho địch xâm nhập Hậu doanh đối phương
-        const push = TK_MAP_LAYOUT[campHere].gateExit;
+        const push = this.layout()[campHere].gateExit;
         const [px, py] = nearestWalkable(w.grid, push.x, push.y);
         sim.a.x = px;
         sim.a.y = py;
@@ -637,9 +649,9 @@ class TongKimManager {
     }
   }
 
-  /** Xử lý khi 1 thực thể bị hạ gục trên map 378. Trả về true nếu đã xử lý kiểu Tống Kim. */
+  /** Xử lý khi 1 thực thể bị hạ gục trên map chiến trường. Trả về true nếu đã xử lý kiểu Tống Kim. */
   onTkKill(w: World, target: Sim, killer?: Sim): boolean {
-    if (w.meta.id !== TK_BATTLE_MAP_ID || this.phase !== 'fighting') return false;
+    if (w.meta.id !== this.currentBattleMapId || this.phase !== 'fighting') return false;
 
     if (target.kind === 'player' && target.charId) {
       const victim = this.entries.get(target.charId);
@@ -747,7 +759,7 @@ class TongKimManager {
       w.hooks.log(sim, 'item', `Mở ${def.name}: +${bonus} điểm tích lũy Tống Kim.`);
       return true;
     }
-    if (w.meta.id !== TK_BATTLE_MAP_ID) {
+    if (w.meta.id !== this.currentBattleMapId) {
       w.hooks.notify(sim, `${def.name} chỉ có thể sử dụng trong Chiến trường Tống Kim.`);
       return false;
     }
@@ -912,8 +924,9 @@ class TongKimManager {
 
   private spawnBattleNpcs(w: World): void {
     this.npcsSpawned = true;
+    const layout = this.layout();
     for (const camp of ['tong', 'kim'] as const) {
-      for (const group of TK_MAP_LAYOUT[camp].npcSpawns) {
+      for (const group of layout[camp].npcSpawns) {
         for (let i = 0; i < group.count; i++) {
           const angle = (Math.PI * 2 * i) / Math.max(1, group.count);
           const r = group.count > 1 ? group.radius * 0.65 : 0;
@@ -926,8 +939,9 @@ class TongKimManager {
 
   private spawnMarshals(w: World): void {
     this.marshalSpawned = true;
-    const [tx, ty] = nearestWalkable(w.grid, TK_MAP_LAYOUT.tong.marshal.x, TK_MAP_LAYOUT.tong.marshal.y);
-    const [kx, ky] = nearestWalkable(w.grid, TK_MAP_LAYOUT.kim.marshal.x, TK_MAP_LAYOUT.kim.marshal.y);
+    const layout = this.layout();
+    const [tx, ty] = nearestWalkable(w.grid, layout.tong.marshal.x, layout.tong.marshal.y);
+    const [kx, ky] = nearestWalkable(w.grid, layout.kim.marshal.x, layout.kim.marshal.y);
     this.tongMarshalId = this.spawnOneNpc(w, 'tong', 'marshal', tx, ty).id;
     this.kimMarshalId = this.spawnOneNpc(w, 'kim', 'marshal', kx, ky).id;
     w.hooks.announce('Tống Nguyên Soái và Kim Nguyên Soái đã xuất trận! Phe nào hạ Nguyên Soái đối phương trước sẽ giành chiến thắng ngay lập tức!');
@@ -1022,6 +1036,8 @@ class TongKimManager {
       : 0;
     return {
       matchId: this.matchId,
+      battleMapId: this.currentBattleMapId,
+      ...(devTools() ? { availableMaps: tkBattleMapOptions() } : {}),
       mode: this.mode,
       phase: this.phase,
       remainSec,
@@ -1066,7 +1082,7 @@ class TongKimManager {
         const res = this.registerPlayer(sim, camp);
         w.hooks.notify(sim, res.message);
         if (!res.ok || !res.spawn) return {};
-        return { sendInventory: true, transfer: { mapId: TK_BATTLE_MAP_ID, x: res.spawn.x, y: res.spawn.y } };
+        return { sendInventory: true, transfer: { mapId: this.currentBattleMapId, x: res.spawn.x, y: res.spawn.y } };
       }
       case 'exitGate': {
         const res = this.exitGate(w, sim);
@@ -1079,7 +1095,7 @@ class TongKimManager {
         return {};
       }
       case 'leave': {
-        if (w.meta.id !== TK_BATTLE_MAP_ID) return {};
+        if (w.meta.id !== this.currentBattleMapId) return {};
         const camp = (sim.a.battleCamp || 'tong') as TkCamp;
         const back = TK_SIGNUP_ENTRY[camp];
         w.hooks.notify(sim, 'Đã rời chiến trường quay về Điểm báo danh.');
@@ -1097,6 +1113,7 @@ class TongKimManager {
         }
         const res = this.startMatch({
           mode: msg.mode === 2 ? 2 : 1,
+          battleMapId: msg.battleMapId,
           signupSec: msg.signupSec ?? 30,
           durationSec: msg.durationSec ?? 600,
           marshalDelaySec: msg.marshalDelaySec ?? 60,
@@ -1108,7 +1125,7 @@ class TongKimManager {
       }
       case 'devStop': {
         if (!devTools()) return {};
-        const res = this.stopMatch(w.meta.id === TK_BATTLE_MAP_ID ? w : undefined);
+        const res = this.stopMatch(w.meta.id === this.currentBattleMapId ? w : undefined);
         w.hooks.notify(sim, res.message);
         return {};
       }

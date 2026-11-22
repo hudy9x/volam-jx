@@ -8,7 +8,7 @@ import {
 import { Room, ServerError, type Client } from 'colyseus';
 import {
   bestTrainingMap, trainingMaps, type TrainingMap, type TrainMsg, type TeamOrderMsg, type SuggestMsg, type TokenMsg,
-  BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, TK_BATTLE_MAP_ID, TK_SIGNUP_MAP_ID, expToNext, TICK_MS, TOWN_MAP_ID, TOWN_NPCS, combatRulesAt, getExpElixirMultiplier, getGrid,
+  BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, TK_SIGNUP_MAP_ID, expToNext, TICK_MS, TOWN_MAP_ID, TOWN_NPCS, combatRulesAt, getExpElixirMultiplier, getGrid, isTkBattleMap,
   DEFAULT_SPEED, setActiveSpeedConfig,
   type BagMoveMsg, type BagSortMsg, type BagSplitMsg, type BagStashTransferMsg, type StashCurrencyMsg, type StashMoveMsg, type StashMsg,
   type BuyMsg, type CastMsg, type DevMoneyMsg, type DevLevelMsg, type DevSpeedMsg, type DiscardMsg, type EquipMsg, type ForgeMsg, type InventoryMsg, type MountMsg, type AuraMsg, type ChatMsg, type ChatMoreMsg, type ChatReactMsg, type MoveMsg,
@@ -239,7 +239,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     inventoryOp<UnequipMsg>(C2S.unequip, (sim, msg) => unequipItem(this.world, sim, String(msg?.slot)));
     inventoryOp<BuyMsg>(C2S.buy, (sim, msg) => {
       const ok = buyItem(this.world, sim, String(msg?.item), Number(msg?.count ?? 1));
-      if (ok && (this.state.mapId === TK_SIGNUP_MAP_ID || this.state.mapId === TK_BATTLE_MAP_ID)) {
+      if (ok && (this.state.mapId === TK_SIGNUP_MAP_ID || isTkBattleMap(this.state.mapId))) {
         this.broadcastTkState();
       }
       return ok;
@@ -354,7 +354,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     this.onMessage(C2S.team, (client, msg: TeamOrderMsg) => {
       const sim = this.simOf(client);
       if (!sim?.charId || typeof msg?.op !== 'string') return;
-      if (this.state.mapId === TK_BATTLE_MAP_ID) {
+      if (isTkBattleMap(this.state.mapId)) {
         this.notify(sim, 'Không thể lập hoặc thao tác tổ đội trong chiến trường Tống Kim.');
         return;
       }
@@ -367,14 +367,14 @@ export class MapRoom extends Room<{ state: MapState }> {
       const res = tongKim.handleAction(this.world, sim, msg);
       if (res.sendInventory) this.sendInventory(client, sim);
       if (res.transfer) {
-        if (res.transfer.mapId === TK_BATTLE_MAP_ID) {
+        if (res.transfer.mapId === tongKim.battleMapId) {
           teamOrder(sim.charId, 'leave', '');
           stallClose(sim.charId);
         }
         this.transfer(sim, res.transfer.mapId, res.transfer.x, res.transfer.y);
         return;
       }
-      if (this.state.mapId === TK_SIGNUP_MAP_ID || this.state.mapId === TK_BATTLE_MAP_ID) {
+      if (this.state.mapId === TK_SIGNUP_MAP_ID || isTkBattleMap(this.state.mapId)) {
         this.broadcastTkState();
       }
     });
@@ -390,7 +390,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     this.onMessage(C2S.stallOpen, (client, msg: StallOpenMsg) => {
       const sim = this.simOf(client);
       if (!sim?.charId) return;
-      if (this.state.mapId === TK_BATTLE_MAP_ID) { this.notify(sim, 'Không thể bày bán trong chiến trường Tống Kim.'); return; }
+      if (isTkBattleMap(this.state.mapId)) { this.notify(sim, 'Không thể bày bán trong chiến trường Tống Kim.'); return; }
       stallOpen(sim.charId, typeof msg?.title === 'string' ? msg.title : '');
     });
     this.onMessage(C2S.stallClose, client => {
@@ -407,7 +407,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     this.onMessage(C2S.token, (client, msg: TokenMsg) => {
       const sim = this.simOf(client);
       if (!sim || typeof msg?.op !== 'string') return;
-      if (this.state.mapId === TK_BATTLE_MAP_ID) { this.notify(sim, 'Không thể dùng Lệnh bài trong chiến trường Tống Kim.'); return; }
+      if (isTkBattleMap(this.state.mapId)) { this.notify(sim, 'Không thể dùng Lệnh bài trong chiến trường Tống Kim.'); return; }
       const gender = sim.a.gender;
       const changed = useToken(this.world, sim, msg.op, Number(msg.suite), typeof msg.faction === 'string' ? msg.faction : undefined);
       if (changed) this.sendInventory(client, sim);
@@ -466,8 +466,8 @@ export class MapRoom extends Room<{ state: MapState }> {
       const sim = this.simOf(client);
       const mapId = Number(msg?.mapId);
       if (!sim || mapId === this.state.mapId) return;
-      if (this.state.mapId === TK_BATTLE_MAP_ID) { this.notify(sim, 'Hãy dùng nút Rời chiến trường để về Điểm báo danh.'); return; }
-      if (mapId === TK_BATTLE_MAP_ID) { this.notify(sim, 'Hãy đến Điểm báo danh Tống Kim (323) và báo danh qua Mộ Binh Quan.'); return; }
+      if (isTkBattleMap(this.state.mapId)) { this.notify(sim, 'Hãy dùng nút Rời chiến trường để về Điểm báo danh.'); return; }
+      if (isTkBattleMap(mapId)) { this.notify(sim, 'Hãy đến Điểm báo danh Tống Kim (323) và báo danh qua Mộ Binh Quan.'); return; }
       if (!mapAvailable(mapId, true)) { this.notify(sim, 'Map đã tắt hoặc không còn tồn tại.'); return; }
       if (sim.dead) { this.notify(sim, 'Đang trọng thương, không thể đi xa.'); return; }
       // Map art + grid are generated per machine (npm run gen:maps); refuse maps that are not there yet.
@@ -480,7 +480,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     this.onMessage(C2S.train, (client, msg: TrainMsg) => {
       const sim = this.simOf(client);
       if (!sim || sim.dead || !sim.progress) return;
-      if (this.state.mapId === TK_BATTLE_MAP_ID) {
+      if (isTkBattleMap(this.state.mapId)) {
         if (!msg?.quiet) this.notify(sim, 'Không thể tự đổi bãi luyện công trong chiến trường Tống Kim.');
         return;
       }
@@ -515,7 +515,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     this.onMessage(C2S.respawn, client => {
       const sim = this.simOf(client);
       if (!sim?.dead) return;
-      if (this.state.mapId === TK_BATTLE_MAP_ID) {
+      if (isTkBattleMap(this.state.mapId)) {
         this.notify(sim, 'Trong Tống Kim sẽ tự động hồi sinh tại Hậu doanh sau 5 giây.');
         return;
       }
@@ -564,6 +564,9 @@ export class MapRoom extends Room<{ state: MapState }> {
       client.send(S2C.stash, { stash: userStash, money: user.stashMoney ?? 0, knb: user.stashKnb ?? 0 } satisfies StashMsg);
     }
     this.sendSkills(client, sim);
+    if (char.trainingReturn && !mapAvailable(char.trainingReturn.mapId)) {
+      db.updateCharacter(char.id, { trainingReturn: undefined });
+    }
     this.sendStats(client, sim);
     if (!char.equip) this.saveCharacter(sim); // persist the starter outfit
     chatOnline(char.owner);
@@ -585,10 +588,10 @@ export class MapRoom extends Room<{ state: MapState }> {
         return list.map(n => ({ x: entry.x + n.dx, y: entry.y + n.dy }));
       },
     });
-    if (this.state.mapId === TK_BATTLE_MAP_ID) {
+    if (isTkBattleMap(this.state.mapId)) {
       if (!tongKim.onEnterBattleMap(this.world, sim)) return;
     }
-    if (this.state.mapId === TK_SIGNUP_MAP_ID || this.state.mapId === TK_BATTLE_MAP_ID) {
+    if (this.state.mapId === TK_SIGNUP_MAP_ID || isTkBattleMap(this.state.mapId)) {
       client.send(S2C.tkState, tongKim.snapshotFor(char.id));
     }
   }
@@ -626,7 +629,7 @@ export class MapRoom extends Room<{ state: MapState }> {
   onLeave(client: Client): void {
     const sim = this.world.sims.get(client.sessionId);
     if (!sim) return; // already transferred
-    if (this.state.mapId === TK_BATTLE_MAP_ID) tongKim.onLeaveBattleMap(sim);
+    if (isTkBattleMap(this.state.mapId)) tongKim.onLeaveBattleMap(sim);
     marketOffline(sim);
     if (sim.charId) stallOffline(sim.charId, sim, false);
     this.saveCharacter(sim);
@@ -652,7 +655,7 @@ export class MapRoom extends Room<{ state: MapState }> {
 
   private tkBroadcastTimer = 0;
   private broadcastTkState(): void {
-    if (this.state.mapId !== TK_SIGNUP_MAP_ID && this.state.mapId !== TK_BATTLE_MAP_ID) return;
+    if (this.state.mapId !== TK_SIGNUP_MAP_ID && !isTkBattleMap(this.state.mapId)) return;
     const now = Date.now();
     for (const client of this.clients) {
       const sim = this.world.sims.get(client.sessionId);
@@ -669,6 +672,12 @@ export class MapRoom extends Room<{ state: MapState }> {
       if (!this.unavailable) { this.unavailable = true; void this.lock(); }
       const entry = MAPS[TOWN_MAP_ID].raw.entry;
       for (const sim of this.world.sims.values()) if (sim.kind === 'player') {
+        if (sim.charId) {
+          const ch = db.getCharacter(sim.charId);
+          if (ch?.trainingReturn && (ch.trainingReturn.mapId === this.state.mapId || !mapAvailable(ch.trainingReturn.mapId))) {
+            db.updateCharacter(sim.charId, { trainingReturn: undefined });
+          }
+        }
         this.notify(sim, 'Map đã tắt hoặc không còn tồn tại. Đang chuyển về Biện Kinh.');
         this.transfer(sim, TOWN_MAP_ID, entry.x, entry.y);
       }
@@ -679,7 +688,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     const events = this.world.takeEvents();
     if (events.length) this.broadcast(S2C.fx, events);
     if (PERF) this.recordPerf(performance.now() - t0, events.length);
-    if (this.state.mapId === TK_SIGNUP_MAP_ID || this.state.mapId === TK_BATTLE_MAP_ID) {
+    if (this.state.mapId === TK_SIGNUP_MAP_ID || isTkBattleMap(this.state.mapId)) {
       this.tkBroadcastTimer += dt;
       if (this.tkBroadcastTimer >= 1000) {
         this.tkBroadcastTimer = 0;
@@ -738,7 +747,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     if (!mapAvailable(mapId, true)) { this.notify(sim, 'Map đích đã tắt hoặc không còn tồn tại.'); return; }
     rememberTrainingReturn(sim, this.state.mapId, mapId);
     const client = this.clients.find(c => c.sessionId === sim.sessionId);
-    if (this.state.mapId === TK_BATTLE_MAP_ID && mapId !== TK_BATTLE_MAP_ID) tongKim.onLeaveBattleMap(sim);
+    if (isTkBattleMap(this.state.mapId) && mapId !== this.state.mapId) tongKim.onLeaveBattleMap(sim);
     this.saveCharacter(sim, { mapId, x, y });
     marketOffline(sim);
     stallOffline(sim.charId!, sim, true);

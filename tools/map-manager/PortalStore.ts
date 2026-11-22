@@ -33,4 +33,27 @@ export class PortalStore {
       return { portals, revision: this.revision(portals), custom: true };
     } finally { this.saving = false; }
   }
+
+  async replaceTkPortals(id: number, tkPortals: Portal[]) {
+    if (this.saving) throw Error('Đang lưu điểm chuyển map.');
+    this.saving = true;
+    try {
+      const m = this.meta(id);
+      const cfg = await this.config();
+      const existing = configuredPortals(id, this.defaults[id] ?? [], cfg).filter(
+        p => !p.id.startsWith('tk-tong-') && !p.id.startsWith('tk-kim-'),
+      );
+      const next = [...existing, ...tkPortals];
+      validatePortals(next, m, this.maps);
+      for (const p of tkPortals) {
+        if (!this.standable(id, p.x, p.y)) throw Error(`${p.label}: điểm đặt (${p.x}, ${p.y}) bị chặn.`);
+        if (!this.standable(p.toMap, p.toX, p.toY)) throw Error(`${p.label}: điểm đến (${p.toX}, ${p.toY}) bị chặn.`);
+      }
+      cfg.maps[String(id)] = next.map(p => ({ id: p.id, label: p.label.trim(), x: p.x, y: p.y, radius: p.radius, toMap: p.toMap, toX: p.toX, toY: p.toY }));
+      const tmp = `${this.file}.${randomUUID()}.tmp`;
+      try { await fs.mkdir(path.dirname(this.file), { recursive: true }); await fs.writeFile(tmp, JSON.stringify(cfg, null, 2) + '\n'); await fs.rename(tmp, this.file); }
+      finally { await fs.rm(tmp, { force: true }); }
+      return { portals: cfg.maps[String(id)], revision: this.revision(cfg.maps[String(id)]) };
+    } finally { this.saving = false; }
+  }
 }

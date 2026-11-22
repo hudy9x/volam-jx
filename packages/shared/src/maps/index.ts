@@ -1,5 +1,7 @@
 import { configuredPortals } from './portals.js';
 import customSource from './custom-maps.json';
+import disabledSource from './disabled-maps.json' with { type: 'json' };
+import navOverridesSource from './nav-overrides.json' with { type: 'json' };
 import { customMapMeta, validateMapRegistry, type MapRegistry } from './registry.js';
 import { decodeGrid, nearestWalkable } from './nav/grid.js';
 import type { GridDefinition, NavigationGrid } from './nav/types.js';
@@ -82,25 +84,109 @@ export const MAPS: Record<number, MapMeta> = Object.fromEntries(MAP_CATALOG.map(
 
 /** Runtime registry shared by the game and admin tools. Generated catalog stays untouched. */
 const originalIds = new Set(MAP_CATALOG.map(m => m.id));
+const disabledMapIds = new Set<number>();
+
+export interface DisabledMapsConfig {
+  version: 1;
+  disabled: number[];
+}
+
+export function applyDisabledMaps(value: unknown): void {
+  const cfg = value as Partial<DisabledMapsConfig> | null;
+  if (!cfg || cfg.version !== 1 || !Array.isArray(cfg.disabled)) throw Error('disabled-maps.json không hợp lệ.');
+  disabledMapIds.clear();
+  for (const rawId of cfg.disabled) {
+    const id = Math.round(Number(rawId));
+    if (Number.isInteger(id) && id > 0 && id !== TOWN_MAP_ID) disabledMapIds.add(id);
+  }
+  for (const m of Object.values(MAPS)) {
+    if (originalIds.has(m.id)) {
+      m.enabled = !disabledMapIds.has(m.id);
+    } else if (disabledMapIds.has(m.id)) {
+      m.enabled = false;
+    }
+  }
+}
+
 export function applyMapRegistry(value: unknown): void {
   validateMapRegistry(value, originalIds);
   const registry = value as MapRegistry;
   for (const id of Object.keys(MAPS).map(Number)) if (!originalIds.has(id) && !registry.maps[String(id)]) { delete MAPS[id]; clearMapNavigation(id); }
   for (const m of Object.values(registry.maps)) {
     if (MAPS[m.id]?.customBuild !== m.build) clearMapNavigation(m.id);
-    MAPS[m.id] = { ...customMapMeta(m), portals: configuredPortals(m.id, []) };
+    const meta = customMapMeta(m);
+    if (disabledMapIds.has(m.id)) meta.enabled = false;
+    MAPS[m.id] = { ...meta, portals: configuredPortals(m.id, []) };
   }
 }
-export const isMapEnabled = (id: number) => !!MAPS[id] && MAPS[id].enabled !== false;
+export const isMapEnabled = (id: number) => !!MAPS[id] && MAPS[id].enabled !== false && !disabledMapIds.has(id);
 export const mapAssetSuffix = (id: number) => `${id}${MAPS[id]?.customBuild ? '/' + MAPS[id].customBuild : ''}`;
 export * from './registry.js';
 
 // ======================= navigation grids (loaded on demand) =======================
 
+export interface MapNavOverride {
+  unblock?: number[];
+  block?: number[];
+}
+
+export interface NavOverridesConfig {
+  version: 1;
+  maps: Record<string, MapNavOverride>;
+}
+
+const navOverrides = new Map<number, { unblock: number[]; block: number[] }>();
+
+export function applyNavOverrides(value: unknown): void {
+  const cfg = value as Partial<NavOverridesConfig> | null;
+  if (!cfg || cfg.version !== 1 || !cfg.maps || typeof cfg.maps !== 'object' || Array.isArray(cfg.maps)) {
+    throw Error('nav-overrides.json không hợp lệ.');
+  }
+  const changed = new Set<number>(navOverrides.keys());
+  navOverrides.clear();
+  for (const [k, raw] of Object.entries(cfg.maps)) {
+    const id = Number(k);
+    if (!Number.isInteger(id) || id <= 0 || !raw || typeof raw !== 'object') continue;
+    const unblock = Array.isArray(raw.unblock) ? raw.unblock.filter(n => Number.isInteger(n) && n >= 0) : [];
+    const block = Array.isArray(raw.block) ? raw.block.filter(n => Number.isInteger(n) && n >= 0) : [];
+    if (unblock.length || block.length) {
+      navOverrides.set(id, { unblock, block });
+      changed.add(id);
+    }
+  }
+  for (const id of changed) grids.delete(id);
+}
+
+function encodeBase64Bytes(bytes: Uint8Array): string {
+  let out = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    out += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(out);
+}
+
+export function applyMapNavOverride(def: GridDefinition, mapId: number): GridDefinition {
+  const ov = navOverrides.get(mapId);
+  if (!ov || (!ov.unblock.length && !ov.block.length)) return def;
+  const raw = atob(def.blockedBase64);
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  const maxCells = bytes.length * 8;
+  for (const idx of ov.unblock) {
+    if (idx >= 0 && idx < maxCells) bytes[idx >> 3] &= ~(1 << (idx & 7));
+  }
+  for (const idx of ov.block) {
+    if (idx >= 0 && idx < maxCells) bytes[idx >> 3] |= (1 << (idx & 7));
+  }
+  return { ...def, blockedBase64: encodeBase64Bytes(bytes) };
+}
+
 let navLoader: ((mapId: number) => GridDefinition | null) | null = null;
 const navDefs = new Map<number, GridDefinition>();
 const grids = new Map<number, NavigationGrid>();
 export function clearMapNavigation(id: number): void { navDefs.delete(id); grids.delete(id); }
+applyDisabledMaps(disabledSource);
+applyNavOverrides(navOverridesSource);
 applyMapRegistry(customSource);
 
 /** Where grids come from: the server reads assets/maps/<id>/nav.json from disk. */
@@ -111,6 +197,7 @@ export function setNavLoader(loader: (mapId: number) => GridDefinition | null): 
 /** Hand over an already fetched grid (client tools). */
 export function registerNav(mapId: number, nav: GridDefinition): void {
   navDefs.set(mapId, nav);
+  grids.delete(mapId);
 }
 
 /** Is the grid of this map available without the loader (registered or already decoded)? */
@@ -126,7 +213,7 @@ export function getGrid(mapId: number): NavigationGrid {
     if (!meta) throw new Error(`Unknown map ${mapId}`);
     const def = navDefs.get(mapId) ?? navLoader?.(mapId);
     if (!def) throw new Error(`No navigation grid for map ${mapId} (run npm run gen:maps -w @vltk/client -- ${mapId})`);
-    grid = decodeGrid(def, meta.raw.size);
+    grid = decodeGrid(applyMapNavOverride(def, mapId), meta.raw.size);
     grids.set(mapId, grid);
   }
   return grid;

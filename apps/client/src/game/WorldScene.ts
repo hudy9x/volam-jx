@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import type { Room } from '@colyseus/sdk';
 import { Callbacks, CloseCode } from '@colyseus/sdk';
 import {
-  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, skillCategory, skillResourceCost, canPaySkillCost, equipError, TOWN_MAP_ID, TK_BATTLE_MAP_ID, pvpAllowed, type Camp,
+  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, skillCategory, skillResourceCost, canPaySkillCost, equipError, TOWN_MAP_ID, isTkBattleMap, pvpAllowed, type Camp,
   C2S, FACTIONS, ITEMS, MAPS, NPC_LINES, S2C, TOWN_NPCS, hasNav, registerNav,
   type FxEvent, type MapMeta, type NavFile, type NoticeMsg, type TownNpc, type TransferMsg,
 } from '@vltk/shared';
@@ -146,7 +146,7 @@ export class WorldScene extends Phaser.Scene {
     this.ui.show(this.meta, this.actions);
     this.ui.loading(null);
     // Chiến trường Tống Kim (378): mix luân phiên 6 bản nhạc chiến đấu; các map khác giữ nhạc gốc (musicset.txt).
-    if (this.meta.id === TK_BATTLE_MAP_ID) {
+    if (isTkBattleMap(this.meta.id)) {
       audio.playPlaylist(['music/music401', 'music/music402', 'music/music403', 'music/music404', 'music/music400', 'music/music500'], 93);
     } else {
       const music = MAP_MUSIC[this.meta.id];

@@ -1,3 +1,16 @@
+## 2026-11-22 · Đa-map Tống Kim: Chọn map trong Dialog & Trình cấu hình Tống Kim trên Map Manager
+
+- **USER yêu cầu:** cho phép custom nhiều map Tống Kim khác nhau (điểm tập trung doanh trại Tống/Kim, điểm nhảy từ doanh trại ra ngoài, điểm nhảy từ ngoài vào điểm tập trung, Nguyên Soái, tiền tuyến, lính) ngay trên Map Manager, và chọn map trong Dialog Tống Kim để bấm bắt đầu test là chơi được.
+- **Thay đổi:**
+  - `packages/shared/src/battle/tk-maps.json`, `tongkim.ts`, `protocol.ts`: tách cấu hình chiến trường khỏi hardcode map `378` thành `TK_MAPS` đọc từ `tk-maps.json`; thêm `validateTkBattleMap`, `applyTkMaps`, `isTkBattleMap`, `tkBattleMapOptions`; mở rộng `TkActionMsg.battleMapId` & `TkStateMsg.{battleMapId, availableMaps}`. Cho phép portal nội bộ Tống Kim (`tk-*` cùng map) trong `packages/shared/src/maps/portals.ts`.
+  - `apps/server/src/world/tongkim.ts`, `index.ts`, `World.ts`, `systems/portals.ts`, `inventory.ts`, `mapRegistry.ts`, `MapRoom.ts`: động hóa `TongKimManager.battleMapId` theo trận đang mở thay cho `TK_BATTLE_MAP_ID` cứng.
+  - `apps/client/src/ui/hud/tongkim.ts`, `tongkim.css`, `game/WorldScene.ts`: thêm dropdown chọn map Tống Kim ngay cạnh nút `Mở Nguyên Soái (Test)` / `Mở Cừu Sát (Test)` khi `devTools` bật; phát playlist nhạc Tống Kim cho mọi map trong `TK_MAPS`.
+  - `tools/bots/runner/TongKimBehavior.ts`: hỗ trợ đa-map, tự sinh 3 mũi tiến công từ `gateExit` tới `marshal` địch cho các map custom mới.
+  - `tools/map-manager/{TkMapStore.ts,PortalStore.ts,DisabledMapStore.ts,NavOverrideStore.ts,server.ts,ui/{TkEditor.ts,NavEditor.ts,index.html,main.ts,main.css}}`: thêm tab **Tống Kim (`K`)**; bổ sung bộ lọc **Loại bản đồ** (tách riêng **Đơn đấu**); thêm công cụ **Sửa vùng chặn (`N`)** (cọ tẩy/vẽ ô `32×16`, lưu vào `packages/shared/src/maps/nav-overrides.json` không bị mất khi `gen:maps`) và nút **Tắt/Bật map** (lưu vào `packages/shared/src/maps/disabled-maps.json`, trừ Biện Kinh `37`).
+  - `packages/shared/src/maps/{index.ts,disabled-maps.json,nav-overrides.json}`, `apps/server/src/{mapRegistry.ts,world/trainingReturn.ts,net/MapRoom.ts}`: áp `nav-overrides.json` và `disabled-maps.json` dùng chung; khi map bị tắt thì ẩn khỏi danh sách map người chơi, tự chuyển người đang ở map đó về Biện Kinh (`37`) và xóa `trainingReturn` trỏ vào map bị tắt.
+  - `tests/tong-kim.test.ts`: bổ sung test đa-map `TK_MAPS`/`TongKimManager` và `TkMapStore`/`PortalStore.replaceTkPortals`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**19/19 pass**), `npm run test:map-manager` (**9/9 pass**), `npm run test:map-portals` (**3/3 pass**), `npm run build` & `git diff --check` đạt. Chưa kiểm tra tương tác UI Map Manager trực tiếp bằng trình duyệt thật lượt này. Cần restart server & reload client (và restart `npm run map:manager` nếu đang mở) để nhận thay đổi. Chưa commit/push.
+
 ## 2026-11-22 · Bổ sung option Ngựa 150 ngẫu nhiên & Ngũ Hoa Ngọc Lộ Hoàn max 60 lọ vào Lệnh bài (đã commit)
 
 - **USER yêu cầu:** trong Lệnh bài, bổ sung thêm option: (1) mua ngựa 150 — random 1 con trong Bôn Tiêu, Phiên Vũ, Dương Sa; (2) mua Ngũ Hoa Ngọc Lộ Hoàn max ×60 lọ.
