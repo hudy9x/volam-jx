@@ -1,4 +1,5 @@
 import {
+  MAPS,
   TK_BATTLE_MAP_ID,
   TK_CAMP_NAMES,
   TK_MODE_NAMES,
@@ -10,6 +11,7 @@ import {
   type TkCamp,
   type TkStateMsg,
 } from '@vltk/shared';
+import { assetUrl } from '../../art/assets';
 import { tkState } from '../../state/tongkim';
 import { mount } from '../kit/dom';
 import './tongkim.css';
@@ -50,6 +52,7 @@ export class TongKimHud {
   private selectedBattleMapId = TK_BATTLE_MAP_ID;
   private send: ((msg: TkActionMsg) => void) | null = null;
   private panelOpen = false;
+  private lastBoardHtml = '';
   private unsub: () => void;
   private readonly onKeyDown: (e: KeyboardEvent) => void;
 
@@ -61,13 +64,6 @@ export class TongKimHud {
     this.toggleBtn.addEventListener('click', () => {
       this.panelOpen = !this.panelOpen;
       this.render();
-    });
-    this.boardModal.addEventListener('change', e => {
-      const sel = (e.target as HTMLElement | null)?.closest<HTMLSelectElement>('[data-tk-map-select]');
-      if (sel) {
-        const id = Number(sel.value);
-        if (Number.isInteger(id) && id > 0) this.selectedBattleMapId = id;
-      }
     });
     this.boardModal.addEventListener('click', e => {
       const target = e.target as HTMLElement | null;
@@ -102,8 +98,9 @@ export class TongKimHud {
   bind(mapId: number, send: (msg: TkActionMsg) => void): void {
     this.mapId = mapId;
     this.send = send;
-    // Ở map báo danh (323) mở sẵn để dễ thao tác; ở map chiến trường (378) thu gọn, nhấn phím ` để bật/tắt.
-    this.panelOpen = mapId === TK_SIGNUP_MAP_ID;
+    // Mặc định luôn thu gọn khi vào map báo danh (323) hoặc chiến trường; nhấn phím ` hoặc nút Tống Kim để mở.
+    this.panelOpen = false;
+    this.lastBoardHtml = '';
     this.boardModal.classList.add('hidden');
     this.endModal.classList.add('hidden');
     this.render();
@@ -125,6 +122,15 @@ export class TongKimHud {
   }
 
   private onClick(e: Event): void {
+    const mapBtn = (e.target as HTMLElement | null)?.closest<HTMLElement>('[data-tk-map]');
+    if (mapBtn) {
+      const id = Number(mapBtn.dataset.tkMap);
+      if (Number.isInteger(id) && id > 0) {
+        this.selectedBattleMapId = id;
+        this.render();
+      }
+      return;
+    }
     const btn = (e.target as HTMLElement | null)?.closest<HTMLElement>('[data-tk-act]');
     if (!btn || !this.send) return;
     const act = btn.dataset.tkAct;
@@ -175,6 +181,7 @@ export class TongKimHud {
         actions.push(`<button type="button" class="btn sm" data-tk-act="regTong">Vào Tống</button>`);
         actions.push(`<button type="button" class="btn sm" data-tk-act="regKim">Vào Kim</button>`);
       }
+      let mapPickerHtml = '';
       if (st.devTools) {
         if (st.phase === 'closed') {
           const mapChoices = st.availableMaps?.length ? st.availableMaps : tkBattleMapOptions();
@@ -182,10 +189,17 @@ export class TongKimHud {
             this.selectedBattleMapId = mapChoices.some(m => m.id === st.battleMapId) ? st.battleMapId : mapChoices[0].id;
           }
           if (mapChoices.length) {
-            const optsHtml = mapChoices.map(m =>
-              `<option value="${m.id}"${m.id === this.selectedBattleMapId ? ' selected' : ''}>${m.id} · ${m.name}</option>`
-            ).join('');
-            actions.push(`<select class="tk-map-select" data-tk-map-select aria-label="Chọn map Tống Kim">${optsHtml}</select>`);
+            const cardsHtml = mapChoices.map(m => {
+              const base = MAPS[m.id]?.assets ?? `assets/maps/${m.id}`;
+              const thumb = assetUrl(`${base}/thumb.webp`);
+              const mini = assetUrl(`${base}/minimap.webp`);
+              const sel = m.id === this.selectedBattleMapId ? ' selected' : '';
+              return `<button type="button" class="tk-map-card${sel}" data-tk-map="${m.id}" aria-pressed="${m.id === this.selectedBattleMapId}">
+                <img src="${thumb}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${mini}'">
+                <span class="tk-map-card-name"><b>${m.id}</b> · ${m.name}</span>
+              </button>`;
+            }).join('');
+            mapPickerHtml = `<div class="tk-map-grid" role="group" aria-label="Chọn chiến trường Tống Kim">${cardsHtml}</div>`;
           }
           actions.push(`<button type="button" class="btn sm" data-tk-act="devStart1">Mở Nguyên Soái (Test)</button>`);
           actions.push(`<button type="button" class="btn sm" data-tk-act="devStart2">Mở Cừu Sát (Test)</button>`);
@@ -237,7 +251,7 @@ export class TongKimHud {
         ? `Tống Kim · ${phaseLabel(st.phase)}`
         : `Tống Kim · ${TK_MODE_NAMES[st.mode]} · ${phaseLabel(st.phase)} (${fmtTime(st.remainSec)})`;
 
-      this.boardModal.innerHTML = `
+      const nextHtml = `
         <div class="dlg tk-board-box">
           <div class="dlg-head">
             <span class="coin"></span>
@@ -255,12 +269,17 @@ export class TongKimHud {
               </div>` : ''}
               ${marshalRow}
               ${meRow}
+              ${mapPickerHtml}
               ${actions.length ? `<div class="tk-actions">${actions.join('')}</div>` : ''}
             </div>
             ${boardSection}
           </div>
         </div>
       `;
+      if (nextHtml !== this.lastBoardHtml) {
+        this.lastBoardHtml = nextHtml;
+        this.boardModal.innerHTML = nextHtml;
+      }
     }
 
     this.renderEndDialog(st, isBattle);

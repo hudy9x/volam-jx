@@ -1,4 +1,14 @@
-## 2026-11-22 · Đa-map Tống Kim: Chọn map trong Dialog & Trình cấu hình Tống Kim trên Map Manager
+## 2026-11-22 · Dialog Tống Kim: Lưới chọn chiến trường có ảnh preview & Không tự mở khi vào báo danh
+
+- **USER yêu cầu:** commit code trước đó (`beb81c9`); sửa lỗi không select được chiến trường trong Dialog Tống Kim, đổi sang hiển thị ảnh preview + tên chiến trường theo lưới 2 cột mỗi hàng ở trên, 2 nút `Mở Nguyên Soái (Test)` / `Mở Cừu Sát (Test)` ở hàng cuối, và không tự động mở dialog khi vào điểm báo danh `323` (chỉ mở khi ấn `` ` `` hoặc nút Tống Kim).
+- **Thay đổi:**
+  - `apps/client/src/ui/hud/tongkim.ts`, `tongkim.css`:
+    - Nguyên nhân lỗi `<select>`: `tkState` broadcast mỗi 1 giây làm `render()` gán lại `innerHTML` nên popup `<select>` bị hủy khỏi DOM ngay khi mở. Đã thay bằng lưới thẻ `.tk-map-grid` (2 cột/hàng) hiển thị ảnh `thumb.webp` (fallback `minimap.webp`) + tên chiến trường, kèm cache `lastBoardHtml` để không re-render khi nội dung không đổi.
+    - Đặt 2 nút `Mở Nguyên Soái (Test)` / `Mở Cừu Sát (Test)` ở `.tk-actions` hàng cuối bên dưới lưới chiến trường.
+    - Đặt `this.panelOpen = false` trong `bind()` để không tự mở dialog khi vào map báo danh `323`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run build` & `git diff --check` đạt. Cần reload client để nhận UI mới. Chưa commit/push.
+
+## 2026-11-22 · Đa-map Tống Kim: Chọn map trong Dialog & Trình cấu hình Tống Kim trên Map Manager (đã commit `beb81c9`)
 
 - **USER yêu cầu:** cho phép custom nhiều map Tống Kim khác nhau (điểm tập trung doanh trại Tống/Kim, điểm nhảy từ doanh trại ra ngoài, điểm nhảy từ ngoài vào điểm tập trung, Nguyên Soái, tiền tuyến, lính) ngay trên Map Manager, và chọn map trong Dialog Tống Kim để bấm bắt đầu test là chơi được.
 - **Thay đổi:**
