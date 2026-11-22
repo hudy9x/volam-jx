@@ -141,6 +141,7 @@ export class TkEditor {
 
   private bindPanel(): void {
     $('tk-init').onclick = () => this.initDefault();
+    $('tk-auto-army').onclick = () => this.autoPopulateArmies();
     document.querySelectorAll<HTMLButtonElement>('[data-tk-camp]').forEach(btn => {
       btn.onclick = () => {
         this.camp = btn.dataset.tkCamp === 'kim' ? 'kim' : 'tong';
@@ -241,12 +242,110 @@ export class TkEditor {
     $('tk-summary').textContent = `${this.camp === 'tong' ? 'Đại Tống' : 'Đại Kim'} · ${this.dirty ? 'Chưa lưu' : 'Đã nạp bản lưu'}`;
   }
 
+  private autoPopulateArmies(): void {
+    if (!this.config) return;
+    const tExit = this.config.tong.gateExit;
+    const kExit = this.config.kim.gateExit;
+    const tSpawn = this.config.tong.spawn;
+    const kSpawn = this.config.kim.spawn;
+    const tSafe = this.config.tong.safeRadius + 100;
+    const kSafe = this.config.kim.safeRadius + 100;
+    const dx = kExit.x - tExit.x;
+    const dy = kExit.y - tExit.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len;
+    const ny = dx / len;
+    const midX = (tExit.x + kExit.x) / 2;
+    const midY = (tExit.y + kExit.y) / 2;
+    const wing = Math.min(1800, Math.max(450, len * 0.16));
+
+    const inAnySafe = (p: TkPoint) =>
+      Math.hypot(p.x - tSpawn.x, (p.y - tSpawn.y) * 2) <= tSafe ||
+      Math.hypot(p.x - kSpawn.x, (p.y - kSpawn.y) * 2) <= kSafe;
+
+    const pickValid = (x: number, y: number): TkPoint => {
+      let pt = this.nearestWalkable(Math.round(x), Math.round(y));
+      if (!inAnySafe(pt)) return pt;
+      for (const step of [0.25, 0.5, 0.75, 1]) {
+        pt = this.nearestWalkable(Math.round(x + (midX - x) * step), Math.round(y + (midY - y) * step));
+        if (!inAnySafe(pt)) return pt;
+      }
+      return pt;
+    };
+
+    const buildSide = (from: TkPoint, to: TkPoint) => {
+      const vx = to.x - from.x;
+      const vy = to.y - from.y;
+      const at = (t: number, side = 0) => pickValid(from.x + vx * t + nx * side, from.y + vy * t + ny * side * 0.65);
+
+      const npcSpawns: { role: NpcGroupRole; x: number; y: number; count: number; radius: number }[] = [
+        // Lớp bảo vệ cổng / Nguyên Soái
+        { role: 'general', ...at(0.08, 0), count: 1, radius: 80 },
+        { role: 'deputy', ...at(0.16, 0), count: 2, radius: 180 },
+        { role: 'commander', ...at(0.24, 0), count: 2, radius: 180 },
+        // Trung lộ
+        { role: 'soldier', ...at(0.22, 0), count: 6, radius: 300 },
+        { role: 'captain', ...at(0.32, 0), count: 2, radius: 220 },
+        { role: 'soldier', ...at(0.40, 0), count: 8, radius: 380 },
+        { role: 'captain', ...at(0.45, 0), count: 2, radius: 220 },
+        // Cánh trái
+        { role: 'soldier', ...at(0.28, wing), count: 6, radius: 300 },
+        { role: 'captain', ...at(0.36, wing), count: 2, radius: 200 },
+        { role: 'commander', ...at(0.42, wing * 0.8), count: 1, radius: 160 },
+        // Cánh phải
+        { role: 'soldier', ...at(0.28, -wing), count: 6, radius: 300 },
+        { role: 'captain', ...at(0.36, -wing), count: 2, radius: 200 },
+        { role: 'commander', ...at(0.42, -wing * 0.8), count: 1, radius: 160 },
+      ];
+
+      const frontlines: TkPoint[] = [
+        at(0.34, 0),
+        at(0.42, 0),
+        at(0.36, wing * 0.7),
+        at(0.44, wing * 0.5),
+        at(0.36, -wing * 0.7),
+        at(0.44, -wing * 0.5),
+      ];
+      return { npcSpawns, frontlines };
+    };
+
+    const tongArmy = buildSide(tExit, kExit);
+    const kimArmy = buildSide(kExit, tExit);
+    this.config.tong.npcSpawns = tongArmy.npcSpawns;
+    this.config.tong.frontlines = tongArmy.frontlines;
+    this.config.kim.npcSpawns = kimArmy.npcSpawns;
+    this.config.kim.frontlines = kimArmy.frontlines;
+    this.selectedNpc = -1;
+    this.dirty = true;
+    this.syncPanel();
+    this.refresh();
+  }
+
   private hitTest(wx: number, wy: number, zoom: number): DragItem | null {
     if (!this.config) return null;
-    const hitR = Math.max(24, 14 / zoom);
+    const hitR = Math.max(18, (this.tool === 'npc' || this.tool === 'frontline' ? 10 : 13) / zoom);
     const hit = (p: TkPoint | null) => p && Math.hypot(p.x - wx, p.y - wy) <= hitR;
     // Ưu tiên kiểm tra phe đang chọn trước
     const camps: TkCamp[] = this.camp === 'tong' ? ['tong', 'kim'] : ['kim', 'tong'];
+    // Khi đang đặt cụm NPC hoặc Tiền tuyến, chỉ bắt dính đúng loại đó để không bị điểm khác cướp click
+    if (this.tool === 'npc') {
+      for (const c of camps) {
+        const cfg = this.config[c];
+        for (let i = cfg.npcSpawns.length - 1; i >= 0; i--) {
+          if (hit(cfg.npcSpawns[i])) return { kind: 'npc', camp: c, index: i };
+        }
+      }
+      return null;
+    }
+    if (this.tool === 'frontline') {
+      for (const c of camps) {
+        const cfg = this.config[c];
+        for (let i = cfg.frontlines.length - 1; i >= 0; i--) {
+          if (hit(cfg.frontlines[i])) return { kind: 'frontline', camp: c, index: i };
+        }
+      }
+      return null;
+    }
     for (const c of camps) {
       const cfg = this.config[c];
       if (hit(cfg.spawn)) return { kind: 'spawn', camp: c };

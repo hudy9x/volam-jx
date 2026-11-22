@@ -3,6 +3,7 @@ import {
   DEFAULT_BOT_TONGKIM,
   DROPS,
   ITEMS,
+  MAPS,
   SHOP_ITEMS,
   TK_BATTLE_MAP_ID,
   TK_MAP_LAYOUT,
@@ -62,15 +63,33 @@ function lanesFor(battleMapId: number, camp: TkCamp): readonly (readonly { x: nu
   ];
 }
 
-const OUTGOING_PORTAL: Record<TkCamp, { x: number; y: number }> = {
+const OUTGOING_PORTAL_378: Record<TkCamp, { x: number; y: number }> = {
   tong: { x: 3088, y: 9072 },
   kim: { x: 16480, y: 1904 },
 };
 
-const BACK_PORTAL: Record<TkCamp, { x: number; y: number }> = {
+const BACK_PORTAL_378: Record<TkCamp, { x: number; y: number }> = {
   tong: { x: 4592, y: 8080 },
   kim: { x: 14088, y: 3088 },
 };
+
+function outgoingPortalFor(mapId: number, camp: TkCamp): { point: { x: number; y: number }; hasPortal: boolean } {
+  const portal = MAPS[mapId]?.portals.find(p => p.id === `tk-${camp}-out`);
+  if (portal) return { point: { x: portal.x, y: portal.y }, hasPortal: true };
+  if (mapId === 378) return { point: OUTGOING_PORTAL_378[camp], hasPortal: true };
+  const cfg = tkMapLayout(mapId);
+  if (cfg) return { point: cfg[camp].spawn, hasPortal: false };
+  return { point: OUTGOING_PORTAL_378[camp], hasPortal: false };
+}
+
+function backPortalFor(mapId: number, camp: TkCamp): { x: number; y: number } {
+  const portal = MAPS[mapId]?.portals.find(p => p.id === `tk-${camp}-back`);
+  if (portal) return { x: portal.x, y: portal.y };
+  if (mapId === 378) return BACK_PORTAL_378[camp];
+  const cfg = tkMapLayout(mapId);
+  if (cfg) return cfg[camp].gateExit;
+  return BACK_PORTAL_378[camp];
+}
 
 const KHINH_CONG_ID = 210;
 
@@ -198,9 +217,9 @@ export class TongKimBehavior implements Behavior {
       if (!st || st.phase !== 'fighting' || (st.me?.gateWaitSec ?? 0) > 0) return;
       if (now >= this.nextCampExitAt) {
         this.nextCampExitAt = now + 2200 + this.bot.rand() * 800;
-        const p = OUTGOING_PORTAL[myCamp];
+        const { point: p, hasPortal } = outgoingPortalFor(this.bot.mapId, myCamp);
         this.bot.send(C2S.move, { x: p.x, y: p.y });
-        if (isoDistance(me.x, me.y, p.x, p.y) < 150) {
+        if (!hasPortal || isoDistance(me.x, me.y, p.x, p.y) < 150) {
           this.bot.send(C2S.tkAction, { op: 'exitGate' });
         }
       }
@@ -500,7 +519,7 @@ export class TongKimBehavior implements Behavior {
       vx += (me.x - e.x) / e.dist;
       vy += (me.y - e.y) / e.dist;
     }
-    const home = BACK_PORTAL[myCamp];
+    const home = backPortalFor(this.bot.mapId, myCamp);
     const hDist = Math.max(1, isoDistance(me.x, me.y, home.x, home.y));
     vx += ((home.x - me.x) / hDist) * 0.4;
     vy += ((home.y - me.y) / hDist) * 0.4;
@@ -526,7 +545,7 @@ export class TongKimBehavior implements Behavior {
     if (!canBuyHp) return false;
     if (now >= this.nextMoveAt) {
       this.nextMoveAt = now + 800;
-      const back = BACK_PORTAL[myCamp];
+      const back = backPortalFor(this.bot.mapId, myCamp);
       this.bot.send(C2S.move, { x: back.x, y: back.y });
     }
     return true;

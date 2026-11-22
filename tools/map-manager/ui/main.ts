@@ -10,7 +10,7 @@ import { TkEditor, type TkDocument } from './TkEditor.js';
 import { NavEditor, type NavOverrideDoc } from './NavEditor.js';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const field = (id: string) => $<HTMLInputElement>(id);
-interface Town { id: number; name: string; type?: string; size: { width: number; height: number }; entry: { x: number; y: number }; available: boolean; enabled?: boolean; group: 'city' | 'training'; editable: boolean; battlefield?: boolean }
+interface Town { id: number; name: string; type?: string; size: { width: number; height: number }; entry: { x: number; y: number }; available: boolean; enabled?: boolean; group: 'city' | 'training'; editable: boolean; npcEditable?: boolean; battlefield?: boolean }
 interface Template { id: string; name: string; res: string; action: NpcPlacement['action']; dir: number }
 interface Look { res: string; label: string; available: boolean; directions: number; width: number; height: number; anchorX: number; anchorY: number }
 interface MapJson { regionSize: number; cols: number; rows: number; chunk: number; regions: string; chunks: string[] }
@@ -63,7 +63,7 @@ async function run(task: () => Promise<void>) {
 }
 function controls() {
   $('map-list').querySelectorAll<HTMLButtonElement>('button[data-map]').forEach(b => { b.disabled = busy || b.dataset.available !== 'true'; });
-  $<HTMLButtonElement>('save').disabled = !(mode === 'portals' || mode === 'spawns' || mode === 'nav' ? town?.available : mode === 'tongkim' ? (town?.available && !!tk.config) : town?.editable) || busy || mode === 'portals' && portals.loading;
+  $<HTMLButtonElement>('save').disabled = !(mode === 'portals' || mode === 'nav' ? town?.available : mode === 'spawns' ? (town?.available && !town?.battlefield) : mode === 'tongkim' ? (town?.available && !!tk.config) : mode === 'npc' ? town?.npcEditable : town?.editable) || busy || mode === 'portals' && portals.loading;
   const toggleBtn = $<HTMLButtonElement>('toggle-enabled');
   toggleBtn.hidden = !town;
   if (town) {
@@ -73,8 +73,8 @@ function controls() {
     toggleBtn.title = town.id === 37 ? 'Không thể tắt Biện Kinh (map an toàn mặc định).' : isEnabled ? 'Ẩn map khỏi danh sách người chơi và chuyển người đang ở đây về Biện Kinh.' : 'Mở lại map cho người chơi vào.';
   }
   $<HTMLButtonElement>('reload').disabled = !town || busy;
-  $<HTMLFieldSetElement>('add-fields').disabled = !town?.editable || busy;
-  $<HTMLFieldSetElement>('edit-fields').disabled = !current() || busy;
+  $<HTMLFieldSetElement>('add-fields').disabled = !town?.npcEditable || busy;
+  $<HTMLFieldSetElement>('edit-fields').disabled = !town?.npcEditable || !current() || busy;
   $<HTMLButtonElement>('map-view').disabled = !town || busy;
   $<HTMLButtonElement>('blocked').disabled = !town || busy;
   $('blocked').setAttribute('aria-pressed', String(showBlocked));
@@ -82,9 +82,11 @@ function controls() {
   $<HTMLButtonElement>('npc-detail').disabled = !current() || busy;
   $('npc-panel').hidden = mode !== 'npc';
   $('zones-panel').hidden = mode !== 'zones';
-  $('spawn-summary').textContent = `${spawns.file.zones.filter(z => z.boss !== true && z.boss !== 2).length} khu · ${spawns.file.fixed?.length ?? 0} điểm cố định cũ được giữ · ${spawns.dirty ? 'Chưa lưu' : 'Đã nạp bản lưu'}`;
+  $('spawn-summary').textContent = town?.battlefield
+    ? 'Chiến trường Tống Kim sinh quân riêng 2 phe Tống/Kim trong tab Tống Kim (K).'
+    : `${spawns.file.zones.filter(z => z.boss !== true && z.boss !== 2).length} khu · ${spawns.file.fixed?.length ?? 0} điểm cố định cũ được giữ · ${spawns.dirty ? 'Chưa lưu' : 'Đã nạp bản lưu'}`;
   $('spawns-panel').hidden = mode !== 'spawns';
-  $<HTMLFieldSetElement>('spawns-panel').disabled = !town || busy;
+  $<HTMLFieldSetElement>('spawns-panel').disabled = !town || !!town.battlefield || busy;
   $('portals-panel').hidden = mode !== 'portals';
   $<HTMLFieldSetElement>('portals-panel').disabled = !town || busy;
   $('tongkim-panel').hidden = mode !== 'tongkim';
@@ -141,7 +143,7 @@ function renderList() {
     b.onclick = () => { if (busy) return; selected = n.id; inspector(); renderList(); controls(); draw(); };
     return b;
   }));
-  if (!visible.length) $('npc-list').textContent = town && !town.editable ? 'Chọn công cụ Quái / Boss Xanh để chỉnh khu sinh quái.' : npcs.length ? 'Không có NPC khớp tìm kiếm.' : 'Chưa có NPC. Chọn chức năng bên dưới để thêm.';
+  if (!visible.length) $('npc-list').textContent = town && !town.npcEditable ? 'Chọn công cụ Quái / Boss Xanh để chỉnh khu sinh quái.' : npcs.length ? 'Không có NPC khớp tìm kiếm.' : 'Chưa có NPC. Chọn chức năng bên dưới để thêm.';
 }
 function inspector() {
   const n = current(); $('edit-fields').hidden = !n; $('no-selection').hidden = !!n;
@@ -166,8 +168,8 @@ function positionStatus() {
   const n = current(); $('position').textContent = n ? `${n.name} · ${standable(n.x, n.y) ? 'Đi được' : 'Vị trí bị chặn'}` : 'Chưa chọn NPC';
 }
 function change(edit: () => void) {
-  if (!town?.editable || busy) return; const old = structuredClone(npcs); edit();
-  try { validatePlacements(npcs, { type: 'City', raw: { size: town.size } } as MapMeta, new Set(looks.map(l => l.res))); }
+  if (!town?.npcEditable || busy) return; const old = structuredClone(npcs); edit();
+  try { validatePlacements(npcs, { type: town.battlefield ? 'Battlefield' : 'City', raw: { size: town.size } } as MapMeta, new Set(looks.map(l => l.res))); }
   catch (e) { npcs = old; inspector(); status((e as Error).message, true); return; }
   dirty = true; renderList(); inspector(); controls(); draw();
 }
@@ -175,7 +177,7 @@ async function openTown(id: number) {
   const t = towns.find(t => t.id === id); if (!t?.available) throw Error('Map này chưa có tài nguyên. Hãy sinh map trước.');
   const e = ++epoch;
   const [data, map, navFile, zoneDoc, portalDoc, spawnDoc, tkDoc, navOvDoc] = await Promise.all([
-    t.editable ? api<{ npcs: NpcPlacement[]; revision: string }>(`/api/maps/${id}/npcs`) : Promise.resolve({ npcs: [] as NpcPlacement[], revision: '' }),
+    t.npcEditable ? api<{ npcs: NpcPlacement[]; revision: string }>(`/api/maps/${id}/npcs`) : Promise.resolve({ npcs: [] as NpcPlacement[], revision: '' }),
     api<MapJson>(`/assets/maps/${id}/map.json`),
     api<{ navigation: NonNullable<typeof nav> }>(`/assets/maps/${id}/nav.json`),
     t.editable ? api<ZoneDocument>(`/api/maps/${id}/safe-zones`) : Promise.resolve({ zones: [], custom: false, revision: '' }),
@@ -291,6 +293,7 @@ canvas.addEventListener('pointerdown', e => {
     e.preventDefault(); return;
   }
   if (mode === 'spawns' && !pan && e.button === 0) {
+    if (town.battlefield) { status('Chiến trường Tống Kim sinh quân 2 phe trong tab Tống Kim (K).'); return; }
     if (spawns.down(p, zoom)) { drag = { id: e.pointerId, pan: false, spawn: true, clientX: e.clientX, clientY: e.clientY, x: p.x, y: p.y, panX, panY }; canvas.setPointerCapture(e.pointerId); }
     e.preventDefault(); return;
   }
@@ -389,6 +392,7 @@ async function save() {
     return;
   }
   if (mode === 'spawns') {
+    if (town.battlefield) return;
     const data = await api<SpawnDocument>(`/api/maps/${town.id}/spawns`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ file: spawns.file, revision: spawns.revision }) });
     spawns.saved(data); status('Đã lưu điểm sinh quái. Khởi động lại server game để nhận cấu hình mới.'); return;
   }
@@ -396,12 +400,13 @@ async function save() {
     const data = await api<PortalDocument>(`/api/maps/${town.id}/portals`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ portals: portals.portals, revision: portals.revision }) });
     portals.saved(data); status('Đã lưu điểm chuyển. Khởi động lại server và tải lại client; production cần build lại.'); return;
   }
-  if (!town.editable) return;
   if (mode === 'zones') {
+    if (!town.editable) return;
     const zones = pen.value();
     const data = await api<ZoneDocument>(`/api/maps/${town.id}/safe-zones`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ zones, revision: pen.revision }) });
     pen.saved(data); status('Đã ghi vùng an toàn vào mã nguồn. Khởi động lại server và tải lại client để nhận cấu hình mới; bản production cần build lại.'); return;
   }
+  if (!town.npcEditable) return;
   const data = await api<{ npcs: NpcPlacement[]; revision: string }>(`/api/maps/${town.id}/npcs`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ npcs, revision }) });
   npcs = data.npcs; revision = data.revision; dirty = false; renderList(); inspector();
   status('Đã ghi cấu hình NPC vào mã nguồn game. Game dev có thể reload; bản game đã build cần build lại và tải lại client.');

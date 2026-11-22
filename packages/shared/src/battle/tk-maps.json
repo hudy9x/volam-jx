@@ -368,11 +368,123 @@
         },
         "frontlines": [
           {
-            "x": 4578,
-            "y": 8305
+            "x": 4435,
+            "y": 9545
+          },
+          {
+            "x": 4212,
+            "y": 8840
+          },
+          {
+            "x": 5653,
+            "y": 9361
+          },
+          {
+            "x": 5788,
+            "y": 8632
+          },
+          {
+            "x": 3666,
+            "y": 9410
+          },
+          {
+            "x": 3697,
+            "y": 8702
           }
         ],
-        "npcSpawns": []
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 4588,
+            "y": 11765,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 4579,
+            "y": 11094,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 4525,
+            "y": 10401,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 4539,
+            "y": 10574,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 4460,
+            "y": 9722,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 4270,
+            "y": 9045,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 4207,
+            "y": 8543,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 5817,
+            "y": 9950,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 5832,
+            "y": 9291,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 5770,
+            "y": 8784,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 3112,
+            "y": 10124,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 2994,
+            "y": 9431,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 3743,
+            "y": 8896,
+            "count": 1,
+            "radius": 160
+          }
+        ]
       },
       "kim": {
         "spawn": {
@@ -390,11 +502,123 @@
         },
         "frontlines": [
           {
-            "x": 4578,
-            "y": 8305
+            "x": 4723,
+            "y": 6760
+          },
+          {
+            "x": 4713,
+            "y": 7454
+          },
+          {
+            "x": 5227,
+            "y": 6884
+          },
+          {
+            "x": 5004,
+            "y": 7592
+          },
+          {
+            "x": 3048,
+            "y": 7031
+          },
+          {
+            "x": 3617,
+            "y": 7662
           }
         ],
-        "npcSpawns": []
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 4068,
+            "y": 4410,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 3826,
+            "y": 5261,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 4016,
+            "y": 5893,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 4044,
+            "y": 5744,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 4677,
+            "y": 6587,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 4756,
+            "y": 7378,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 4765,
+            "y": 7714,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 5589,
+            "y": 6170,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 5557,
+            "y": 6966,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 5406,
+            "y": 7398,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 2609,
+            "y": 6353,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 2869,
+            "y": 7003,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 3187,
+            "y": 7510,
+            "count": 1,
+            "radius": 160
+          }
+        ]
       }
     },
     "868": {
@@ -416,11 +640,123 @@
         },
         "frontlines": [
           {
-            "x": 12544,
-            "y": 8960
+            "x": 11184,
+            "y": 10356
+          },
+          {
+            "x": 12193,
+            "y": 9535
+          },
+          {
+            "x": 12366,
+            "y": 10854
+          },
+          {
+            "x": 13361,
+            "y": 9784
+          },
+          {
+            "x": 9804,
+            "y": 9505
+          },
+          {
+            "x": 11579,
+            "y": 8795
           }
         ],
-        "npcSpawns": []
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 7127,
+            "y": 12929,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 9005,
+            "y": 12120,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 10388,
+            "y": 11332,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 9317,
+            "y": 11452,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 10931,
+            "y": 10533,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 11948,
+            "y": 9779,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 12456,
+            "y": 9235,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 11663,
+            "y": 11786,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 12530,
+            "y": 11033,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 13019,
+            "y": 10254,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 9267,
+            "y": 10034,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 9874,
+            "y": 9235,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 11116,
+            "y": 8804,
+            "count": 1,
+            "radius": 160
+          }
+        ]
       },
       "kim": {
         "spawn": {
@@ -438,11 +774,123 @@
         },
         "frontlines": [
           {
-            "x": 12544,
-            "y": 8960
+            "x": 14972,
+            "y": 7139
+          },
+          {
+            "x": 13541,
+            "y": 7839
+          },
+          {
+            "x": 16603,
+            "y": 8187
+          },
+          {
+            "x": 14690,
+            "y": 8756
+          },
+          {
+            "x": 14232,
+            "y": 7079
+          },
+          {
+            "x": 13379,
+            "y": 7779
           }
         ],
-        "npcSpawns": []
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 18201,
+            "y": 4486,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 17129,
+            "y": 5581,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 16171,
+            "y": 6140,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 16474,
+            "y": 5940,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 15212,
+            "y": 6939,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 13870,
+            "y": 7658,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 13361,
+            "y": 8384,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 16844,
+            "y": 7438,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 16202,
+            "y": 8395,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 14814,
+            "y": 8804,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 14539,
+            "y": 5641,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 13581,
+            "y": 6119,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 13683,
+            "y": 7340,
+            "count": 1,
+            "radius": 160
+          }
+        ]
       }
     },
     "876": {
@@ -464,11 +912,123 @@
         },
         "frontlines": [
           {
-            "x": 12544,
-            "y": 7680
+            "x": 10439,
+            "y": 9267
+          },
+          {
+            "x": 11404,
+            "y": 8515
+          },
+          {
+            "x": 10604,
+            "y": 9446
+          },
+          {
+            "x": 12175,
+            "y": 8919
+          },
+          {
+            "x": 10197,
+            "y": 8207
+          },
+          {
+            "x": 11980,
+            "y": 7811
           }
         ],
-        "npcSpawns": []
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 6263,
+            "y": 11613,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 8150,
+            "y": 11208,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 8724,
+            "y": 10147,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 8713,
+            "y": 10269,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 10103,
+            "y": 9445,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 11185,
+            "y": 8680,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 12248,
+            "y": 8369,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 9365,
+            "y": 10785,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 10473,
+            "y": 9543,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 12242,
+            "y": 9286,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 7558,
+            "y": 9205,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 9739,
+            "y": 7997,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 10258,
+            "y": 7942,
+            "count": 1,
+            "radius": 160
+          }
+        ]
       },
       "kim": {
         "spawn": {
@@ -486,11 +1046,123 @@
         },
         "frontlines": [
           {
-            "x": 12544,
-            "y": 7680
+            "x": 15795,
+            "y": 6603
+          },
+          {
+            "x": 14428,
+            "y": 7269
+          },
+          {
+            "x": 15521,
+            "y": 7185
+          },
+          {
+            "x": 14106,
+            "y": 7717
+          },
+          {
+            "x": 13530,
+            "y": 6128
+          },
+          {
+            "x": 13728,
+            "y": 6440
           }
         ],
-        "npcSpawns": []
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 19183,
+            "y": 3915,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 17545,
+            "y": 4444,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 16722,
+            "y": 5381,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 16970,
+            "y": 5210,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 16260,
+            "y": 6273,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 14334,
+            "y": 6759,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 13492,
+            "y": 7322,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 16289,
+            "y": 6600,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 15798,
+            "y": 7486,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 14572,
+            "y": 7859,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 16545,
+            "y": 5025,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 13095,
+            "y": 5906,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 13265,
+            "y": 6168,
+            "count": 1,
+            "radius": 160
+          }
+        ]
       }
     },
     "902": {
@@ -512,11 +1184,123 @@
         },
         "frontlines": [
           {
-            "x": 8960,
-            "y": 6400
+            "x": 7695,
+            "y": 6732
+          },
+          {
+            "x": 8125,
+            "y": 6275
+          },
+          {
+            "x": 8225,
+            "y": 7271
+          },
+          {
+            "x": 8761,
+            "y": 6628
+          },
+          {
+            "x": 7083,
+            "y": 5896
+          },
+          {
+            "x": 7847,
+            "y": 5694
           }
         ],
-        "npcSpawns": []
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 5435,
+            "y": 8397,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 6040,
+            "y": 7884,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 6509,
+            "y": 7303,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 6490,
+            "y": 7417,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 7552,
+            "y": 6913,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 7945,
+            "y": 6389,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 8394,
+            "y": 6104,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 7338,
+            "y": 8100,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 8499,
+            "y": 7551,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 8855,
+            "y": 7022,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 5616,
+            "y": 6311,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 6865,
+            "y": 5684,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 7394,
+            "y": 5529,
+            "count": 1,
+            "radius": 160
+          }
+        ]
       },
       "kim": {
         "spawn": {
@@ -534,11 +1318,123 @@
         },
         "frontlines": [
           {
-            "x": 8960,
-            "y": 6400
+            "x": 10279,
+            "y": 4905
+          },
+          {
+            "x": 9561,
+            "y": 5362
+          },
+          {
+            "x": 10226,
+            "y": 5673
+          },
+          {
+            "x": 9838,
+            "y": 5943
+          },
+          {
+            "x": 9908,
+            "y": 4366
+          },
+          {
+            "x": 8924,
+            "y": 5009
           }
         ],
-        "npcSpawns": []
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 12553,
+            "y": 3433,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 11894,
+            "y": 3877,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 11176,
+            "y": 4334,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 11356,
+            "y": 4220,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 10458,
+            "y": 4791,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 9740,
+            "y": 5248,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 9291,
+            "y": 5533,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 11730,
+            "y": 5496,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 10828,
+            "y": 6175,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 10291,
+            "y": 6109,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 9813,
+            "y": 3674,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 9629,
+            "y": 3994,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 8818,
+            "y": 4630,
+            "count": 1,
+            "radius": 160
+          }
+        ]
       }
     }
   }

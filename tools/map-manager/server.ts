@@ -34,7 +34,13 @@ function refreshRegistry() {
 }
 refreshRegistry();
 const configFile = path.resolve(process.env.MAP_MANAGER_CONFIG ?? path.join(root, 'packages/shared/src/npcs/town-placements.json'));
-const templates = DEFAULT_TOWN_NPCS[37].map(n => ({ ...n, label: NPC_ACTION_LABELS[n.action] }));
+const templates = [
+  ...DEFAULT_TOWN_NPCS[37].map(n => ({ ...n, label: NPC_ACTION_LABELS[n.action] })),
+  { id: 'tk-recruit', name: 'Mộ Binh Quan', action: 'tkRecruit' as const, res: 'enemy029', dir: 0, dx: 0, dy: 0, label: NPC_ACTION_LABELS.tkRecruit },
+  { id: 'tk-quartermaster', name: 'Quân Nhu Quan', action: 'tkQuartermaster' as const, res: 'enemy029', dir: 0, dx: 0, dy: 0, label: NPC_ACTION_LABELS.tkQuartermaster },
+  { id: 'tk-scout', name: 'Đặc thám tiền tuyến', action: 'tkScout' as const, res: 'enemy031', dir: 0, dx: 0, dy: 0, label: NPC_ACTION_LABELS.tkScout },
+  { id: 'tk-gate', name: 'Cổng xuất trận', action: 'tkGate' as const, res: 'enemy031', dir: 0, dx: 0, dy: 0, label: NPC_ACTION_LABELS.tkGate },
+];
 // Appearance is independent of action; retain old sprites for saved placements.
 const looks = [...templates.map(n => ({ res: n.res, name: n.name })),
   { res: 'passerby004_1', name: 'Thợ rèn · hình cũ cố định' },
@@ -99,7 +105,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && files.has(u.pathname)) { res.setHeader('Content-Type', u.pathname.endsWith('.css') ? 'text/css' : 'text/javascript'); res.end(files.get(u.pathname)); return; }
     if (req.method === 'GET' && u.pathname === '/api/bootstrap') {
       try { manifest = JSON.parse(fs.readFileSync(path.join(assets, 'manifest.json'), 'utf8')); } catch { /* keep existing versions */ }
-      const maps = Object.values(MAPS).filter(m => ['City', 'Capital', 'Field', 'Cave', 'Country', 'Tong', 'Battlefield', 'Others'].includes(m.type)).map(m => ({ id: m.id, name: m.name, type: m.type === 'Battlefield' && /^Đơn đấu/i.test(m.name) ? 'Duel' : m.type, size: m.raw.size, entry: m.raw.entry, enabled: m.enabled !== false, group: ['City', 'Capital'].includes(m.type) ? 'city' : 'training', editable: ['City', 'Capital'].includes(m.type), battlefield: m.type === 'Battlefield',
+      const maps = Object.values(MAPS).filter(m => ['City', 'Capital', 'Field', 'Cave', 'Country', 'Tong', 'Battlefield', 'Others'].includes(m.type)).map(m => ({ id: m.id, name: m.name, type: m.type === 'Battlefield' && /^Đơn đấu/i.test(m.name) ? 'Duel' : m.type, size: m.raw.size, entry: m.raw.entry, enabled: m.enabled !== false, group: ['City', 'Capital'].includes(m.type) ? 'city' : 'training', editable: ['City', 'Capital'].includes(m.type), npcEditable: ['City', 'Capital', 'Battlefield'].includes(m.type), battlefield: m.type === 'Battlefield',
         available: fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(m.id), 'nav.json')) && fs.existsSync(path.join(assets, 'maps', mapAssetSuffix(m.id), 'map.json')) }));
       json({ monsters: Object.values(MONSTERS).filter(m => bossTierOf(m.boss) < 2 && !m.dummy).map(m => ({ id: m.id, name: m.name, level: m.level })), maps, templates, labels: NPC_ACTION_LABELS, versions: Object.fromEntries(maps.map(m => [m.id, manifest?.packs[`map/${m.id}`]?.v ?? ''])) }); return;
     }

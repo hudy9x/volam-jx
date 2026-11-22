@@ -16,7 +16,7 @@ export class NpcConfigStore {
   }
   private revision(list: NpcPlacement[]): string { return createHash('sha256').update(JSON.stringify(list)).digest('hex'); }
   private meta(id: number): MapMeta {
-    const m = this.maps[id]; if (!m || !['City', 'Capital'].includes(m.type)) throw Error('Không có map thành thị này.'); return m;
+    const m = this.maps[id]; if (!m || !['City', 'Capital', 'Battlefield'].includes(m.type)) throw Error('Chỉ chỉnh NPC thành thị hoặc chiến trường.'); return m;
   }
   async read(id: number): Promise<{ npcs: NpcPlacement[]; revision: string; custom: boolean }> {
     this.meta(id); const cfg = await this.config(), list = cfg.maps[String(id)] ?? this.defaults(id);

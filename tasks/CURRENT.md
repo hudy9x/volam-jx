@@ -1,4 +1,13 @@
-## 2026-11-22 · Dialog Tống Kim: Lưới chọn chiến trường có ảnh preview & Không tự mở khi vào báo danh
+## 2026-11-22 · Fix Bot chạy cổng đa-map, mở đặt/xóa NPC trên Chiến trường & Tự động rải quân 2 phe Tống Kim
+
+- **USER yêu cầu:** (1) sửa bot tự chạy đúng cổng ra/vào trên mọi chiến trường Tống Kim; (2) mở quyền thêm, kéo thả di chuyển, chỉnh và xóa NPC trên map Chiến trường (`Battlefield`); (3) thêm tự động rải quân riêng cho 2 phe Tống/Kim trong tab Tống Kim (`K`) và khóa đặt quái thường (`M`) trên Chiến trường.
+- **Thay đổi:**
+  - `tools/bots/runner/TongKimBehavior.ts`: thay hardcode `OUTGOING_PORTAL`/`BACK_PORTAL` map `378` bằng `outgoingPortalFor(mapId, camp)` & `backPortalFor(mapId, camp)` đọc trực tiếp từ `MAPS[mapId].portals` (`tk-<camp>-out` / `tk-<camp>-back`, fallback `exitGate` nếu chưa đặt portal).
+  - `tools/map-manager/{ConfigStore.ts,server.ts,ui/main.ts}`: mở `npcEditable` cho `['City', 'Capital', 'Battlefield']`, thêm 4 template NPC Tống Kim (Mộ Binh Quan, Quân Nhu Quan, Đặc thám, Cổng xuất trận); giữ Pen vùng an toàn thành thị chỉ cho `City`/`Capital`; khóa tab Quái/Boss Xanh (`M`) trên map `Battlefield`.
+  - `tools/map-manager/ui/{TkEditor.ts,index.html}`: thêm nút **Tự động rải quân 2 phe (Tống / Kim)** tự rải `general`/`deputy`/`commander`/`captain`/`soldier` + 6 điểm `frontlines` cho cả 2 phe theo trục `gateExit` và lưới walkable ngoài vùng an toàn hậu doanh; tách `hitTest` khi đang chọn tool `npc`/`frontline` để không bị điểm khác cướp click.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**19/19 pass**), `npm run test:map-manager` (**11/11 pass**), `git diff --check` đạt. Chưa commit/push.
+
+## 2026-11-22 · Dialog Tống Kim: Lưới chọn chiến trường có ảnh preview & Không tự mở khi vào báo danh (đã commit `7d53148`)
 
 - **USER yêu cầu:** commit code trước đó (`beb81c9`); sửa lỗi không select được chiến trường trong Dialog Tống Kim, đổi sang hiển thị ảnh preview + tên chiến trường theo lưới 2 cột mỗi hàng ở trên, 2 nút `Mở Nguyên Soái (Test)` / `Mở Cừu Sát (Test)` ở hàng cuối, và không tự động mở dialog khi vào điểm báo danh `323` (chỉ mở khi ấn `` ` `` hoặc nút Tống Kim).
 - **Thay đổi:**
