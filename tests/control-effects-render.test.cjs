@@ -47,7 +47,7 @@ test('stun glow preloads, animates at the head and disappears immediately on exp
  const key='stun';let readyCalls=0;const draws=[];
  const StateDecor=load('apps/client/src/game/fx/StateDecor.ts','StateDecor',{
   CONTROL_VISUALS:visuals.CONTROL_VISUALS,CONTROL_FX:{stun:{key}},SKILL_FX:{stun:[129,111,-61,-137,10,1,10,0,50,1]},JX_TICK_MS:1000/18,
-  fxReady:()=>{readyCalls++;return true;},showFx:(img,k,row,col,x,y)=>draws.push({k,col,x,y}),getSkill:()=>null,stateFxOf:()=>null,
+  fxMeta:k=>({stun:[129,111,-61,-137,10,1,10,0,50,1]}[k]),fxReady:()=>{readyCalls++;return true;},showFx:(img,k,row,col,x,y)=>draws.push({k,col,x,y}),getSkill:()=>null,stateFxOf:()=>null,
  });
  const scene={time:{now:0},add:{image:object}};const decor=new StateDecor(scene);assert.equal(readyCalls,1);
  decor.update([],200,300,80,1);const image=decor.stun.fx;assert.equal(draws.at(-1).col,0);
@@ -77,7 +77,7 @@ test('culled decoration keeps its animation clock and handles expiry without loa
  let requests=0;const frames=[];
  const StateDecor=load('apps/client/src/game/fx/StateDecor.ts','StateDecor',{
   CONTROL_VISUALS:visuals.CONTROL_VISUALS,CONTROL_FX:{stun:{key:'stun'}},SKILL_FX:{stun:[129,111,-61,-137,10,1,10,0,50,1]},JX_TICK_MS:1000/18,
-  fxReady:()=>{requests++;return true},showFx:(img,k,row,col)=>frames.push(col),getSkill:()=>null,stateFxOf:()=>null,
+  fxMeta:k=>({stun:[129,111,-61,-137,10,1,10,0,50,1]}[k]),fxReady:()=>{requests++;return true},showFx:(img,k,row,col)=>frames.push(col),getSkill:()=>null,stateFxOf:()=>null,
  });
  const scene={time:{now:0},add:{image:object}},decor=new StateDecor(scene);
  decor.update([],0,0,80,1);const img=decor.stun.fx,before=requests;

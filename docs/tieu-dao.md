@@ -51,7 +51,7 @@ Tiêu Dao được tích hợp theo kiến trúc **overlay tách biệt** hoàn 
 - **Kiếm Quyết Phù Vân (`2124`, cấp 90 Kiếm):** đạn carrier `M641` (`collide = 0`) sinh dải kiếm thẳng hàng từ nhân vật tới mục tiêu (`2125` `M639` ×3 + `2126` `M640` ×1) theo tọa độ `(m.x, m.y)` và góc bay `m.angle`.
 - **Mai Hoa Tam Lộng (`2142 → 2143`, cấp 150 Cầm):** `M647` có `autoExplode && colVanish = true` va chạm trực tiếp trên đường bay để nổ *Dương Quan Tam Điệp (`2143`, `M648`)* ngay trên mục tiêu, phát `fx.collide` lên từng mục tiêu trúng đòn trong `area(m)`.
 - **Trấn phái — Thiên Lý Độc Hành (`2123`):** nâng trần cấp tối đa lên **30** trong `packages/shared/src/skills/common/skill-overrides.ts` (`suggest.ts` giữ `shared: [2123]`).
-- **Thuộc tính mới trong `SkillEngine.ts` & `damage.ts` / `combat.ts`:** `lightingdamage_p`, `addlightingmagic_p`, `add_damage_p`, `me2waterdamage_p`, `water2medamage_p`, `missle_hitcount`, Hộ Thuẫn Nội Lực tĩnh (`staticmagicshield_p` cho `2139`/`2134`), bất tử / không thể chọn / định thân / cấm công (`invincibility`, `hidebodyunlock`, `frozen_action`, `forbit_attack` cho `2130`).
+- **Thuộc tính mới trong `SkillEngine.ts` & `damage.ts` / `combat.ts`:** `lightingdamage_p`, `addlightingmagic_p`, `add_damage_p`, `me2waterdamage_p`, `water2medamage_p`, `missle_hitcount`, Hộ Thuẫn Nội Lực tĩnh (`staticmagicshield_p` cho `2139`/`2134` — chặn đòn trực tiếp, độc sát DoT `hit.dot` bỏ qua khiên và trừ thẳng HP), bất tử / không thể chọn / định thân / cấm công (`invincibility`, `hidebodyunlock`, `frozen_action`, `forbit_attack` cho `2130`).
 - **Mô tả tiếng Việt:** đầy đủ 6 lưu phái (`1301..1306`) và các thuộc tính Tiêu Dao trong `packages/shared/src/skills/core/describe.ts`.
 
 ---

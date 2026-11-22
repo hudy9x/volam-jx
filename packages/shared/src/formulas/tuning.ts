@@ -81,8 +81,8 @@ export const CRIT = {
   maxCritPct: 75,
 } as const;
 
-/** Player vs player damage (0.20 thông thường; 0.40 khi hệ tấn công khắc hệ mục tiêu, vd Kim đánh Mộc). */
-export const PVP = { damageScale: 0.2, counterDamageScale: 0.3 } as const;
+/** Player vs player damage (0.20 thông thường; 0.40 khi hệ tấn công khắc hệ mục tiêu, vd Kim đánh Mộc / Mộc đánh Thổ). */
+export const PVP = { damageScale: 0.2, counterDamageScale: 0.4 } as const;
 
 /** Hút sinh lực / nội lực (formulas/damage.ts lifeSteal): cap of skill + item % (CHỌN, no data). */
 export const STEAL = { maxPct: 50 } as const;

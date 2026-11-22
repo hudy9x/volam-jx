@@ -143,3 +143,57 @@ test('poison DoT bypasses manashield_p (Toa Vong Vo Nga) and drains HP directly'
   assert.equal(target.hp, 0);
   assert.equal(target.dead, true);
 });
+
+test('poison DoT bypasses staticmagicshield_p (shieldHp) and overcapped resist still pierced by ngũ hành counter', async () => {
+  const {monsterCombat, effectiveResist, resolveHit, PVP} = await import('../packages/shared/src/index.js');
+  const aAtt = new Actor();
+  Object.assign(aAtt, {id: 'wudu2', name: 'wudu2', hp: 2000, maxHp: 2000, mp: 1000, maxMp: 1000, level: 120, pk: 1, camp: 'evil'});
+  const attacker = makeSim('wudu2', 'player', aAtt, 'moc', 2000);
+  attacker.combat = monsterCombat(120, 'moc', 0, 0, {});
+
+  const aTgt = new Actor();
+  Object.assign(aTgt, {id: 'xy', name: 'xy', hp: 1000, maxHp: 1000, mp: 3000, maxMp: 3000, level: 120, pk: 1, camp: 'neutral'});
+  const target = makeSim('xy', 'player', aTgt, 'tho', 1000);
+  target.mp = 3000;
+  target.shieldHp = 30000;
+  target.combat = monsterCombat(120, 'tho', 0, 0, {});
+
+  const w = {
+    now: 1000,
+    meta: {id: 1, safe: false},
+    rules: {},
+    events: [],
+    sims: new Map([[attacker.id, attacker], [target.id, target]]),
+    engine: {cancel() {}, onDeath() {}, interrupt() {}},
+    hooks: {announce() {}, notify() {}, progress() {}},
+  } as unknown as World;
+
+  // Direct hit is absorbed by staticmagicshield_p (shieldHp).
+  applyHit(w, attacker, target, {dmg: 400, crit: false});
+  assert.equal(target.shieldHp, 29600);
+  assert.equal(target.hp, 1000);
+
+  // Poison DoT bypasses staticmagicshield_p and drains HP directly.
+  applyHit(w, attacker, target, {dmg: 350, crit: false, dot: true});
+  assert.equal(target.shieldHp, 29600, 'poison DoT must not be absorbed by staticmagicshield_p');
+  assert.equal(target.hp, 650, 'poison DoT must drain HP directly through staticmagicshield_p');
+
+  // Overcapped resist (110% > 75% cap) is clamped to 75% BEFORE ngũ hành counter (-35% => 40%).
+  const woodAttacker = monsterCombat(120, 'moc', 0, 0, {});
+  const earthTarget = monsterCombat(120, 'tho', 0, 0, {});
+  earthTarget.resist.poison = 110;
+  earthTarget.resistMax.poison = 75;
+  const mockWoodSkill = {id: 9999, name: 'WoodTest', series: 1, attrs: {seriesdamage_p: [[[1, 35]], [[1, 0]], [[1, 0]]]}} as never;
+  const effRes = effectiveResist('poison', {skill: mockWoodSkill, level: 1, attacker: woodAttacker, target: earthTarget, targetLife: 1000, pvp: true});
+  assert.equal(effRes, 40, 'overcapped 110% resist must clamp to 75% before subtracting 35% counter');
+
+  // PvP counter damage scale = 0.4 (2x normal 0.2).
+  assert.equal(PVP.counterDamageScale, 0.4);
+  const hit = resolveHit(
+    {phys: [0, 0], cold: [0, 0], fire: [0, 0], light: [0, 0], poison: {tick: 1000, frames: 60, period: 10}},
+    {skill: mockWoodSkill, level: 1, attacker: woodAttacker, target: earthTarget, targetLife: 1000, pvp: true},
+    () => 0,
+  );
+  // 1000 * (1 - 0.40) * 0.4 = 240
+  assert.equal(hit.poison?.tick, 240);
+});

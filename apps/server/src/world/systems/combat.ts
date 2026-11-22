@@ -57,7 +57,9 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
   if (hit.miss) { w.events.push({ t: 'hit', id: target.id, dmg: 0, miss: true }); return; }
   let dmg = hit.dmg;
   // Hộ Thuẫn Nội Lực tĩnh (staticmagicshield_p, e.g. Tiêu Dao Vũ 2139 / Phất Y_Thuẫn 2134): absorbs damage before HP/MP.
-  if (target.shieldHp && target.shieldHp > 0 && dmg > 0) {
+  // Static mana shield (staticmagicshield_p, e.g. Tiêu Dao 2139/2134, Côn Lôn 120): absorbs direct damage up to shieldHp;
+  // poison DoT (hit.dot) bypasses the shield and drains HP directly (same as manashield_p).
+  if (!hit.dot && target.shieldHp && target.shieldHp > 0 && dmg > 0) {
     const absorb = Math.min(target.shieldHp, dmg);
     target.shieldHp -= absorb;
     dmg -= absorb;

@@ -487,6 +487,7 @@ export class SkillEngine {
 
   /** Periodic autocastskill on learned passives (e.g. 2116 -> 2117 [Âm Luật]) and active states (2133 -> 2134). */
   private tickAutoCast(now: number): void {
+    if (typeof this.port.combatants !== 'function') return;
     for (const c of this.port.combatants()) {
       if (c.dead) continue;
       // Keep spMax synced for fighters who know a special_point_base passive.

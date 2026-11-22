@@ -134,17 +134,18 @@ export interface HitOutcome {
   poison: { tick: number; frames: number; period: number } | null;
 }
 
-/** Resist % the target opposes to `kind` from this attacker / skill: own resist − attacker's piercing ± ngũ hành, capped. */
+/** Resist % the target opposes to `kind` from this attacker / skill: capped resist − attacker's piercing ± ngũ hành. */
 export function effectiveResist(kind: ResistKind, ctx: HitContext): number {
   const { attacker: a, target: t, skill, level } = ctx;
-  let r = t.resist[kind] - attrOf(a.bag, ANTI_RES[kind]) - attrOf(a.bag, 'anti_allres_p');
+  const cap = Math.min(RESIST.absoluteMax, t.resistMax[kind]);
+  // Kẹp trần kháng trước khi áp dụng xuyên kháng / ngũ hành khắc chế để đồ overcap kháng không vô hiệu hóa tương khắc.
+  let r = Math.min(cap, t.resist[kind]) - attrOf(a.bag, ANTI_RES[kind]) - attrOf(a.bag, 'anti_allres_p');
   // Ngũ hành (SRC ReceiveDamage): a skill of the series that counters the target lowers its resist by seriesdamage_p, a
   // countered one raises it.
   const series = (skill.series ?? -1) >= 0 ? SERIES_ORDER[skill.series!] : a.series;
   const pct = attr(skill, 'seriesdamage_p', level)?.[0] ?? 0;
   if (ELEMENT_COUNTERS[series] === t.series) r -= pct;
   else if (ELEMENT_COUNTERS[t.series] === series) r += pct;
-  const cap = Math.min(RESIST.absoluteMax, t.resistMax[kind]);
   return Math.max(-t.resistMax[kind], Math.min(cap, r));
 }
 

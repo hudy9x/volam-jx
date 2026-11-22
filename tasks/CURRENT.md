@@ -1,3 +1,14 @@
+## 2026-11-22 · Tăng ngũ hành tương khắc PvP & Độc sát DoT bỏ qua Hộ Thuẫn tĩnh (`staticmagicshield_p`) (đã commit)
+
+- **USER yêu cầu:** tăng hiệu quả ngũ hành tương khắc (Mộc đánh Thổ) và cho độc sát DoT bỏ qua lớp khiên tĩnh `staticmagicshield_p`.
+- **Thay đổi:**
+  - `packages/shared/src/formulas/tuning.ts`: tăng `PVP.counterDamageScale` từ `0.3` lên `0.4` (gấp 2× `PVP.damageScale = 0.2`).
+  - `packages/shared/src/formulas/damage.ts`: trong `effectiveResist()`, kẹp trần kháng mục tiêu `cap` **trước** khi trừ xuyên kháng và `seriesdamage_p` khắc hệ để trang bị overcap kháng không vô hiệu hóa ngũ hành tương khắc.
+  - `apps/server/src/world/systems/combat.ts`: thêm điều kiện `!hit.dot` cho nhánh `target.shieldHp` (`staticmagicshield_p`, vd. Tiêu Dao `2139`/`2134`, Côn Lôn 120) để độc sát DoT trừ thẳng HP giống `manashield_p`.
+  - `packages/shared/src/skills/engine/SkillEngine.ts` & `tests/control-effects-render.test.cjs`: guard `typeof this.port.combatants === 'function'` trong `tickAutoCast` và truyền `fxMeta` vào sandbox test `StateDecor` (khôi phục xanh toàn bộ `test:effects`).
+  - `tests/control-effects.test.ts`, `docs/formulas/damage.md`, `docs/tieu-dao.md`: bổ sung test kiểm chứng độc DoT xuyên `shieldHp`, overcap kháng bị trừ đúng theo `seriesdamage_p`, `PVP.counterDamageScale = 0.4` và cập nhật tài liệu.
+- **Kiểm tra:** `npm run test:effects` (**22/22 pass**), `tests/tong-kim.test.ts` (**16/16 pass**), `tests/xiaoyao.test.ts` (**8/8 pass**), `npm run typecheck` (0 lỗi), `npm run build` & `git diff --check` đạt. Cần restart server để nhận thay đổi mới (dùng chung Web/Desktop/Mobile). Đã commit trên `main`, chưa push.
+
 ## 2026-11-22 · Độc sát (DoT) trừ thẳng HP, bỏ qua Tọa Vọng Vô Ngã (`manashield_p`) (đã commit)
 
 - **USER yêu cầu:** đảm bảo sát thương độc sát trừ trực tiếp vào sinh lực (HP), không bị Tọa Vọng Vô Ngã (`manashield_p`) chuyển sang nội lực để giữ đúng tương khắc hệ Mộc → hệ Thổ.

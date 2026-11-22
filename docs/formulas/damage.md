@@ -78,7 +78,7 @@ phần sát thương × (100 − kháng) / 100
 
 ## 5. PK
 
-Người đánh người: tổng × **0,5** (`PVP.damageScale`, CHỌN: tỉ lệ thật là cấu hình server, không có trong client).
+Người đánh người: tổng × **0,2** (`PVP.damageScale`) thông thường, × **0,4** (`PVP.counterDamageScale`, gấp 2× đánh thường) khi hệ tấn công khắc hệ mục tiêu (vd. Mộc đánh Thổ). Trong `effectiveResist`, kháng mục tiêu được kẹp trần (`cap`) **trước** khi trừ xuyên kháng và `seriesdamage_p` khắc hệ để trang bị overcap kháng không vô hiệu hóa ngũ hành tương khắc. Độc sát DoT (`hit.dot`) bỏ qua cả `manashield_p` lẫn `staticmagicshield_p` (`shieldHp`) và trừ thẳng HP.
 
 ## Ví dụ (thử 2026-11-12, `scratchpad` combat6)
 
