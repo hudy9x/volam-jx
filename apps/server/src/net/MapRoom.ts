@@ -22,7 +22,7 @@ import { db } from '../account/db.js';
 import { commandCast, commandMove, setMounted, setPk, setSkillLevel, setSlotAura } from '../world/commands.js';
 import type { Sim } from '../world/entity.js';
 import {
-  addMoney, buyItem, discardItem, equipItem, forgeItem, moveBagItem, moveStashItem, restoreStash, sellItem, sellItems, sortGrid, splitGridItem, transferBetweenGrids, transferStashCurrency, unequipItem, useItem,
+  addMoney, buyItem, discardItem, equipItem, forgeItem, forgeItems, moveBagItem, moveStashItem, restoreStash, sellItem, sellItems, sortGrid, splitGridItem, transferBetweenGrids, transferStashCurrency, unequipItem, useItem,
 } from '../world/inventory.js';
 import { useToken } from '../world/token.js';
 import { teamOffline, teamOnline, teamOrder } from '../world/teams.js';
@@ -250,8 +250,16 @@ export class MapRoom extends Room<{ state: MapState }> {
         : sellItem(this.world, sim, Number(msg?.index)));
     inventoryOp<UseMsg>(C2S.use, (sim, msg) => useItem(this.world, sim, Number(msg?.index)));
     inventoryOp<DiscardMsg>(C2S.discard, (sim, msg) => discardItem(this.world, sim, Number(msg?.index)));
-    inventoryOp<ForgeMsg>(C2S.forge, (sim, msg) => forgeItem(this.world, sim, String(msg?.item), Number(msg?.series),
-      Array.isArray(msg?.lines) ? msg.lines.map(l => (Array.isArray(l) ? [String(l[0]), Number(l[1])] as [string, number] : null)) : [], msg?.token === true));
+    inventoryOp<ForgeMsg>(C2S.forge, (sim, msg) => {
+      const parseLines = (raw: unknown) =>
+        Array.isArray(raw) ? raw.map(l => (Array.isArray(l) ? [String(l[0]), Number(l[1])] as [string, number] : null)) : [];
+      if (Array.isArray(msg?.batch) && msg.batch.length) {
+        return forgeItems(this.world, sim, msg.batch.map(o => ({
+          item: String(o?.item), series: Number(o?.series), lines: parseLines(o?.lines),
+        })), msg?.token === true);
+      }
+      return forgeItem(this.world, sim, String(msg?.item), Number(msg?.series), parseLines(msg?.lines), msg?.token === true);
+    });
     inventoryOp<BagMoveMsg>(C2S.bagMove, (sim, msg) => moveBagItem(sim, Number(msg?.from), Number(msg?.to)));
     const sendStash = (client: Client, sim: Sim) => {
       const user = sim.owner ? db.getUser(sim.owner) : undefined;

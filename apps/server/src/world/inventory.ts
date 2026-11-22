@@ -170,6 +170,44 @@ export function forgeItem(w: World, sim: Sim, defId: string, series: number, lin
   return true;
 }
 
+/** Batch forge multiple blue pieces in one C2S.forge message (atomic space & money check, avoids >30 msg/s disconnect). */
+export function forgeItems(
+  w: World, sim: Sim, orders: Array<{ item: string; series: number; lines: ForgeLines }>, token = false,
+): boolean {
+  if (sim.a.stallTitle || sim.dead || !sim.bag || !orders.length) return false;
+  if (orders.length > 10) { w.hooks.notify(sim, 'Tối đa chế tạo 10 món mỗi lượt.'); return false; }
+  const viaToken = token && !!sim.bag.some(it => it?.def === TOKEN_ITEM_ID);
+  if (!w.rules.safe && !viaToken) { w.hooks.notify(sim, 'Chỉ chế tạo được trong thành.'); return false; }
+
+  let totalCost = 0;
+  const built: Array<{ def: (typeof ITEMS)[string]; item: Item }> = [];
+  const copy = [...sim.bag];
+  for (const ord of orders) {
+    const def = ITEMS[ord.item];
+    if (!def || SHOP_OF[ord.item] !== 'smith') { w.hooks.notify(sim, 'Món đồ không hợp lệ.'); return false; }
+    const err = forgeError(def, ord.series, ord.lines);
+    if (err) { w.hooks.notify(sim, `${def.name}: ${err}`); return false; }
+    totalCost += viaToken ? 0 : forgePrice(def, ord.lines);
+    const item = createItem(def, newItemUid(), () => 0.999999);
+    item.series = ord.series;
+    const magic = forgedMagic(ord.lines);
+    if (magic.length) { item.magic = magic; item.q = QUALITY.magic; }
+    const at = findPlace(copy, def);
+    if (at < 0) { w.hooks.notify(sim, `Hành trang không đủ chỗ cho ${orders.length} món.`); return false; }
+    copy[at] = item;
+    built.push({ def, item });
+  }
+  if (totalCost > (sim.money ?? 0)) { w.hooks.notify(sim, `Chưa đủ tiền (cần ${moneyText(totalCost)} lượng).`); return false; }
+  for (const b of built) addToBag(sim.bag, b.item);
+  sim.money = (sim.money ?? 0) - totalCost;
+  const summary = viaToken
+    ? `Nhận ${built.length} trang bị ngũ hành (Lệnh bài).`
+    : `Chế tạo ${built.length} trang bị ngũ hành: ${moneyText(totalCost)} lượng.`;
+  w.hooks.notify(sim, summary);
+  w.hooks.log(sim, 'buy', summary);
+  return true;
+}
+
 /** Move or swap a bag piece so its top-left cell is `to`. */
 export function moveBagItem(sim: Sim, from: number, to: number): boolean {
   if (sim.a.stallTitle || !sim.bag) return false;

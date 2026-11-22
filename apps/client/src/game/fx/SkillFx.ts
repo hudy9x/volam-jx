@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { JX_TICK_MS, MoveKind, getMissile, getSkill, isoDistance, logicAngle, type FxEvent, type FxRef, type MissileDef } from '@vltk/shared';
 import { SKILL_FX } from './fx.gen';
+import { XIAOYAO_SKILL_FX } from './xiaoyao-fx.gen';
 import { assetUrl } from '../../art/assets';
 
 /** Something the effects can follow (actor views). */
@@ -15,7 +16,8 @@ const pageTex = (key: string, page: number) => (page ? `fx:${key}.${page}` : `fx
 const pageUrl = (key: string, page: number) => assetUrl(`${key}${page ? `.${page}` : ''}.webp`);
 
 /** [cell w, cell h, left, top (from the anchor), frames/dir, dirs, cols, additive, sprite ms, pages] */
-const meta = (key: string) => SKILL_FX[key];
+export const fxMeta = (key: string) => SKILL_FX[key] ?? XIAOYAO_SKILL_FX[key];
+const meta = fxMeta;
 
 function perPage(m: readonly number[]): number {
   return m[6] * Math.max(1, Math.floor(MAX_TEX / m[1]));

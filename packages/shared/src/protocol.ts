@@ -168,7 +168,8 @@ export interface SellMsg { index?: number; indices?: number[] }
 export interface UseMsg { index: number }
 /** Thợ rèn "Chế tạo" (items/magic.ts): a new blue piece of table row `item`, ngũ hành `series`, lines per position. */
 /** `token`: opened from the lệnh bài ("Nhận đồ xanh"): free and anywhere while the character carries one. */
-export interface ForgeMsg { item: string; series: number; lines: ([string, number] | null)[]; token?: boolean }
+export interface ForgeOrder { item: string; series: number; lines: ([string, number] | null)[] }
+export interface ForgeMsg { item?: string; series?: number; lines?: ([string, number] | null)[]; batch?: ForgeOrder[]; token?: boolean }
 /** Move the bag piece at `from` so its top-left cell is `to` (it must fit there; items/bag.ts). */
 export interface BagMoveMsg { from: number; to: number }
 /** Move/swap a piece inside the account stash. */

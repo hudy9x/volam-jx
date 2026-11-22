@@ -18,13 +18,16 @@ import { gaibang } from './factions/gaibang/index.js';
 import { tianren } from './factions/tianren/index.js';
 import { wudang } from './factions/wudang/index.js';
 import { kunlun } from './factions/kunlun/index.js';
+import { xiaoyao } from './factions/xiaoyao/index.js';
+import { XIAOYAO_MISSILES } from './factions/xiaoyao/missiles.gen.js';
 
 registerMissiles(MISSILES);
+registerMissiles(XIAOYAO_MISSILES);
 for (const [id, patch] of Object.entries(MISSILE_OVERRIDES)) {
   const m = getMissile(Number(id));
   if (m) Object.assign(m, patch);
 }
-for (const pack of [shaolin, tianwang, tangmen, wudu, emei, cuiyan, gaibang, tianren, wudang, kunlun, huashan, common, monsters]) {
+for (const pack of [shaolin, tianwang, tangmen, wudu, emei, cuiyan, gaibang, tianren, wudang, kunlun, huashan, xiaoyao, common, monsters]) {
   registerPack(pack);
 }
 for (const [id, patch] of Object.entries(SKILL_OVERRIDES)) {

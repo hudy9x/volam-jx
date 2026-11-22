@@ -15,8 +15,8 @@ export interface ItemViewer {
   fortune?: number;
 }
 
-/** Faction order of the original tables (requiremenpai). */
-export const MENPAI = ['shaolin', 'tianwang', 'tangmen', 'wudu', 'emei', 'cuiyan', 'gaibang', 'tianren', 'wudang', 'kunlun', 'huashan'];
+/** Faction order of the original tables (requiremenpai). Index 11 = Vũ Hồn, 12 = Tiêu Dao. */
+export const MENPAI = ['shaolin', 'tianwang', 'tangmen', 'wudu', 'emei', 'cuiyan', 'gaibang', 'tianren', 'wudang', 'kunlun', 'huashan', 'vuhontang', 'xiaoyao'];
 
 /** Whether `viewer` misses requirement [name, value] of a row (level / potentials only when the viewer has them). */
 export function missesReq(name: string, value: number, viewer: ItemViewer): boolean {

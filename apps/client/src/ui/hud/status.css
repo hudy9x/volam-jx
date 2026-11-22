@@ -4,10 +4,13 @@
 #hud-states:empty, #hud-elixir:empty { display: none; }
 #hud-elixir { display: flex; gap: 3px; }
 .st-icon { position: relative; width: 28px; height: 28px; border: 1px solid #3f7a3f; background: #000a; }
+.st-icon.passive { border-color: #4f7f6b; }
+.st-icon.passive.sp { border-color: #49b6d6; }
 .st-icon.debuff { border-color: #8a3fb0; }
 .st-icon.elixir { border-color: #d4a93a; }
 .st-icon img { width: 100%; height: 100%; object-fit: contain; }
 .st-icon span { position: absolute; right: 1px; bottom: 0; font-size: 10px; line-height: 1; color: #fff; text-shadow: var(--outline); }
+.st-icon span.sp-count { font-size: 11px; font-weight: 700; color: #7be3ff; }
 
 @container (max-width: 720px) {
   #hud-top-status { top: 112px; }

@@ -9,6 +9,7 @@
     "gen:assets": "tsx tools/gen-assets.ts",
     "gen:maps": "tsx tools/gen-maps.ts",
     "gen:skills": "tsx tools/gen-skills.ts",
+    "gen:xiaoyao": "tsx tools/gen-xiaoyao.ts",
     "audit:skills": "tsx tools/audit-skills.ts",
     "gen:ui": "tsx tools/gen-ui.ts",
     "gen:sounds": "tsx tools/gen-sounds.ts",

@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import { JX_TICK_MS, getSkill, stateFxOf } from '@vltk/shared';
-import { CONTROL_FX, SKILL_FX } from './fx.gen';
+import { CONTROL_FX } from './fx.gen';
 import { CONTROL_VISUALS } from './controlEffects';
-import { fxReady, showFx } from './SkillFx';
+import { fxMeta, fxReady, showFx } from './SkillFx';
 
 interface Shown { start: number; fx?: Phaser.GameObjects.Image }
 
@@ -36,7 +36,7 @@ export class StateDecor {
       const key = CONTROL_FX.stun.key;
       this.stun.fx?.setVisible(visible);
       if (visible && fxReady(this.scene, key)) {
-        const m = SKILL_FX[key];
+        const m = fxMeta(key)!;
         const ms = m[8] >= 20 ? m[8] : JX_TICK_MS;
         const col = Math.floor((now - this.stun.start) / ms) % m[4];
         this.stun.fx ??= this.scene.add.image(0, 0, '__DEFAULT').setOrigin(0, 0);
@@ -64,7 +64,7 @@ export class StateDecor {
       if (!visible) continue;
       const sfx = stateFxOf(s);
       if (!sfx || !fxReady(this.scene, sfx.key)) continue;
-      const m = SKILL_FX[sfx.key];
+      const m = fxMeta(sfx.key)!;
       const ms = m[8] >= 20 ? m[8] : JX_TICK_MS;
       const col = Math.floor((now - v.start) / ms) % m[4];
       const py = sfx.at === 'foot' ? y - FOOT_LIFT : sfx.at === 'head' ? y - height + 8 : y - Math.round(height * 0.45);

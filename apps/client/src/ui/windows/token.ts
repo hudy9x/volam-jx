@@ -10,7 +10,7 @@ const HTML = `
   <div id="token-main" class="token-list">
     <button type="button" class="btn" data-op="level">Thăng cấp ${TOKEN.level}</button>
     <button type="button" class="btn" data-op="exp">Nhận ${TOKEN.expMin / 1e6} triệu – ${TOKEN.expMax / 1e9} tỷ kinh nghiệm</button>
-    <button type="button" class="btn" data-op="skills">Học kỹ năng cấp 90 / 120 / 150 (cấp tối đa)</button>
+    <button type="button" class="btn" data-op="skills">Học kỹ năng cấp 90 / 120 / 150 (tăng cấp 150, cấp tối đa)</button>
     <button type="button" class="btn" data-op="money">Nhận ${TOKEN.money / 10_000} vạn lượng</button>
     <button type="button" class="btn" data-op="tkAccum">Nhận ${TOKEN.tkAccum.toLocaleString('vi-VN')} điểm tích lũy</button>
     <button type="button" class="btn" data-op="gold">Nhận bộ hoàng kim môn phái…</button>
@@ -83,9 +83,10 @@ export class TokenWindow {
   }
 
   private suites(): void {
-    const faction = this.ctx.self()?.faction ?? '';
+    const self = this.ctx.self();
+    const faction = self?.faction ?? '';
     if (!faction) { this.ctx.notice('Phải gia nhập môn phái trước.'); return; }
-    this.sub(`Chọn bộ hoàng kim ${FACTIONS[faction]?.name ?? ''} (vào hành trang):`, factionSuites(faction).map(s => ({
+    this.sub(`Chọn bộ hoàng kim ${FACTIONS[faction]?.name ?? ''} (vào hành trang):`, factionSuites(faction, self?.gender).map(s => ({
       label: `${s.name} — ${s.pieces.map(p => p.name.replace(s.name, '').trim()).join(', ')}`,
       pick: () => this.send({ op: 'gold', suite: s.suite }),
     })));

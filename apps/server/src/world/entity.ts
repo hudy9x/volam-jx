@@ -34,6 +34,11 @@ export interface Sim {
   speed: number;
   hp: number;
   mp: number;
+  /** Faction special resource stacks (e.g. Tiêu Dao [Âm Luật]). */
+  sp?: number;
+  spMax?: number;
+  /** Static magic shield pool (staticmagicshield_p, e.g. Tiêu Dao Vũ 2139 / Phất Y_Thuẫn 2134). */
+  shieldHp?: number;
   dead: boolean;
   path: Point[];
   /** Click-move queued while a cast pose is still finishing (world/commands.ts). */

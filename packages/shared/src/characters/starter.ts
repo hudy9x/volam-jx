@@ -18,6 +18,7 @@ const STARTER: Record<string, { outfit: number; femaleOutfit?: number; weapon: s
   wudang: { outfit: 1, weapon: 'melee-0' },         // đạo bào, kiếm
   kunlun: { outfit: 1, weapon: 'melee-1' },         // đạo bào, đao
   huashan: { outfit: 1, femaleOutfit: 8, weapon: 'melee-0' }, // đạo bào / nữ thức đạo y, kiếm
+  xiaoyao: { outfit: 1, femaleOutfit: 8, weapon: 'melee-0' }, // Tiêu Dao: khởi đầu với kiếm (có thể đổi sang Cổ Cầm)
 };
 
 /** Table rows of the starter outfit (the server makes the pieces). */

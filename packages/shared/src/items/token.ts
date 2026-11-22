@@ -7,7 +7,8 @@
 // (questkey.txt, taskobj126.spr). Numbers here (CHỌN from the user's words).
 import { MENPAI } from './equip.js';
 import { SUITES } from './gold.js';
-import type { ItemDef } from './items.js';
+import { sexOf, type ItemDef } from './items.js';
+import type { Gender } from '../characters/factions.js';
 export { TOKEN_ITEM, TOKEN_ITEM_ID, TOWN_PORTAL_ITEM, TOWN_PORTAL_ID } from './books.js';
 
 /** Options; 'faction' / 'gender' reset potential + skill points to their defaults, keep items and level (USER 2026-11-12). */
@@ -28,11 +29,13 @@ export const TOKEN = {
 };
 
 /** Hoàng kim môn phái sets a faction can take: suite number, a name (the words its pieces share) and the pieces. */
-export function factionSuites(faction: string): { suite: number; name: string; pieces: ItemDef[] }[] {
+export function factionSuites(faction: string, gender?: Gender | string): { suite: number; name: string; pieces: ItemDef[] }[] {
+  const sx = gender ? sexOf(gender) : undefined;
   const out: { suite: number; name: string; pieces: ItemDef[] }[] = [];
   for (const [k, pieces] of Object.entries(SUITES)) {
     const menpai = pieces[0]?.req.find(r => r[0] === 'requiremenpai')?.[1];
     if (menpai === undefined || MENPAI[menpai] !== faction) continue;
+    if (sx && pieces.some(p => p.sex && p.sex !== sx)) continue;
     const words = pieces.map(p => p.name.split(' '));
     const common: string[] = [];
     for (let i = 0; words.every(w => w[i] !== undefined && w[i] === words[0][i]); i++) common.push(words[0][i]);

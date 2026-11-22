@@ -17,4 +17,7 @@ export const SKILL_OVERRIDES: Record<number, Partial<SkillDef>> = {
 
   // 8. Thúy Yên: Băng Tước Hoạt Kỳ (#1063) 3 tia từ người chơi tách dần 2 bên (~10° mỗi tia)
   1063: { form: 2, childNum: 3, p1: 1.8 },
+
+  // Tiêu Dao: Thiên Lý Độc Hành (#2123, Trấn phái) tối đa cấp 30
+  2123: { maxLevel: 30 },
 };

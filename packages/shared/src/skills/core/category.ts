@@ -14,10 +14,10 @@ export const SKILL_CATEGORY_NAMES: Record<SkillCategory, string> = {
 
 /** Attributes that are damage (the rest with a duration are states). */
 const DAMAGE_ATTRS = new Set([
-  'physicsenhance_p', 'physicsdamage_v', 'colddamage_v', 'firedamage_v', 'lightingdamage_v', 'poisondamage_v', 'magicdamage_v',
+  'physicsenhance_p', 'physicsdamage_v', 'colddamage_v', 'firedamage_v', 'lightingdamage_v', 'lightingdamage_p', 'poisondamage_v', 'magicdamage_v',
 ]);
 /** Attributes about the skill itself, never a state. */
-const SKILL_ATTR = /^(skill_|missle_|addskill|deadlystrike_p$|attackrating_p$|seriesdamage_p$|ignoredefense_p$|auto\w*skill$)/;
+const SKILL_ATTR = /^(skill_|missle_|addskill|deadlystrike_p$|attackrating_p$|seriesdamage_p$|ignoredefense_p$|auto\w*skill$|cost_sp$|special_point_)/;
 
 /** Names of the state attributes the prototype shows (others show their original key). */
 const STATE_LABELS: Record<string, string> = {
@@ -31,6 +31,10 @@ const STATE_LABELS: Record<string, string> = {
   lifemax_p: 'Sinh lực tối đa', manamax_p: 'Nội lực tối đa', ignoreskill_p: 'Bỏ qua bùa chú', returnskill_p: 'Phản bùa chú',
   poison2decmana_p: 'Độc hút nội lực', addcolddamage_v: 'Băng sát', addcoldmagic_v: 'Băng sát nội công', coldenhance_p: 'Tăng băng sát',
   addphysicsmagic_v: 'Vật lý nội công', lifemax_yan_p: 'Sinh lực tối đa',
+  addlightingmagic_p: 'Lôi sát nội công (%)', add_damage_p: 'Tăng sát thương',
+  invincibility: 'Bất tử', hidebodyunlock: 'Không thể bị chọn', frozen_action: 'Định thân', forbit_attack: 'Cấm công',
+  unravel_effect: 'Hóa giải hiệu ứng', me2waterdamage_p: 'Tăng sát thương lên hệ Thủy',
+  water2medamage_p: 'Giảm sát thương từ hệ Thủy', anti_block_rate: 'Bỏ qua đỡ đòn',
 };
 
 export const stateLabel = (name: string) => STATE_LABELS[name] ?? name;

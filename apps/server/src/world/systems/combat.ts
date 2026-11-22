@@ -35,6 +35,7 @@ const CORPSE_SECONDS = 2;
 /** Start a skill now (players and monsters alike): the engine fires it, the caster holds the pose. */
 export function castNow(w: World, sim: Sim, skillId: number, target: Sim | undefined, aim: Point): void {
   if (combatRulesAt(w.meta, sim.a, w.rules).safe) return;
+  if (attrOf(combatOf(sim).bag, 'forbit_attack') > 0) return;
   const timing = castTiming(w, sim, skillId);
   const pose = w.engine.cast(sim, skillId, target, aim, timing.cycleMs);
   if (pose.note && sim.kind === 'player') w.hooks.notify(sim, pose.note);
@@ -49,11 +50,18 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
   // Protect at impact time too: missiles, area hits, reflection and ongoing damage.
   if (combatPairRules(w.meta, attacker.a, target.a, w.rules).safe) return;
   if (target.dead || target.jump) return; // Khinh công in flight: no damage (see World's EnginePort.hostile)
+  if (attrOf(combatOf(target).bag, 'invincibility') > 0) return; // Thập Bộ Nhất Sát_Buff (2130)
   target.lastDamagedAt = w.now;
   attacker.lastAttackAt = w.now;
   if (target.kind === 'monster' && !target.def?.dummy && !target.target && !target.returning && attacker !== target) target.target = attacker.id;
   if (hit.miss) { w.events.push({ t: 'hit', id: target.id, dmg: 0, miss: true }); return; }
   let dmg = hit.dmg;
+  // Hộ Thuẫn Nội Lực tĩnh (staticmagicshield_p, e.g. Tiêu Dao Vũ 2139 / Phất Y_Thuẫn 2134): absorbs damage before HP/MP.
+  if (target.shieldHp && target.shieldHp > 0 && dmg > 0) {
+    const absorb = Math.min(target.shieldHp, dmg);
+    target.shieldHp -= absorb;
+    dmg -= absorb;
+  }
   // Nội lực hộ thân (manashield_p, SRC): that % of direct damage is taken from Nội lực while there is some;
   // poison DoT (hit.dot) bypasses mana shield and drains HP directly.
   const shield = Math.min(100, attrOf(combatOf(target).bag, 'manashield_p'));

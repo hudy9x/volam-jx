@@ -1,6 +1,7 @@
-import { SKILL_CATEGORY_NAMES, TK_ALL_ITEMS, getSkill, skillCategory, stateLines, type ItemDef } from '@vltk/shared';
+import { SKILL_CATEGORY_NAMES, SkillStyle, TK_ALL_ITEMS, getSkill, skillCategory, stateLines, weaponOk, type ItemDef } from '@vltk/shared';
 import type { ActorState } from '../../state/actor';
 import { progress } from '../../state/progress';
+import { skillbar } from '../../state/skillbar';
 import { mount } from '../kit/dom';
 import './status.css';
 import { assetUrl } from '../../art/assets';
@@ -41,12 +42,56 @@ export class StatusIcons {
 
   update(self: ActorState): void {
     const ids = [...(self.states ?? [])], ends = [...(self.stateEnds ?? [])];
+    const stateSet = new Set(ids);
     const nowSec = Date.now() / 1000;
     const left = ends.map(e => (e ? Math.max(0, Math.ceil(e - nowSec)) : -1));
-    const sig = `${ids.join(',')}|${left.join(',')}`;
+    const sp = self.sp ?? 0, spMax = self.spMax ?? 0;
+
+    // Active passive skills (learned level > 0 and matching current weapon if weapon-restricted).
+    const passives: Array<{ id: number; lv: number }> = [];
+    for (const [idStr, rawLv] of Object.entries(skillbar.levels)) {
+      const id = Number(idStr);
+      if (stateSet.has(id) || rawLv <= 0) continue;
+      const s = getSkill(id);
+      if (!s || s.style !== SkillStyle.Passive || !s.icon) continue;
+      if (!weaponOk(s, skillbar.weapon)) continue;
+      passives.push({ id, lv: skillbar.levelOf(id) });
+    }
+    passives.sort((a, b) => a.id - b.id);
+
+    const sig = `${ids.join(',')}|${left.join(',')}|${passives.map(p => `${p.id}:${p.lv}`).join(',')}|${sp}/${spMax}`;
     if (sig !== this.sig) {
       this.sig = sig;
-      this.el.replaceChildren(...ids.map((id, i) => {
+      const nodes: HTMLElement[] = [];
+
+      for (const { id, lv } of passives) {
+        const s = getSkill(id)!;
+        const el = document.createElement('div');
+        const hasSp = !!s.attrs?.special_point_base;
+        el.className = `st-icon passive${hasSp ? ' sp' : ''}`;
+        if (s.icon) {
+          const img = document.createElement('img');
+          img.src = assetUrl(`${s.icon}.webp`);
+          img.alt = s.name;
+          el.appendChild(img);
+        }
+        if (hasSp && spMax > 0) {
+          const t = document.createElement('span');
+          t.className = 'sp-count';
+          t.textContent = String(sp);
+          el.appendChild(t);
+        }
+        const lines = [
+          `${s.name} · Bị động (cấp ${lv})`,
+          ...(hasSp && spMax > 0 ? [`Âm Luật hiện có: ${sp} / ${spMax} tầng`] : []),
+          ...stateLines(s, lv),
+        ];
+        el.title = lines.join('\n');
+        nodes.push(el);
+      }
+
+      for (let i = 0; i < ids.length; i++) {
+        const id = ids[i];
         const s = getSkill(id);
         const tkItem = s ? undefined : TK_BUFF_BY_STATE.get(id);
         const el = document.createElement('div');
@@ -60,8 +105,10 @@ export class StatusIcons {
           : tkItem
             ? `${tkItem.name}\n${tkItem.desc}`
             : `#${id}`;
-        return el;
-      }));
+        nodes.push(el);
+      }
+
+      this.el.replaceChildren(...nodes);
     }
 
     const exp = progress.get()?.expBuff;

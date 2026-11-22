@@ -167,6 +167,60 @@ export function forgeError(def: ItemDef | undefined, series: number, lines: Forg
 /** Price of a forged piece: the table price once for the piece and once more for each line (our pick). */
 export const forgePrice = (def: ItemDef, lines: ForgeLines): number => def.price * (1 + lines.filter(Boolean).length);
 
+const DEFENSIVE_PREFIX_PRIORITY = [
+  'allres_p', 'fasthitrecover_v', 'fastwalkrun_p', 'lifereplenish_v', 'manareplenish_v', 'allskill_v',
+  'lifemax_v', 'manamax_v', 'meleedamagereturn_v', 'staminamax_v', 'staminareplenish_v',
+];
+const DEFENSIVE_SUFFIX_PRIORITY = [
+  'physicsres_p', 'coldres_p', 'fireres_p', 'lightingres_p', 'poisonres_p',
+  'freezetimereduce_p', 'stuntimereduce_p', 'poisontimereduce_p',
+  'damage2addmana_p', 'vitality_v', 'strength_v', 'dexterity_v', 'lucky_v',
+];
+const WEAPON_PREFIX_PRIORITY = [
+  'attackspeed_v', 'addphysicsdamage_p', 'allskill_v', 'attackratingenhance_v',
+  'steallifeenhance_p', 'stealmanaenhance_p', 'ignoredefense_p', 'lifemax_v', 'manamax_v',
+];
+const WEAPON_SUFFIX_PRIORITY_INTERNAL = [
+  'addlightingmagic_v', 'addcoldmagic_v', 'addfiremagic_v', 'addpoisonmagic_v', 'addphysicsmagic_v',
+  'freezetimereduce_p', 'stuntimereduce_p', 'coldres_p', 'fireres_p', 'lightingres_p', 'poisonres_p',
+  'poisontimereduce_p', 'damage2addmana_p', 'vitality_v',
+];
+const WEAPON_SUFFIX_PRIORITY_EXTERNAL = [
+  'addphysicsdamage_v', 'addlightingdamage_v', 'addcolddamage_v', 'addfiredamage_v', 'addpoisondamage_v',
+  'freezetimereduce_p', 'stuntimereduce_p', 'coldres_p', 'fireres_p', 'lightingres_p', 'poisonres_p',
+  'poisontimereduce_p', 'damage2addmana_p', 'vitality_v',
+];
+
+/**
+ * Pick 6 valid forge lines (at max value) for `def` and `series`.
+ * Defensive pieces prioritize resistances, slow/stun/poison duration reduction and recovery in the first 4 lines;
+ * weapons prioritize attack speed, damage % / elemental damage and utility.
+ */
+export function suggestForgeLines(def: ItemDef, series: number): ForgeLines {
+  const isWeapon = def.kind === 'melee' || def.kind === 'range';
+  const isInternalWeapon = def.kind === 'range' && def.type === 3; // Cổ Cầm (Tiêu Dao Cầm)
+  const prefixOrder = isWeapon ? WEAPON_PREFIX_PRIORITY : DEFENSIVE_PREFIX_PRIORITY;
+  const suffixOrder = isWeapon
+    ? (isInternalWeapon ? WEAPON_SUFFIX_PRIORITY_INTERNAL : WEAPON_SUFFIX_PRIORITY_EXTERNAL)
+    : DEFENSIVE_SUFFIX_PRIORITY;
+  const used = new Set<string>();
+  const out: ForgeLines = Array(MAGIC_LINES).fill(null);
+  for (let pos = 0; pos < MAGIC_LINES; pos++) {
+    const choices = forgeChoices(def, series, pos).filter(c => !used.has(c.attr));
+    if (!choices.length) continue;
+    const order = pos % 2 === 0 ? prefixOrder : suffixOrder;
+    let pick: ForgeChoice | undefined;
+    for (const want of order) {
+      pick = choices.find(c => c.attr === want);
+      if (pick) break;
+    }
+    pick ??= choices[0];
+    used.add(pick.attr);
+    out[pos] = [pick.attr, pick.max];
+  }
+  return out;
+}
+
 /** The magic lines of a forged piece, in position order (empty positions dropped; suffixes marked hidden). */
 export const forgedMagic = (lines: ForgeLines): MagicLine[] =>
   lines.flatMap((l, pos) => (l ? [(pos % 2 ? [l[0], l[1], 1] : [l[0], l[1]]) as MagicLine] : []));

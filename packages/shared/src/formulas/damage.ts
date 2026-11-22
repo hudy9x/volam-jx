@@ -70,7 +70,16 @@ export function skillDamage(s: SkillDef, level: number, root: number, a: CombatS
   phys = add(phys, scale(range(s, 'physicsdamage_v', level), k));
   const parts: DamageParts = { phys, cold: [0, 0], fire: [0, 0], light: [0, 0], poison: null };
   for (const el of ELEMENT_PARTS) parts[el] = scale(range(s, SKILL_ATTR[el], level), k);
-  const anyDamage = enhance || phys[1] > 0 || ELEMENT_PARTS.some(el => parts[el][1] > 0) || attr(s, 'poisondamage_v', level);
+  // Tiêu Dao Cầm (internal lightning % scaling): lightingdamage_p + addlightingmagic_p.
+  const lightPct = attr(s, 'lightingdamage_p', level)?.[0] ?? 0;
+  const lightMagicBoost = 1 + attrOf(a.bag, 'addlightingmagic_p') / 100;
+  if (lightPct > 0) {
+    const baseLight = lightPct * 18 * lightMagicBoost * k;
+    parts.light = add(parts.light, [baseLight * 0.9, baseLight * 1.1]);
+  } else if (!external && parts.light[1] > 0 && lightMagicBoost !== 1) {
+    parts.light = scale(parts.light, lightMagicBoost);
+  }
+  const anyDamage = enhance || phys[1] > 0 || lightPct > 0 || ELEMENT_PARTS.some(el => parts[el][1] > 0) || attr(s, 'poisondamage_v', level);
   // A plain hit (Công kích vật lý, monster swings): the base physical damage with the weapon mastery.
   if (!anyDamage) parts.phys = scale(base, (100 + mastery) / 100);
   // Adds from equipment / passives / states (physical add only on ngoại công skills and plain hits).
@@ -172,6 +181,17 @@ export function resolveHit(parts: DamageParts, ctx: HitContext, rng: () => numbe
     ? (ELEMENT_COUNTERS[attackSeries] === t.series ? PVP.counterDamageScale : PVP.damageScale)
     : 1;
   let dmg = out.parts.phys + out.parts.cold + out.parts.fire + out.parts.light;
+  // Bonus / series damage modifiers (e.g. Tiêu Dao Túy Tửu add_damage_p, Thiên Lý Độc Hành me2waterdamage_p / water2medamage_p).
+  const addDmgPct = attrOf(a.bag, 'add_damage_p');
+  if (addDmgPct !== 0) dmg *= Math.max(0.1, 1 + addDmgPct / 100);
+  if (t.series === 'thuy') {
+    const vsWater = attrOf(a.bag, 'me2waterdamage_p');
+    if (vsWater !== 0) dmg *= Math.max(0.1, 1 + vsWater / 100);
+  }
+  if (a.series === 'thuy') {
+    const fromWater = attrOf(t.bag, 'water2medamage_p');
+    if (fromWater > 0) dmg *= Math.max(0.2, 1 - fromWater / 100);
+  }
   if (ctx.pvp) dmg *= pvpScale;
   out.dmg = dmg > 0 ? Math.max(1, Math.round(dmg)) : 0;
   if (parts.poison && parts.poison.tick > 0) {

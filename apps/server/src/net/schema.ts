@@ -25,6 +25,8 @@ export const Actor = schema({
   maxHp: t.uint32(),
   mp: t.uint32(),
   maxMp: t.uint32(),
+  sp: t.uint8(),             // special resource stacks (e.g. Tiêu Dao [Âm Luật], Vũ Hồn [Nộ])
+  spMax: t.uint8(),
   pk: t.uint8(),             // PK mode: 0 Luyện công, 1 Chiến đấu, 2 Đồ sát (shared combat/rules.ts)
   camp: t.string(),          // players: camp shown by the name colour (own, or the team leader's); '' monsters
   battleCamp: t.string(),    // Tống Kim battle camp: '' | 'tong' | 'kim'

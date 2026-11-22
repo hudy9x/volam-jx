@@ -19,6 +19,7 @@
 | `npm run gen:gold -w @vltk/client` | `packages/shared/src/items/gold.gen.ts` (hoàng kim môn phái) **+ icon còn thiếu trong `public/assets/items`**: đồ hoàng kim, bí kíp Kỳ Trân Các, Lệnh bài, Thổ Địa Phù (`gen:assets` không sinh các icon này) | vài giây |
 | `npm run gen:player -w @vltk/client` | `packages/shared/src/characters/player.gen.ts` (exp từng cấp, sinh lực / nội lực theo hệ, nhân vật mới) | vài giây |
 | `npm run gen:drops -w @vltk/client` | `packages/shared/src/drops/drops.gen.ts` (bảng rơi đồ gốc) | vài giây |
+| `npm run gen:xiaoyao -w @vltk/client` | overlay môn phái Tiêu Dao từ `volam-3005/Client/data/updatejx16.pak`: 29 skill, 13 missile, 10 Cổ Cầm + icon (`obj-lyre01..05`, `obj-sword56`), 25 FX, 1.329 sheet nhân vật (`GuqinW*` + bóng) và 8 SFX `sf_xy_*.mp3` (`docs/tieu-dao.md`) | vài giây – ~1 phút lần đầu |
 | `npm run audit:skills -w @vltk/client` | `docs/skills-audit.md` (kiểm tra mọi kỹ năng bằng engine dùng chung; không đọc client) | vài giây |
 | `cd apps/client && npx tsx tools/doc-gold.ts` | `docs/equipment-gold-thientu.md` (tài liệu hoàng kim + Thiên Tứ) | vài giây |
 

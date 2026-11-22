@@ -42,7 +42,7 @@ const FACTION_NAMES = ['Thiếu Lâm', 'Thiên Vương', 'Đường Môn', 'Ngũ
 /** Damage attributes in the engine's order (KMagicAttrib.h magic_damage_begin … end). */
 const DAMAGE_ORDER = [
   'attackrating_v', 'attackrating_p', 'ignoredefense_p', 'magicdamage_v', 'seriesdamage_p', 'physicsdamage_v',
-  'colddamage_v', 'firedamage_v', 'lightingdamage_v', 'poisondamage_v', 'physicsenhance_p', 'steallife_p',
+  'colddamage_v', 'firedamage_v', 'lightingdamage_v', 'lightingdamage_p', 'poisondamage_v', 'physicsenhance_p', 'steallife_p',
   'stealmana_p', 'stealstamina_p', 'knockback_p', 'deadlystrike_p', 'fatallystrike_p', 'stun_p', 'randmove',
 ];
 const DAMAGE = new Set(DAMAGE_ORDER);
@@ -51,10 +51,34 @@ const DAMAGE_HIDDEN = new Set(['ignoredefense_p', 'magicdamage_v', 'seriesdamage
 /** Shown on their own line. */
 const OWN_LINE = new Set(['skill_cost_v', 'skill_costtype_v', 'skill_attackradius', 'seriesdamage_p']);
 
+/** Extra school/branch headers not present in SHXT magicdesc.gen.ts (Tiêu Dao 1301..1306). */
+const EXTRA_ATTRIB_TEXT: Record<string, string> = {
+  1301: 'Võ công lưu phái: Kiếm pháp (Ngoại công)',
+  1302: 'Võ công lưu phái: Cầm pháp (Nội công)',
+  1303: 'Võ công lưu phái: Kiếm pháp (Hỗ trợ)',
+  1304: 'Võ công lưu phái: Cầm pháp (Hỗ trợ)',
+  1305: 'Võ công lưu phái: Hỗ trợ - bị động',
+  1306: 'Võ công lưu phái: Hỗ trợ - chủ động',
+};
+
 /** Our own sentences for attributes magicdesc.ini has no line for (same token rules; not original text). */
 const EXTRA_DESC: Record<string, string> = {
   autoattackskill: 'Khi tấn công có xác suất <color=orange>#d9-%<color> tự thi triển <color=water>#l4-<color> <color=orange>cấp #d7-<color>',
   autorescueskill: 'Khi lâm nguy có xác suất <color=orange>#d9-%<color> tự thi triển <color=water>#l4-<color> <color=orange>cấp #d7-<color>',
+  autocastskill: 'Mỗi <color=orange>#f6- giây<color> tự động kích hoạt <color=water>#l4-<color> (tỉ lệ <color=orange>#d9-%<color>)',
+  special_point_base: 'Tối đa tích lũy: <color=orange>#d3- tầng [Âm Luật]<color>',
+  cost_sp: '<color=orange>Điều kiện thi triển: <color><color=yellow>#d3- tầng [Âm Luật]<color>',
+  lightingdamage_p: 'Lôi sát nội công: <color=orange>#d1-%<color>',
+  addlightingmagic_p: 'Lôi sát nội công: <color=orange>#d1+%<color>',
+  add_damage_p: 'Sát thương tăng: <color=orange>#d1+%<color>, duy trì <color=orange>#f2- giây<color>',
+  me2waterdamage_p: 'Tăng sát thương lên hệ Thủy: <color=orange>#d1+%<color>',
+  water2medamage_p: 'Giảm sát thương từ hệ Thủy: <color=orange>#d1+%<color>',
+  anti_block_rate: 'Bỏ qua tỉ lệ đỡ đòn: <color=orange>#d1+%<color>',
+  unravel_effect: 'Hóa giải hiệu ứng bất lợi: <color=orange>#d1+<color>',
+  staticmagicshield_p: 'Hộ thuẫn hấp thụ sát thương bằng <color=orange>#d1-%<color> nội lực tối đa, duy trì <color=orange>#f2- giây<color>',
+  missle_hitcount: 'Số lần tấn công / mục tiêu tối đa: <color=orange>#d1-<color>',
+  invincibility: 'Bất tử trong lúc thi triển',
+  hidebodyunlock: 'Không thể bị chọn làm mục tiêu',
 };
 
 /** Template for an attribute (skills.txt names some without the "skill_" prefix magicdesc.ini uses). */
@@ -130,9 +154,14 @@ export function formatAttr(tpl: string, v: [number, number, number]): string {
 
 /** One attribute as tooltip lines ([] when the original has no sentence for it). */
 export function describeAttr(skill: SkillDef, name: string, level: number): TipLine[] {
-  const tpl = template(name);
   const v = attr(skill, name, level);
-  if (!tpl || !v) return [];
+  if (!v) return [];
+  if (name === 'autocastskill' && Math.floor(v[0] / 256) === 2117) {
+    const sec = Math.max(1, Math.floor(Math.floor(v[2] / 256) / 18));
+    return richText(`Mỗi <color=orange>${sec} giây<color> tự động nhận <color=orange>1 tầng [Âm Luật]<color>`);
+  }
+  const tpl = template(name);
+  if (!tpl) return [];
   return richText(formatAttr(tpl, v));
 }
 
@@ -193,7 +222,8 @@ export function describeSkill(s: SkillDef, level: number, maxLevel: number): Ski
   const desc = school?.desc ?? s.desc;
   if (desc) head.push(...richText(desc, '#ffffff'));
   if (school?.note) head.push(line(school.note));
-  if (s.attrib && SKILL_ATTRIB_TEXT[String(s.attrib)]) head.push(...richText(SKILL_ATTRIB_TEXT[String(s.attrib)]));
+  const attribText = s.attrib ? (SKILL_ATTRIB_TEXT[String(s.attrib)] ?? EXTRA_ATTRIB_TEXT[String(s.attrib)]) : undefined;
+  if (attribText) head.push(...richText(attribText));
   head.push(line(`Đẳng cấp hiện thời: ${level}`));
   const limits: TipLine[] = [];
   if (s.weapon !== undefined) {

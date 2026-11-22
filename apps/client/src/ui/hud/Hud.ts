@@ -52,8 +52,8 @@ export interface AppActions {
   quit: () => void;
 }
 
-interface Shown { hp: number; mp: number; maxHp: number; maxMp: number; pk: number | null; dead: boolean | null; pos: string; players: number; horse: string | null; mounted: boolean | null }
-const FRESH: Shown = { hp: -1, mp: -1, maxHp: -1, maxMp: -1, pk: null, dead: null, pos: '', players: -1, horse: null, mounted: null };
+interface Shown { hp: number; mp: number; maxHp: number; maxMp: number; sp: number; spMax: number; pk: number | null; dead: boolean | null; pos: string; players: number; horse: string | null; mounted: boolean | null }
+const FRESH: Shown = { hp: -1, mp: -1, maxHp: -1, maxMp: -1, sp: -1, spMax: -1, pk: null, dead: null, pos: '', players: -1, horse: null, mounted: null };
 
 /**
  * The in-game interface (desktop layout): builds the HUD parts (hud/) and windows (windows/) and implements the
@@ -247,6 +247,11 @@ export class Hud implements WorldUi {
     if (self.mp !== l.mp || self.maxMp !== l.maxMp) {
       l.mp = self.mp; l.maxMp = self.maxMp;
       this.vitals.setMp(self.mp, self.maxMp);
+    }
+    const sp = self.sp ?? 0, spMax = self.spMax ?? 0;
+    if (sp !== l.sp || spMax !== l.spMax) {
+      l.sp = sp; l.spMax = spMax;
+      this.vitals.setSp(sp, spMax);
     }
     if (self.pk !== l.pk) {
       l.pk = self.pk;

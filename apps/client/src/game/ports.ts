@@ -36,6 +36,8 @@ export interface WorldActions {
   discard: (index: number) => void;
   /** Thợ rèn "Chế tạo": a blue piece of a row with ngũ hành `series` and lines per position (items/magic.ts). */
   forge: (item: string, series: number, lines: ([string, number] | null)[], token?: boolean) => void;
+  /** Batch forge multiple blue pieces in a single C2S.forge message. */
+  forgeBatch: (batch: Array<{ item: string; series: number; lines: ([string, number] | null)[] }>, token?: boolean) => void;
   /** Move a bag piece so its top-left cell is `to`. */
   bagMove: (from: number, to: number) => void;
   /** Sort/compact one page of bag or stash. */

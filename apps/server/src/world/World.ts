@@ -1,5 +1,5 @@
 import type { MapSchema } from '@colyseus/schema';
-import { MAPS, SkillEngine, TK_BATTLE_MAP_ID, getGrid, type EnginePort, type FxEvent, type LogKind, type MapMeta, type MapRules, type NavigationGrid } from '@vltk/shared';
+import { MAPS, SkillEngine, TK_BATTLE_MAP_ID, attrOf, getGrid, type EnginePort, type FxEvent, type LogKind, type MapMeta, type MapRules, type NavigationGrid } from '@vltk/shared';
 import type { Actor, Ground } from '../net/schema.js';
 import { updateMonster } from './ai/monster.js';
 import type { Sim, SpawnSlot } from './entity.js';
@@ -75,8 +75,14 @@ export class World {
       random: () => this.random(),
       combatants: () => this.sims.values(),
       get: id => this.sims.get(id),
-      // A Khinh công jumper in flight cannot be hit (our rule, AGENTS.md §6); monsters still keep it as their target.
-      hostile: (a, b) => !(b as Sim).jump && attackable(this, a as Sim, b as Sim),
+      // A Khinh công jumper in flight or an untargetable/invincible caster (Thập Bộ Nhất Sát 2130) cannot be hit.
+      hostile: (a, b) => {
+        const target = b as Sim;
+        if (target.jump) return false;
+        const bag = combatOf(target).bag;
+        if (attrOf(bag, 'invincibility') > 0 || attrOf(bag, 'hidebodyunlock') > 0) return false;
+        return attackable(this, a as Sim, target);
+      },
       friendly: (a, b) => friendly(this, a as Sim, b as Sim),
       damage: (a, b, hit) => applyHit(this, a as Sim, b as Sim, hit),
       stats: c => combatOf(c as Sim),
@@ -86,6 +92,11 @@ export class World {
       dash: (a, b) => dash(this, a as Sim, b as Sim),
       blink: (a, x, y) => blink(this, a as Sim, x, y),
       jump: (a, x, y) => startJump(this, a as Sim, x, y),
+      onSpChanged: c => {
+        const sim = c as Sim;
+        sim.a.sp = Math.max(0, Math.min(255, sim.sp ?? 0));
+        sim.a.spMax = Math.max(0, Math.min(255, sim.spMax ?? 0));
+      },
       emit: e => this.events.push(e),
     };
     this.engine = new SkillEngine(port);

@@ -95,12 +95,17 @@ function toggleGraduate(w: World, sim: Sim): boolean {
 }
 
 /**
- * Every skill of the faction's 90 / 120 / 150 tiers, learned at once at the highest level the character's level allows
- * (skills/core/learning.ts levelCap) — no bí kíp, no thục luyện.
+ * Raises the character to level 150 (if below) and learns every skill of the faction's 90 / 120 / 150 tiers
+ * at the highest level allowed (skills/core/learning.ts levelCap) — no bí kíp, no thục luyện.
  */
 function learnTierSkills(w: World, sim: Sim): void {
   if (!sim.a.faction) { w.hooks.notify(sim, 'Phải gia nhập môn phái trước.'); return; }
-  const level = sim.progress!.prog.level;
+  const p = sim.progress!.prog;
+  const targetLv = Math.min(LEVEL.max, TOKEN.level);
+  if (p.level < targetLv) {
+    while (p.level < targetLv) if (!gainExp(w, sim, expToNext(p.level) - p.exp)) break;
+  }
+  const level = p.level;
   const ids = learnTiers(sim.a.faction)
     .filter(t => (TOKEN.tiers as readonly number[]).includes(t.level) && t.label.startsWith('Cấp'))
     .flatMap(t => t.skills);
@@ -127,7 +132,7 @@ function learnTierSkills(w: World, sim: Sim): void {
 /** A whole hoàng kim môn phái set of the own faction (5 pieces, rolled with the character's luck) into the bag. */
 function giveSuite(w: World, sim: Sim, suite: number): boolean {
   if (!sim.a.faction) { w.hooks.notify(sim, 'Phải gia nhập môn phái trước.'); return false; }
-  const set = factionSuites(sim.a.faction).find(s => s.suite === suite);
+  const set = factionSuites(sim.a.faction, sim.a.gender).find(s => s.suite === suite);
   if (!set) { w.hooks.notify(sim, 'Bộ trang bị không thuộc môn phái của bạn.'); return false; }
   const bag = sim.bag!;
   const copy = [...bag];

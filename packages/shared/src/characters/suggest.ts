@@ -71,6 +71,12 @@ const CATALOG: Record<string, { shared: number[]; routes: SkillRoute[] }> = {
       skills: [...r.suggested, 1365], // Common rescue passive; books/raiseError still gate learning.
     })),
   },
+  xiaoyao: {
+    shared: [2123], routes: [
+      { id: 'sword', name: 'Tiêu Dao Kiếm (Ngoại công)', damageKind: 'external', skills: [2115, 2114, 2116, 2118, 2120, 2121, 2122] },
+      { id: 'guqin', name: 'Tiêu Dao Cầm (Nội công)', damageKind: 'internal', skills: [2137, 2136, 2116, 2138, 2140, 2121, 2122] },
+    ],
+  },
 };
 
 type Weights = Record<Potential, number>;

@@ -350,6 +350,7 @@ export class WorldScene extends Phaser.Scene {
       use: index => this.room.send(C2S.use, { index }),
       discard: index => this.room.send(C2S.discard, { index }),
       forge: (item, series, lines, token) => this.room.send(C2S.forge, { item, series, lines, token }),
+      forgeBatch: (batch, token) => { if (batch.length) this.room.send(C2S.forge, { batch, token }); },
       chat: (text, ch) => this.room.send(C2S.chat, { text, ch }),
       tradePost: msg => this.room.send(C2S.tradePost, msg),
       tradeBuy: id => this.room.send(C2S.tradeBuy, { id }),

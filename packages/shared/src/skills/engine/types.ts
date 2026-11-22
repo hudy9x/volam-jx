@@ -1,6 +1,6 @@
 import type { Element } from '../../characters/factions.js';
 import type { FxEvent } from '../../protocol.js';
-import type { StateApply } from '../../status/states.js';
+import type { ActiveStates, StateApply } from '../../status/states.js';
 import type { CombatStats } from '../../formulas/combat.js';
 import type { HitEffects } from '../../formulas/effects.js';
 
@@ -29,6 +29,11 @@ export interface Combatant {
   skillBonus?: Map<number, number>;
   /** Skill id -> time (ms) it is ready again. */
   cooldowns: Map<number, number>;
+  /** Faction special resource stacks (e.g. Tiêu Dao [Âm Luật], Vũ Hồn [Nộ]). */
+  sp?: number;
+  spMax?: number;
+  /** Active states on this combatant (optional, used for state-bound autocastskill like 2133 -> 2134). */
+  states?: ActiveStates;
 }
 
 export interface HitResult {
@@ -68,5 +73,7 @@ export interface EnginePort {
    * Returns the flight time in ms, 0 when there is no room to jump. Optional — without it Khinh công does nothing.
    */
   jump?(caster: Combatant, x: number, y: number): number;
+  /** Notify world when a combatant's special resource stacks (sp/spMax) changed. */
+  onSpChanged?(c: Combatant): void;
   emit(e: FxEvent): void;
 }

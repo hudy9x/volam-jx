@@ -53,6 +53,10 @@ interface Missile {
   flyNext: number;
   /** The fly layer (skill_flyevent) is on at this level. */
   flyOn: boolean;
+  /** missle_hitcount limit (0 = unlimited). */
+  maxHits: number;
+  hitsDealt: number;
+  targetHits: Map<string, number>;
   depth: number;
   done: boolean;
 }
@@ -74,8 +78,10 @@ export interface CastResult { anim: 'attack' | 'attack2' | 'cast' | 'jump'; ms: 
 const TAU = Math.PI * 2;
 /** Melee MisslesForm 11 (Đoạn Hồn Thích): the caster lunges at the target. */
 const DASH_FORM = 11;
-/** Melee MisslesForm 9 (Khinh công): the caster flies to the spot (Mê Ảnh Tung, form 13, appears there at once). */
+/** Melee MisslesForm 9 (Khinh công): the caster flies to the spot. */
 const JUMP_FORM = 9;
+/** Melee MisslesForm 13 (Mê Ảnh Tung / Táp Đạp Lưu Tinh): blink to aim point (and optionally cast child FX). */
+const BLINK_FORM = 13;
 const DIR64 = TAU / 64;
 /** Room a target takes up around its feet (on top of the missile's own collision radius); bosses are bigger. */
 const reachOf = (t: Combatant) => 16 + (t.a.boss ? 12 : 0);
@@ -106,8 +112,29 @@ export class SkillEngine {
   private auras = new Map<string, Aura>();
   /** `${owner}:${skill}` -> time a passive trigger may fire again. */
   private triggerReady = new Map<string, number>();
+  /** `${owner}:${sourceSkill}` -> time an autocastskill (passive or active state) fires next. */
+  private autoCastNext = new Map<string, number>();
 
   constructor(private port: EnginePort) {}
+
+  /** Resolve max special resource stacks (special_point_base) from learned passives. */
+  resolveSpMax(c: Combatant): number {
+    let max = 0;
+    for (const [id, lv] of c.skills) {
+      if (lv <= 0) continue;
+      const s = getSkill(id);
+      if (!s || s.style !== SkillStyle.Passive || !s.attrs?.special_point_base) continue;
+      const v = attr(s, 'special_point_base', levelOf(c, id) ?? lv);
+      if (v && v[2] > 0) max += v[2];
+    }
+    return max;
+  }
+
+  /** Required special resource stacks (cost_sp P3) to cast `s` at `level`. */
+  private spCost(s: SkillDef, level: number): number {
+    const v = attr(s, 'cost_sp', level);
+    return v && v[2] > 0 ? Math.floor(v[2]) : 0;
+  }
 
   /** Why `c` cannot use `id` right now (null = it can, cooldown aside). */
   check(c: Combatant, id: number): string | null {
@@ -124,6 +151,10 @@ export class SkillEngine {
       const cost = skillResourceCost(s, level);
       if (!canPaySkillCost(cost, { hp: c.hp, mp: c.mp, maxHp: c.a.maxHp })) {
         return cost.resource === 'hp' ? 'Không đủ sinh lực dự trữ để thi triển.' : 'Không đủ nội lực.';
+      }
+      const needSp = this.spCost(s, level);
+      if (needSp > 0 && (c.sp ?? 0) < needSp) {
+        return `Cần ${needSp} tầng Âm Luật (hiện có ${c.sp ?? 0}).`;
       }
     } // monsters cast for free
     return null;
@@ -148,6 +179,11 @@ export class SkillEngine {
       const cost = skillResourceCost(s, level);
       if (cost.resource === 'hp') c.hp -= cost.amount;
       else c.mp -= cost.amount;
+      const needSp = this.spCost(s, level);
+      if (needSp > 0) {
+        c.sp = Math.max(0, (c.sp ?? 0) - needSp);
+        this.port.onSpChanged?.(c);
+      }
     }
     const minTime = attr1(s, c.a.mounted ? 'skill_mintimepercastonhorse_v' : 'skill_mintimepercast_v', level);
     const cd = Math.max(s.cooldown ?? 0, minTime) * JX_TICK_MS + (tuningOf(id).cooldownMs ?? 0);
@@ -175,12 +211,19 @@ export class SkillEngine {
       const ms = this.port.jump?.(c, c.a.x + (to.x - c.a.x) * k, c.a.y + (to.y - c.a.y) * k) ?? 0;
       return ms > 0 ? { anim: 'jump', ms } : { anim, ms: MIN_CAST_MS };
     }
-    if (s.style === SkillStyle.Melee && !s.child) { // Mê Ảnh Tung: appear at the aim point
+    if (s.style === SkillStyle.Melee && (s.form === BLINK_FORM || !s.child)) { // Mê Ảnh Tung / Táp Đạp Lưu Tinh: blink to aim point
+      const from = { x: c.a.x, y: c.a.y };
       const reach = attr1(s, 'skill_param1_v', level, 200);
       const d = isoDistance(c.a.x, c.a.y, to.x, to.y);
       const k = d > reach ? reach / d : 1;
-      this.port.blink?.(c, c.a.x + (to.x - c.a.x) * k, c.a.y + (to.y - c.a.y) * k);
-      this.port.addState(c, { skill: id, kind: 'buff', ms: 1500, by: c.id, level });
+      const dest = { x: c.a.x + (to.x - c.a.x) * k, y: c.a.y + (to.y - c.a.y) * k };
+      this.port.blink?.(c, dest.x, dest.y);
+      const child = s.child ? getSkill(s.child) : undefined;
+      if (child) {
+        this.launch(c.id, child, level, from, dest, target?.id, 0, 0, id);
+      } else {
+        this.port.addState(c, { skill: id, kind: 'buff', ms: 1500, by: c.id, level });
+      }
       return { anim, ms: pose };
     }
     // One completed pose releases one primary cast. Secondary pulses / flight retain world timing.
@@ -228,6 +271,8 @@ export class SkillEngine {
     for (const t of this.timers) if (t.owner === ownerId) t.cancelled = true;
     this.timers = this.timers.filter(t => t.owner !== ownerId);
     this.auras.delete(ownerId);
+    const prefix = `${ownerId}:`;
+    for (const k of this.autoCastNext.keys()) if (k.startsWith(prefix)) this.autoCastNext.delete(k);
   }
 
   /** Interrupt unlaunched skill work; launched missiles and the held aura survive a flinch. */
@@ -240,13 +285,14 @@ export class SkillEngine {
     this.timers = [];
     this.missiles = [];
     this.auras.clear();
+    this.autoCastNext.clear();
   }
 
   // ======================= launching =======================
 
   /** Schedule one skill's missiles (or a melee skill's hits). Returns the tick of the last spawn. */
   private launch(ownerId: string, s: SkillDef, level: number, from: Point, aim: Point, targetId: string | undefined,
-    delay: number, depth: number, root: number): number {
+    delay: number, depth: number, root: number, inheritAngle?: number): number {
     if (depth > MAX_EVENT_DEPTH) return delay;
     if (s.style === SkillStyle.Melee) {
       const child = s.child ? getSkill(s.child) : undefined;
@@ -275,6 +321,21 @@ export class SkillEngine {
     const owner = this.port.get(ownerId);
     if (!owner) return delay;
     if (s.style === SkillStyle.State) { // bùa lợi on the caster (+ allies around when the skill allows)
+      // Resource-stack generator (e.g. Tiêu Dao 2117 Âm Luật: special_point_add).
+      const spAdd = attr(s, 'special_point_add', level);
+      if (spAdd && spAdd[2] > 0) {
+        const spMax = this.resolveSpMax(owner);
+        owner.spMax = spMax;
+        if (spMax > 0) {
+          const prev = owner.sp ?? 0;
+          const next = Math.min(spMax, prev + Math.floor(spAdd[2]));
+          if (next !== prev) {
+            owner.sp = next;
+            this.port.onSpChanged?.(owner);
+          }
+        }
+        return delay;
+      }
       this.after(delay + (s.wait ?? 0), ownerId, () => {
         const o = this.port.get(ownerId);
         if (!o) return;
@@ -305,7 +366,7 @@ export class SkillEngine {
     const n = Math.max(1, attr1(s, 'skill_misslenum_v', level, s.childNum ?? 1) || s.childNum || 1);
     const p1 = attr1(s, 'skill_param1_v', level, s.p1 ?? 0) || (s.p1 ?? 0);
     const same = Math.abs(aim.x - from.x) < 1 && Math.abs(aim.y - from.y) < 1;
-    const base = same ? facingAngle(owner.a.dir) : logicAngle(from.x, from.y, aim.x, aim.y);
+    const base = inheritAngle ?? (same ? facingAngle(owner.a.dir) : logicAngle(from.x, from.y, aim.x, aim.y));
     const r = this.port.random;
     let last = delay;
     for (let i = 0; i < n; i++) {
@@ -379,11 +440,13 @@ export class SkillEngine {
       angle = logicAngle(at.x, at.y, aim.x, aim.y);
       life = Math.max(2, Math.min(life, Math.ceil(isoDistance(at.x, at.y, aim.x, aim.y) / speed)));
     }
+    const maxHits = Math.max(0, Math.floor(attr1(s, 'missle_hitcount', level, 0)));
     const m: Missile = {
       mid: this.nextMid++, def, skill: s, root, level, src, x: at.x, y: at.y, angle, speed: move === MoveKind.Stand ? 0 : speed,
       born: now, dies: now + life * JX_TICK_MS, last: now, targetId, aim, hitAgain: new Map(), areaAgain: 0,
       pulseNext: def.rangeDmg && def.autoExplode && def.dmgInterval ? now + def.dmgInterval * JX_TICK_MS : Infinity,
-      flyNext: now + (s.events?.flyTicks ?? 1) * JX_TICK_MS, flyOn: !!eventSkill(s, 'fly', level), depth, done: false,
+      flyNext: now + (s.events?.flyTicks ?? 1) * JX_TICK_MS, flyOn: !!eventSkill(s, 'fly', level),
+      maxHits, hitsDealt: 0, targetHits: new Map(), depth, done: false,
     };
     this.missiles.push(m);
     if (def.fx?.fly || def.fx?.wait) {
@@ -419,6 +482,54 @@ export class SkillEngine {
     for (const m of this.missiles) this.step(m, now);
     this.missiles = this.missiles.filter(m => !m.done);
     for (const [ownerId, aura] of this.auras) this.pulseAura(ownerId, aura, now);
+    this.tickAutoCast(now);
+  }
+
+  /** Periodic autocastskill on learned passives (e.g. 2116 -> 2117 [Âm Luật]) and active states (2133 -> 2134). */
+  private tickAutoCast(now: number): void {
+    for (const c of this.port.combatants()) {
+      if (c.dead) continue;
+      // Keep spMax synced for fighters who know a special_point_base passive.
+      const spMax = this.resolveSpMax(c);
+      if ((c.spMax ?? 0) !== spMax) {
+        c.spMax = spMax;
+        if ((c.sp ?? 0) > spMax) c.sp = spMax;
+        this.port.onSpChanged?.(c);
+      }
+      // 1. Passive autocastskill
+      for (const [id, rawLv] of c.skills) {
+        if (rawLv <= 0) continue;
+        const s = getSkill(id);
+        if (!s || s.style !== SkillStyle.Passive || !s.attrs?.autocastskill) continue;
+        this.runAutoCast(c, s, levelOf(c, id) ?? rawLv, now);
+      }
+      // 2. Active-state autocastskill (e.g. 2133 Phất Y -> 2134 Phất Y_Thuẫn)
+      if (c.states) {
+        for (const [skillId, st] of c.states) {
+          const s = getSkill(skillId);
+          if (!s?.attrs?.autocastskill) continue;
+          this.runAutoCast(c, s, st.level ?? 1, now);
+        }
+      }
+    }
+  }
+
+  private runAutoCast(c: Combatant, source: SkillDef, level: number, now: number): void {
+    const v = attr(source, 'autocastskill', level);
+    if (!v || !v[0]) return;
+    const subId = Math.floor(v[0] / 256);
+    const subLv = Math.max(1, v[0] % 256);
+    const intervalTicks = Math.max(1, Math.floor((v[2] || 18 * 256 + 100) / 256));
+    const chance = Math.min(100, (v[2] % 256) || 100);
+    const key = `${c.id}:${source.id}`;
+    const due = this.autoCastNext.get(key) ?? 0;
+    if (due > now) return;
+    this.autoCastNext.set(key, now + intervalTicks * JX_TICK_MS);
+    if (chance < 100 && this.port.random() * 100 >= chance) return;
+    const sub = getSkill(subId);
+    if (!sub) return;
+    const pos = { x: c.a.x, y: c.a.y };
+    this.launch(c.id, sub, subLv, pos, pos, c.id, 0, 1, sub.id);
   }
 
   /** Auras keep their state on the owner and everyone in range (enemies for the hostile ones). */
@@ -459,12 +570,11 @@ export class SkillEngine {
         m.flyNext += (m.skill.events?.flyTicks ?? 1) * JX_TICK_MS;
         this.event(m, 'fly');
       }
-      if (!m.def.autoExplode) this.collide(m);
+      if (!m.def.autoExplode || m.def.colVanish) this.collide(m);
       else if (m.last >= m.pulseNext && m.last < m.dies) { // lingering area (ice rain…): blasts every DmgInterval
         m.pulseNext += (m.def.dmgInterval ?? 1) * JX_TICK_MS;
         if (this.area(m)) {
           this.event(m, 'collide');
-          if (m.def.fx?.collide) this.port.emit({ t: 'mend', m: 0, k: m.def.id, x: Math.round(m.x), y: Math.round(m.y), c: 1 });
         }
       }
     }
@@ -509,6 +619,7 @@ export class SkillEngine {
   }
 
   private collide(m: Missile): void {
+    if (m.def.collide === 0) return;
     const owner = this.port.get(m.src.id);
     if (!owner) return;
     const now = m.last;
@@ -525,7 +636,6 @@ export class SkillEngine {
       this.area(m);
       this.event(m, 'collide');
       if (m.def.colVanish) this.end(m, true);
-      else if (m.def.fx?.collide) this.port.emit({ t: 'mend', m: 0, k: m.def.id, x: Math.round(m.x), y: Math.round(m.y), c: 1 });
       return;
     }
     let best: Combatant | undefined, bestD = Infinity;
@@ -546,13 +656,23 @@ export class SkillEngine {
   private area(m: Missile): boolean {
     const owner = this.port.get(m.src.id);
     if (!owner) return false;
+    if (m.maxHits > 0 && m.hitsDealt >= m.maxHits) return false;
     const r = cellRadius(m.def.dmgRange ?? m.def.collide ?? 1);
+    const perTargetCap = m.maxHits >= 10 ? 5 : m.maxHits > 0 ? 1 : Infinity;
     let hit = false;
     for (const t of [...this.port.combatants()]) {
-      if (this.affects(m, owner, t) && isoDistance(m.x, m.y, t.a.x, t.a.y) <= r + reachOf(t)) {
-        this.strike(m, owner, t);
-        hit = true;
+      if (m.maxHits > 0 && m.hitsDealt >= m.maxHits && t.id !== owner.id) break;
+      if (!this.affects(m, owner, t) || isoDistance(m.x, m.y, t.a.x, t.a.y) > r + reachOf(t)) continue;
+      const curHits = m.targetHits.get(t.id) ?? 0;
+      if (curHits >= perTargetCap) continue;
+      m.targetHits.set(t.id, curHits + 1);
+      // Friendly ally-count caps (e.g. 2139 Tiêu Dao Vũ: self + up to maxHits allies) don't count self against the ally cap.
+      if (!(t.id === owner.id && !this.port.hostile(owner, t))) m.hitsDealt++;
+      this.strike(m, owner, t);
+      if (m.def.fx?.collide && this.port.hostile(owner, t)) {
+        this.port.emit({ t: 'mend', m: 0, k: m.def.id, x: Math.round(t.a.x), y: Math.round(t.a.y), c: 1 });
       }
+      hit = true;
     }
     return hit;
   }
@@ -577,9 +697,10 @@ export class SkillEngine {
     const ev = getSkill(id);
     if (!ev) return;
     const level = attr1(s, 'skill_eventskilllevel', m.level) || m.level;
-    const target = targetId ? this.port.get(targetId) : undefined;
-    const aim = target && !target.dead ? { x: target.a.x, y: target.a.y } : m.aim;
-    this.launch(m.src.id, ev, level, { x: m.x, y: m.y }, aim, targetId, 0, m.depth + 1, m.root);
+    const atMissile = kind === 'fly' || kind === 'vanish';
+    const target = !atMissile && targetId ? this.port.get(targetId) : undefined;
+    const aim = atMissile ? { x: m.x, y: m.y } : (target && !target.dead ? { x: target.a.x, y: target.a.y } : m.aim);
+    this.launch(m.src.id, ev, level, { x: m.x, y: m.y }, aim, targetId, 0, m.depth + 1, m.root, atMissile ? m.angle : undefined);
   }
 
   // ======================= damage =======================

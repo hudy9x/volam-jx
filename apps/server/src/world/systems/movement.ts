@@ -1,6 +1,7 @@
-import { coldMovement, getActiveSpeedConfig, PLAYER_SPEED, clearSegment, direction8, findPath, isWalkable, isoDistance, stepToward, type Point } from '@vltk/shared';
+import { attrOf, coldMovement, getActiveSpeedConfig, PLAYER_SPEED, clearSegment, direction8, findPath, isWalkable, isoDistance, stepToward, type Point } from '@vltk/shared';
 import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
+import { combatOf } from './effects.js';
 
 // Paths (straight line or A* within a per-tick budget), walking along them, facing, run speed.
 
@@ -22,6 +23,7 @@ export function setPath(w: World, sim: Sim, dest: Point, force = false): void {
 }
 
 export function followPath(sim: Sim, dt: number, speedScale = 1): void {
+  if (attrOf(combatOf(sim).bag, 'frozen_action') > 0) return;
   const cold = !!(sim.a.ctl & 2);
   if (!cold) sim.coldPosition = undefined;
   // Share the same rate with observers; cold ignores AI and equipment multipliers.

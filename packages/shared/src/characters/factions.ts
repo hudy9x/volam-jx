@@ -32,6 +32,7 @@ export const FACTIONS: Record<string, FactionDef> = {
   wudang: { id: 'wudang', name: 'Võ Đang', element: 'tho' },
   kunlun: { id: 'kunlun', name: 'Côn Lôn', element: 'tho' },
   huashan: { id: 'huashan', name: 'Hoa Sơn', element: 'thuy' },
+  xiaoyao: { id: 'xiaoyao', name: 'Tiêu Dao', element: 'tho' },
 };
 
 export const FACTION_IDS = Object.keys(FACTIONS);

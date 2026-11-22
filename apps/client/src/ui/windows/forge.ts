@@ -1,6 +1,6 @@
 import {
   ITEMS, KIND_NAMES, KIND_SLOTS, MAGIC_KINDS, MAGIC_LINES, MAGIC_SLOTS, QUALITY, SERIES_NAMES, SHOP_ITEMS, attrText, forgeChoices,
-  forgeError, forgePrice, forgedMagic, moneyText, seriesOf, seriesPlan,
+  forgeError, forgePrice, forgedMagic, moneyText, seriesOf, seriesPlan, suggestForgeLines,
   type EquipSlot, type ForgeChoice, type ForgeLines, type Item, type ItemDef, type ItemKind,
 } from '@vltk/shared';
 import { itemViewer, ownSeries } from '../../state/progress';
@@ -17,7 +17,7 @@ const ID = 'forge-panel';
 /** Names of the weapon / ám khí row types (meleeweapon.txt / rangeweapon.txt DetailType). */
 const TYPE_NAMES: Partial<Record<ItemKind, string[]>> = {
   melee: ['Kiếm', 'Đao', 'Bổng (côn)', 'Thương', 'Chùy', 'Song đao', 'Triền thủ'],
-  range: ['Phi tiêu', 'Phi đao', 'Tụ tiễn'],
+  range: ['Phi tiêu', 'Phi đao', 'Tụ tiễn', 'Cổ Cầm (Đàn)'],
 };
 const typeName = (kind: ItemKind, type: number, rows: ItemDef[]) =>
   TYPE_NAMES[kind]?.[type] ?? rows.find(it => it.type === type)?.name ?? `Loại ${type + 1}`;
@@ -34,13 +34,16 @@ const HTML = `
       </div>
       <div class="forge-series" id="forge-series"></div>
       <div class="forge-plan">
-        <button type="button" class="btn sm" id="forge-auto" title="Chọn ngũ hành cho món này để dòng ẩn sáng nhiều nhất, theo vũ khí đang mặc và hệ nhân vật">Ngũ hành theo vũ khí</button>
+        <button type="button" class="btn sm" id="forge-auto" title="Tạo nhanh 9 món trang bị ngũ hành còn lại (Nón, Áo, Dây chuyền, Đai, Giày, Bao tay, 2 Nhẫn, Ngọc bội) kích sáng tối đa dòng ẩn theo hệ vũ khí">Nhận toàn bộ trang bị ngũ hành còn lại</button>
         <div class="muted" id="forge-plan"></div>
       </div>
       <div id="forge-lines"></div>
       <div class="forge-foot">
         <button type="button" class="btn sm" id="forge-max">Tất cả giá trị tối đa</button>
-        <button type="button" class="btn sm" id="forge-clear">Xóa dòng</button>
+        <div class="row">
+          <button type="button" class="btn sm" id="forge-suggest" title="Tự chọn nhanh các dòng thuộc tính phù hợp cho món đang chọn">Gợi ý</button>
+          <button type="button" class="btn sm" id="forge-clear">Xóa dòng</button>
+        </div>
       </div>
       <div class="forge-foot">
         <span>Giá: <b id="forge-price"></b> lượng</span>
@@ -99,18 +102,17 @@ export class ForgeWindow {
       this.lines = this.lines.map((l, pos) => (l ? [l[0], this.choice(pos, l[0])?.max ?? l[1]] : null));
       this.render();
     });
+    $('forge-suggest').addEventListener('click', () => {
+      if (!this.def) return;
+      this.lines = suggestForgeLines(this.def, this.series);
+      this.render();
+    });
     $('forge-clear').addEventListener('click', () => { this.lines = Array(MAGIC_LINES).fill(null); this.render(); });
     $('forge-make').addEventListener('click', () => {
       if (!this.def || this.error()) return;
       this.ctx.actions()?.forge(this.def.id, this.series, this.lines, this.token);
     });
-    $('forge-auto').addEventListener('click', () => {
-      const s = this.plannedSeries();
-      if (s === undefined) return;
-      this.series = s;
-      this.trimLines();
-      this.render();
-    });
+    $('forge-auto').addEventListener('click', () => this.forgeRemainingSet());
     inventory.watch(() => this.renderPrice());
   }
 
@@ -179,20 +181,43 @@ export class ForgeWindow {
    * Plan of ngũ hành for the 10 slots (items/magic.ts seriesPlan) from the worn weapon's ngũ hành (free when it has
    * none) and the character's: the slot the current kind goes to, and a line listing the whole plan.
    */
-  private plan(): { slot: EquipSlot; plan: ReturnType<typeof seriesPlan>; weapon: number } | undefined {
+  private plan(): { slot: EquipSlot; plan: ReturnType<typeof seriesPlan>; weapon: number; fromSelection: boolean } | undefined {
     if (!this.def) return undefined;
     const equip = inventory.get().equip;
-    const weapon = equip.weapon?.series ?? -1;
+    const isWeaponSelected = this.kind === 'melee' || this.kind === 'range';
+    const weapon = isWeaponSelected ? this.series : (equip.weapon?.series ?? -1);
     const plan = seriesPlan(weapon, seriesOf(ownSeries(this.ctx.self())));
     const slots = KIND_SLOTS[this.def.kind];
     // Rings: the slot whose worn ring does not already match the plan (upper first).
     const slot = slots.find(s => equip[s]?.series !== plan.series[s]) ?? slots[0];
-    return slot ? { slot, plan, weapon } : undefined;
+    return slot ? { slot, plan, weapon, fromSelection: isWeaponSelected } : undefined;
   }
 
-  private plannedSeries(): number | undefined {
+  /** Create all 9 remaining slots (excluding weapon) matching seriesPlan in one batched C2S.forge message. */
+  private forgeRemainingSet(): void {
     const p = this.plan();
-    return p ? p.plan.series[p.slot] : undefined;
+    if (!p) return;
+    const self = this.ctx.self();
+    const sex = self?.gender === 'female' ? 'f' : 'm';
+    const me = self?.level ?? 1;
+    const SLOT_KIND: Partial<Record<EquipSlot, ItemKind>> = {
+      helm: 'helm', armor: 'armor', amulet: 'amulet', belt: 'belt', boot: 'boot',
+      cuff: 'cuff', ring1: 'ring', ring2: 'ring', pendant: 'pendant',
+    };
+    const orders: Array<{ item: string; series: number; lines: ForgeLines }> = [];
+    for (const slot of MAGIC_SLOTS) {
+      if (slot === 'weapon') continue;
+      const kind = SLOT_KIND[slot];
+      const slotSeries = p.plan.series[slot];
+      if (!kind || slotSeries === undefined) continue;
+      const rows = SHOP_ITEMS.smith
+        .filter(it => it.kind === kind && (!it.sex || it.sex === sex))
+        .sort((a, b) => a.level - b.level || a.type - b.type);
+      const def = rows.filter(it => reqLevel(it) <= me).pop() ?? rows[0];
+      if (!def) continue;
+      orders.push({ item: def.id, series: slotSeries, lines: suggestForgeLines(def, slotSeries) });
+    }
+    if (orders.length) this.ctx.actions()?.forgeBatch(orders, this.token);
   }
 
   private renderPlan(): void {
@@ -203,7 +228,9 @@ export class ForgeWindow {
       weapon: 'Vũ khí', helm: 'Nón', armor: 'Áo', belt: 'Đai', boot: 'Giày', cuff: 'Bao tay', amulet: 'Dây chuyền',
       ring1: 'Nhẫn trên', ring2: 'Nhẫn dưới', pendant: 'Ngọc bội',
     };
-    const head = p.weapon >= 0 ? `Vũ khí đang mặc hệ ${SERIES_NAMES[p.weapon]}` : 'Chưa mặc vũ khí có ngũ hành (tự chọn cả vũ khí)';
+    const head = p.weapon >= 0
+      ? `${p.fromSelection ? 'Vũ khí đang chọn' : 'Vũ khí đang mặc'} hệ ${SERIES_NAMES[p.weapon]}`
+      : 'Chưa mặc vũ khí có ngũ hành (tự chọn cả vũ khí)';
     box.textContent = `${head} → ${MAGIC_SLOTS.map(s => `${name[s]} ${SERIES_NAMES[p.plan.series[s]!]}`).join(' · ')}`
       + ` (mỗi món sáng ${Math.min(...MAGIC_SLOTS.map(s => p.plan.lit[s]!))}–3 dòng ẩn khi mặc đủ bộ). Món này: ${name[p.slot]} → ${SERIES_NAMES[p.plan.series[p.slot]!]}.`;
   }

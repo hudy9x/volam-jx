@@ -12,7 +12,7 @@ export type Camp = 'new' | 'justice' | 'balance' | 'evil' | 'free';
 
 export const FACTION_CAMPS: Record<string, Camp> = {
   shaolin: 'justice', emei: 'justice', gaibang: 'justice', wudang: 'justice',
-  tianwang: 'balance', tangmen: 'balance', cuiyan: 'balance', kunlun: 'balance', huashan: 'balance',
+  tianwang: 'balance', tangmen: 'balance', cuiyan: 'balance', kunlun: 'balance', huashan: 'balance', xiaoyao: 'balance',
   wudu: 'evil', tianren: 'evil',
 };
 export const campOf = (faction: string, graduated = false): Camp =>

@@ -31,6 +31,9 @@ export interface ActorState {
   maxHp: number;
   mp: number;
   maxMp: number;
+  /** Faction special resource stacks (e.g. Tiêu Dao [Âm Luật]). */
+  sp?: number;
+  spMax?: number;
   /** PK mode: 0 Luyện công, 1 Chiến đấu, 2 Đồ sát. */
   pk: number;
   /** Players: camp shown by the name colour (own or the team leader's). */

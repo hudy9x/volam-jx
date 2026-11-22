@@ -1,6 +1,7 @@
 import { getSkill, type FxEvent } from '@vltk/shared';
 import { audio } from './Audio';
 import { MISSILE_SND, NPC_SND, PLAYER_SND, SKILL_CAST } from './sounds.gen';
+import { XIAOYAO_MISSILE_SND, XIAOYAO_SKILL_CAST } from './xiaoyao-sounds.gen';
 
 /** What the sounds need to know about an actor. */
 export interface SoundActor {
@@ -22,7 +23,7 @@ export function fxSound(e: FxEvent, actor: (id: string) => SoundActor | undefine
       const a = actor(e.id);
       const s = getSkill(e.skill);
       if (!a || !s) return;
-      const cast = SKILL_CAST[e.skill];
+      const cast = SKILL_CAST[e.skill] ?? XIAOYAO_SKILL_CAST[e.skill];
       if (a.kind === 'player') {
         // Skill sound (male / female caster), otherwise the weapon swing of the pose.
         const voice = cast?.[a.gender === 'female' ? 1 : 0];
@@ -39,10 +40,10 @@ export function fxSound(e: FxEvent, actor: (id: string) => SoundActor | undefine
       return;
     }
     case 'msl':
-      audio.play(MISSILE_SND[e.k]?.[1], e.x, e.y, 0.8);
+      audio.play((MISSILE_SND[e.k] ?? XIAOYAO_MISSILE_SND[e.k])?.[1], e.x, e.y, 0.8);
       return;
     case 'mend': {
-      const snd = MISSILE_SND[e.k];
+      const snd = MISSILE_SND[e.k] ?? XIAOYAO_MISSILE_SND[e.k];
       audio.play(e.c ? snd?.[3] : snd?.[2], e.x, e.y);
       return;
     }

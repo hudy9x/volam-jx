@@ -7,6 +7,7 @@ import { GEN_HORSES } from './horses.gen.js';
 import { GEN_GOLD, type GoldData } from './gold.gen.js';
 import { EXTRA_GOLD, EXCLUDED_GOLD_IDS } from './gold-extra.js';
 import { EXTRA_ITEMS } from './extra-items.js';
+import { XIAOYAO_ITEMS } from './xiaoyao-items.gen.js';
 import { BOOK_ITEMS, CANKHON_RING, TOKEN_ITEM, TOWN_PORTAL_ITEM, type BookEffect } from './books.js';
 import { ELIXIR_ITEMS, type ExpElixirEffect } from './elixirs.js';
 import { MANTLE_ITEMS } from './mantles.js';
@@ -33,7 +34,7 @@ export const SLOT_NAMES: Record<EquipSlot, string> = {
   mask: 'Mặt nạ', mantle: 'Phi phong', signet: 'Ấn', ornament: 'Trang sức',
 };
 export const KIND_NAMES: Record<ItemKind, string> = {
-  armor: 'Áo', helm: 'Mũ', melee: 'Vũ khí', range: 'Ám khí', amulet: 'Dây chuyền', ring: 'Nhẫn',
+  armor: 'Áo', helm: 'Mũ', melee: 'Vũ khí', range: 'Ám khí / Cổ Cầm', amulet: 'Dây chuyền', ring: 'Nhẫn',
   pendant: 'Ngọc bội', boot: 'Giày', belt: 'Đai lưng', cuff: 'Bao tay', horse: 'Ngựa',
   mask: 'Mặt nạ', mantle: 'Phi phong', signet: 'Ấn', ornament: 'Trang sức', potion: 'Dược phẩm', elixir: 'Linh dược', book: 'Bí kíp', token: 'Lệnh bài', portal: 'Bùa',
 };
@@ -71,7 +72,7 @@ const HORSE_ITEMS: ItemDef[] = GEN_HORSES.map(h => ({
 }));
 
 export const ITEMS: Record<string, ItemDef> = Object.fromEntries(
-  [...GEN_ITEMS, ...EXTRA_ITEMS, ...HORSE_ITEMS, ...GEN_GOLD.filter(it => !EXCLUDED_GOLD_IDS.has(it.id)), ...EXTRA_GOLD, ...MANTLE_ITEMS, ...ELIXIR_ITEMS, ...BOOK_ITEMS, ...TK_ALL_ITEMS, TOKEN_ITEM, CANKHON_RING, TOWN_PORTAL_ITEM].map(it => [it.id, it]),
+  [...GEN_ITEMS, ...EXTRA_ITEMS, ...XIAOYAO_ITEMS, ...HORSE_ITEMS, ...GEN_GOLD.filter(it => !EXCLUDED_GOLD_IDS.has(it.id)), ...EXTRA_GOLD, ...MANTLE_ITEMS, ...ELIXIR_ITEMS, ...BOOK_ITEMS, ...TK_ALL_ITEMS, TOKEN_ITEM, CANKHON_RING, TOWN_PORTAL_ITEM].map(it => [it.id, it]),
 );
 export const ITEM_LIST: ItemDef[] = Object.values(ITEMS);
 

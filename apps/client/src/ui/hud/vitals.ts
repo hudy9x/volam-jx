@@ -15,6 +15,7 @@ const HTML = `
     <div class="vbar mp" title="Nội lực"><i id="hud-mp"></i><span id="hud-mp-text"></span></div>
     <div class="vbar exp" id="hud-exp-bar" title="Kinh nghiệm"><i id="hud-exp"></i><span id="hud-exp-text"></span></div>
   </div>
+  <div class="hud-sp" id="hud-sp" title="Âm Luật" hidden>Âm Luật <strong id="hud-sp-text">0/0</strong></div>
   <button type="button" id="hud-rank" title="Bảng xếp hạng">Hạng <span>BXH</span></button>
 </div>`;
 
@@ -56,5 +57,13 @@ export class Vitals {
   setMp(mp: number, maxMp: number): void {
     $('hud-mp').style.width = `${(100 * mp) / Math.max(1, maxMp)}%`;
     $('hud-mp-text').textContent = `${mp} / ${maxMp}`;
+  }
+
+  setSp(sp: number, spMax: number): void {
+    const el = $('hud-sp');
+    if (spMax <= 0) { el.hidden = true; return; }
+    el.hidden = false;
+    $('hud-sp-text').textContent = `${sp}/${spMax}`;
+    el.title = `Âm Luật: ${sp} / ${spMax} tầng`;
   }
 }

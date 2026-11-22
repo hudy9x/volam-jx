@@ -2,6 +2,7 @@ import { HORSES, type Gender } from '@vltk/shared';
 import {
   JX_ASSOC, JX_FOOT, JX_PARTS, JX_SHADOWS, JX_SHEETS, JX_SORT, NPC_SHADOWS, NPC_SHEETS, type AssocKey, type NpcAction, type Sx,
 } from './data.gen';
+import { XIAOYAO_ASSOC, XIAOYAO_PARTS, XIAOYAO_SHADOWS, XIAOYAO_SHEETS, XIAOYAO_SORT } from './xiaoyao.gen';
 import { MANTLE_PARTS, MANTLE_SHEETS } from './mantles.gen';
 import { assetUrl } from '../assets';
 
@@ -46,8 +47,12 @@ export interface Pose {
 
 /** Part id given to shadow layers (not a paper-doll part). */
 export const SHADOW_PART = -1;
-const shadowLayer = (key: string | undefined): Layer | undefined =>
-  key ? { part: SHADOW_PART, key, meta: JX_SHEETS[key] } : undefined;
+const sheetMeta = (key: string): readonly number[] | undefined => JX_SHEETS[key] ?? XIAOYAO_SHEETS[key];
+const assocOf = (sx: Sx, weapon: number) => JX_ASSOC[sx][weapon] ?? XIAOYAO_ASSOC[sx][weapon];
+const shadowLayer = (key: string | undefined): Layer | undefined => {
+  const meta = key ? sheetMeta(key) : undefined;
+  return key && meta ? { part: SHADOW_PART, key, meta } : undefined;
+};
 
 const PART_SLOT: Record<number, 'helm' | 'armor' | 'weapon' | 'horse'> = {
   0: 'helm', 1: 'helm', 4: 'armor', 5: 'armor', 6: 'armor', 7: 'armor', 8: 'weapon', 9: 'weapon', 12: 'horse', 13: 'horse', 14: 'horse',
@@ -60,7 +65,7 @@ export const FOOT_Y = JX_FOOT[1];
 export function makeLook(gender: Gender | string, helm: number, armor: number, weapon: number, horseId: string, mounted: boolean, mantle = -1): Look {
   const sx: Sx = gender === 'female' ? 'f' : 'm';
   const horse = mounted && horseId ? HORSES[horseId]?.jxRow ?? -1 : -1;
-  return { sx, helm, armor, weapon: JX_ASSOC[sx][weapon] ? weapon : 0, horse, mantle };
+  return { sx, helm, armor, weapon: assocOf(sx, weapon) ? weapon : 0, horse, mantle };
 }
 
 export const lookKey = (l: Look) => `${l.sx}|${l.helm}|${l.armor}|${l.weapon}|${l.horse}|${l.mantle ?? -1}`;
@@ -71,16 +76,24 @@ export function poseFor(look: Look, key: AssocKey): Pose | null {
   const cacheKey = `${lookKey(look)}|${key}`;
   let pose = poseCache.get(cacheKey);
   if (pose !== undefined) return pose;
-  const set = JX_ASSOC[look.sx][look.weapon]?.[look.horse >= 0 ? 1 : 0];
+  const set = assocOf(look.sx, look.weapon)?.[look.horse >= 0 ? 1 : 0];
   const action = set?.[key] ?? set?.stand;
   pose = null;
   if (action) {
     const layers: Layer[] = [];
+    const isGuqin = action.startsWith('GuqinW');
     for (const [partStr, rows] of Object.entries(JX_PARTS[look.sx])) {
       const part = Number(partStr);
-      const row = look[PART_SLOT[part]];
-      const sheet = row >= 0 ? rows[row]?.[action] : undefined;
-      if (sheet) layers.push({ part, key: sheet, meta: JX_SHEETS[sheet] });
+      const slot = PART_SLOT[part];
+      const row = look[slot];
+      const xyPart = XIAOYAO_PARTS[look.sx][part];
+      let sheet = row >= 0 ? (rows[row]?.[action] ?? xyPart?.[row]?.[action]) : undefined;
+      // Original volam-3005 npcres tables fall back all outfits to Xiaoyao default row (161) for GuqinW* actions.
+      if (!sheet && isGuqin && (slot === 'helm' || slot === 'armor')) {
+        sheet = xyPart?.[161]?.[action];
+      }
+      const meta = sheet ? sheetMeta(sheet) : undefined;
+      if (sheet && meta) layers.push({ part, key: sheet, meta });
     }
     const mantleRow = look.mantle ?? -1;
     if (mantleRow >= 0) {
@@ -89,7 +102,8 @@ export function poseFor(look: Look, key: AssocKey): Pose | null {
       if (mKey && mMeta) layers.push({ part: 16, key: mKey, meta: mMeta });
     }
     const body = layers.find(l => l.part === BODY);
-    if (body) pose = { action, layers, body, shadow: shadowLayer(JX_SHADOWS[look.sx][action]) };
+    const shadowKey = JX_SHADOWS[look.sx][action] ?? XIAOYAO_SHADOWS[look.sx][action];
+    if (body) pose = { action, layers, body, shadow: shadowLayer(shadowKey) };
   }
   poseCache.set(cacheKey, pose);
   return pose;
@@ -101,7 +115,7 @@ export function poseFor(look: Look, key: AssocKey): Pose | null {
  * (direction * frames per direction + frame).
  */
 export function drawOrder(sx: Sx, pose: Pose, dir: number, frame: number): number[] {
-  const table = JX_SORT[sx][pose.action];
+  const table = JX_SORT[sx][pose.action] ?? XIAOYAO_SORT[sx][pose.action];
   const def = JX_SORT[sx].DEFAULT;
   const [, , , , perDir, dirs] = pose.body.meta;
   const row = spriteRow(dir, dirs);
