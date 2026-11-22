@@ -84,6 +84,11 @@ export const CRIT = {
 /** Player vs player damage (0.20 thông thường; 0.40 khi hệ tấn công khắc hệ mục tiêu, vd Kim đánh Mộc / Mộc đánh Thổ). */
 export const PVP = { damageScale: 0.2, counterDamageScale: 0.4 } as const;
 
+/** Hộ Thuẫn Nội Lực tĩnh (`staticmagicshield_p`: Tiêu Dao `2139`/`2134`, Côn Lôn 120 `721`).
+ * Kéo hệ số `volam-3005` (`1000%` / `10000%` MaxMP) về mặt bằng SHXT: nhân `scale = 0.15` (cấp 20 Tiêu Dao còn `150%` = 1.5× MaxMP)
+ * và kẹp trần tối đa `maxHpRatio = 1.0` (100% MaxHP). */
+export const STATIC_SHIELD = { scale: 0.15, maxHpRatio: 1.0 } as const;
+
 /** Hút sinh lực / nội lực (formulas/damage.ts lifeSteal): cap of skill + item % (CHỌN, no data). */
 export const STEAL = { maxPct: 50 } as const;
 

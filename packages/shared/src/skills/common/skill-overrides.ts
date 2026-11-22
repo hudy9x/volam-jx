@@ -20,4 +20,8 @@ export const SKILL_OVERRIDES: Record<number, Partial<SkillDef>> = {
 
   // Tiêu Dao: Thiên Lý Độc Hành (#2123, Trấn phái) tối đa cấp 30
   2123: { maxLevel: 30 },
+
+  // Tiêu Dao: Mai Danh Ẩn Tính (#2132) thuộc nhóm cấp 180 / Thất truyền (volam-3005 factionhead.lua:532);
+  // hiện game chỉ mới hỗ trợ đến kỹ năng cấp 150 nên giữ ở cột 180 ở trạng thái inactive.
+  2132: { inactive: true, reqLevel: 180 },
 };

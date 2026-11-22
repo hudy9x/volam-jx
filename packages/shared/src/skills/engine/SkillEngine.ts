@@ -501,14 +501,14 @@ export class SkillEngine {
       for (const [id, rawLv] of c.skills) {
         if (rawLv <= 0) continue;
         const s = getSkill(id);
-        if (!s || s.style !== SkillStyle.Passive || !s.attrs?.autocastskill) continue;
+        if (!s || s.inactive || s.style !== SkillStyle.Passive || !s.attrs?.autocastskill) continue;
         this.runAutoCast(c, s, levelOf(c, id) ?? rawLv, now);
       }
       // 2. Active-state autocastskill (e.g. 2133 Phất Y -> 2134 Phất Y_Thuẫn)
       if (c.states) {
         for (const [skillId, st] of c.states) {
           const s = getSkill(skillId);
-          if (!s?.attrs?.autocastskill) continue;
+          if (!s || s.inactive || !s.attrs?.autocastskill) continue;
           this.runAutoCast(c, s, st.level ?? 1, now);
         }
       }
@@ -751,9 +751,12 @@ export class SkillEngine {
   /** Fire `c`'s passive skills of this kind (chance + cooldown from the data) at `other`. */
   private trigger(c: Combatant, kind: TriggerKind, other: Combatant | undefined): void {
     const now = this.port.now();
-    for (const [id, level] of c.skills) {
+    for (const [id, rawLevel] of c.skills) {
+      if (rawLevel <= 0) continue;
       const passive = getSkill(id);
-      if (!passive || passive.style !== SkillStyle.Passive || !passive.attrs) continue;
+      if (!passive || passive.inactive || passive.style !== SkillStyle.Passive || !passive.attrs) continue;
+      const level = levelOf(c, id) ?? rawLevel;
+      if (level <= 0) continue;
       for (const tr of triggersOf(passive, level)) {
         if (tr.kind !== kind) continue;
         const key = `${c.id}:${tr.skill}`;

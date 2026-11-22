@@ -10,6 +10,7 @@ import type { SkillDef } from './types.js';
 import { huashanSkillInfo } from '../factions/huashan/routes.js';
 import { skillCategory, SKILL_CATEGORY_NAMES } from './category.js';
 import { HORSE_LIMIT_TEXT, MAGIC_DESC, SKILL_ATTRIB_TEXT, WEAPON_LIMIT_TEXT } from './magicdesc.gen.js';
+import { STATIC_SHIELD } from '../../formulas/tuning.js';
 
 /** A run of text with an optional colour (CSS colour). */
 export interface TipSpan { text: string; color?: string }
@@ -159,6 +160,12 @@ export function describeAttr(skill: SkillDef, name: string, level: number): TipL
   if (name === 'autocastskill' && Math.floor(v[0] / 256) === 2117) {
     const sec = Math.max(1, Math.floor(Math.floor(v[2] / 256) / 18));
     return richText(`Mỗi <color=orange>${sec} giây<color> tự động nhận <color=orange>1 tầng [Âm Luật]<color>`);
+  }
+  if (name === 'staticmagicshield_p') {
+    const pct = Math.round(v[0] * STATIC_SHIELD.scale);
+    const capPct = Math.round(STATIC_SHIELD.maxHpRatio * 100);
+    const sec = v[1] < 0 ? 'vĩnh viễn' : `${Math.floor(v[1] / 18)} giây`;
+    return richText(`Hộ thuẫn hấp thụ sát thương bằng <color=orange>${pct}%<color> nội lực tối đa (tối đa <color=orange>${capPct}%<color> sinh lực), duy trì <color=orange>${sec}<color>`);
   }
   const tpl = template(name);
   if (!tpl) return [];

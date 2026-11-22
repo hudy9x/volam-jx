@@ -8,7 +8,7 @@ import type { SkillDef } from '../skills/core/types.js';
 import { attrOf, type AttrBag } from './attrs.js';
 import type { ResistKind } from './character.js';
 import type { CombatStats } from './combat.js';
-import { CRIT, HEAVY_HIT, HIT, PVP, RESIST, STEAL } from './tuning.js';
+import { CRIT, HEAVY_HIT, HIT, PVP, RESIST, STATIC_SHIELD, STEAL } from './tuning.js';
 
 export type Range = [number, number];
 export type ElementPart = 'cold' | 'fire' | 'light';
@@ -231,4 +231,12 @@ export function damageReturn(dmg: number, targetBag: AttrBag, attackerBag: AttrB
   const back = (dmg * Math.max(0, pct)) / 100 + Math.max(0, flat);
   const res = Math.min(100, attrOf(attackerBag, 'returnres_p') + (melee ? attrOf(attackerBag, 'melee_returnres_p') : 0));
   return Math.max(0, Math.round(back * (1 - Math.max(0, res) / 100)));
+}
+
+/** Lượng máu ảo của Hộ Thuẫn Nội Lực tĩnh (`staticmagicshield_p`), quy đổi theo `STATIC_SHIELD.scale` và kẹp trần theo `STATIC_SHIELD.maxHpRatio × maxHp`. */
+export function staticShieldPool(maxMp: number, maxHp: number, shieldPct: number): number {
+  if (maxMp <= 0 || maxHp <= 0 || shieldPct <= 0) return 0;
+  const raw = Math.round((maxMp * shieldPct * STATIC_SHIELD.scale) / 100);
+  const cap = Math.round(maxHp * STATIC_SHIELD.maxHpRatio);
+  return Math.max(0, Math.min(raw, cap));
 }

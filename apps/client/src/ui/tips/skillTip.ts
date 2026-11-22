@@ -65,10 +65,11 @@ export function fillSkillTip(box: HTMLElement, s: SkillDef, tier?: string): void
 
   // Section 5: Ghi chú / cảnh báo
   const s5 = section();
-  const hint = blocked ? 'Vũ khí đang cầm không dùng được chiêu này'
-    : s.aura ? 'Đặt vào ô tay trái / phải: hào quang tự bật (phím 1–9: bấm để bật / tắt)'
-      : isCastable(s) ? 'Kéo xuống thanh phím tắt, hoặc chọn rồi bấm Trái / Phải' : 'Bị động: luôn có hiệu lực';
-  text(s5, blocked ? 'tip-bad' : 'tip-note', hint);
+  const hint = s.inactive ? 'Chưa hỗ trợ (hiện chỉ mở kỹ năng đến cấp 150)'
+    : blocked ? 'Vũ khí đang cầm không dùng được chiêu này'
+      : s.aura ? 'Đặt vào ô tay trái / phải: hào quang tự bật (phím 1–9: bấm để bật / tắt)'
+        : isCastable(s) ? 'Kéo xuống thanh phím tắt, hoặc chọn rồi bấm Trái / Phải' : 'Bị động: luôn có hiệu lực';
+  text(s5, s.inactive || blocked ? 'tip-bad' : 'tip-note', hint);
   flush(s5);
 }
 

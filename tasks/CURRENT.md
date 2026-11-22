@@ -1,3 +1,14 @@
+## 2026-11-22 · Fix bị động cấp 0 tự kích hoạt (`SkillEngine.trigger`), đưa `2132` (cấp 180) về cột `180` trạng thái `inactive` & cân bằng `staticmagicshield_p` (đã commit)
+
+- **USER yêu cầu:** commit thay đổi trước đó (`4ceaee3`), triển khai cân bằng `staticmagicshield_p` (`scale: 0.15`, trần `100% MaxHP`, không hồi đầy khi cùng skill còn hiệu lực), sửa lỗi skill bị động cấp 0 (`2127`/`2132`) tự kích hoạt, xác minh `2132` bên `volam-3005` (`factionhead.lua:532` thuộc nhóm cấp 180 / Thất truyền) và chuyển sang cột `180` ở trạng thái hoàn toàn `inactive` (do game hiện chỉ mới hỗ trợ đến cấp 150).
+- **Thay đổi:**
+  - `packages/shared/src/formulas/tuning.ts`, `damage.ts`, `apps/server/src/world/systems/status.ts`, `packages/shared/src/skills/core/describe.ts`: thêm `STATIC_SHIELD = { scale: 0.15, maxHpRatio: 1.0 }`, `staticShieldPool()`, chặn bơm đầy lại `shieldHp` khi cùng skill còn hiệu lực (`!wasActive`) và đồng bộ tooltip `staticmagicshield_p`.
+  - `packages/shared/src/skills/core/types.ts`, `common/skill-overrides.ts`, `core/learning.ts`, `formulas/combat.ts`, `engine/SkillEngine.ts`: thêm cờ `SkillDef.inactive`, gắn `2132: { inactive: true, reqLevel: 180 }`, chặn `trigger()` khi `rawLevel <= 0` hoặc `passive.inactive`, chặn `tickAutoCast()` / `passiveBag()` / `skillBonuses()` / `levelCap()` / `raiseError()` cho skill `inactive`.
+  - `apps/server/src/world/progress.ts`: `unlockSkills` bỏ qua và giữ cấp `0` cho skill `inactive`.
+  - `apps/client/src/ui/windows/skills.ts`, `tips/skillTip.ts`, `hud/status.ts`: thêm cột `180` vào `COLUMN_LEVELS`, hiển thị ô skill `inactive` ở cột `180` dạng mờ/disabled (cấp 0, không nút `+`, không kéo/đặt phím tắt, tooltip báo chưa hỗ trợ quá cấp 150, ẩn khỏi HUD bị động).
+  - `tests/control-effects.test.ts`, `tests/xiaoyao.test.ts`, `docs/formulas/damage.md`, `docs/tieu-dao.md`: bổ sung test kiểm chứng `staticShieldPool`, bị động cấp 0 (`2127`) không kích hoạt và `2132` cấp 180 hoàn toàn `inactive`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run test:effects` (**23/23 pass**), `tests/xiaoyao.test.ts` (**9/9 pass**), `npm run build` & `git diff --check` đạt. Cần restart server & reload client để nhận thay đổi mới (dùng chung Web/Desktop/Mobile). Đã commit trên `main`, chưa push.
+
 ## 2026-11-22 · Tăng ngũ hành tương khắc PvP & Độc sát DoT bỏ qua Hộ Thuẫn tĩnh (`staticmagicshield_p`) (đã commit)
 
 - **USER yêu cầu:** tăng hiệu quả ngũ hành tương khắc (Mộc đánh Thổ) và cho độc sát DoT bỏ qua lớp khiên tĩnh `staticmagicshield_p`.

@@ -28,7 +28,7 @@ const HTML = `
 </section>`;
 
 /** Columns of the skill window: learning level (tiers of the same level share a column). */
-const COLUMN_LEVELS = [10, 20, 30, 40, 50, 60, 90, 120, 150];
+const COLUMN_LEVELS = [10, 20, 30, 40, 50, 60, 90, 120, 150, 180];
 /** Small corner tags on skill cells. */
 const TIER_TAGS: Record<string, string> = { 'Trấn phái': 'TP', 'Thất truyền': 'TT' };
 
@@ -115,7 +115,10 @@ export class SkillsWindow {
         ids: tiers.filter(t => t.level === level).flatMap(t => t.skills.map(id => ({ id, tier: t.label }))),
       })),
     ];
-    const known = (id: number) => !!getSkill(id) && levels[id] !== undefined;
+    const known = (id: number) => {
+      const s = getSkill(id);
+      return !!s && (levels[id] !== undefined || !!s.inactive);
+    };
     if (this.selected === null || !known(this.selected)) this.selected = skillbar.learnedIds().find(id => isCastable(getSkill(id)!)) ?? null;
     $('skill-grid').replaceChildren(...columns.filter(c => c.ids.some(e => known(e.id))).map(col => {
       const el = document.createElement('div');
@@ -131,8 +134,10 @@ export class SkillsWindow {
 
   /** Level shown on a cell / in the popup: learned + what the worn pieces add (blue when they add). */
   private shownLevel(id: number): { total: number; base: number; bonus: number } {
+    const s = getSkill(id);
+    if (s?.inactive) return { total: 0, base: 0, bonus: 0 };
     const raw = skillbar.levels[id] ?? 0;
-    const base = raw <= 0 && getSkill(id)?.pack === 'common' ? 1 : raw;
+    const base = raw <= 0 && s?.pack === 'common' ? 1 : raw;
     const total = skillbar.levelOf(id);
     return { total, base, bonus: total - base };
   }
@@ -141,9 +146,9 @@ export class SkillsWindow {
     const shown = this.shownLevel(s.id);
     const level = shown.base;
     const isCommon = s.pack === 'common';
-    const castable = isCastable(s) && (level > 0 || isCommon);
+    const castable = !s.inactive && isCastable(s) && (level > 0 || isCommon);
     const el = document.createElement('div');
-    el.className = `sk-cell ${CATEGORY_CLASS[skillCategory(s)]}${s.id === this.selected ? ' sel' : ''}${level > 0 || isCommon ? '' : ' unlearned'}`;
+    el.className = `sk-cell ${CATEGORY_CLASS[skillCategory(s)]}${s.id === this.selected ? ' sel' : ''}${!s.inactive && (level > 0 || isCommon) ? '' : ' unlearned'}`;
     el.classList.toggle('blocked', castable && !weaponOk(s, skillbar.weapon));
     el.draggable = castable;
     el.innerHTML = '<div class="sk-ico"><img alt="" draggable="false"/></div><div class="sk-foot"><span class="lv"></span><button type="button" class="sk-add">+</button></div>';
@@ -155,7 +160,7 @@ export class SkillsWindow {
     lv.classList.toggle('boosted', shown.bonus > 0);
     if (shown.bonus > 0) lv.title = `Cấp học ${shown.base} + ${shown.bonus} từ trang bị`;
     const add = el.querySelector('.sk-add') as HTMLButtonElement;
-    if (isCommon) {
+    if (isCommon || s.inactive) {
       add.remove();
     } else {
       const p = progress.get();

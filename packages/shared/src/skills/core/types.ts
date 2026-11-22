@@ -115,6 +115,8 @@ export interface SkillDef {
   useAR?: boolean;
   /** skills.txt DoHurt: % chance the hit makes the target flinch (co giật, formulas/effects.ts). */
   doHurt?: number;
+  /** Chưa hỗ trợ trong bản hiện tại (vd. kỹ năng cấp 180 khi game mới mở đến cấp 150): luôn inactive, không cộng điểm/kích hoạt. */
+  inactive?: boolean;
 }
 
 /** Picture drawn on a character while a state lasts (settings/npcres/状态图形对照表.txt via StateSpecialId). */

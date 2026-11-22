@@ -53,7 +53,7 @@ export class StatusIcons {
       const id = Number(idStr);
       if (stateSet.has(id) || rawLv <= 0) continue;
       const s = getSkill(id);
-      if (!s || s.style !== SkillStyle.Passive || !s.icon) continue;
+      if (!s || s.inactive || s.style !== SkillStyle.Passive || !s.icon) continue;
       if (!weaponOk(s, skillbar.weapon)) continue;
       passives.push({ id, lv: skillbar.levelOf(id) });
     }

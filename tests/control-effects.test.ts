@@ -4,6 +4,7 @@ import { Actor } from '../apps/server/src/net/schema.js';
 import { makeSim } from '../apps/server/src/world/entity.js';
 import { applyHit } from '../apps/server/src/world/systems/combat.js';
 import { applyHitEffects, updateEffects } from '../apps/server/src/world/systems/effects.js';
+import { addState, expireStates } from '../apps/server/src/world/systems/status.js';
 import { SkillEngine } from '../packages/shared/src/skills/engine/SkillEngine.js';
 import type { World } from '../apps/server/src/world/World.js';
 
@@ -196,4 +197,65 @@ test('poison DoT bypasses staticmagicshield_p (shieldHp) and overcapped resist s
   );
   // 1000 * (1 - 0.40) * 0.4 = 240
   assert.equal(hit.poison?.tick, 240);
+});
+
+test('staticmagicshield_p scales by STATIC_SHIELD, caps at 100% MaxHP, and does not refill while same skill is active', async () => {
+  const {STATIC_SHIELD, staticShieldPool, getSkill, describeAttr} = await import('../packages/shared/src/index.js');
+  assert.equal(STATIC_SHIELD.scale, 0.15);
+  assert.equal(STATIC_SHIELD.maxHpRatio, 1.0);
+
+  // Tiêu Dao lv20 (1000% gốc → 150% = 1.5x MaxMP): 3000 MP -> 4500 shield when MaxHP >= 4500.
+  assert.equal(staticShieldPool(3000, 6000, 1000), 4500);
+  // Capped at 100% MaxHP when MaxHP < 1.5x MaxMP (also guards Côn Lôn 120 10000%).
+  assert.equal(staticShieldPool(3000, 3500, 1000), 3500);
+  assert.equal(staticShieldPool(3000, 5000, 10000), 5000);
+
+  // Tooltip reflects scaled % and MaxHP cap.
+  const s2134 = getSkill(2134);
+  assert.ok(s2134);
+  const tipText = describeAttr(s2134, 'staticmagicshield_p', 20).map(l => l.map(s => s.text).join('')).join('\n');
+  assert.match(tipText, /150%/);
+  assert.match(tipText, /100% sinh lực/);
+
+  const a = new Actor();
+  Object.assign(a, {id: 'xy-shield', name: 'xy-shield', hp: 6000, maxHp: 6000, mp: 3000, maxMp: 3000, level: 120, pk: 1, camp: 'neutral'});
+  const sim = makeSim('xy-shield', 'player', a, 'tho', 6000);
+  sim.mp = 3000;
+  const w = {
+    now: 1000,
+    events: [],
+    sims: new Map([[sim.id, sim]]),
+    hooks: {progress() {}},
+  } as unknown as World;
+
+  // First activation of Phất Y_Thuẫn (2134) lv20 sets shieldHp = 4500.
+  addState(w, sim, {skill: 2134, kind: 'buff', ms: 5000, by: sim.id, level: 20});
+  assert.equal(sim.shieldHp, 4500);
+
+  // Simulate direct damage partially depleting shieldHp.
+  sim.shieldHp = 1200;
+
+  // Re-applying 2134 1s later while still active extends duration but must NOT refill shieldHp.
+  w.now = 2000;
+  addState(w, sim, {skill: 2134, kind: 'buff', ms: 5000, by: sim.id, level: 20});
+  assert.equal(sim.shieldHp, 1200, 're-applying active 2134 must not refill shieldHp');
+  assert.equal(sim.states.get(2134)?.until, 7000);
+
+  // Even if shield breaks to 0, re-applying 2134 while still active must not refill it.
+  sim.shieldHp = 0;
+  w.now = 3000;
+  addState(w, sim, {skill: 2134, kind: 'buff', ms: 5000, by: sim.id, level: 20});
+  assert.equal(sim.shieldHp, 0, 'broken shield must not refill while 2134 state is still active');
+
+  // Activating a different static shield skill (Tiêu Dao Vũ 2139) grants a fresh pool.
+  w.now = 3500;
+  addState(w, sim, {skill: 2139, kind: 'buff', ms: 4000, by: sim.id, level: 20});
+  assert.equal(sim.shieldHp, 4500);
+
+  // After both states expire, shield resets to 0 and a new activation refills again.
+  w.now = 9000;
+  expireStates(w, sim);
+  assert.equal(sim.shieldHp, 0);
+  addState(w, sim, {skill: 2134, kind: 'buff', ms: 5000, by: sim.id, level: 20});
+  assert.equal(sim.shieldHp, 4500);
 });

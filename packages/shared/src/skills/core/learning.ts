@@ -49,6 +49,7 @@ export const startLevel = (s: SkillDef): number => (s.pack === 'common' || skill
 
 /** Highest level reachable now. */
 export function levelCap(s: SkillDef, charLevel: number): number {
+  if (s.inactive) return 0;
   const max = (s.reqLevel ?? 0) >= 150 ? Math.min(s.maxLevel ?? 20, LEVEL_150_CAP) : (s.maxLevel ?? 20);
   if (skillGrowth(s) !== 'points') return max;
   // The original refuses "phải đạt đến cấp %d mới có thể thăng cấp %s" (DATA stringtable G_PLAYER_4) but its formula is
@@ -60,6 +61,7 @@ export function levelCap(s: SkillDef, charLevel: number): number {
 export function raiseError(id: number, levels: Record<number, number>, charLevel: number, points: number): string | null {
   const s = getSkill(id);
   if (!s) return 'Kỹ năng không tồn tại.';
+  if (s.inactive) return 'Kỹ năng cấp 180 chưa được mở (hiện chỉ hỗ trợ đến kỹ năng cấp 150).';
   if (s.pack === 'common') return `Kỹ năng ${s.name} không cần cộng điểm.`;
   const cur = levels[id];
   if (cur === undefined) return 'Chưa học kỹ năng này.';

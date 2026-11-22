@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   FACTIONS, MENPAI, ITEMS, SHOP_ITEMS, WEAPON_NAMES, campOf,
-  SkillEngine, getSkill, getMissile, learnTiers, skillCategory, skillGrowth, levelCap,
+  SkillEngine, getSkill, getMissile, learnTiers, skillCategory, skillGrowth, levelCap, raiseError,
   skillDamage, resolveHit, passiveBag, skillBonuses, playerCombat, characterStats,
   forgeChoices, forgeError, planSkills, seriesPlan, suggestForgeLines, MAGIC_SLOTS, describeSkill, factionSuites, equipError,
   type Combatant, type EnginePort, type FxEvent,
@@ -354,6 +354,43 @@ test('Tiêu Dao has separate male (29/30) and female (31/32) golden suites with 
   assert.equal(ITEMS['gold-xy-32-2'].look, 162);
   assert.equal(ITEMS['gold-xy-32-3'].look, 162);
   assert.ok(fs.existsSync(path.join(process.cwd(), 'apps/client/public/assets/items/obj-sword56.webp')), 'Missing obj-sword56.webp');
+});
+
+test('level-0 passives (2127) do not trigger and tier-180 Mai Danh Ẩn Tính (2132) stays completely inactive', () => {
+  const s2132 = getSkill(2132)!;
+  assert.equal(s2132.inactive, true);
+  assert.equal(s2132.reqLevel, 180);
+  assert.equal(levelCap(s2132, 200), 0);
+  assert.notEqual(raiseError(2132, { 2132: 0 }, 200, 10), null);
+
+  // Fighter has 2127 at level 0 (unlearned points) and 2132 even at forced level 20 -> neither may trigger.
+  const xy = makeFighter({
+    id: 'xy-lv0',
+    a: { x: 100, y: 100, dir: 6, mounted: false, maxHp: 3000 },
+    weaponType: 0,
+    skills: new Map([[2124, 20], [2127, 0], [2132, 20]]),
+  });
+  const bot = makeFighter({
+    id: 'bot1',
+    kind: 'player',
+    a: { x: 180, y: 100, dir: 2, mounted: false, maxHp: 5000 },
+    hp: 5000,
+    skills: new Map([[1, 20]]),
+  });
+  const h = makeHarness([xy, bot]);
+
+  // Xiaoyao attacks bot: level-0 2127 must NOT trigger 2128 (Túy Tửu).
+  h.engine.cast(xy, 2124, bot, { x: 180, y: 100 }, 50);
+  // Bot hits Xiaoyao: inactive 2132 must NOT trigger 2133 (Phất Y) / 2134 (Phất Y_Thuẫn).
+  h.engine.cast(bot, 1, xy, { x: 100, y: 100 }, 50);
+  for (let i = 0; i < 30; i++) {
+    h.advance(30);
+    h.engine.update();
+  }
+
+  assert.equal(xy.states?.has(2128) ?? false, false, 'level-0 2127 must not trigger 2128');
+  assert.equal(xy.states?.has(2133) ?? false, false, 'inactive 2132 must not trigger 2133');
+  assert.equal(xy.states?.has(2134) ?? false, false, 'inactive 2132 must not trigger 2134');
 });
 
 

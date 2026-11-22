@@ -1,4 +1,4 @@
-import { applyState, attr, expireStates as expire, getSkill, type StateApply } from '@vltk/shared';
+import { applyState, attr, expireStates as expire, getSkill, staticShieldPool, type StateApply } from '@vltk/shared';
 import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
 import { syncStates } from './sync.js';
@@ -22,11 +22,14 @@ export function statesChanged(w: World, sim: Sim): void {
 
 export function addState(w: World, sim: Sim, st: StateApply): void {
   if (sim.dead) return;
+  const prev = sim.states.get(st.skill);
+  const wasActive = prev !== undefined && prev.until > w.now;
   if (applyState(sim.states, st, w.now)) w.events.push({ t: 'st', id: sim.id, skill: st.skill, kind: st.kind });
   const s = getSkill(st.skill);
   const shieldAttr = s ? attr(s, 'staticmagicshield_p', st.level ?? 1) : null;
-  if (shieldAttr && shieldAttr[0] > 0 && sim.a.maxMp > 0) {
-    const pool = Math.round((sim.a.maxMp * shieldAttr[0]) / 100);
+  // Không nạp đầy lại shieldHp khi cùng skill khiên tĩnh đang còn hiệu lực (vd. Phất Y 2133 → 2134 tick lại mỗi 1s).
+  if (!wasActive && shieldAttr && shieldAttr[0] > 0 && sim.a.maxMp > 0) {
+    const pool = staticShieldPool(sim.a.maxMp, sim.a.maxHp, shieldAttr[0]);
     sim.shieldHp = Math.max(sim.shieldHp ?? 0, pool);
   }
   syncStates(sim);

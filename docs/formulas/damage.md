@@ -78,7 +78,7 @@ phần sát thương × (100 − kháng) / 100
 
 ## 5. PK
 
-Người đánh người: tổng × **0,2** (`PVP.damageScale`) thông thường, × **0,4** (`PVP.counterDamageScale`, gấp 2× đánh thường) khi hệ tấn công khắc hệ mục tiêu (vd. Mộc đánh Thổ). Trong `effectiveResist`, kháng mục tiêu được kẹp trần (`cap`) **trước** khi trừ xuyên kháng và `seriesdamage_p` khắc hệ để trang bị overcap kháng không vô hiệu hóa ngũ hành tương khắc. Độc sát DoT (`hit.dot`) bỏ qua cả `manashield_p` lẫn `staticmagicshield_p` (`shieldHp`) và trừ thẳng HP.
+Người đánh người: tổng × **0,2** (`PVP.damageScale`) thông thường, × **0,4** (`PVP.counterDamageScale`, gấp 2× đánh thường) khi hệ tấn công khắc hệ mục tiêu (vd. Mộc đánh Thổ). Trong `effectiveResist`, kháng mục tiêu được kẹp trần (`cap`) **trước** khi trừ xuyên kháng và `seriesdamage_p` khắc hệ để trang bị overcap kháng không vô hiệu hóa ngũ hành tương khắc. Độc sát DoT (`hit.dot`) bỏ qua cả `manashield_p` lẫn `staticmagicshield_p` (`shieldHp`) và trừ thẳng HP. Hộ Thuẫn Nội Lực tĩnh (`staticmagicshield_p`, `staticShieldPool`) quy đổi theo `STATIC_SHIELD.scale = 0.15` (Tiêu Dao cấp 20 còn `150%` = 1,5× MaxMP), kẹp trần `STATIC_SHIELD.maxHpRatio = 1.0` (`100%` MaxHP) và không tự bơm đầy lại `shieldHp` khi cùng một skill đang còn hiệu lực được tái kích hoạt.
 
 ## Ví dụ (thử 2026-11-12, `scratchpad` combat6)
 

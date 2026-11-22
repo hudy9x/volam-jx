@@ -140,6 +140,10 @@ export function unlockSkills(sim: Sim, stored?: Record<string, number>): boolean
   for (const id of ids) {
     const s = getSkill(id);
     if (!s) continue;
+    if (s.inactive) {
+      if ((sim.skills.get(id) ?? 0) > 0) { sim.skills.set(id, 0); added = true; }
+      continue;
+    }
     const start = BASIC_SKILLS.includes(id) ? Math.max(1, startLevel(s)) : startLevel(s);
     if (sim.skills.has(id)) {
       if ((sim.skills.get(id) ?? 0) < start) { sim.skills.set(id, start); added = true; }

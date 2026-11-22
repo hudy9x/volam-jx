@@ -65,7 +65,7 @@ export function passiveBag(levels: Iterable<[number, number]>, weaponType: numbe
   const bag: AttrBag = {};
   for (const [id, lv] of levels) {
     const s = getSkill(id);
-    if (!s || lv <= 0 || s.style !== SkillStyle.Passive) continue;
+    if (!s || lv <= 0 || s.inactive || s.style !== SkillStyle.Passive) continue;
     for (const name of Object.keys(s.attrs ?? {})) {
       const v = attr(s, name, lv);
       if (v) addSkillAttr(bag, name, v, weaponType);
@@ -79,7 +79,7 @@ export function skillBonuses(levels: Iterable<[number, number]>): Record<number,
   const out: Record<number, number> = {};
   for (const [id, lv] of levels) {
     const s: SkillDef | undefined = getSkill(id);
-    if (!s || lv <= 0) continue;
+    if (!s || lv <= 0 || s.inactive) continue;
     for (const name of Object.keys(s.attrs ?? {})) {
       if (!name.startsWith('addskilldamage')) continue;
       const v = attr(s, name, lv);
