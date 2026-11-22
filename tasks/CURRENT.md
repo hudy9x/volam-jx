@@ -8,6 +8,16 @@
   - `tests/tong-kim.test.ts`: bổ sung test kiểm chứng `TK_POINTS.botBaseMoney`/`botBaseExp` và `tkBotRewardMultiplier`.
 - **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**17/17 pass**), `git diff --check` đạt; đã xác minh trên `apps/server/data/db.json` toàn bộ bot tại map `323` hiện có tối thiểu `964.050` lượng (sau khi tự mua thuốc). Đã commit trên `main`, chưa push.
 
+## 2026-11-22 · Hoàn thiện 2 phái cuối Skill 120: Võ Đang (`716`/`738`) & Côn Lôn (`717`/`721`/`722`) — Đủ 10/10 Thập Đại Phái (đã commit)
+
+- **USER yêu cầu:** áp dụng nốt các phái còn lại trong bảng skill 120 Thập Đại Phái (Võ Đang & Côn Lôn).
+- **Thay đổi:**
+  - `packages/shared/src/skills/common/skill-overrides.ts`: đồng bộ theo `volam-3005` cho Võ Đang `716`/`738` (CD `35s→10s`, `missle_missrate` `90%→0%` đồng đội / `85%→0%` bản thân) và Côn Lôn `717`/`721` (`autorescueskill` `15%→70%` CD `20s`, `staticmagicshield_p` `1800→50000` trong `1s→5s`).
+  - `packages/shared/src/skills/engine/SkillEngine.ts`: đổi ngưỡng kích hoạt `rescue` (Côn Lôn `717`) từ `HP < 30%` sang `HP < 25%`; cho phép cast skill giải trạng thái (`ignorenegativestate_p`) ngay cả khi đang bị `randmove`.
+  - `apps/server/src/world/{systems/status,systems/effects,systems/combat,commands,players}.ts`: thêm `clearNegativeStates()` xóa sạch debuff & khống chế (`stun`, `slow`, `poison`, `randmove`) khi nhận `716`/`738`, và chặn toàn bộ debuff/khống chế mới khi có miễn dịch `ignorenegativestate_p >= 100` (thứ tự chuẩn JX1: miễn dịch → bỏ qua bùa → phản bùa).
+  - `docs/skill-120-status.md`, `tests/skill-120-wudang-kunlun.test.ts`: cập nhật **10/10 phái `RESOLVED`** và bổ sung test cho Võ Đang & Côn Lôn.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), 4 bộ test skill 120 (**11/11 pass**), `npm run test:effects` (**23/23 pass**), `npm run build` & `git diff --check` đạt. Dùng chung Web/Desktop/Mobile; cần restart server & reload client. Chưa commit/push.
+
 ## 2026-11-22 · Triển khai Skill 120 Thiếu Lâm (`709`), Thiên Vương (`708`), Cái Bang (`714`/`720`), Đường Môn (`710`), Nga Mi (`712`), Ngũ Độc (`711`/`719`) & Ngũ Độc Kỳ Kinh (`75`) (đã commit)
 
 - **USER yêu cầu:** triển khai skill 120 Đường Môn, Nga Mi, Ngũ Độc, Thiếu Lâm, Thiên Vương, Cái Bang; chỉnh Ngũ Độc Kỳ Kinh (`#75`) đạt `attackspeed_v = 20%` & `castspeed_v = 20%` ở cấp 30+.

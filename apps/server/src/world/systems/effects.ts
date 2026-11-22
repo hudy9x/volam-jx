@@ -1,5 +1,5 @@
 import {
-  getSkill, isExternal, levelOf, resolveSpeed, skillActionMs, applyBossResistance, attackTiming, mergeBag, mergePoison, monsterCombat, moveFactor, passiveBag, skillBonuses, stateBag,
+  attrOf, getSkill, isExternal, levelOf, resolveSpeed, skillActionMs, applyBossResistance, attackTiming, mergeBag, mergePoison, monsterCombat, moveFactor, passiveBag, skillBonuses, stateBag,
   type CombatStats, type HitEffects, type PoisonRun,
 } from '@vltk/shared';
 import type { Sim } from '../entity.js';
@@ -70,6 +70,8 @@ export function castTiming(w: World, sim: Sim, skillId: number) {
 /** Put a landed hit's effects on `target`. */
 export function applyHitEffects(w: World, attacker: Sim, target: Sim, fx: HitEffects): void {
   if (target.dead) return;
+  // Xuất Ứ Bất Nhiễm (738, ignorenegativestate_p >= 100): miễn dịch hoàn toàn choáng, chậm, độc, co giật.
+  if (target.combat?.bag && attrOf(target.combat.bag, 'ignorenegativestate_p') >= 100) return;
   const e = (target.effects ??= noEffects());
   if (fx.stunMs > 0 && e.stunUntil <= w.now) { // no new stun while stunned (SRC)
     e.stunUntil = w.now + fx.stunMs;

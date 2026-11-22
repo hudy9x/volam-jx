@@ -36,7 +36,7 @@ const CORPSE_SECONDS = 2;
 export function castNow(w: World, sim: Sim, skillId: number, target: Sim | undefined, aim: Point): void {
   if (combatRulesAt(w.meta, sim.a, w.rules).safe) return;
   const bag = combatOf(sim).bag;
-  if (attrOf(bag, 'forbit_attack') > 0 || attrOf(bag, 'randmove') > 0) return;
+  if (attrOf(bag, 'forbit_attack') > 0 || (attrOf(bag, 'randmove') > 0 && !getSkill(skillId)?.attrs?.ignorenegativestate_p)) return;
   const timing = castTiming(w, sim, skillId);
   const pose = w.engine.cast(sim, skillId, target, aim, timing.cycleMs);
   if (pose.note && sim.kind === 'player') w.hooks.notify(sim, pose.note);

@@ -3,7 +3,7 @@ import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
 import { syncStates } from './sync.js';
 import { refreshStats } from '../progress.js';
-import { combatOf, refreshMonsterCombat, refreshMoveScale } from './effects.js';
+import { clearEffects, combatOf, refreshMonsterCombat, refreshMoveScale } from './effects.js';
 
 function hasStaticShield(sim: Sim): boolean {
   for (const skillId of sim.states.keys()) {
@@ -20,28 +20,45 @@ export function statesChanged(w: World, sim: Sim): void {
   refreshMoveScale(w, sim);
 }
 
+/** Xóa sạch mọi trạng thái dị thường (bùa hại trong states + choáng/làm chậm/độc trong effects). */
+export function clearNegativeStates(w: World, sim: Sim): void {
+  for (const [id, st] of [...sim.states.entries()]) {
+    if (st.kind === 'debuff') sim.states.delete(id);
+  }
+  sim.randMoveOrigin = undefined;
+  sim.randMoveAt = undefined;
+  if (sim.effects) clearEffects(w, sim);
+}
+
 export function addState(w: World, sim: Sim, st: StateApply & { reflected?: boolean }): void {
   if (sim.dead) return;
-  // Bùa hại từ đối phương: kiểm tra bỏ qua bùa (Thiên Vương 708 ignoreskill_p) rồi phản bùa (Thiếu Lâm 709 returnskill_p).
-  if (st.kind === 'debuff' && st.by && st.by !== sim.id) {
+  // Thứ tự chuẩn JX1 khi nhận bùa hại từ đối phương:
+  // 1. Miễn dịch dị thường (Võ Đang 738 ignorenegativestate_p >= 100) -> 2. Bỏ qua bùa (Thiên Vương 708) -> 3. Phản bùa (Thiếu Lâm 709).
+  if (st.kind === 'debuff') {
     const bag = combatOf(sim).bag;
-    const ignorePct = attrOf(bag, 'ignoreskill_p');
-    if (ignorePct > 0 && w.random() * 100 < ignorePct) return;
-    if (!st.reflected) {
-      const returnPct = attrOf(bag, 'returnskill_p');
-      if (returnPct > 0 && w.random() * 100 < returnPct) {
-        const source = w.sims.get(st.by);
-        if (source && !source.dead) {
-          addState(w, source, { ...st, by: sim.id, reflected: true });
+    const immunePct = attrOf(bag, 'ignorenegativestate_p');
+    if (immunePct >= 100) return;
+    if (st.by && st.by !== sim.id) {
+      const ignorePct = attrOf(bag, 'ignoreskill_p');
+      if (ignorePct > 0 && w.random() * 100 < ignorePct) return;
+      if (!st.reflected) {
+        const returnPct = attrOf(bag, 'returnskill_p');
+        if (returnPct > 0 && w.random() * 100 < returnPct) {
+          const source = w.sims.get(st.by);
+          if (source && !source.dead) {
+            addState(w, source, { ...st, by: sim.id, reflected: true });
+          }
+          return;
         }
-        return;
       }
     }
   }
+  const s = getSkill(st.skill);
+  // Xuất Ứ Bất Nhiễm (716 đồng đội / 738 bản thân): xóa sạch trạng thái dị thường ngay khi nhận buff.
+  if (st.kind === 'buff' && s?.attrs?.ignorenegativestate_p) clearNegativeStates(w, sim);
   const prev = sim.states.get(st.skill);
   const wasActive = prev !== undefined && prev.until > w.now;
   if (applyState(sim.states, st, w.now)) w.events.push({ t: 'st', id: sim.id, skill: st.skill, kind: st.kind });
-  const s = getSkill(st.skill);
   if (s?.attrs?.randmove) {
     sim.pending = null;
     sim.queuedMove = undefined;

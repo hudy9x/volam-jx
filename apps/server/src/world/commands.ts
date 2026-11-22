@@ -24,7 +24,8 @@ export function commandMove(w: World, sim: Sim, x: number, y: number): void {
 /** Use a skill on a target / point. Out of range => walk closer first. `lock` = keep attacking that target. */
 export function commandCast(w: World, sim: Sim, skillId: number, targetId: string | undefined, x: number, y: number, lock = false,
   reach?: number): void {
-  if (sim.dead || sim.a.stallTitle || isConfused(sim) || !Number.isFinite(x) || !Number.isFinite(y)) return;
+  const skillDef = getSkill(skillId);
+  if (sim.dead || sim.a.stallTitle || (isConfused(sim) && !skillDef?.attrs?.ignorenegativestate_p) || !Number.isFinite(x) || !Number.isFinite(y)) return;
   sim.queuedMove = undefined;
   if (sim.slotAura && getSkill(skillId)?.aura) {
     w.hooks.notify(sim, 'Hào quang đang đặt ở ô tay trái / phải: tự bật, đổi chiêu ở ô đó để thay hoặc tắt.');

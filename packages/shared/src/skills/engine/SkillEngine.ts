@@ -147,10 +147,10 @@ export class SkillEngine {
 
   /** Why `c` cannot use `id` right now (null = it can, cooldown aside). */
   check(c: Combatant, id: number): string | null {
-    if (attrOf(this.port.stats(c).bag, 'randmove') > 0) return 'Đang bị hoảng loạn.';
     const level = levelOf(c, id);
     const s = getSkill(id);
     if (!s || level === undefined) return 'Chưa học kỹ năng này.';
+    if (attrOf(this.port.stats(c).bag, 'randmove') > 0 && !s.attrs?.ignorenegativestate_p) return 'Đang bị hoảng loạn.';
     if (level <= 0) return `Chưa luyện ${s.name}: cộng điểm kỹ năng trước (Kỹ năng, phím F).`; // learned at level 0 (learning.ts)
     if (!isCastable(s)) return tuningOf(id).disabled ?? 'Kỹ năng này không thi triển trực tiếp.';
     if (c.kind === 'player') {
@@ -766,7 +766,7 @@ export class SkillEngine {
     this.trigger(owner, 'attack', t);
     if (!t.dead) {
       this.trigger(t, 'reply', owner);
-      if (t.hp < t.a.maxHp * 0.3) this.trigger(t, 'rescue', t);
+      if (t.hp < t.a.maxHp * 0.25) this.trigger(t, 'rescue', t);
     }
   }
 

@@ -145,6 +145,11 @@ export function updatePlayer(w: World, sim: Sim, dt: number): void {
   if (sim.slotAura) holdSlotAura(w, sim, sim.slotAura);
   if (w.now < sim.castUntil) return;
   if (isConfused(sim)) {
+    const canCleanse = sim.pending && !!getSkill(sim.pending.skill)?.attrs?.ignorenegativestate_p;
+    if (canCleanse) {
+      processPending(w, sim);
+      if (!isConfused(sim)) return;
+    }
     sim.pending = null;
     sim.queuedMove = undefined;
     sim.lockedAttack = undefined;

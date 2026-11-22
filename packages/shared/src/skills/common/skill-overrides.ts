@@ -197,4 +197,36 @@ export const SKILL_OVERRIDES: Record<number, SkillOverride> = {
       skill_mintimepercastonhorse_v: [[[1, 45 * 18], [20, 15 * 18], [21, 15 * 18]], null, null],
     },
   },
+
+  // Võ Đang 120: Xuất Ứ Bất Nhiễm (#716 -> #738) — đồng bộ theo volam-3005 (wudang.lua):
+  // hồi chiêu 35s -> 10s, tỉ lệ giải đồng đội 10% -> 100% (miss 90% -> 0%), bản thân 15% -> 100% (miss 85% -> 0%)
+  716: {
+    attrs: {
+      missle_missrate: [[[1, 90], [10, 50], [20, 0], [21, 0]], null, null],
+      skill_mintimepercast_v: [[[1, 35 * 18], [20, 10 * 18], [21, 10 * 18]], null, null],
+      skill_mintimepercastonhorse_v: [[[1, 35 * 18], [20, 10 * 18], [21, 10 * 18]], null, null],
+    },
+  },
+  738: {
+    attrs: {
+      missle_missrate: [[[1, 85], [15, 20], [20, 0], [21, 0]], null, null],
+    },
+  },
+
+  // Côn Lôn 120: Lưỡng Nghi Chân Khí (#717 -> #721 + #722) — đồng bộ theo volam-3005 (kunlun.lua):
+  // xác suất autorescueskill 15% -> 70% (CD 20s), khiên 721 1800 -> 50000 trong 1s -> 5s
+  717: {
+    attrs: {
+      autorescueskill: [
+        [[1, 721 * 256 + 1], [20, 721 * 256 + 20], [21, 721 * 256 + 21]],
+        [[1, -1], [20, -1]],
+        [[1, 20 * 18 * 256 + 15], [20, 20 * 18 * 256 + 70], [21, 20 * 18 * 256 + 70]],
+      ],
+    },
+  },
+  721: {
+    attrs: {
+      staticmagicshield_p: [[[1, 1800], [20, 50000], [21, 50050]], [[1, 1 * 18], [20, 5 * 18], [21, 5 * 18]], null],
+    },
+  },
 };
