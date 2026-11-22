@@ -776,3 +776,161 @@ test('TkMapStore & PortalStore.replaceTkPortals: lưu atomic, chống stale revi
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
+
+test('Chiến thuật Bot Tống Kim: chuẩn hóa kịch bản, tách 3 cánh đa-map và RunManager.setTkTactic', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const { normalizeBotScenario, isoDistance } = await import('../packages/shared/src/index.js');
+  const { buildTacticalLanes } = await import('../tools/bots/runner/TkTactics.js');
+  const { RunManager } = await import('../tools/bots/RunManager.js');
+
+  const legacy = normalizeBotScenario({ version: 1, activities: { tongkim: true } });
+  assert.equal(legacy.tongkim?.tactic, 'charge');
+
+  for (const tactic of ['charge', 'flank', 'tactical', 'defend', 'random'] as const) {
+    const parsed = normalizeBotScenario({ version: 1, tongkim: { tactic } });
+    assert.equal(parsed.tongkim?.tactic, tactic);
+  }
+  const invalid = normalizeBotScenario({ version: 1, tongkim: { tactic: 'unknown' } });
+  assert.equal(invalid.tongkim?.tactic, 'charge');
+
+  // Map ngoài 378 phải tách rõ 3 cánh (không còn bóp hẹp ±550px như cũ)
+  for (const mapId of [329, 384, 868]) {
+    const lanes = buildTacticalLanes(mapId, 'tong');
+    assert.equal(lanes.length, 3);
+    assert.ok(lanes[1].length >= 3 && lanes[2].length >= 3);
+    const leftMid = lanes[1][1];
+    const rightMid = lanes[2][1];
+    assert.ok(isoDistance(leftMid.x, leftMid.y, rightMid.x, rightMid.y) >= 1200, `Map ${mapId} phải tách rõ cánh trái/phải`);
+  }
+
+  // RunManager.setTkTactic đổi nóng & chặn giá trị sai
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tk-tactic-mgr-'));
+  try {
+    const mgr = new RunManager(path.resolve('tools/bots'), tmpDir);
+    mgr.setTkTactic('tactical', 'all');
+    assert.equal(mgr.status().tkTactics.all, 'tactical');
+    mgr.setTkTactic('defend', 'kim');
+    assert.equal(mgr.status().tkTactics.kim, 'defend');
+    mgr.setTkTactic('default', 'all');
+    assert.equal(mgr.status().tkTactics.all, null);
+    assert.equal(mgr.status().tkTactics.kim, null);
+    assert.throws(() => mgr.setTkTactic('bad-tactic', 'all'), /không hợp lệ/);
+    assert.throws(() => mgr.setTkTactic('flank', 'neutral'), /không hợp lệ/);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('Chiến thuật Bot Tống Kim: tactical (cứu Soái, kiting, khắc hệ), defend, đổi nóng & không vượt 30 msg/s', async () => {
+  const { DEFAULT_BOT_SCENARIO, TK_MAP_LAYOUT, C2S, isoDistance } = await import('../packages/shared/src/index.js');
+  const { TongKimBehavior } = await import('../tools/bots/runner/TongKimBehavior.js');
+  const { TkCampDirector } = await import('../tools/bots/runner/TkTactics.js');
+
+  const director = new TkCampDirector();
+  const sent: { type: string; payload: any; at: number }[] = [];
+  let castCalls: { skill: number; targetId?: string }[] = [];
+  const rawActors = new Map<string, any>();
+  let actorList: any[] = [];
+  const meState: any = {
+    id: 'bot-t1',
+    x: 9000,
+    y: 5500,
+    hp: 4000,
+    maxHp: 4000,
+    mp: 1500,
+    maxMp: 1500,
+    battleCamp: 'tong',
+    faction: 'tangmen',
+    series: 'moc',
+    states: [],
+    mounted: false,
+    jumpMs: 0,
+    anim: 'stand',
+  };
+  let rngState = 12345;
+  const fakeBot: any = {
+    name: 'bot-t1',
+    mapId: 378,
+    bag: [{ uid: 'p1', def: 'potion-0-5', qty: 10 }],
+    money: 100000,
+    levels: { 339: 20 },
+    stats: { faction: 'tangmen', series: 'moc' },
+    autoSettings: { autoBuff: false },
+    tkState: { phase: 'fighting', mode: 1, battleMapId: 378, tongCount: 10, kimCount: 10, me: { camp: 'tong', inCamp: false, gateWaitSec: 0 } },
+    room: { state: { actors: rawActors } },
+    host: { drops: () => [], aura: () => {} },
+    me: () => meState,
+    actors: () => actorList,
+    rand: () => { rngState = (rngState * 1664525 + 1013904223) >>> 0; return rngState / 0x100000000; },
+    send: (type: string, payload: any) => { sent.push({ type, payload, at: now }); },
+    prepareCombat: () => false,
+    attacks: () => [339],
+    range: () => 420,
+    ready: () => true,
+    usable: () => true,
+    levelOf: () => 20,
+    cast: (skill: number, targetId?: string) => { castCalls.push({ skill, targetId }); sent.push({ type: C2S.cast, payload: { skill, targetId }, at: now }); },
+    reviveIfDead: () => {},
+  };
+
+  let now = 10_000;
+  const sc = { ...DEFAULT_BOT_SCENARIO, tongkim: { ...DEFAULT_BOT_SCENARIO.tongkim!, tactic: 'tactical' as const } };
+  const beh = new TongKimBehavior(fakeBot, sc, 6, director);
+
+  // 1. Ưu tiên mục tiêu bị khắc hệ (Mộc khắc Thổ) & máu thấp thay vì chỉ gần hơn 40px
+  rawActors.set('enemy-kim', { battleCamp: 'kim', series: 'kim', maxHp: 4000 });
+  rawActors.set('enemy-tho', { battleCamp: 'kim', series: 'tho', maxHp: 4000 });
+  actorList = [
+    { id: 'enemy-kim', isSelf: false, x: 9260, y: 5500, state: { hp: 3800, maxHp: 4000, kind: 'player', boss: 0 } },
+    { id: 'enemy-tho', isSelf: false, x: 9300, y: 5500, state: { hp: 1200, maxHp: 4000, kind: 'player', boss: 0 } },
+  ];
+  beh.update(now);
+  assert.equal(castCalls.at(-1)?.targetId, 'enemy-tho', 'Chiến thuật tổng hợp phải ưu tiên mục tiêu khắc hệ + máu thấp');
+
+  // 2. Kiting khi địch áp sát phái tầm xa (< 185px)
+  const movesBeforeKite = sent.filter(s => s.type === C2S.move).length;
+  actorList = [
+    { id: 'enemy-tho', isSelf: false, x: 9080, y: 5500, state: { hp: 3000, maxHp: 4000, kind: 'player', boss: 0 } },
+  ];
+  now += 1500;
+  beh.update(now);
+  const kiteMoves = sent.filter(s => s.type === C2S.move);
+  assert.equal(kiteMoves.length, movesBeforeKite + 1, 'Phái tầm xa phải lùi kiting khi địch áp sát');
+  assert.ok(kiteMoves.at(-1)!.payload.x < meState.x, 'Kiting phải lùi ra xa địch ở bên phải');
+
+  // 3. Phản ứng cứu Nguyên Soái nhà khi có cảnh báo trên TkCampDirector
+  actorList = [];
+  meState.x = 6800;
+  meState.y = 6900;
+  now += 1500;
+  director.reportMarshalThreat(378, 'tong', { x: TK_MAP_LAYOUT.tong.marshal.x, y: TK_MAP_LAYOUT.tong.marshal.y, hpRatio: 0.7, enemyCount: 2, at: now });
+  beh.update(now);
+  const rescueMove = sent.filter(s => s.type === C2S.move).at(-1)!.payload;
+  assert.ok(isoDistance(rescueMove.x, rescueMove.y, TK_MAP_LAYOUT.tong.marshal.x, TK_MAP_LAYOUT.tong.marshal.y) < 400, 'Phải chạy về cứu Nguyên Soái nhà khi có cảnh báo');
+
+  // 4. Đổi nóng sang `defend` -> giữ quanh sân nhà, không lao sang Nguyên Soái Kim
+  director.clear();
+  beh.setLiveTactic('defend', 'tong');
+  assert.equal(beh.effectiveTactic(378, 'tong'), 'defend');
+  now += 1500;
+  beh.update(now);
+  const defendMove = sent.filter(s => s.type === C2S.move).at(-1)!.payload;
+  assert.ok(
+    isoDistance(defendMove.x, defendMove.y, TK_MAP_LAYOUT.tong.marshal.x, TK_MAP_LAYOUT.tong.marshal.y) <
+    isoDistance(defendMove.x, defendMove.y, TK_MAP_LAYOUT.kim.marshal.x, TK_MAP_LAYOUT.kim.marshal.y),
+    'Chế độ defend phải giữ vị trí phía sân nhà',
+  );
+
+  // 5. Đổi nóng sang `flank` & mô phỏng 5 giây (nhịp 150ms) kiểm chứng không vượt ngưỡng 30 msg/s
+  beh.setLiveTactic('flank');
+  const startCount = sent.length;
+  const startAt = now;
+  for (let i = 0; i < 34; i++) {
+    now += 150;
+    beh.update(now);
+  }
+  const perSec = (sent.length - startCount) / ((now - startAt) / 1000);
+  assert.ok(perSec < 15, `Nhịp gửi lệnh phải thấp hơn rất nhiều so với 30 msg/s (thực tế: ${perSec.toFixed(2)}/s)`);
+});

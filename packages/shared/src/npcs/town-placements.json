@@ -766,6 +766,62 @@
         "dir": 0
       }
     ],
+    "876": [
+      {
+        "id": "npc-c3eb4049-2071-40c6-b87d-b215e3061102",
+        "name": "Chủ dược điếm",
+        "res": "passerby007",
+        "action": "drug",
+        "x": 1753,
+        "y": 14021,
+        "dir": 0
+      },
+      {
+        "id": "npc-3013de78-c1b6-4b56-a24f-16de65d78c3a",
+        "name": "Chủ dược điếm",
+        "res": "passerby007",
+        "action": "drug",
+        "x": 22721,
+        "y": 1322,
+        "dir": 0
+      },
+      {
+        "id": "npc-a588cf0d-b0e9-4905-bef4-088b052d7ccd",
+        "name": "Quân Nhu Quan",
+        "res": "enemy029",
+        "action": "tkQuartermaster",
+        "x": 2204,
+        "y": 13661,
+        "dir": 0
+      },
+      {
+        "id": "npc-d96717da-59ca-4774-8b46-340d97ac23ea",
+        "name": "Quân Nhu Quan",
+        "res": "enemy029",
+        "action": "tkQuartermaster",
+        "x": 23298,
+        "y": 1540,
+        "dir": 0
+      },
+      {
+        "id": "npc-6403e5ed-d863-47d6-9388-1a8e4e689c0d",
+        "name": "Rương chứa đồ",
+        "res": "passerby198",
+        "action": "stash",
+        "x": 22142,
+        "y": 1402,
+        "dir": 0
+      },
+      {
+        "id": "npc-b4c49f4c-0030-4e3c-b693-58897de4f367",
+        "name": "Rương chứa đồ",
+        "res": "passerby198",
+        "action": "stash",
+        "x": 2250,
+        "y": 14219,
+        "dir": 0
+      }
+    ],
     "902": [
       {
         "id": "npc-e5e892bf-66af-4abb-bb2e-009a23a3d792",

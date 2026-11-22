@@ -1,6 +1,6 @@
 import {
-  BOT_LEVEL_BANDS, botMapIds, BOT_ROSTER, BOT_IDENTITIES, ELEMENT_NAMES, DEFAULT_AUTO, DEFAULT_BOT_SCENARIO, DEFAULT_BOT_TEMPLATE, FACTIONS, FACTION_IDS, HORSES, MAPS,
-  SHOP_ITEMS, potionTotal, type AutoSettings, type BotInfo, type BotScenario, type BotTemplate,
+  BOT_LEVEL_BANDS, botMapIds, BOT_ROSTER, BOT_IDENTITIES, BOT_TONGKIM_TACTICS, BOT_TONGKIM_TACTIC_IDS, ELEMENT_NAMES, DEFAULT_AUTO, DEFAULT_BOT_SCENARIO, DEFAULT_BOT_TEMPLATE, FACTIONS, FACTION_IDS, HORSES, MAPS,
+  SHOP_ITEMS, potionTotal, type AutoSettings, type BotInfo, type BotScenario, type BotTemplate, type BotTongKimTactic,
 } from '@vltk/shared';
 import { SERVER_URL } from './config';
 import { storage } from '../../../apps/client/src/platform/storage';
@@ -49,6 +49,11 @@ const f = (label: string, input: string, hint = '') => `<label class="bp-f"><spa
 const num = (id: string, min = 0, max = 1e9, step = 1) => `<input id="${id}" type="number" min="${min}" max="${max}" step="${step}">`;
 const chk = (id: string, label: string) => `<label class="bp-c"><input id="${id}" type="checkbox"> ${label}</label>`;
 const sel = (id: string, options: string) => `<select id="${id}">${options}</select>`;
+const tkTacticOptions = (withDefault = false) =>
+  (withDefault ? opt('default', 'Theo mặc định kịch bản') : '') +
+  BOT_TONGKIM_TACTIC_IDS.map(id => opt(id, BOT_TONGKIM_TACTICS[id].name)).join('');
+const tkTacticGuide = (id: string) =>
+  `<ul id="${id}" class="bp-tactic-list">${BOT_TONGKIM_TACTIC_IDS.map(k => `<li data-tactic="${k}"><strong>${esc(BOT_TONGKIM_TACTICS[k].name)}:</strong> ${esc(BOT_TONGKIM_TACTICS[k].note)}</li>`).join('')}</ul>`;
 
 const PAGE = `
 <header class="bp-head">
@@ -128,13 +133,15 @@ const PAGE = `
   <fieldset id="sc-fields">
     <h3>Hoạt động</h3>
     <div class="bp-activities">${chk('sc-grind', 'Luyện công')}${chk('sc-tongkim', 'Tống Kim')}${chk('sc-chat', 'Chat')}${chk('sc-sell', 'Rao bán đồ')}</div>
-    <fieldset id="sc-tk-options" class="bp-team-mode" hidden><legend>Cấu hình Chiến trường Tống Kim (Giai đoạn 1)</legend>
+    <fieldset id="sc-tk-options" class="bp-team-mode" hidden><legend>Cấu hình Chiến trường Tống Kim</legend>
       <div class="bp-grid">
         ${f('Chọn phe', sel('sc-tk-camp', opt('auto', 'Tự cân bằng Tống / Kim') + opt('tong', 'Ưu tiên phe Tống') + opt('kim', 'Ưu tiên phe Kim')), 'Tự cân bằng sẽ chia xen kẽ Tống/Kim để không vướng lệch quân số.')}
+        ${f('Chiến thuật mặc định', sel('sc-tk-tactic', tkTacticOptions()), 'Chọn cách di chuyển và giao tranh cho bot khi vào chiến trường.')}
         ${f('Tỉ lệ qua Đặc thám (%)', '<input id="sc-tk-scout" type="number" min="0" max="100" value="50">', 'Xác suất bot nhảy thẳng ra tiền tuyến qua Đặc thám thay vì chạy qua cổng.')}
         ${f('Ngưỡng bơm máu (%)', '<input id="sc-tk-hp" type="number" min="10" max="95" value="70">', 'Tự uống thuốc hồi sinh lực khi HP dưới ngưỡng này.')}
         ${f('Bán kính quét địch (px)', '<input id="sc-tk-scan" type="number" min="200" max="1600" value="850">', 'Tầm phát hiện mục tiêu địch xung quanh bot.')}
       </div>
+      ${tkTacticGuide('sc-tk-tactic-guide')}
     </fieldset>
     <fieldset id="sc-team-options" class="bp-team-mode"><legend>Tổ đội khi luyện công</legend>
       <label class="bp-c"><input type="radio" name="sc-team-mode" id="sc-team-invite" value="invite">Chủ động mời người khác</label>
@@ -165,6 +172,9 @@ class BotPanel {
   private scenarioTitles: Record<string,string> = {};
   private runnerErrorAt = 0;
   private runBusy = false;
+  private tkRunning = false;
+  private tkLiveTactics: { all: BotTongKimTactic | null; tong: BotTongKimTactic | null; kim: BotTongKimTactic | null } = { all: null, tong: null, kim: null };
+  private tkTacticBusy = false;
   private picked = new Set<string>();
   private rosterTab: 'all' | 'online' | 'offline' | 'new' = 'online';
   private loadedSelection?: string[];
@@ -223,6 +233,11 @@ class BotPanel {
     this.on('bl-run', () => void this.runSelected());
     this.on('bl-resume', () => void this.resumeSelected());
     this.on('bl-stop', () => void this.stopSelected());
+    this.on('tk-live-apply', () => void this.applyLiveTkTactic());
+    this.$('sc-tk-tactic').addEventListener('change', () => this.highlightTacticGuide('sc-tk-tactic-guide', this.val('sc-tk-tactic')));
+    this.$('tk-live-tactic').addEventListener('change', () => this.highlightTacticGuide('tk-live-tactic-guide', this.val('tk-live-tactic')));
+    this.highlightTacticGuide('sc-tk-tactic-guide', this.val('sc-tk-tactic'));
+    this.highlightTacticGuide('tk-live-tactic-guide', this.val('tk-live-tactic'));
     this.$('bl-scenario').addEventListener('change', () => this.updateRunActions());
     this.on('bt-update', () => void this.updateSetup());
     this.$('bl-all').addEventListener('change', () => {
@@ -388,6 +403,7 @@ class BotPanel {
       activities: { grind: this.on_('sc-grind'), tongkim: this.on_('sc-tongkim'), chat: this.on_('sc-chat'), sell: this.on_('sc-sell'), autoAcceptTeam: this.on_('sc-team'), autoInviteTeam: this.on_('sc-team-invite') },
       tongkim: {
         campPreference: this.val('sc-tk-camp') as 'auto' | 'tong' | 'kim',
+        tactic: this.val('sc-tk-tactic') as BotTongKimTactic,
         exitViaScoutRatio: Math.max(0, Math.min(100, this.n('sc-tk-scout'))) / 100,
         hpHealThreshold: Math.max(10, Math.min(95, this.n('sc-tk-hp'))) / 100,
         scanRadius: Math.max(200, Math.min(1600, this.n('sc-tk-scan'))),
@@ -402,6 +418,8 @@ class BotPanel {
     this.set('sc-note', s.note); this.set('sc-server', s.server); this.set('sc-join', s.joinPerSecond); this.set('sc-reconnect', s.reconnect);
     this.set('sc-grind', s.activities.grind); this.set('sc-tongkim', !!s.activities.tongkim); this.set('sc-chat', s.activities.chat); this.set('sc-sell', s.activities.sell); this.set('sc-team', !s.activities.autoInviteTeam && s.activities.autoAcceptTeam); this.set('sc-team-invite', s.activities.autoInviteTeam); this.set('sc-team-off', !s.activities.autoInviteTeam && !s.activities.autoAcceptTeam);
     this.set('sc-tk-camp', s.tongkim?.campPreference ?? 'auto');
+    this.set('sc-tk-tactic', s.tongkim?.tactic ?? 'charge');
+    this.highlightTacticGuide('sc-tk-tactic-guide', s.tongkim?.tactic ?? 'charge');
     this.set('sc-tk-scout', Math.round((s.tongkim?.exitViaScoutRatio ?? 0.5) * 100));
     this.set('sc-tk-hp', Math.round((s.tongkim?.hpHealThreshold ?? 0.7) * 100));
     this.set('sc-tk-scan', s.tongkim?.scanRadius ?? 850);
@@ -441,7 +459,16 @@ class BotPanel {
     list.id = 'roster-card'; template.id = 'template-card'; scenario.id = 'scenario-card';
     this.root.querySelector('.bp-cols')!.prepend(list);
     const overview=document.createElement('section');overview.className='bp-card';overview.id='scenario-overview';
-    overview.innerHTML='<h2>Kịch bản</h2><div id="bl-scenario-cards" class="bp-scenario-grid"></div>';
+    overview.innerHTML=`<h2>Kịch bản</h2><div id="bl-scenario-cards" class="bp-scenario-grid"></div>
+      <div id="tk-live-box" class="bp-team-mode" hidden>
+        <h3>Chiến thuật Tống Kim đang chạy</h3>
+        <div class="bp-grid">
+          ${f('Áp dụng cho', sel('tk-live-camp', opt('all', 'Tất cả bot Tống Kim') + opt('tong', 'Chỉ phe Tống') + opt('kim', 'Chỉ phe Kim')))}
+          ${f('Chiến thuật', sel('tk-live-tactic', tkTacticOptions(true)))}
+        </div>
+        <div class="bp-row"><button type="button" id="tk-live-apply" class="bp-main">Áp dụng chiến thuật</button><span id="tk-live-status" class="bp-note" role="status" aria-live="polite">Đang dùng theo mặc định kịch bản.</span></div>
+        ${tkTacticGuide('tk-live-tactic-guide')}
+      </div>`;
     list.before(overview);
     for (const input of this.root.querySelectorAll<HTMLInputElement>('input:not([type=checkbox])')) if (!input.closest('label')) input.setAttribute('aria-label', input.placeholder || input.id);
     for (const select of this.root.querySelectorAll('select')) if (!select.closest('label') && !select.hasAttribute('aria-label')) select.setAttribute('aria-label', select.id);
@@ -596,14 +623,63 @@ class BotPanel {
     this.$<HTMLButtonElement>('bl-resume').disabled = this.runBusy || ![...this.picked].some(id=>this.assignments[id]&&!this.running.has(id));
     this.$<HTMLButtonElement>('bl-stop').disabled = ![...this.picked].some(id=>this.running.has(id)) || this.runBusy;
   }
-  private async runnerCall(path:string, body?:unknown): Promise<{assignments:Record<string,string>;bots:{username:string;title:string;phase:string}[];errors:{message:string;at:number}[]}> {
+  private async runnerCall(path:string, body?:unknown): Promise<{
+    assignments:Record<string,string>;
+    bots:{username:string;title:string;phase:string}[];
+    errors:{message:string;at:number}[];
+    tkTactics?:{all:BotTongKimTactic|null;tong:BotTongKimTactic|null;kim:BotTongKimTactic|null};
+    tkRunning?:boolean;
+  }> {
     const response=await fetch(`/api/runner/${path}`,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
     const result=await response.json();if(!response.ok)throw Error(result.error||'Không điều khiển được bộ chạy bot.');return result;
   }
+  private highlightTacticGuide(guideId: string, selected: string): void {
+    const list = this.$(guideId);
+    if (!list) return;
+    list.querySelectorAll<HTMLLIElement>('li[data-tactic]').forEach(li => {
+      li.classList.toggle('active', li.dataset.tactic === selected);
+    });
+  }
+  private renderTkLiveBox(): void {
+    const box = this.$('tk-live-box');
+    if (!box) return;
+    box.hidden = !this.tkRunning;
+    this.$<HTMLButtonElement>('tk-live-apply').disabled = this.tkTacticBusy || !this.tkRunning;
+    const t = this.tkLiveTactics;
+    const label = (v: BotTongKimTactic | null) => v ? BOT_TONGKIM_TACTICS[v].name : 'Theo kịch bản';
+    const parts: string[] = [];
+    if (t.all) parts.push(`Chung: ${label(t.all)}`);
+    if (t.tong) parts.push(`Tống: ${label(t.tong)}`);
+    if (t.kim) parts.push(`Kim: ${label(t.kim)}`);
+    this.$('tk-live-status').textContent = parts.length ? `Đang ghi đè nóng · ${parts.join(' · ')}` : 'Đang dùng chiến thuật mặc định của kịch bản.';
+  }
+  private async applyLiveTkTactic(): Promise<void> {
+    if (this.tkTacticBusy || !this.tkRunning) return;
+    const camp = this.val('tk-live-camp') as 'all' | 'tong' | 'kim';
+    const tactic = this.val('tk-live-tactic');
+    this.tkTacticBusy = true;
+    this.renderTkLiveBox();
+    try {
+      const state = await this.runnerCall('tactic', { camp, tactic });
+      if (state.tkTactics) this.tkLiveTactics = state.tkTactics;
+      if (typeof state.tkRunning === 'boolean') this.tkRunning = state.tkRunning;
+      const scopeName = camp === 'tong' ? 'phe Tống' : camp === 'kim' ? 'phe Kim' : 'toàn bộ bot Tống Kim';
+      const tacticName = tactic === 'default' ? 'mặc định kịch bản' : BOT_TONGKIM_TACTICS[tactic as BotTongKimTactic].name;
+      this.status(`Đã đổi nóng chiến thuật ${scopeName} sang “${tacticName}”.`);
+    } catch (error) {
+      this.status((error as Error).message, true);
+    } finally {
+      this.tkTacticBusy = false;
+      this.renderTkLiveBox();
+    }
+  }
   private async refreshRuns(): Promise<void> {
-    try{const before=JSON.stringify([[...this.running.values()],this.assignments]); const state=await this.runnerCall('status');this.running=new Map(state.bots.map(bot=>[bot.username,bot]));this.assignments=state.assignments;
+    try{const before=JSON.stringify([[...this.running.values()],this.assignments,this.tkRunning,this.tkLiveTactics]); const state=await this.runnerCall('status');this.running=new Map(state.bots.map(bot=>[bot.username,bot]));this.assignments=state.assignments;
+      if(state.tkTactics) this.tkLiveTactics=state.tkTactics;
+      if(typeof state.tkRunning==='boolean') this.tkRunning=state.tkRunning;
       const error=state.errors.at(-1);if(error&&error.at>this.runnerErrorAt){this.runnerErrorAt=error.at;this.status(error.message,true);}
-      if(before!==JSON.stringify([[...this.running.values()],this.assignments])){this.renderScenarioCards();this.renderList();void this.refresh(true);}
+      this.renderTkLiveBox();
+      if(before!==JSON.stringify([[...this.running.values()],this.assignments,this.tkRunning,this.tkLiveTactics])){this.renderScenarioCards();this.renderList();void this.refresh(true);}
     }catch{/* Game API and runner startup show errors on explicit actions. */}
   }
   private async runSelected(): Promise<void> {

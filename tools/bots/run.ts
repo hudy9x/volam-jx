@@ -12,9 +12,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { BOT_FILE_RE, normalizeBotTemplate, normalizeBotScenario, type BotLogin, type BotScenario } from '@vltk/shared';
+import { BOT_FILE_RE, normalizeBotTemplate, normalizeBotScenario, type BotLogin, type BotScenario, type BotTongKimTactic, type TkCamp } from '@vltk/shared';
 import { makeBehavior } from './runner/behaviors.js';
 import { BotClient, type RunStats } from './runner/BotClient.js';
+import { TongKimBehavior } from './runner/TongKimBehavior.js';
 import { runLegacy } from './runner/legacy.js';
 import { between, rng } from './runner/rng.js';
 
@@ -23,9 +24,16 @@ const STATUS_MS = 10_000;
 const LOOP_MS = 25;
 
 const args = process.argv.slice(2);
-const pendingStops = new Set<string>(); let prepared = false;
-process.on('message',(message:{type?:string;usernames?:string[]})=>{
-  if(prepared||message?.type!=='stop'||!Array.isArray(message.usernames))return;
+const pendingStops = new Set<string>();
+const pendingTkTactics: { tactic: BotTongKimTactic | null; camp?: TkCamp }[] = [];
+let prepared = false;
+process.on('message',(message:{type?:string;usernames?:string[];tactic?:BotTongKimTactic|null;camp?:TkCamp})=>{
+  if (prepared) return;
+  if (message?.type === 'tk-tactic') {
+    pendingTkTactics.push({ tactic: message.tactic ?? null, camp: message.camp });
+    return;
+  }
+  if (message?.type !== 'stop' || !Array.isArray(message.usernames)) return;
   message.usernames.forEach(id=>pendingStops.add(id));process.send?.({type:'stopped',usernames:message.usernames});
 });
 if (!args.length || /^\d+$/.test(args[0])) {
@@ -97,6 +105,12 @@ async function runScenario(name: string, server?: string): Promise<void> {
     bot.behavior = makeBehavior(bot, sc, i);
     return bot;
   });
+  for (const item of pendingTkTactics) {
+    for (const bot of bots) {
+      if (bot.behavior instanceof TongKimBehavior) bot.behavior.setLiveTactic(item.tactic, item.camp);
+    }
+  }
+  pendingTkTactics.length = 0;
   prepared=true;
   for(const bot of bots)if(pendingStops.has(bot.name))void bot.stop();
   console.log(`[bots] kịch bản "${name}" · ${sc.server} · ${bots.length} bot · chạy liên tục, dừng bằng Ctrl+C`);
@@ -135,7 +149,14 @@ async function runScenario(name: string, server?: string): Promise<void> {
 
   const ipcStatus = () => process.send?.({ type:'status', bots:bots.map((bot, i) => ({ username:bot.name, online:bot.online, stopped:bot.stopped, started:i < joined })) });
   const ipcTimer = process.send ? setInterval(ipcStatus, 500) : undefined;
-  process.on('message', async (message: { type?:string; usernames?:string[] }) => {
+  process.on('message', async (message: { type?:string; usernames?:string[]; tactic?:BotTongKimTactic|null; camp?:TkCamp }) => {
+    if (message?.type === 'tk-tactic') {
+      for (const bot of bots) {
+        if (bot.behavior instanceof TongKimBehavior) bot.behavior.setLiveTactic(message.tactic ?? null, message.camp);
+      }
+      console.log(`[bots] đổi chiến thuật Tống Kim (${message.camp ?? 'tất cả'}): ${message.tactic ?? 'mặc định kịch bản'}`);
+      return;
+    }
     if (message?.type !== 'stop' || !Array.isArray(message.usernames)) return;
     await Promise.allSettled(bots.filter(bot => message.usernames!.includes(bot.name)).map(bot => bot.stop()));
     ipcStatus(); if (bots.every(bot => bot.stopped)) void end('đã dừng toàn bộ bot');

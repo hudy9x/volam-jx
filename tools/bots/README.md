@@ -83,7 +83,7 @@ Luật/dữ liệu chung vẫn ở `packages/shared/src/bots`; API tác động 
 - `BOTS_DIR`: đổi thư mục cấu hình cho cả app và runner; mặc định `tools/bots/data`.
 - `npm run test:bots`: kiểm tra roster, hoạt động xã hội, preset và config store.
 
-Công cụ phục vụ trên loopback cùng máy. Khi sửa mã công cụ, dừng rồi chạy lại `bots:ui` để nạp bản mới. Không cần dừng khi chỉ sửa/lưu các template.
+Công cụ phục vụ trên loopback cùng máy. `npm run bots:ui` tự theo dõi thay đổi trong `tools/bots/`, `packages/shared/src/bots/` và `packages/shared/src/battle/` (bỏ qua `data/` và mã game), tự nạp lại server công cụ và reload tab trình duyệt khi mã tool thay đổi. Lưu/sửa template hoặc sửa mã game không làm reload công cụ.
 
 ## Rao bán tự định giá
 
@@ -117,5 +117,17 @@ Bỏ tick rồi **Cập nhật thiết lập** để áp dụng cho nhân vật 
 Auto lấy toàn bộ kỹ năng đã học, không phụ thuộc thanh phím hay giới hạn2buff. Bỏ Ngự Tuyết Ẩn, Nga My ưu tiên Bế Nguyệt Phất Trần; kiểm sẵn sàng và duy trì trạng thái/hào quang. Chi tiết/phạm vi đã kiểm ở [Auto](../../docs/auto.md#tự-buff-toàn-bộ-kỹ-năng-đã-học--user-2026-11-14). Sau cập nhật mã cần restart tool/runner/server và reload game; không tự dừng runner thật để nạp mã.
 
 USER2026-11-16: thiết lập nhân vật bật tự buff còn được bổ sung **học buff/hào quang cơ bản theo cấp**, kể cả bot cũ không còn điểm dư. Server chỉ thêm/nâng buff thường đến cấp hợp lệ, không phân lại điểm hoặc reset cấp/EXP/trang bị/túi/tiền/thục luyện/chiêu tấn công; không tự mở tầng bí kíp90/120/150. Cập nhật và lưu khi bot vào map bằng server mới, kiểm lại khi tăng cấp/đổi phái. Tắt tự buff không xóa các chiêu đã học.
+
+## Chiến thuật Tống Kim (chọn trong kịch bản & đổi nóng)
+
+Trong cấu hình kịch bản Tống Kim có mục **Chiến thuật mặc định** (`tongkim.tactic`, mặc định `charge` giữ nguyên hành vi cũ):
+- **Xung phong (Cũ)** (`charge`): tiến thẳng theo tuyến cố định, gặp địch là đánh.
+- **Gọng kìm 3 cánh** (`flank`): tách 3 mũi theo `frontlines` / `npcSpawns` của từng map (hoặc vòng cung rộng 22% trục chiến trường), đổi cánh linh hoạt khi hồi sinh, gom tốp ngắn ngoài cổng trước khi đẩy.
+- **Chiến thuật tổng hợp** (`tactical`): 3 cánh + phân vai (Chủ lực / Bọc hậu / Hộ vệ Soái / Nga Mi hỗ trợ) + phản ứng cứu Nguyên Soái nhà + dồn hỏa lực mục tiêu yếu + thả diều (kiting) tầm xa + ưu tiên khắc hệ ngũ hành + rút về cụm đồng đội khi bị áp đảo.
+- **Thủ Soái phản công** (`defend`): giữ nửa sân nhà và bảo vệ Nguyên Soái, ưu tiên dọn địch xâm nhập.
+- **Ngẫu nhiên theo phe** (`random`): mỗi trận tự bốc chiến thuật riêng cho phe Tống và phe Kim.
+
+Khi có bot Tống Kim đang chạy, mục **Chiến thuật Tống Kim đang chạy** tự hiện ở section **Kịch bản** (`localhost:4568`), cho phép đổi nóng chiến thuật chung hoặc riêng từng phe Tống / Kim qua IPC (`POST /api/runner/tactic`) mà không cần dừng/chạy lại bot hay sửa game server/client. Sau khi sửa mã công cụ, khởi động lại `npm run bots:ui` và dừng/chạy lại runner để nạp bản mới.
+
 
 Khi đánh, bot tự xuống ngựa nếu chiêu phái ưu tiên yêu cầu đi bộ và có quái trong600px; chờ server xác nhận rồi mới dùng chiêu90/150 đã học. Buff cần đi bộ cũng có thể khiến bot xuống ngựa. Giữ cưỡi khi chiêu cho phép; không tự lên lại liên tục. Chỉ xoay chiêu phái khi có chiêu dùng được, không xen các đòn Công kích vật lý common. Trong lúc chờ xuống ngựa vẫn xử lý thuốc/hồi sinh/về thành theo Auto.

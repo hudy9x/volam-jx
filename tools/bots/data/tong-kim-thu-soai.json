@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "title": "Tống kim - Thủ soái",
+  "activities": {
+    "grind": false,
+    "chat": false,
+    "sell": false,
+    "tongkim": true,
+    "autoAcceptTeam": true,
+    "autoInviteTeam": false
+  },
+  "note": "",
+  "server": "http://localhost:2567",
+  "bots": {
+    "prefix": "botfixed",
+    "count": 0,
+    "usernames": []
+  },
+  "joinPerSecond": 3,
+  "duration": 0,
+  "seed": 1,
+  "behaviors": {
+    "grind": 100
+  },
+  "pk": {
+    "mode": 2,
+    "target": "nearest"
+  },
+  "wander": {
+    "radius": 300
+  },
+  "travel": {
+    "every": 60,
+    "maps": [
+      37,
+      140
+    ]
+  },
+  "crowd": {
+    "mapId": 37,
+    "x": 0,
+    "y": 0,
+    "radius": 80,
+    "cast": false
+  },
+  "auto": {
+    "autoRadius": 500,
+    "autoSkipBoss": false,
+    "autoPk": false,
+    "autoBuff": true,
+    "autoReturn": true,
+    "autoSeek": true,
+    "autoPickup": true,
+    "autoSort": true,
+    "autoPriority": "boss",
+    "autoRotate": true,
+    "autoCurse": true,
+    "autoMap": true,
+    "autoReturnTraining": true,
+    "autoRevive": true,
+    "autoBuyPotion": true,
+    "autoJunk": true,
+    "autoMoney": true,
+    "autoLootPriority": false,
+    "autoSellBlue": false,
+    "autoSellAllBlue": false,
+    "autoKeepValuable": true,
+    "autoLoot": "all",
+    "autoHp": 50,
+    "autoMp": 20,
+    "autoReachPct": 60,
+    "autoMeleeClose": true,
+    "autoManualPauseMs": 150
+  },
+  "buffVersion": 1,
+  "tongkim": {
+    "campPreference": "auto",
+    "tactic": "defend",
+    "exitViaScoutRatio": 0.1,
+    "hpHealThreshold": 0.7,
+    "scanRadius": 850
+  },
+  "human": {
+    "tickMs": 150,
+    "reactionMs": [
+      80,
+      250
+    ],
+    "maxOrdersPerSec": 8
+  },
+  "reconnect": true
+}

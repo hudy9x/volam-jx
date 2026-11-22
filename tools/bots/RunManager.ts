@@ -2,16 +2,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fork, type ChildProcess } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { BOT_FILE_RE, BOT_IDENTITIES, normalizeBotScenario } from '@vltk/shared';
+import { BOT_FILE_RE, BOT_IDENTITIES, BOT_TONGKIM_TACTIC_IDS, normalizeBotScenario, type BotTongKimTactic, type TkCamp } from '@vltk/shared';
 
 export interface RunningBot { username:string; scenario:string; title:string; phase:'preparing'|'queued'|'online'|'reconnecting'|'stopping'; runId:string }
-interface Run { child:ChildProcess; bots:Map<string,RunningBot>; log:string; title:string; scenario:string; }
+export interface LiveTkTactics { all: BotTongKimTactic | null; tong: BotTongKimTactic | null; kim: BotTongKimTactic | null }
+interface Run { child:ChildProcess; bots:Map<string,RunningBot>; log:string; title:string; scenario:string; tongkim:boolean; }
 /** Owns only children launched by this tools app. Game restarts do not restart this manager or its children. */
 export class RunManager {
   private runs = new Map<string,Run>();
   private starting = new Map<string,number>();
   private errors: { message:string; at:number }[] = [];
   private assignments: Record<string,string> = {};
+  private liveTkTactics: LiveTkTactics = { all: null, tong: null, kim: null };
   constructor(private here:string, private dataDir:string) {
     const file=path.join(dataDir,'.assignments.json');
     if(fs.existsSync(file)) {
@@ -62,8 +64,36 @@ export class RunManager {
     const users=Object.keys(this.assignments).filter(user=>this.assignments[user]===scenario);
     await this.resume(users,server);
   }
-  status(): { assignments:Record<string,string>; bots:RunningBot[]; errors:{message:string;at:number}[] } {
-    return { assignments:{...this.assignments}, bots:[...this.runs.values()].flatMap(run=>[...run.bots.values()]),errors:this.errors.slice(-5) };
+  status(): { assignments:Record<string,string>; bots:RunningBot[]; errors:{message:string;at:number}[]; tkTactics:LiveTkTactics; tkRunning:boolean } {
+    return {
+      assignments:{...this.assignments},
+      bots:[...this.runs.values()].flatMap(run=>[...run.bots.values()]),
+      errors:this.errors.slice(-5),
+      tkTactics:{...this.liveTkTactics},
+      tkRunning:[...this.runs.values()].some(run=>run.tongkim&&run.bots.size>0),
+    };
+  }
+  setTkTactic(tactic:unknown, camp?:unknown): void {
+    const val: BotTongKimTactic | null = tactic === null || tactic === '' || tactic === 'default'
+      ? null
+      : (BOT_TONGKIM_TACTIC_IDS as readonly string[]).includes(String(tactic))
+        ? (String(tactic) as BotTongKimTactic)
+        : (() => { throw Error('Chiến thuật Tống Kim không hợp lệ.'); })();
+    const scope = camp === undefined || camp === '' || camp === 'all'
+      ? 'all'
+      : camp === 'tong' || camp === 'kim'
+        ? camp
+        : (() => { throw Error('Phe áp dụng chiến thuật không hợp lệ.'); })();
+    if (scope === 'all') {
+      this.liveTkTactics.all = val;
+      if (val === null) { this.liveTkTactics.tong = null; this.liveTkTactics.kim = null; }
+    } else {
+      this.liveTkTactics[scope] = val;
+    }
+    const ipcCamp: TkCamp | undefined = scope === 'all' ? undefined : scope;
+    for (const run of this.runs.values()) {
+      if (run.child.connected) run.child.send({ type: 'tk-tactic', tactic: val, camp: ipcCamp });
+    }
   }
   usesScenario(name:string):boolean {return this.starting.has(name)||[...this.runs.values()].some(run=>run.scenario===name);}
   async start(scenario:unknown, users:unknown, server:unknown): Promise<void> {
@@ -83,10 +113,15 @@ export class RunManager {
     const previous={...this.assignments};
     ids.forEach(user=>{this.assignments[user]=scenario;});
     try {this.saveAssignments();} catch(error) {this.assignments=previous;throw error;}
-    const id=randomUUID(), title=config.title||scenario;
+    const id=randomUUID(), title=config.title||scenario, tongkim=!!config.activities.tongkim||(config.behaviors.tongkim??0)>0;
     const child=fork(path.join(this.here,'run.ts'),[scenario,'--server',server,'--users',JSON.stringify(ids)],{cwd:path.resolve(this.here,'../..'),execArgv:['--import','tsx'],env:{...process.env,BOTS_DIR:this.dataDir},stdio:['ignore','pipe','pipe','ipc']});
     const bots=new Map(ids.map(username=>[username,{username,scenario,title,phase:'preparing' as const,runId:id}]));
-    const run:Run={child,bots,log:'',title,scenario}; this.runs.set(id,run);
+    const run:Run={child,bots,log:'',title,scenario,tongkim}; this.runs.set(id,run);
+    if(tongkim&&child.connected){
+      if(this.liveTkTactics.all) child.send({type:'tk-tactic',tactic:this.liveTkTactics.all});
+      if(this.liveTkTactics.tong) child.send({type:'tk-tactic',tactic:this.liveTkTactics.tong,camp:'tong'});
+      if(this.liveTkTactics.kim) child.send({type:'tk-tactic',tactic:this.liveTkTactics.kim,camp:'kim'});
+    }
     const append=(data:Buffer)=>{run.log=(run.log+data.toString()).slice(-4000);}; child.stdout?.on('data',append);child.stderr?.on('data',append);
     child.on('message',(msg:{type?:string;usernames?:string[];bots?:{username:string;online:boolean;stopped:boolean;started:boolean}[]})=>{
       if(msg?.type==='stopped'&&Array.isArray(msg.usernames)){msg.usernames.forEach(id=>run.bots.delete(id));return;}

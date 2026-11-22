@@ -1,4 +1,16 @@
-## 2026-11-22 · Fix Bot chạy cổng đa-map, mở đặt/xóa NPC trên Chiến trường & Tự động rải quân 2 phe Tống Kim
+## 2026-11-22 · Chiến thuật Bot Tống Kim (5 chế độ + Đổi chiến thuật nóng + `bots:ui` tự watch) (đã commit)
+
+- **USER yêu cầu:** giữ nguyên cách đánh Tống Kim cũ (`charge`), bổ sung các chiến thuật mới thông minh hơn (tách 3 cánh đa-map, điều phối phe, cứu Soái, kiting, khắc hệ…) và cho phép chọn/đổi chiến thuật trực tiếp trong `tools/bots` mà không đụng `apps/server` hay `apps/client`.
+- **Thay đổi:**
+  - `packages/shared/src/bots/index.ts`: thêm `BOT_TONGKIM_TACTIC_IDS`, `BotTongKimTactic`, `BOT_TONGKIM_TACTICS` (`charge` · `flank` · `tactical` · `defend` · `random`), trường `BotTongKimConfig.tactic` (mặc định `'charge'`) và chuẩn hóa trong `normalizeBotScenario`.
+  - `tools/bots/runner/TkTactics.ts` *(mới)*: tách 3 mũi tiến công đa-map (`buildTacticalLanes` đọc `frontlines`/`npcSpawns` hoặc vòng cung 22% trục), bảng điều phối phe trong bộ nhớ `TkCampDirector` (cân bằng lane, gom tốp regroup, cảnh báo cứu Nguyên Soái, focus fire, random theo phe), `assignTkRole`, `scoreTargetUtility` (máu thấp + ngũ hành `ELEMENT_COUNTERS` + focus fire + cứu Soái) và `computeKitePoint`.
+  - `tools/bots/runner/TongKimBehavior.ts`: giữ nguyên 100% đường đi cũ cho `charge`, tích hợp `flank`/`tactical`/`defend`/`random` và `setLiveTactic(tactic, camp?)` để đổi chiến thuật nóng mà vẫn giữ nhịp gửi lệnh dưới ngưỡng `30 msg/s`.
+  - `tools/bots/{RunManager.ts,run.ts,server.ts,ui/BotPanel.ts,ui/botPanel.css,README.md}`: thêm `POST /api/runner/tactic` + IPC `tk-tactic` cho phép đổi chiến thuật nóng chung hoặc riêng phe Tống/Kim ngay trên `localhost:4568`, thêm select `Chiến thuật mặc định` trong cấu hình kịch bản Tống Kim, khung `Chiến thuật Tống Kim đang chạy` (nút `.bp-main`, chỉ hiện khi có bot Tống Kim chạy), và danh sách mô tả đầy đủ 5 chiến thuật (`.bp-tactic-list`) tự highlight mục đang chọn ở cả hai nơi. Không sửa `apps/server/` hay `apps/client/`.
+  - `tools/bots/{dev.ts,server.ts,README.md}`, `package.json`: bổ sung watcher `tools/bots/dev.ts` (theo chuẩn `tools/map-manager/dev.ts`, chỉ watch `tools/bots`, `packages/shared/src/bots`, `packages/shared/src/battle`, bỏ qua `data/` và mã game) kèm `/__tool-version` & `/__tool-reload.js` để `npm run bots:ui` tự khởi động lại và tự reload tab trình duyệt khi mã công cụ bot thay đổi.
+  - `tests/tong-kim.test.ts`: bổ sung 2 test kiểm chứng chuẩn hóa `tactic`, tách 3 cánh đa-map (`329`/`384`/`868`), `RunManager.setTkTactic`, hành vi `tactical` (khắc hệ + máu thấp, kiting, cứu Soái), `defend`, đổi nóng `setLiveTactic` và đảm bảo không vượt `30 msg/s`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**21/21 pass**), bundle `tools/bots/ui/main.ts` thành công, smoke test `tools/bots/dev.ts` (`/__tool-version` & `/__tool-reload.js`) đạt, `git diff --check` đạt. Đã commit trên `main`, chưa push.
+
+## 2026-11-22 · Fix Bot chạy cổng đa-map, mở đặt/xóa NPC trên Chiến trường & Tự động rải quân 2 phe Tống Kim (đã commit `e567787`)
 
 - **USER yêu cầu:** (1) sửa bot tự chạy đúng cổng ra/vào trên mọi chiến trường Tống Kim; (2) mở quyền thêm, kéo thả di chuyển, chỉnh và xóa NPC trên map Chiến trường (`Battlefield`); (3) thêm tự động rải quân riêng cho 2 phe Tống/Kim trong tab Tống Kim (`K`) và khóa đặt quái thường (`M`) trên Chiến trường.
 - **Thay đổi:**

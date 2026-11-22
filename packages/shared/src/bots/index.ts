@@ -95,8 +95,20 @@ export const BOT_BEHAVIORS: Record<BotBehavior, { name: string; note: string }> 
   crowd: { name: 'Dồn một chỗ', note: 'Cùng đứng một điểm (va chạm + gửi trạng thái nặng nhất)' },
 };
 
+export const BOT_TONGKIM_TACTIC_IDS = ['charge', 'flank', 'tactical', 'defend', 'random'] as const;
+export type BotTongKimTactic = (typeof BOT_TONGKIM_TACTIC_IDS)[number];
+
+export const BOT_TONGKIM_TACTICS: Record<BotTongKimTactic, { name: string; note: string }> = {
+  charge: { name: 'Xung phong (Cũ)', note: 'Giữ nguyên hành vi hiện tại: tiến thẳng theo tuyến cố định, gặp địch là đánh.' },
+  flank: { name: 'Gọng kìm 3 cánh', note: 'Tách 3 mũi bám theo tiền tuyến và cụm NPC của từng map (hoặc tự mở vòng cung rộng 22% trục chiến trường), tự đổi cánh ít đồng đội nhất sau mỗi lần hồi sinh, gom tốp ngắn (≤ 3,2s) ngoài cổng trước khi đẩy.' },
+  tactical: { name: 'Chiến thuật tổng hợp', note: 'Tách 3 cánh + phân vai (Chủ lực / Bọc hậu / Hộ vệ Nguyên Soái / Nga Mi bám cụm đồng đội) + phản ứng quay về cứu Nguyên Soái nhà + dồn hỏa lực mục tiêu yếu + ưu tiên khắc hệ ngũ hành + thả diều (kiting) cho phái tầm xa + rút về cụm đồng đội khi bị áp đảo (1 vs 3+, HP < 55%).' },
+  defend: { name: 'Thủ Soái phản công', note: 'Giữ đội hình bảo vệ Nguyên Soái và nửa sân nhà, ưu tiên dọn địch xâm nhập rồi mới phản công.' },
+  random: { name: 'Ngẫu nhiên theo phe', note: 'Mỗi trận tự bốc chiến thuật riêng cho phe Tống và phe Kim.' },
+};
+
 export interface BotTongKimConfig {
   campPreference: 'auto' | 'tong' | 'kim';
+  tactic: BotTongKimTactic;
   exitViaScoutRatio: number;
   hpHealThreshold: number;
   scanRadius: number;
@@ -104,6 +116,7 @@ export interface BotTongKimConfig {
 
 export const DEFAULT_BOT_TONGKIM: BotTongKimConfig = {
   campPreference: 'auto',
+  tactic: 'charge',
   exitViaScoutRatio: 0.5,
   hpHealThreshold: 0.7,
   scanRadius: 850,
@@ -257,6 +270,7 @@ export function normalizeBotScenario(raw: unknown): BotScenario {
     auto, buffVersion: 1,
     tongkim: {
       campPreference: pick(tk.campPreference, ['auto', 'tong', 'kim'] as const, DEFAULT_BOT_TONGKIM.campPreference),
+      tactic: pick(tk.tactic, BOT_TONGKIM_TACTIC_IDS, DEFAULT_BOT_TONGKIM.tactic),
       exitViaScoutRatio: Math.max(0, Math.min(1, Number.isFinite(Number(tk.exitViaScoutRatio)) ? Number(tk.exitViaScoutRatio) : DEFAULT_BOT_TONGKIM.exitViaScoutRatio)),
       hpHealThreshold: Math.max(0.1, Math.min(0.95, Number.isFinite(Number(tk.hpHealThreshold)) ? Number(tk.hpHealThreshold) : DEFAULT_BOT_TONGKIM.hpHealThreshold)),
       scanRadius: num(tk.scanRadius, DEFAULT_BOT_TONGKIM.scanRadius, 200, 1600),

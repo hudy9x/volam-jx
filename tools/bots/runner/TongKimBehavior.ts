@@ -6,7 +6,6 @@ import {
   MAPS,
   SHOP_ITEMS,
   TK_BATTLE_MAP_ID,
-  TK_MAP_LAYOUT,
   TK_MAPS,
   TK_SIGNUP_MAP_ID,
   autoAuraSkill,
@@ -21,30 +20,26 @@ import {
   roomFor,
   tkMapLayout,
   type BotScenario,
+  type BotTongKimTactic,
+  type Element,
   type TkCamp,
 } from '@vltk/shared';
 import type { Behavior, BotClient } from './BotClient.js';
+import {
+  KIM_LANES_378,
+  TK_CAMP_DIRECTOR,
+  TONG_LANES_378,
+  assignTkRole,
+  buildTacticalLanes,
+  computeKitePoint,
+  scoreTargetUtility,
+  type ConcreteTkTactic,
+  type Point2D,
+  type TkBotRole,
+  type TkCampDirector,
+} from './TkTactics.js';
 
-// 3 mũi tiến công gọng kìm (Trung lộ, Cánh Trái Tây Bắc, Cánh Phải Đông Nam) — tọa độ lấy từ TK_MAP_LAYOUT walkable.
-const TONG_LANES_378: readonly (readonly { x: number; y: number }[])[] = [
-  // Mũi 0: Trung lộ
-  [{ x: 5648, y: 7472 }, { x: 7600, y: 6200 }, { x: 9744, y: 5384 }, { x: 11400, y: 4800 }, TK_MAP_LAYOUT.kim.marshal],
-  // Mũi 1: Vòng cung Cánh Trái (Tây Bắc)
-  [{ x: 5648, y: 7472 }, { x: 7568, y: 5224 }, { x: 9232, y: 4792 }, { x: 10500, y: 3500 }, { x: 11504, y: 3192 }, TK_MAP_LAYOUT.kim.marshal],
-  // Mũi 2: Vòng cung Cánh Phải (Đông Nam)
-  [{ x: 5648, y: 7472 }, { x: 7800, y: 7200 }, { x: 8816, y: 6792 }, { x: 11200, y: 5800 }, { x: 12200, y: 5400 }, TK_MAP_LAYOUT.kim.marshal],
-];
-
-const KIM_LANES_378: readonly (readonly { x: number; y: number }[])[] = [
-  // Mũi 0: Trung lộ
-  [{ x: 13168, y: 3560 }, { x: 11400, y: 4800 }, { x: 9744, y: 5384 }, { x: 7600, y: 6200 }, TK_MAP_LAYOUT.tong.marshal],
-  // Mũi 1: Vòng cung Cánh Trái (Tây Bắc)
-  [{ x: 13168, y: 3560 }, { x: 11504, y: 3192 }, { x: 10500, y: 3500 }, { x: 9232, y: 4792 }, { x: 7568, y: 5224 }, TK_MAP_LAYOUT.tong.marshal],
-  // Mũi 2: Vòng cung Cánh Phải (Đông Nam)
-  [{ x: 13168, y: 3560 }, { x: 12200, y: 5400 }, { x: 11200, y: 5800 }, { x: 9520, y: 6168 }, { x: 7800, y: 7200 }, TK_MAP_LAYOUT.tong.marshal],
-];
-
-function lanesFor(battleMapId: number, camp: TkCamp): readonly (readonly { x: number; y: number }[])[] {
+function legacyLanesFor(battleMapId: number, camp: TkCamp): readonly (readonly Point2D[])[] {
   if (battleMapId === 378) return camp === 'tong' ? TONG_LANES_378 : KIM_LANES_378;
   const cfg = tkMapLayout(battleMapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
   const mine = cfg[camp];
@@ -113,22 +108,60 @@ export class TongKimBehavior implements Behavior {
   private nextCastAt = 0;
   private nextLeaveAt = 0;
   private wpIndex = -1;
+  private assignedLane = -1;
+  private exitedCampAt = 0;
+  private wasInCamp = true;
   private jitter = { x: 0, y: 0 };
   private lastPos = { x: 0, y: 0, at: 0 };
   private atkIndex = 0;
   private lockedTargetId = '';
   private nextEscapeJumpAt = 0;
   private escapeAngleFlip = 1;
+  private kiteStrafeSign: 1 | -1 = 1;
+  private nextKiteAt = 0;
   private lastHp = -1;
   private dmgStreakStartAt = 0;
   private lastHpDropAt = 0;
   private nextTkItemUseAt = 0;
   private nextClarionAt = 0;
+  private liveTacticAll: BotTongKimTactic | null = null;
+  private liveTacticByCamp: Partial<Record<TkCamp, BotTongKimTactic>> = {};
 
-  constructor(private bot: BotClient, private sc: BotScenario, private botIndex: number) {}
+  constructor(
+    private bot: BotClient,
+    private sc: BotScenario,
+    private botIndex: number,
+    private director: TkCampDirector = TK_CAMP_DIRECTOR,
+  ) {}
+
+  /** Đổi chiến thuật nóng từ tool bot (IPC) mà không cần khởi động lại bot. */
+  setLiveTactic(tactic: BotTongKimTactic | null, camp?: TkCamp): void {
+    if (camp) {
+      if (tactic) this.liveTacticByCamp[camp] = tactic;
+      else delete this.liveTacticByCamp[camp];
+    } else {
+      this.liveTacticAll = tactic;
+    }
+    this.assignedLane = -1;
+    this.wpIndex = -1;
+  }
+
+  /** Chiến thuật thực tế đang áp dụng cho phe hiện tại (giải quyết `random` ổn định theo trận). */
+  effectiveTactic(mapId: number, camp: TkCamp): ConcreteTkTactic {
+    const raw = this.liveTacticByCamp[camp]
+      ?? this.liveTacticAll
+      ?? this.sc.tongkim?.tactic
+      ?? DEFAULT_BOT_TONGKIM.tactic;
+    if (raw !== 'random') return raw;
+    const matchKey = `${mapId}:${this.bot.tkState?.mode ?? 1}`;
+    return this.director.resolveRandomTactic(mapId, camp, matchKey, this.bot.rand);
+  }
 
   onMap(now: number): void {
     this.wpIndex = -1;
+    this.assignedLane = -1;
+    this.exitedCampAt = 0;
+    this.wasInCamp = true;
     this.lockedTargetId = '';
     this.lastPos = { x: 0, y: 0, at: now };
     this.lastHp = -1;
@@ -191,6 +224,8 @@ export class TongKimBehavior implements Behavior {
     if (me.hp <= 0) {
       this.lockedTargetId = '';
       this.wpIndex = -1;
+      this.assignedLane = -1;
+      this.wasInCamp = true;
       this.lastHp = 0;
       this.dmgStreakStartAt = 0;
       return;
@@ -213,6 +248,8 @@ export class TongKimBehavior implements Behavior {
     if (inCamp) {
       this.lockedTargetId = '';
       this.wpIndex = -1;
+      this.assignedLane = -1;
+      this.wasInCamp = true;
       this.restockPotionsInCamp(now);
       if (!st || st.phase !== 'fighting' || (st.me?.gateWaitSec ?? 0) > 0) return;
       if (now >= this.nextCampExitAt) {
@@ -228,6 +265,28 @@ export class TongKimBehavior implements Behavior {
 
     if (st && st.phase !== 'fighting') return;
 
+    if (this.wasInCamp) {
+      this.wasInCamp = false;
+      this.exitedCampAt = now;
+    }
+
+    const tactic = this.effectiveTactic(this.bot.mapId, myCamp);
+    const role: TkBotRole = assignTkRole(this.botIndex, me.faction ?? this.bot.stats?.faction);
+    if (tactic !== 'charge') {
+      this.director.reportBot(this.bot.mapId, myCamp, {
+        id: me.id ?? this.bot.name,
+        x: me.x,
+        y: me.y,
+        lane: this.assignedLane,
+        role,
+        exitedAt: this.exitedCampAt,
+        seenAt: now,
+      });
+      if (tactic === 'tactical' || tactic === 'defend') {
+        this.scanOwnMarshalThreat(myCamp, now);
+      }
+    }
+
     // 3b. Đang bay Khinh công -> chờ tiếp đất rồi mới hành động tiếp.
     if ((me.jumpMs ?? 0) > 0 || me.anim === 'jump') return;
 
@@ -237,26 +296,37 @@ export class TongKimBehavior implements Behavior {
     // 3d. Còn ít bình máu (<= 2) và có tiền -> chạy về cổng Hậu doanh mua máu rồi quay lại.
     if (this.retreatToBuyPotions(myCamp, now)) return;
 
+    // 3e. Chiến thuật tổng hợp: rút về cụm đồng đội khi bị áp đảo quân số (1 vs 3+) và máu dưới 55%.
+    if (tactic === 'tactical' && this.tryTacticalFallback(me, myCamp, role, now)) return;
+
     // 4. Giao tranh ngoài tiền tuyến: tìm mục tiêu phe địch ưu tiên.
     const scanRadius = this.sc.tongkim?.scanRadius ?? DEFAULT_BOT_TONGKIM.scanRadius;
-    const target = this.pickTarget(me, myCamp, scanRadius);
+    const target = this.pickTarget(me, myCamp, scanRadius, tactic, now);
     // Nhặt vật phẩm Tống Kim rơi trong tầm (song song khi giao tranh) hoặc chạy tới nhặt khi không có địch.
     if (this.pickupTkDrops(me, now, !!target)) return;
     if (target) {
       if (this.bot.prepareCombat(now)) return;
       const attacks = this.bot.attacks();
       const skill = attacks.length ? attacks[this.atkIndex++ % attacks.length] : 1;
+      const range = Math.max(60, this.bot.range(skill));
+      // Thả diều (kiting) cho phái tầm xa trong chế độ Chiến thuật tổng hợp.
+      if (tactic === 'tactical' && range >= 240 && this.tryRangeKite(me, target, myCamp, range, now)) {
+        return;
+      }
       if (this.bot.ready(skill, now) && now >= this.nextCastAt) {
         this.nextCastAt = now + 260;
-        const range = Math.max(60, this.bot.range(skill));
         const reach = Math.max(48, Math.round(range * 0.85));
         this.bot.cast(skill, target.id, target.x, target.y, true, reach);
       }
       return;
     }
 
-    // 5. Không thấy địch -> tiến quân theo Waypoint về trung tâm & Nguyên Soái địch.
-    this.advanceWaypoints(me, myCamp, now);
+    // 5. Không thấy địch -> điều quân theo chiến thuật đang chọn.
+    if (tactic === 'charge') {
+      this.advanceWaypoints(me, myCamp, now);
+    } else {
+      this.advanceTactical(me, myCamp, tactic, role, now);
+    }
   }
 
   private countPotions(stat: 'hp' | 'mp'): number {
@@ -408,9 +478,24 @@ export class TongKimBehavior implements Behavior {
     }
   }
 
-  private pickTarget(me: any, myCamp: TkCamp, scanRadius: number): { id: string; x: number; y: number } | null {
+  private pickTarget(
+    me: any,
+    myCamp: TkCamp,
+    scanRadius: number,
+    tactic: ConcreteTkTactic,
+    now: number,
+  ): { id: string; x: number; y: number } | null {
     const actors = this.bot.actors();
-    let best: { id: string; x: number; y: number; tier: number; dist: number } | null = null;
+    const useUtility = tactic === 'tactical' || tactic === 'defend';
+    const mySeries = (this.bot.stats?.series ?? (me.series as Element | undefined)) as Element | undefined;
+    const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
+    const myMarshal = cfg[myCamp].marshal;
+    const alert = useUtility ? this.director.getMarshalAlert(this.bot.mapId, myCamp, now) : null;
+    const focus = tactic === 'tactical' ? this.director.getFocusTarget(this.bot.mapId, myCamp, now) : null;
+
+    let bestLegacy: { id: string; x: number; y: number; tier: number; dist: number } | null = null;
+    let bestUtil: { id: string; x: number; y: number; score: number; hpRatio: number; isPriority: boolean } | null = null;
+
     for (const a of actors) {
       if (a.isSelf || a.state.hp <= 0) continue;
       const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
@@ -420,24 +505,252 @@ export class TongKimBehavior implements Behavior {
       const dist = isoDistance(me.x, me.y, a.x, a.y);
       if (dist > scanRadius) continue;
 
-      // Trọng số ưu tiên: Nguyên Soái (0) > Người chơi (1) > Tướng/Boss Xanh (2) > Binh sĩ (3)
-      const isMarshal = a.state.kind === 'monster' && Number(a.state.boss) >= 2;
-      const isPlayer = a.state.kind === 'player';
-      const isOfficer = a.state.kind === 'monster' && Number(a.state.boss) === 1;
-      const tier = isMarshal ? 0 : isPlayer ? 1 : isOfficer ? 2 : 3;
-      const lockedBonus = a.id === this.lockedTargetId ? -120 : 0;
+      if (!useUtility) {
+        // Trọng số ưu tiên cũ: Nguyên Soái (0) > Người chơi (1) > Tướng/Boss Xanh (2) > Binh sĩ (3)
+        const isMarshal = a.state.kind === 'monster' && Number(a.state.boss) >= 2;
+        const isPlayer = a.state.kind === 'player';
+        const isOfficer = a.state.kind === 'monster' && Number(a.state.boss) === 1;
+        const tier = isMarshal ? 0 : isPlayer ? 1 : isOfficer ? 2 : 3;
+        const lockedBonus = a.id === this.lockedTargetId ? -120 : 0;
 
-      if (!best || tier < best.tier || (tier === best.tier && dist + lockedBonus < best.dist)) {
-        best = { id: a.id, x: a.x, y: a.y, tier, dist: dist + lockedBonus };
+        if (!bestLegacy || tier < bestLegacy.tier || (tier === bestLegacy.tier && dist + lockedBonus < bestLegacy.dist)) {
+          bestLegacy = { id: a.id, x: a.x, y: a.y, tier, dist: dist + lockedBonus };
+        }
+        continue;
+      }
+
+      const maxHp = Math.max(1, Number(a.state.maxHp || raw?.maxHp || a.state.hp || 1));
+      const hp = Number(a.state.hp || 0);
+      const boss = Number(a.state.boss || 0);
+      const series = (raw?.series as Element | undefined);
+      const score = scoreTargetUtility(
+        { id: a.id, x: a.x, y: a.y, dist, hp, maxHp, kind: a.state.kind === 'player' ? 'player' : 'monster', boss, series },
+        {
+          mySeries,
+          lockedTargetId: this.lockedTargetId,
+          focusTargetId: focus?.id,
+          myMarshal,
+          marshalThreatened: !!alert,
+          defending: tactic === 'defend',
+        },
+      );
+      if (!bestUtil || score > bestUtil.score) {
+        bestUtil = {
+          id: a.id,
+          x: a.x,
+          y: a.y,
+          score,
+          hpRatio: hp / maxHp,
+          isPriority: a.state.kind === 'player' || boss >= 1,
+        };
       }
     }
-    this.lockedTargetId = best?.id ?? '';
-    return best ? { id: best.id, x: best.x, y: best.y } : null;
+
+    if (!useUtility) {
+      this.lockedTargetId = bestLegacy?.id ?? '';
+      return bestLegacy ? { id: bestLegacy.id, x: bestLegacy.x, y: bestLegacy.y } : null;
+    }
+
+    if (bestUtil && bestUtil.isPriority && (bestUtil.hpRatio < 0.42 || tactic === 'tactical')) {
+      if (bestUtil.hpRatio < 0.42) {
+        this.director.reportFocusTarget(this.bot.mapId, myCamp, {
+          id: bestUtil.id,
+          x: bestUtil.x,
+          y: bestUtil.y,
+          hpRatio: bestUtil.hpRatio,
+          at: now,
+        });
+      }
+    }
+    this.lockedTargetId = bestUtil?.id ?? '';
+    return bestUtil ? { id: bestUtil.id, x: bestUtil.x, y: bestUtil.y } : null;
+  }
+
+  private scanOwnMarshalThreat(myCamp: TkCamp, now: number): void {
+    const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
+    const marshalPos = cfg[myCamp].marshal;
+    let marshalHpRatio = 1;
+    let enemyNearMarshal = 0;
+
+    for (const a of this.bot.actors()) {
+      if (a.state.hp <= 0) continue;
+      const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
+      const camp = raw?.battleCamp as string | undefined;
+      if (camp === myCamp && a.state.kind === 'monster' && Number(a.state.boss) >= 2) {
+        const maxHp = Math.max(1, Number(a.state.maxHp || raw?.maxHp || 1));
+        marshalHpRatio = a.state.hp / maxHp;
+      } else if (camp && camp !== myCamp && !isInTkSafeCamp(this.bot.mapId, a.x, a.y)) {
+        if (isoDistance(a.x, a.y, marshalPos.x, marshalPos.y) <= 680) {
+          enemyNearMarshal++;
+        }
+      }
+    }
+
+    if (enemyNearMarshal > 0 || marshalHpRatio < 0.96) {
+      this.director.reportMarshalThreat(this.bot.mapId, myCamp, {
+        x: marshalPos.x,
+        y: marshalPos.y,
+        hpRatio: marshalHpRatio,
+        enemyCount: enemyNearMarshal,
+        at: now,
+      });
+    }
+  }
+
+  private findNearestAllyCluster(me: any, myCamp: TkCamp, maxRange = 1600): Point2D | null {
+    const allies: Point2D[] = [];
+    for (const a of this.bot.actors()) {
+      if (a.isSelf || a.state.hp <= 0 || a.state.kind !== 'player') continue;
+      const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
+      if (raw?.battleCamp !== myCamp) continue;
+      if (isInTkSafeCamp(this.bot.mapId, a.x, a.y)) continue;
+      if (isoDistance(me.x, me.y, a.x, a.y) <= maxRange) {
+        allies.push({ x: a.x, y: a.y });
+      }
+    }
+    if (!allies.length) return null;
+    let best: Point2D = allies[0];
+    let bestNeighbors = -1;
+    for (const p of allies) {
+      let neighbors = 0;
+      for (const q of allies) {
+        if (isoDistance(p.x, p.y, q.x, q.y) <= 450) neighbors++;
+      }
+      if (neighbors > bestNeighbors) {
+        bestNeighbors = neighbors;
+        best = p;
+      }
+    }
+    return best;
+  }
+
+  private tryTacticalFallback(me: any, myCamp: TkCamp, role: TkBotRole, now: number): boolean {
+    if (role === 'guard') return false;
+    const hpRatio = me.maxHp > 0 ? me.hp / me.maxHp : 1;
+    if (hpRatio >= 0.55) return false;
+    let enemies = 0;
+    let allies = 0;
+    for (const a of this.bot.actors()) {
+      if (a.isSelf || a.state.hp <= 0) continue;
+      const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
+      const camp = raw?.battleCamp as string | undefined;
+      if (!camp || isInTkSafeCamp(this.bot.mapId, a.x, a.y)) continue;
+      const d = isoDistance(me.x, me.y, a.x, a.y);
+      if (camp === myCamp && a.state.kind === 'player' && d <= 450) allies++;
+      else if (camp !== myCamp && d <= 380) enemies++;
+    }
+    if (enemies < 3 || allies > 0) return false;
+    if (now >= this.nextMoveAt) {
+      this.nextMoveAt = now + 650;
+      const anchor = this.findNearestAllyCluster(me, myCamp) ?? backPortalFor(this.bot.mapId, myCamp);
+      this.bot.send(C2S.move, { x: anchor.x, y: anchor.y });
+    }
+    return true;
+  }
+
+  private tryRangeKite(me: any, target: { id: string; x: number; y: number }, myCamp: TkCamp, range: number, now: number): boolean {
+    if (now < this.nextKiteAt || now < this.nextMoveAt) return false;
+    const dist = isoDistance(me.x, me.y, target.x, target.y);
+    const dangerDist = Math.min(185, Math.round(range * 0.45));
+    if (dist >= dangerDist) return false;
+    const anchor = this.findNearestAllyCluster(me, myCamp, 1200) ?? backPortalFor(this.bot.mapId, myCamp);
+    const kiteTo = computeKitePoint(me, target, anchor, 220, this.kiteStrafeSign);
+    this.kiteStrafeSign = this.kiteStrafeSign === 1 ? -1 : 1;
+    this.nextKiteAt = now + 1150;
+    this.nextMoveAt = now + 550;
+    this.bot.send(C2S.move, { x: kiteTo.x, y: kiteTo.y });
+    return true;
   }
 
   private advanceWaypoints(me: any, myCamp: TkCamp, now: number): void {
-    const lanes = lanesFor(this.bot.mapId, myCamp);
+    const lanes = legacyLanesFor(this.bot.mapId, myCamp);
     const list = lanes[this.botIndex % lanes.length];
+    this.followLane(me, list, now);
+  }
+
+  private advanceTactical(me: any, myCamp: TkCamp, tactic: ConcreteTkTactic, role: TkBotRole, now: number): void {
+    const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
+    const mine = cfg[myCamp];
+    const enemy = cfg[myCamp === 'tong' ? 'kim' : 'tong'];
+
+    // 1. Phản ứng cứu Nguyên Soái nhà khi có cảnh báo (ưu tiên nhóm Hộ vệ hoặc bot đứng gần sân nhà).
+    if (tactic === 'tactical' || tactic === 'defend') {
+      const alert = this.director.getMarshalAlert(this.bot.mapId, myCamp, now);
+      if (alert && (tactic === 'defend' || role === 'guard' || isoDistance(me.x, me.y, alert.x, alert.y) <= 2600)) {
+        if (now >= this.nextMoveAt) {
+          this.nextMoveAt = now + 750;
+          this.bot.send(C2S.move, { x: alert.x + this.jitter.x, y: alert.y + this.jitter.y });
+        }
+        return;
+      }
+    }
+
+    // 2. Chế độ Thủ Soái phản công: giữ tuyến phòng thủ quanh Nguyên Soái & 35% sân nhà.
+    if (tactic === 'defend') {
+      const dx = enemy.marshal.x - mine.marshal.x;
+      const dy = enemy.marshal.y - mine.marshal.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
+      const depth = role === 'guard' ? 0.08 : 0.28;
+      const slot = (this.botIndex % 5) - 2;
+      const guardX = Math.round(mine.marshal.x + dx * depth + nx * slot * 260 + this.jitter.x);
+      const guardY = Math.round(mine.marshal.y + dy * depth + ny * slot * 260 + this.jitter.y);
+      if (isoDistance(me.x, me.y, guardX, guardY) > 220 && now >= this.nextMoveAt) {
+        this.nextMoveAt = now + 950;
+        this.bot.send(C2S.move, { x: guardX, y: guardY });
+      }
+      return;
+    }
+
+    // 3. Vai Hộ vệ trong Chiến thuật tổng hợp: tuần tra tiền tiêu quanh Nguyên Soái nhà.
+    if (tactic === 'tactical' && role === 'guard') {
+      const dx = enemy.marshal.x - mine.marshal.x;
+      const dy = enemy.marshal.y - mine.marshal.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
+      const slot = (this.botIndex % 3) - 1;
+      const gx = Math.round(mine.marshal.x + dx * 0.14 + nx * slot * 240 + this.jitter.x);
+      const gy = Math.round(mine.marshal.y + dy * 0.14 + ny * slot * 240 + this.jitter.y);
+      if (isoDistance(me.x, me.y, gx, gy) > 260 && now >= this.nextMoveAt) {
+        this.nextMoveAt = now + 950;
+        this.bot.send(C2S.move, { x: gx, y: gy });
+      }
+      return;
+    }
+
+    // 4. Vai Hỗ trợ (Nga Mi) trong Chiến thuật tổng hợp: bám cụm đồng đội đông nhất.
+    if (tactic === 'tactical' && role === 'support') {
+      const cluster = this.findNearestAllyCluster(me, myCamp, 2400);
+      if (cluster && isoDistance(me.x, me.y, cluster.x, cluster.y) > 260) {
+        if (now >= this.nextMoveAt) {
+          this.nextMoveAt = now + 850;
+          this.bot.send(C2S.move, { x: cluster.x + Math.round(this.jitter.x * 0.4), y: cluster.y + Math.round(this.jitter.y * 0.4) });
+        }
+        return;
+      }
+    }
+
+    // 5. Gom tốp ngắn ngay ngoài cổng để đẩy theo nhóm (3–5 bot).
+    if (this.director.shouldRegroup(this.bot.mapId, myCamp, me.id ?? this.bot.name, me.x, me.y, mine.gateExit, this.exitedCampAt, now)) {
+      if (now >= this.nextMoveAt) {
+        this.nextMoveAt = now + 900;
+        this.bot.send(C2S.move, { x: mine.gateExit.x + this.jitter.x, y: mine.gateExit.y + this.jitter.y });
+      }
+      return;
+    }
+
+    // 6. Tách 3 cánh thật theo dữ liệu từng map + chọn cánh ít người nhất.
+    const lanes = buildTacticalLanes(this.bot.mapId, myCamp);
+    if (this.assignedLane < 0 || this.assignedLane >= lanes.length) {
+      this.assignedLane = this.director.pickLane(this.bot.mapId, myCamp, lanes.length, this.botIndex, role, now);
+      this.wpIndex = -1;
+    }
+    this.followLane(me, lanes[this.assignedLane], now);
+  }
+
+  private followLane(me: any, list: readonly Point2D[], now: number): void {
     const lastIdx = list.length - 1;
     // Khi mới ra khỏi doanh trại, chọn waypoint tiếp theo hướng thẳng sang phe địch (không quay lùi).
     if (this.wpIndex < 0) {
