@@ -8,6 +8,18 @@
   - `tests/tong-kim.test.ts`: bổ sung test kiểm chứng `TK_POINTS.botBaseMoney`/`botBaseExp` và `tkBotRewardMultiplier`.
 - **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**17/17 pass**), `git diff --check` đạt; đã xác minh trên `apps/server/data/db.json` toàn bộ bot tại map `323` hiện có tối thiểu `964.050` lượng (sau khi tự mua thuốc). Đã commit trên `main`, chưa push.
 
+## 2026-11-22 · Triển khai Skill 120 Thiếu Lâm (`709`), Thiên Vương (`708`), Cái Bang (`714`/`720`), Đường Môn (`710`), Nga Mi (`712`), Ngũ Độc (`711`/`719`) & Ngũ Độc Kỳ Kinh (`75`) (đã commit)
+
+- **USER yêu cầu:** triển khai skill 120 Đường Môn, Nga Mi, Ngũ Độc, Thiếu Lâm, Thiên Vương, Cái Bang; chỉnh Ngũ Độc Kỳ Kinh (`#75`) đạt `attackspeed_v = 20%` & `castspeed_v = 20%` ở cấp 30+.
+- **Thay đổi:**
+  - `packages/shared/src/skills/common/skill-overrides.ts`: đồng bộ theo `volam-3005` cho `708` (`lifereplenish_p`, `ignoreskill_p`), `709` (`returnskill_p` `5%→80%`, `autoreplyskill` Sư Tử Hống 100% khi hết CD `10s→4s`), `710` (`skill_param1_v` `120→520`, CD `15s→3s` / `15s→5s`), `711` (`autoattackskill` `1%→30%`, CD `10s`), `712` (`radius: 320`), `714`/`720` (`autoattackskill` `1%→10%`, debuff `720` đủ 6 dòng gồm `fastwalkrun_p` `-9%→-50%`), và `#75` Ngũ Độc Kỳ Kinh (`attackspeed_v` & `castspeed_v` `+20%` ở lv30+).
+  - `packages/shared/src/skills/engine/SkillEngine.ts`: giới hạn cấp 5 aura con `[86, 89, 92, 282, 332]` của Nga Mi `712` theo `min(cấp đã học 5 chiêu con, trần cấp 712)`.
+  - `apps/server/src/world/systems/status.ts`: xử lý `ignoreskill_p` (Thiên Vương `708`) và `returnskill_p` (Thiếu Lâm `709`, chống phản kép) khi nhận bùa hại từ đối phương.
+  - `apps/server/src/world/systems/combat.ts`, `potions.ts`, `players.ts`: xử lý `poison2decmana_p` (Ngũ Độc `719` trừ nội lực theo `%` độc sát DoT), `poisondamagereturn_p` (Thiếu Lâm `709` phản `%` độc sát DoT), và `lifereplenish_p` (Thiên Vương `708` tăng `%` hồi máu từ thuốc, regen & trị thương).
+  - `packages/shared/src/formulas/effects/tuning.ts`, `apps/server/src/world/{entity,systems/status,systems/movement}.ts`: thêm `EFFECTS.randMove = { intervalMs: 333, maxRadius: 50 }` và lưu `randMoveOrigin` để nhân vật/quái bị hoảng loạn chỉ chạy loạn trong bán kính `50 px` quanh chỗ đứng ban đầu.
+  - `docs/skill-120-status.md`, `tests/skill-120-tangmen-emei-wudu.test.ts`, `tests/skill-120-shaolin-tianwang-gaibang.test.ts`: cập nhật 8/10 phái sang `RESOLVED` và bổ sung test kiểm chứng.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), 3 file test skill 120 (**9/9 pass**), `npm run test:effects` (**23/23 pass**), `npm run build` & `git diff --check` đạt. Dùng chung Web/Desktop/Mobile; cần restart server & reload client. Chưa commit/push.
+
 ## 2026-11-22 · Bảng thống kê Skill 120 Thập Đại Phái & Fix Thúy Yên (`713`), Thiên Nhẫn (`715`/`723`), Cooldown Client (đã commit)
 
 - **USER yêu cầu:** ghi lại bảng thống kê trạng thái skill 120 Thập Đại Phái, áp dụng fix cho Thúy Yên (Ngự Tuyết Ẩn `713`: tàng hình, không chịu sát thương, vô hình trong mắt quái/boss/đối thủ) và Thiên Nhẫn (Ma Âm Phệ Phách `715` → `723`: hoảng loạn áp dụng cả người lẫn quái/boss, kích hoạt khi chết), cùng cooldown Client, và đánh dấu trạng thái `RESOLVED` để kiểm tra.

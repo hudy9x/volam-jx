@@ -1,4 +1,4 @@
-import { POTION_PULSE_MS, potionPumps, type ItemDef } from '@vltk/shared';
+import { attrOf, POTION_PULSE_MS, potionPumps, type ItemDef } from '@vltk/shared';
 import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
 import { syncVitals } from './sync.js';
@@ -21,9 +21,10 @@ export function updatePotions(w: World, sim: Sim): void {
 function pump(sim: Sim, now: number): void {
   const runs = sim.potions;
   if (!runs) return;
+  const lifeMult = 1 + Math.max(0, sim.combat?.bag ? attrOf(sim.combat.bag, 'lifereplenish_p') : 0) / 100;
   for (const r of runs) {
     while (r.left > 0 && now >= r.next) {
-      if (r.stat === 'hp') sim.hp = Math.min(sim.a.maxHp, sim.hp + r.per);
+      if (r.stat === 'hp') sim.hp = Math.min(sim.a.maxHp, sim.hp + Math.round(r.per * lifeMult));
       else sim.mp = Math.min(sim.a.maxMp, sim.mp + r.per);
       r.left--;
       r.next += POTION_PULSE_MS;

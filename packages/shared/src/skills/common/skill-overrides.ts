@@ -22,6 +22,14 @@ export const SKILL_OVERRIDES: Record<number, SkillOverride> = {
   // 8. Thúy Yên: Băng Tước Hoạt Kỳ (#1063) 3 tia từ người chơi tách dần 2 bên (~10° mỗi tia)
   1063: { form: 2, childNum: 3, p1: 1.8 },
 
+  // Ngũ Độc: Ngũ Độc Kỳ Kinh (#75, Trấn phái max 30) — tốc độ đánh ngoại công & nội công đạt +20% ở cấp 30 (giữ nguyên các dòng khác)
+  75: {
+    attrs: {
+      castspeed_v: [[[1, 1], [30, 20], [31, 20]], [[1, -1], [30, -1]], null],
+      attackspeed_v: [[[1, 1], [30, 20], [31, 20]], [[1, -1], [30, -1]], null],
+    },
+  },
+
   // Tiêu Dao: cân bằng tổng thể về mặt bằng SHXT (bị động, Kiếm 90/150, Cổ Cầm 90/150)
   2121: {
     attrs: {
@@ -102,6 +110,53 @@ export const SKILL_OVERRIDES: Record<number, SkillOverride> = {
   // hiện game chỉ mới hỗ trợ đến kỹ năng cấp 150 nên giữ ở cột 180 ở trạng thái inactive.
   2132: { inactive: true, reqLevel: 180 },
 
+  // Thiên Vương 120: Đảo Hư Thiên (#708) — đồng bộ theo volam-3005 (tianwang.lua):
+  // lifereplenish_p 1% -> 35% (lv20) -> 50% (lv28), ignoreskill_p 1% -> 100% (lv28)
+  708: {
+    attrs: {
+      lifereplenish_p: [[[1, 1], [20, 35], [28, 50], [29, 50]], [[1, -1], [2, -1]], null],
+      ignoreskill_p: [[[1, 1], [28, 100], [29, 100]], [[1, -1], [2, -1]], null],
+    },
+  },
+
+  // Thiếu Lâm 120: Đại Thừa Như Lai Chú (#709) — đồng bộ theo volam-3005 (shaolin.lua):
+  // returnskill_p 5% -> 80%, autoreplyskill Sư Tử Hống (20) 100% khi hết CD (10s -> 4s ở lv25)
+  709: {
+    attrs: {
+      returnskill_p: [[[1, 5], [20, 80], [21, 80]], [[1, -1], [2, -1]], null],
+      autoreplyskill: [
+        [[1, 20 * 256 + 1], [20, 20 * 256 + 20], [21, 20 * 256 + 21]],
+        [[1, -1], [2, -1]],
+        [[1, 10 * 18 * 256], [25, 4 * 18 * 256], [26, 5 * 18 * 256 + 5], [31, 5 * 18 * 256 + 10]],
+      ],
+    },
+  },
+
+  // Đường Môn 120: Mê Ảnh Tung (#710) — đồng bộ theo volam-3005 (tangmen.lua):
+  // tầm dịch chuyển 120 -> 520, hồi chiêu đi bộ 15s -> 3s, trên ngựa 15s -> 5s
+  710: {
+    attrs: {
+      skill_param1_v: [[[1, 120], [20, 520], [21, 520]], null, null],
+      skill_mintimepercast_v: [[[1, 15 * 18], [20, 3 * 18], [21, 3 * 18]], null, null],
+      skill_mintimepercastonhorse_v: [[[1, 15 * 18], [20, 5 * 18], [21, 5 * 18]], null, null],
+    },
+  },
+
+  // Ngũ Độc 120: Hấp Tinh Yểm (#711) — đồng bộ theo volam-3005 (wudu.lua):
+  // xác suất gắn bùa 719 khi đánh trúng 1% -> 30%, cooldown nội tại 10s
+  711: {
+    attrs: {
+      autoattackskill: [
+        [[1, 719 * 256 + 1], [20, 719 * 256 + 20], [21, 719 * 256 + 21]],
+        [[1, -1], [20, -1]],
+        [[1, 10 * 18 * 256 + 1], [20, 10 * 18 * 256 + 30], [21, 10 * 18 * 256 + 30]],
+      ],
+    },
+  },
+
+  // Nga Mi 120: Bế Nguyệt Phất Trần (#712) — bán kính vòng sáng 320 theo volam-3005 (Skills.txt)
+  712: { radius: 320 },
+
   // Thúy Yên 120: Ngự Tuyết Ẩn (#713) — đồng bộ theo volam-3005 (cuiyan.lua):
   // ẩn thân 5s -> 15s, tăng tốc chạy +1% -> +30%, hồi chiêu 60s -> 40s (lv10) -> 35s (lv20) -> 30s (lv30)
   713: {
@@ -110,6 +165,28 @@ export const SKILL_OVERRIDES: Record<number, SkillOverride> = {
       fastwalkrun_p: [[[1, 1], [20, 30], [21, 30]], [[1, 5 * 18], [20, 15 * 18], [21, 15 * 18]], null],
       skill_mintimepercast_v: [[[1, 60 * 18], [10, 40 * 18], [30, 30 * 18], [31, 30 * 18]], null, null],
       skill_mintimepercastonhorse_v: [[[1, 60 * 18], [10, 40 * 18], [30, 30 * 18], [31, 30 * 18]], null, null],
+    },
+  },
+
+  // Cái Bang 120: Hỗn Thiên Khí Công (#714 -> #720) — đồng bộ theo volam-3005 (gaibang.lua):
+  // xác suất gắn bùa 720 khi đánh trúng 1% -> 10% (CD 12s), debuff 720 đủ 6 dòng kể cả fastwalkrun_p (-9% -> -50%)
+  714: {
+    attrs: {
+      autoattackskill: [
+        [[1, 720 * 256 + 1], [20, 720 * 256 + 20], [21, 720 * 256 + 21]],
+        [[1, -1], [20, -1]],
+        [[1, 12 * 18 * 256 + 1], [20, 12 * 18 * 256 + 10], [21, 12 * 18 * 256 + 10]],
+      ],
+    },
+  },
+  720: {
+    attrs: {
+      physicsres_p: [[[1, -1], [25, -20], [26, -20]], [[1, 3 * 18], [15, 8 * 18], [20, 9 * 18], [21, 9 * 18]], null],
+      fireres_p: [[[1, -1], [25, -20], [26, -20]], [[1, 3 * 18], [15, 8 * 18], [20, 9 * 18], [21, 9 * 18]], null],
+      physicsresmax_p: [[[1, -1], [20, -10], [21, -10]], [[1, 3 * 18], [15, 8 * 18], [20, 9 * 18], [21, 9 * 18]], null],
+      fireresmax_p: [[[1, -1], [20, -15], [21, -15]], [[1, 3 * 18], [15, 8 * 18], [20, 9 * 18], [21, 9 * 18]], null],
+      fastwalkrun_p: [[[1, -9], [23, -50]], [[1, 3 * 18], [15, 8 * 18], [20, 9 * 18], [21, 9 * 18]], null],
+      rangedamagereturn_p: [[[1, -4], [15, -25], [20, -30], [21, -30]], [[1, 3 * 18], [15, 8 * 18], [20, 9 * 18], [21, 9 * 18]], null],
     },
   },
 

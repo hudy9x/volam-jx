@@ -124,7 +124,8 @@ export function regen(w: World, sim: Sim, dt: number): void {
   const mpRate = safe ? 0.25 : idle ? 0.05 : 0.015;
   // lifereplenish_v / manareplenish_v of items and bùa: points every half second (magicdesc.ini "mỗi nửa giây").
   const bag = sim.combat?.bag;
-  const lifePerS = bag ? attrOf(bag, 'lifereplenish_v') * 2 : 0, manaPerS = bag ? attrOf(bag, 'manareplenish_v') * 2 : 0;
+  const lifeMult = 1 + Math.max(0, bag ? attrOf(bag, 'lifereplenish_p') : 0) / 100;
+  const lifePerS = bag ? attrOf(bag, 'lifereplenish_v') * 2 * lifeMult : 0, manaPerS = bag ? attrOf(bag, 'manareplenish_v') * 2 : 0;
   sim.hp = Math.max(1, Math.min(a.maxHp, sim.hp + (a.maxHp * hpRate + lifePerS) * dt));
   sim.mp = Math.max(0, Math.min(a.maxMp, sim.mp + (a.maxMp * mpRate + manaPerS) * dt));
   syncVitals(sim);

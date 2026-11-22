@@ -77,6 +77,14 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
   recordDamage(target, attacker, Math.min(dmg, Math.max(0, target.hp)));
   if (!hit.dot) practice(w, attacker, hit.skill);
   target.hp -= dmg;
+  // Hấp Tinh Yểm (poison2decmana_p, Ngũ Độc 719): độc sát trừ thêm nội lực theo % sát thương độc mỗi tick.
+  if (hit.dot && dmg > 0 && target.mp > 0) {
+    const decManaPct = attrOf(targetBag, 'poison2decmana_p');
+    if (decManaPct > 0) {
+      const manaLoss = Math.floor((dmg * decManaPct) / 100);
+      if (manaLoss > 0) target.mp = Math.max(0, target.mp - manaLoss);
+    }
+  }
   w.events.push({ t: 'hit', id: target.id, dmg, crit: hit.crit || undefined, dot: hit.dot || undefined, fatal: hit.fatal || undefined });
 
   // Hút sinh lực / nội lực (formulas/damage.ts lifeSteal): skill + weapon / bùa % of a direct hit's damage.
@@ -92,6 +100,14 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
     const back = damageReturn(dmg, combatOf(target).bag, combatOf(attacker).bag, !!getSkill(hit.skill ?? 0)?.melee);
     if (back > 0) applyHit(w, target, attacker, { dmg: back, crit: false, reflected: true });
   }
+  // Phản sát thương độc (poisondamagereturn_p, Thiếu Lâm 709): phản % độc sát mỗi tick về người hạ độc.
+  if (hit.dot && !hit.reflected && attacker !== target && !attacker.dead && dmg > 0) {
+    const poisonReturnPct = attrOf(targetBag, 'poisondamagereturn_p');
+    if (poisonReturnPct > 0) {
+      const back = Math.floor((dmg * poisonReturnPct) / 100);
+      if (back > 0) applyHit(w, target, attacker, { dmg: back, crit: false, reflected: true });
+    }
+  }
   if (target.hp <= 0) {
     kill(w, target, attacker);
     return;
@@ -103,8 +119,9 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
 
 export function heal(w: World, target: Sim, amount: number): void {
   if (target.dead) return;
+  const boost = 1 + Math.max(0, attrOf(combatOf(target).bag, 'lifereplenish_p')) / 100;
   const before = target.hp;
-  target.hp = Math.min(target.a.maxHp, target.hp + amount);
+  target.hp = Math.min(target.a.maxHp, target.hp + amount * boost);
   const v = Math.round(target.hp - before);
   if (v > 0) w.events.push({ t: 'heal', id: target.id, v });
   syncVitals(target);

@@ -1,4 +1,4 @@
-import { attrOf, coldMovement, getActiveSpeedConfig, PLAYER_SPEED, clearSegment, direction8, findPath, isWalkable, isoDistance, stepToward, type Point } from '@vltk/shared';
+import { attrOf, coldMovement, EFFECTS, getActiveSpeedConfig, PLAYER_SPEED, clearSegment, direction8, findPath, isWalkable, isoDistance, stepToward, type Point } from '@vltk/shared';
 import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
 import { combatOf } from './effects.js';
@@ -59,17 +59,18 @@ export function updateSpeed(sim: Sim): void {
   sim.speed = PLAYER_SPEED;
 }
 
-const RAND_MOVE_INTERVAL_MS = 333; // ~6 frames at 18 FPS (JX1 randmove)
-
-/** Confused movement (`randmove`, Ma Âm Phệ Phách 723): pick a random walkable direction every ~333ms and walk. */
+/** Confused movement (`randmove`, Ma Âm Phệ Phách 723): wander randomly within EFFECTS.randMove.maxRadius around origin. */
 export function updateConfusedMove(w: World, sim: Sim, dt: number): void {
+  const { intervalMs, maxRadius } = EFFECTS.randMove;
+  const origin = sim.randMoveOrigin ?? (sim.randMoveOrigin = { x: sim.a.x, y: sim.a.y });
   if (!sim.path.length || w.now >= (sim.randMoveAt ?? 0)) {
-    sim.randMoveAt = w.now + RAND_MOVE_INTERVAL_MS;
+    sim.randMoveAt = w.now + intervalMs;
     const from = { x: sim.a.x, y: sim.a.y };
-    for (let tries = 0; tries < 6; tries++) {
+    for (let tries = 0; tries < 8; tries++) {
       const angle = w.random() * Math.PI * 2;
-      const dist = 70 + w.random() * 70;
-      const dest = { x: Math.round(from.x + Math.cos(angle) * dist), y: Math.round(from.y + (Math.sin(angle) * dist) / 2) };
+      const dist = maxRadius * (0.4 + w.random() * 0.6);
+      const dest = { x: Math.round(origin.x + Math.cos(angle) * dist), y: Math.round(origin.y + (Math.sin(angle) * dist) / 2) };
+      if (isoDistance(from.x, from.y, dest.x, dest.y) < 8) continue;
       if (isWalkable(w.grid, dest.x, dest.y) && clearSegment(w.grid, from, dest, true)) {
         sim.path = [dest];
         break;

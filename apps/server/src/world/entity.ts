@@ -71,6 +71,8 @@ export interface Sim {
   moveScale?: number;
   /** Next timestamp to pick a new random direction while confused (`randmove`). */
   randMoveAt?: number;
+  /** Origin position recorded when `randmove` started (bounds wandering within EFFECTS.randMove.maxRadius). */
+  randMoveOrigin?: Point;
   /** Dev-override for testing run speed percentage live. */
   devRunPercent?: number;
   /** Dev-override for testing attack speed percentage live. */

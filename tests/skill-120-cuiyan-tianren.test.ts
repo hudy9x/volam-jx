@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MapSchema } from '@colyseus/schema';
 import {
-  attr, attr1, getSkill, JX_TICK_MS, MAPS, registerNav,
+  attr, attr1, EFFECTS, getSkill, isoDistance, JX_TICK_MS, MAPS, registerNav,
 } from '@vltk/shared';
 import { Actor } from '../apps/server/src/net/schema.js';
 import { makeSim, type Sim } from '../apps/server/src/world/entity.js';
@@ -187,13 +187,22 @@ test('Thiên Nhẫn 715 -> 723 (Ma Âm Phệ Phách): cooldown 15s, hoảng lo�
   commandCast(w, victimPlayer, 1, tr.id, tr.a.x, tr.a.y);
   assert.equal(victimPlayer.pending, null, 'commandCast bị chặn khi đang hoảng loạn');
 
-  // Cập nhật tick: cả người chơi và quái/boss tự chạy loạn (có path/di chuyển) và không tấn công
+  // Cập nhật nhiều tick: cả người chơi và quái/boss tự chạy loạn nhưng luôn giữ gọn trong EFFECTS.randMove.maxRadius (50 px)
   const pBefore = { x: victimPlayer.a.x, y: victimPlayer.a.y };
   const mBefore = { x: victimMob.a.x, y: victimMob.a.y };
-  updatePlayer(w, victimPlayer, 0.25);
-  updateMonster(w, victimMob, 0.25);
-  assert.ok(victimPlayer.a.x !== pBefore.x || victimPlayer.a.y !== pBefore.y, 'Người chơi bị hoảng loạn tự chạy ngẫu nhiên');
-  assert.ok(victimMob.a.x !== mBefore.x || victimMob.a.y !== mBefore.y, 'Quái bị hoảng loạn tự chạy ngẫu nhiên');
+  let pMoved = false, mMoved = false;
+  for (let i = 0; i < 12; i++) {
+    w.random = () => (i * 0.27) % 1;
+    w.now += 200;
+    updatePlayer(w, victimPlayer, 0.2);
+    updateMonster(w, victimMob, 0.2);
+    if (victimPlayer.a.x !== pBefore.x || victimPlayer.a.y !== pBefore.y) pMoved = true;
+    if (victimMob.a.x !== mBefore.x || victimMob.a.y !== mBefore.y) mMoved = true;
+    assert.ok(isoDistance(pBefore.x, pBefore.y, victimPlayer.a.x, victimPlayer.a.y) <= EFFECTS.randMove.maxRadius + 2, 'Người chơi hoảng loạn không vượt quá bán kính cho phép');
+    assert.ok(isoDistance(mBefore.x, mBefore.y, victimMob.a.x, victimMob.a.y) <= EFFECTS.randMove.maxRadius + 2, 'Quái hoảng loạn không vượt quá bán kính cho phép');
+  }
+  assert.equal(pMoved, true, 'Người chơi bị hoảng loạn tự chạy ngẫu nhiên');
+  assert.equal(mMoved, true, 'Quái bị hoảng loạn tự chạy ngẫu nhiên');
 
   // 2. Kiểm tra missle_missrate: roll < 15% phải trượt khi cast chủ động
   victimMob.states.clear();

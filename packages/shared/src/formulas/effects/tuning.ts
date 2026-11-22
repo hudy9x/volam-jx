@@ -24,4 +24,6 @@ export const EFFECTS = {
   playerHitRecover: 6,
   /** Monsters without HurtFrame in npcs.txt (DATA: most common 10). */
   monsterHurtFrames: 10,
+  /** Hoảng loạn (randmove, Ma Âm Phệ Phách 723): nhịp đổi hướng (ms) và bán kính tối đa quanh chỗ đứng ban đầu (logic px). */
+  randMove: { intervalMs: 333, maxRadius: 50 },
 } as const;

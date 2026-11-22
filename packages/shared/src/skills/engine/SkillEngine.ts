@@ -559,16 +559,22 @@ export class SkillEngine {
     // Hostile auras (e.g. Vô Hình Độc) show their foot aura on the caster without applying debuff attrs to them.
     const ownerVisualOnly = kind === 'debuff';
     this.port.addState(o, { skill: s.id, kind: 'buff', ms: AURA_STATE_MS, aura: true, by: o.id, level: aura.level, ...(ownerVisualOnly ? { visualOnly: true } : {}) });
-    // skill_appendskill (Bế Nguyệt Phất Trần): the auras it carries, at the level of its P2 table.
+    // skill_appendskill (Bế Nguyệt Phất Trần): cấp hiệu lực bị giới hạn bởi chiêu thấp nhất trong 5 aura con và trần cấp của 712 (lv20 -> 40).
     const extra = (tuningOf(s.id).appendSkills ?? []).map(getSkill).filter((x): x is SkillDef => !!x);
-    const extraLevel = attr(s, 'skill_appendskill', aura.level)?.[1] || aura.level;
-    for (const e of extra) this.port.addState(o, { skill: e.id, kind: 'buff', ms: AURA_STATE_MS, aura: true, by: o.id, level: extraLevel, ...(ownerVisualOnly ? { visualOnly: true } : {}) });
+    const cap = attr(s, 'skill_appendskill', aura.level)?.[1] || aura.level;
+    const minSubLv = extra.length ? Math.min(...extra.map(e => levelOf(o, e.id) ?? 0)) : 0;
+    const extraLevel = minSubLv > 0 ? Math.min(minSubLv, cap) : 0;
+    if (extraLevel > 0) {
+      for (const e of extra) this.port.addState(o, { skill: e.id, kind: 'buff', ms: AURA_STATE_MS, aura: true, by: o.id, level: extraLevel, ...(ownerVisualOnly ? { visualOnly: true } : {}) });
+    }
     for (const t of this.port.combatants()) {
       if (t === o || t.dead || isoDistance(o.a.x, o.a.y, t.a.x, t.a.y) > reach) continue;
       const ok = kind === 'buff' ? this.port.friendly(o, t) : this.port.hostile(o, t);
       if (!ok) continue;
       this.port.addState(t, { skill: s.id, kind, ms: AURA_STATE_MS, aura: true, by: o.id, level: aura.level });
-      for (const e of extra) this.port.addState(t, { skill: e.id, kind, ms: AURA_STATE_MS, aura: true, by: o.id, level: extraLevel });
+      if (extraLevel > 0) {
+        for (const e of extra) this.port.addState(t, { skill: e.id, kind, ms: AURA_STATE_MS, aura: true, by: o.id, level: extraLevel });
+      }
     }
   }
 
