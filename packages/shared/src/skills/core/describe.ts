@@ -10,7 +10,7 @@ import type { SkillDef } from './types.js';
 import { huashanSkillInfo } from '../factions/huashan/routes.js';
 import { skillCategory, SKILL_CATEGORY_NAMES } from './category.js';
 import { HORSE_LIMIT_TEXT, MAGIC_DESC, SKILL_ATTRIB_TEXT, WEAPON_LIMIT_TEXT } from './magicdesc.gen.js';
-import { STATIC_SHIELD } from '../../formulas/tuning.js';
+import { EFFECTS, STATIC_SHIELD } from '../../formulas/tuning.js';
 
 /** A run of text with an optional colour (CSS colour). */
 export interface TipSpan { text: string; color?: string }
@@ -157,9 +157,97 @@ export function formatAttr(tpl: string, v: [number, number, number]): string {
 export function describeAttr(skill: SkillDef, name: string, level: number): TipLine[] {
   const v = attr(skill, name, level);
   if (!v) return [];
+  if (name === 'skill_mintimepercastonhorse_v' && skill.noHorse) return [];
+  if (name === 'skill_param1_v' && skill.form === 13) {
+    return richText(`Khoảng cách dịch chuyển tối đa: <color=orange>${Math.floor(v[0])}<color>`);
+  }
+  if (name === 'ignoreskill_p') {
+    return richText(`Xác suất bỏ qua bùa hại: <color=orange>+${v[0]}%<color>`);
+  }
+  if (name === 'lifereplenish_p') {
+    return richText(`Tăng hiệu quả hồi sinh lực: <color=orange>+${v[0]}%<color>`);
+  }
+  if (name === 'hide') {
+    const sec = v[1] < 0 ? 'vĩnh viễn' : `${Math.floor(v[1] / 18)} giây`;
+    return richText(`Ẩn thân <color=orange>${sec}<color>: vô hình với quái, boss, đối thủ và không chịu sát thương; tấn công sẽ hiện hình`);
+  }
+  if (name === 'randmove') {
+    const sec = v[1] < 0 ? 'vĩnh viễn' : `${Math.floor(v[1] / 18)} giây`;
+    return richText(`Hoảng loạn <color=orange>${sec}<color>: không thể tấn công hoặc điều khiển, chạy loạn trong bán kính <color=orange>${EFFECTS.randMove.maxRadius}<color>`);
+  }
+  if (name === 'missle_missrate') {
+    const hitRate = Math.max(0, 100 - Math.floor(v[0]));
+    if (skill.id === 716) return richText(`Đồng đội xung quanh: <color=orange>${hitRate}%<color> xóa sạch trạng thái dị thường`);
+    if (skill.id === 738) return [];
+    return richText(`Xác suất trúng: <color=orange>${hitRate}%<color>`);
+  }
+  if (name === 'ignorenegativestate_p') {
+    if (skill.id === 716) return [];
+    if (skill.id === 738) {
+      const miss = attr(skill, 'missle_missrate', level)?.[0] ?? 0;
+      const hitRate = Math.max(0, 100 - Math.floor(miss));
+      const sec = v[1] < 0 ? 'vĩnh viễn' : `${Math.floor(v[1] / 18)} giây`;
+      return richText(`Bản thân: <color=orange>${hitRate}%<color> xóa sạch và miễn dịch trạng thái dị thường trong <color=orange>${sec}<color> (dùng được khi đang hoảng loạn)`);
+    }
+  }
+  if (name === 'skill_appendskill') {
+    const extra = tuningOf(skill.id).appendSkills ?? [];
+    if (extra.length) {
+      const names = extra.map(id => getSkill(id)?.name).filter(Boolean).join(', ');
+      return [
+        ...richText(`Gộp ${extra.length} vòng sáng: <color=water>${names}<color>`),
+        ...richText(`Cấp hiệu lực theo chiêu thấp nhất trong ${extra.length} chiêu hỗ trợ (tối đa cấp <color=orange>${v[1]}<color>)`),
+      ];
+    }
+  }
   if (name === 'autocastskill' && Math.floor(v[0] / 256) === 2117) {
     const sec = Math.max(1, Math.floor(Math.floor(v[2] / 256) / 18));
     return richText(`Mỗi <color=orange>${sec} giây<color> tự động nhận <color=orange>1 tầng [Âm Luật]<color>`);
+  }
+  if (name === 'autoreplyskill' || name === 'autoattackskill' || name === 'autorescueskill' || name === 'autodeathskill') {
+    const subId = Math.floor(v[0] / 256);
+    const subLv = Math.max(1, v[0] % 256);
+    const sub = getSkill(subId);
+    const subName = sub?.name ?? `#${subId}`;
+    if (name === 'autodeathskill') {
+      const chance = Math.min(100, Math.floor(v[2]));
+      const rm = sub ? attr(sub, 'randmove', subLv) : null;
+      const hits = sub ? attr(sub, 'missle_hitcount', subLv)?.[0] : null;
+      if (rm && hits) {
+        const sec = Math.floor(rm[1] / 18);
+        return richText(`Khi trọng thương: <color=orange>${chance}%<color> khiến tối đa <color=orange>${hits}<color> địch xung quanh hoảng loạn trong <color=orange>${sec} giây<color>`);
+      }
+      return richText(`Khi trọng thương: <color=orange>${chance}%<color> tự thi triển <color=water>[${subName}]<color> cấp <color=orange>${subLv}<color>`);
+    }
+    const cdTicks = Math.floor(v[2] / 256);
+    const cdSec = Math.round((cdTicks / 18) * 10) / 10;
+    const rawChance = v[2] % 256;
+    const chance = rawChance === 0 ? 100 : Math.min(100, rawChance);
+    const cdNote = cdSec > 0 ? ` (giãn cách <color=orange>${cdSec} giây<color>)` : '';
+    if (name === 'autoreplyskill') {
+      return richText(`Khi bị trúng đòn: <color=orange>${chance}%<color> tự thi triển <color=water>[${subName}]<color> <color=orange>cấp ${subLv}<color>${cdNote}`);
+    }
+    if (name === 'autoattackskill') {
+      const head = richText(`Khi tấn công: <color=orange>${chance}%<color> gắn bùa <color=water>[${subName}]<color> <color=orange>cấp ${subLv}<color>${cdNote}`);
+      const subLines = sub && (subId === 719 || subId === 720) ? levelBlock(sub, subLv, 1, new Set([skill.id, subId])) : [];
+      return [...head, ...subLines];
+    }
+    if (name === 'autorescueskill') {
+      const head = richText(`Khi sinh lực dưới <color=orange>25%<color>: <color=orange>${chance}%<color> tự kích hoạt${cdNote}`);
+      const shield = sub ? describeAttr(sub, 'staticmagicshield_p', subLv) : [];
+      const speedId = sub?.events?.start;
+      const speedSkill = speedId ? getSkill(speedId) : undefined;
+      const speed = speedSkill ? describeAttr(speedSkill, 'fastwalkrun_p', subLv) : [];
+      const speedDur = speedSkill ? attr(speedSkill, 'fastwalkrun_p', subLv)?.[1] : 0;
+      const speedLine = speed.length && speedDur
+        ? richText(`Tăng tốc độ di chuyển: <color=orange>+${attr(speedSkill!, 'fastwalkrun_p', subLv)?.[0]}%<color> trong <color=orange>${Math.floor(speedDur / 18)} giây<color>`)
+        : speed;
+      return [...head, ...shield, ...speedLine];
+    }
+  }
+  if (name === 'poison2decmana_p') {
+    const sec = v[1] < 0 ? 'vĩnh viễn' : `${Math.floor(v[1] / 18)} giây`;
+    return richText(`Mục tiêu trúng độc bị rút thêm nội lực bằng <color=orange>${v[0]}%<color> độc sát, duy trì <color=orange>${sec}<color>`);
   }
   if (name === 'staticmagicshield_p') {
     const pct = Math.round(v[0] * STATIC_SHIELD.scale);

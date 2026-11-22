@@ -8,6 +8,13 @@
   - `tests/tong-kim.test.ts`: bổ sung test kiểm chứng `TK_POINTS.botBaseMoney`/`botBaseExp` và `tkBotRewardMultiplier`.
 - **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**17/17 pass**), `git diff --check` đạt; đã xác minh trên `apps/server/data/db.json` toàn bộ bot tại map `323` hiện có tối thiểu `964.050` lượng (sau khi tự mua thuốc). Đã commit trên `main`, chưa push.
 
+## 2026-11-22 · Cập nhật Tooltip hover đầy đủ cho toàn bộ 10 chiêu 120 Thập Đại Phái (đã commit)
+
+- **USER yêu cầu:** cập nhật phần chỉ số/mô tả động trên tooltip hover (`describeSkill`) cho chuẩn xác với cơ chế thực tế của cả 10 chiêu 120, giữ nguyên toàn bộ khung chuẩn (cấp hiện thời, nội lực tiêu hao, giới hạn, Đẳng cấp kế tiếp, ghi chú cuối).
+- **Thay đổi:**
+  - `packages/shared/src/skills/core/describe.ts`: sửa `describeAttr()` hiển thị chuẩn cho `ignoreskill_p`, `lifereplenish_p`, `autoreplyskill` (fix lỗi `128%`, hiển thị đúng `100%` + giãn cách `5.2 giây`), `autoattackskill` (`711→719`, `714→720` kèm đầy đủ chỉ số tầng 2), `autodeathskill` (`715`), `autorescueskill` (`717→721+722`), `skill_appendskill` (`712` liệt kê đủ 5 aura + quy tắc cấp thấp nhất), `hide` (`713`, ẩn dòng CD trên ngựa do `noHorse`), `skill_param1_v` (`710` Blink `520`), `randmove` (`723` kèm bán kính `EFFECTS.randMove.maxRadius`), và `716`/`738` (tỉ lệ giải đồng đội, giải & miễn dịch bản thân).
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `tests/skill-120-*.test.ts` + `tests/xiaoyao.test.ts` (**21/21 pass**), `npm run test:effects` (**23/23 pass**), `npm run build` & `git diff --check` đạt. Dùng chung Web/Desktop/Mobile; cần reload client (build lại nếu chạy bản production). Chưa commit/push.
+
 ## 2026-11-22 · Hoàn thiện 2 phái cuối Skill 120: Võ Đang (`716`/`738`) & Côn Lôn (`717`/`721`/`722`) — Đủ 10/10 Thập Đại Phái (đã commit)
 
 - **USER yêu cầu:** áp dụng nốt các phái còn lại trong bảng skill 120 Thập Đại Phái (Võ Đang & Côn Lôn).
