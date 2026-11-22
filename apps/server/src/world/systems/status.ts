@@ -26,6 +26,14 @@ export function addState(w: World, sim: Sim, st: StateApply): void {
   const wasActive = prev !== undefined && prev.until > w.now;
   if (applyState(sim.states, st, w.now)) w.events.push({ t: 'st', id: sim.id, skill: st.skill, kind: st.kind });
   const s = getSkill(st.skill);
+  if (s?.attrs?.randmove) {
+    sim.pending = null;
+    sim.queuedMove = undefined;
+    sim.lockedAttack = undefined;
+    sim.a.attackTarget = '';
+    sim.path = [];
+    sim.randMoveAt = 0;
+  }
   const shieldAttr = s ? attr(s, 'staticmagicshield_p', st.level ?? 1) : null;
   // Không nạp đầy lại shieldHp khi cùng skill khiên tĩnh đang còn hiệu lực (vd. Phất Y 2133 → 2134 tick lại mỗi 1s).
   if (!wasActive && shieldAttr && shieldAttr[0] > 0 && sim.a.maxMp > 0) {

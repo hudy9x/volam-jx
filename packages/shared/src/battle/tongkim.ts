@@ -52,6 +52,8 @@ export const TK_POINTS = {
   top1ElixirCount: 3,
   top2to10Exp: 100_000_000,
   top2to10ElixirCount: 1,
+  botBaseMoney: 2_000_000,
+  botBaseExp: 50_000_000,
 } as const;
 
 export const TK_MODE_NAMES: Record<TkMode, string> = {
@@ -115,6 +117,18 @@ export function tkKillPlayerPoints(victimRank: number, newStreak: number): { kil
   const killPts = TK_POINTS.killPlayerBase + TK_POINTS.killPlayerBase * r;
   const streakPts = TK_POINTS.streakBase + Math.max(1, Math.floor(newStreak));
   return { killPts, streakPts, total: killPts + streakPts };
+}
+
+/**
+ * Hệ số nhân thưởng Tống Kim cho bot theo thứ hạng bảng tổng sắp (1-based).
+ * Top 1: ×5, Top 2–3: ×3.5, Top 4–5: ×3, Top 6–10: ×2, ngoài Top 10 (hoặc 0 điểm): ×1.
+ */
+export function tkBotRewardMultiplier(rankPos: number, points: number): number {
+  if (!(points > 0) || rankPos <= 0 || rankPos > 10) return 1;
+  if (rankPos === 1) return 5;
+  if (rankPos <= 3) return 3.5;
+  if (rankPos <= 5) return 3;
+  return 2;
 }
 
 export type TkNpcRole = 'soldier' | 'captain' | 'commander' | 'deputy' | 'general' | 'marshal';

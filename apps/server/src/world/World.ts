@@ -75,13 +75,13 @@ export class World {
       random: () => this.random(),
       combatants: () => this.sims.values(),
       get: id => this.sims.get(id),
-      // A Khinh công jumper in flight or an untargetable/invincible caster (Thập Bộ Nhất Sát 2130) cannot be hit.
+      // A Khinh công jumper in flight, stealthed (`hide`, Ngự Tuyết Ẩn 713), or untargetable/invincible caster (2130) cannot be hit.
       hostile: (a, b) => {
         const target = b as Sim;
         if (target.jump) return false;
         const bag = combatOf(target).bag;
-        if (attrOf(bag, 'invincibility') > 0 || attrOf(bag, 'hidebodyunlock') > 0) return false;
-        return attackable(this, a as Sim, target);
+        if (attrOf(bag, 'invincibility') > 0 || attrOf(bag, 'hidebodyunlock') > 0 || attrOf(bag, 'hide') > 0) return false;
+        return attackable(this, a as Sim, target, true);
       },
       friendly: (a, b) => friendly(this, a as Sim, b as Sim),
       damage: (a, b, hit) => applyHit(this, a as Sim, b as Sim, hit),

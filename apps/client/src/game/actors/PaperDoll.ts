@@ -36,6 +36,8 @@ export class JxSprite {
   action = '';
   /** Body tint only; ground shadows keep their original colour. */
   tint = 0xffffff;
+  /** Body/shadow opacity (e.g. 0.45 for translucent stealth Ngự Tuyết Ẩn). */
+  alpha = 1;
 
   constructor(private scene: Phaser.Scene, source: Source) {
     this.setSource(source);
@@ -124,7 +126,7 @@ export class JxSprite {
     const col = perDir === bodyFrames ? frame : Math.min(perDir - 1, Math.floor((frame * perDir) / bodyFrames));
     const key = jxTextureKey(layer.key), name = `${spriteRow(dir, dirs)}_${col}`;
     if (img.texture.key !== key || img.frame.name !== name) img.setTexture(key, name);
-    img.setPosition(x + bx - FOOT_X, y + by - FOOT_Y).setDepth(depth).setVisible(true).setAlpha(1);
+    img.setPosition(x + bx - FOOT_X, y + by - FOOT_Y).setDepth(depth).setVisible(true).setAlpha(this.alpha);
   }
 
   /** Conservative metadata bounds, including fallback, shadow and space for labels/decorations. */

@@ -12,12 +12,12 @@ import { ensureToken } from './token.js';
 import { applyEquipment, makeItem, outfitItems, restoreBag, restoreEquipment } from './inventory.js';
 import { setAnim } from './systems/anim.js';
 import { castNow } from './systems/combat.js';
-import { face, followPath, setPath, updateSpeed } from './systems/movement.js';
+import { face, followPath, setPath, updateConfusedMove, updateSpeed } from './systems/movement.js';
 import { checkPortals } from './systems/portals.js';
 import { clearStates } from './systems/status.js';
 import { clearEffects } from './systems/effects.js';
 import { syncVitals } from './systems/sync.js';
-import { attackable, nearestHostile } from './targeting.js';
+import { attackable, isConfused, nearestHostile } from './targeting.js';
 import type { World } from './World.js';
 
 // Player characters in the world: entering, reviving, regenerating, and carrying out queued orders
@@ -143,6 +143,14 @@ export function updatePlayer(w: World, sim: Sim, dt: number): void {
   }
   if (sim.slotAura) holdSlotAura(w, sim, sim.slotAura);
   if (w.now < sim.castUntil) return;
+  if (isConfused(sim)) {
+    sim.pending = null;
+    sim.queuedMove = undefined;
+    sim.lockedAttack = undefined;
+    sim.a.attackTarget = '';
+    updateConfusedMove(w, sim, dt);
+    return;
+  }
   if (sim.queuedMove && !sim.pending && !sim.pickup) {
     const move = sim.queuedMove;
     sim.queuedMove = undefined;

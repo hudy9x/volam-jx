@@ -69,6 +69,8 @@ export interface Sim {
   effects?: Effects;
   /** Movement factor: fastwalkrun_p of items / bùa, slows (systems/effects.ts refreshMoveScale). */
   moveScale?: number;
+  /** Next timestamp to pick a new random direction while confused (`randmove`). */
+  randMoveAt?: number;
   /** Dev-override for testing run speed percentage live. */
   devRunPercent?: number;
   /** Dev-override for testing attack speed percentage live. */

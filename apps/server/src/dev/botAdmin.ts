@@ -3,14 +3,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { Application, NextFunction, Request, Response } from 'express';
 import {
-  BOT_LEVEL_BANDS, botMapIds, BOT_IDENTITIES, BOT_CREATE_MAX, BOT_FILE_RE, FACTIONS, FACTION_IDS, MAPS, PROGRESS_VERSION, SERIES, TOWN_MAP_ID, bestTrainingMap,
+  BOT_LEVEL_BANDS, botMapIds, BOT_IDENTITIES, BOT_CREATE_MAX, BOT_FILE_RE, FACTIONS, FACTION_IDS, MAX_MONEY, MAPS, PROGRESS_VERSION, SERIES, TOWN_MAP_ID, bestTrainingMap,
   factionAllowsGender, newProgress, normalizeBotScenario, normalizeBotTemplate, snapToMap,
   type BotInfo, type BotLogin, type BotTemplate, type Element, type Gender,
 } from '@vltk/shared';
 import { issueToken, newPassword } from '../account/auth.js';
 import { db, type CharacterRecord } from '../account/db.js';
 import { BOTS_DIR, MAPS_DIR, devTools } from '../env.js';
-import { isOnline, trainingList } from '../net/MapRoom.js';
+import { LIVE_WORLDS, isOnline, trainingList } from '../net/MapRoom.js';
+import { addMoney } from '../world/inventory.js';
 
 /**
  * Bot dev API (docs/bots.md; page /?bots = apps/client/src/dev/bot-panel): make bot accounts from a template, list / reset /
@@ -126,6 +127,43 @@ export function registerBotRoutes(app: Application): void {
     }
     if (done.length) console.log(`[bots] deleted ${done.length} bots`);
     res.json({ deleted: done, skipped });
+  });
+
+  // Tặng bạc cho toàn bộ bot (cả đang online trong World lẫn offline/pending trong db.json).
+  app.post('/api/dev/bots/grant-money', local, (req, res) => {
+    const raw = Number(req.body?.amount ?? 1_000_000);
+    const amount = Number.isFinite(raw) ? Math.floor(raw) : 0;
+    if (amount <= 0) { res.status(400).json({ error: 'Số lượng bạc phải > 0.' }); return; }
+    const onlineSims = new Map<string, { w: NonNullable<ReturnType<typeof LIVE_WORLDS.get>>; sim: any }>();
+    for (const w of LIVE_WORLDS.values()) {
+      for (const sim of w.sims.values()) {
+        if (sim.kind === 'player' && sim.charId) onlineSims.set(sim.charId, { w, sim });
+      }
+    }
+    let updated = 0;
+    let onlineCount = 0;
+    for (const user of botUsers()) {
+      for (const charId of user.characters) {
+        const char = db.getCharacter(charId);
+        if (!char) continue;
+        const live = onlineSims.get(charId);
+        if (live) {
+          addMoney(live.sim, amount);
+          live.w.hooks.inventory(live.sim);
+          db.updateCharacter(charId, { money: live.sim.money });
+          onlineCount++;
+        } else if (char.bot?.pending) {
+          char.bot.setup.money = Math.min(MAX_MONEY, (char.bot.setup.money ?? 0) + amount);
+          db.updateCharacter(charId, { bot: char.bot });
+        } else {
+          db.updateCharacter(charId, { money: Math.min(MAX_MONEY, (char.money ?? 0) + amount) });
+        }
+        updated++;
+      }
+    }
+    db.flush();
+    console.log(`[bots] granted +${amount.toLocaleString('vi-VN')} money to ${updated} bots (${onlineCount} online)`);
+    res.json({ ok: true, amount, updated, online: onlineCount });
   });
 
   // Runner: tokens of the bots to connect as (no passwords needed); offline ones first, at most `count` (0 = all).

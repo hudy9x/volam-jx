@@ -96,7 +96,7 @@ export class WorldScene extends Phaser.Scene {
     cam.setBackgroundColor('#000000');
     this.cleanups.push(settings.watch(s => this.applyZoom(s.zoom)));
 
-    this.effects = new Effects(this, this.views, this.room.sessionId, skill => skillbar.startCooldown(skill));
+    this.effects = new Effects(this, this.views, this.room.sessionId, skill => skillbar.startCooldown(skill, !!this.self?.state.mounted));
     // Hào quang on a hand slot: the server keeps it on (each map room is new, so send it again here).
     let aura = -1;
     let autoAura: number | null = null;
@@ -409,7 +409,7 @@ export class WorldScene extends Phaser.Scene {
       range: skill => { const s = getSkill(skill); return s ? castRange(s, Math.max(1, skillbar.levelOf(skill))) : 0; },
       melee: skill => { const s = getSkill(skill); return !!s && isMelee(s); },
       cast: (skill, target, x, y, lock, reach) => {
-        skillbar.startCooldown(skill);
+        skillbar.startCooldown(skill, !!this.self?.state.mounted);
         this.room.send(C2S.cast, { skill, targetId: target?.id, x: Math.round(x), y: Math.round(y), lock, reach });
       },
       move: (x, y) => this.room.send(C2S.move, { x: Math.round(x), y: Math.round(y) }),
@@ -516,8 +516,27 @@ export class WorldScene extends Phaser.Scene {
     this.ui.talk({ name: npc.name, res: npc.res, text: line.text, options: [{ label: line.option, run: open }] });
   }
 
+  private isActorHidden(state: ActorState): boolean {
+    if (!state.states) return false;
+    for (const id of state.states) if (getSkill(id)?.attrs?.hide) return true;
+    return false;
+  }
+
+  private stealthModeFor(view: ActorView): 'visible' | 'translucent' | 'hidden' {
+    if (!this.isActorHidden(view.state)) return 'visible';
+    if (view.isSelf) return 'translucent';
+    const me = this.self?.state;
+    if (!me) return 'hidden';
+    if (me.battleCamp || view.state.battleCamp) {
+      return !!me.battleCamp && me.battleCamp === view.state.battleCamp ? 'translucent' : 'hidden';
+    }
+    if (me.team && me.team === view.state.team) return 'translucent';
+    return 'hidden';
+  }
+
   /** Client-side hint only; the server decides with the same canAttack rules. */
   private isHostile(view: ActorView): boolean {
+    if (this.isActorHidden(view.state)) return false;
     if (view.state.hp <= 0 || !this.self || combatPairRules(this.meta, this.self.state, view.state).safe || view.state.kind === 'npc') return false;
     const me = this.self.state;
     if (me.battleCamp || view.state.battleCamp) {
@@ -534,7 +553,11 @@ export class WorldScene extends Phaser.Scene {
   update(_time: number, deltaMs: number): void {
     if (!this.ready) return;
     const dt = deltaMs / 1000;
-    for (const view of this.views.values()) { view.setPeaceful(combatRulesAt(this.meta, view.state).safe); view.update(dt); }
+    for (const view of this.views.values()) {
+      view.setPeaceful(combatRulesAt(this.meta, view.state).safe);
+      view.setStealth(this.stealthModeFor(view));
+      view.update(dt);
+    }
     for (const n of this.npcs) n.view.update(dt);
     this.effects.update();
     this.auto?.update(this.time.now, settings.get());
@@ -542,11 +565,15 @@ export class WorldScene extends Phaser.Scene {
     const self = this.self;
     if (self) {
       let players = 0;
-      for (const v of this.views.values()) if (v.state.kind === 'player') players++;
+      const visibleViews: ActorView[] = [];
+      for (const v of this.views.values()) {
+        if (v.state.kind === 'player') players++;
+        if (!v.isStealthHidden) visibleViews.push(v);
+      }
       audio.listener = { x: self.x, y: self.y };
       this.ui.update(self.state, players);
-      this.ui.drawMinimap(this.views.values(), this.room.sessionId, this.cameras.main.worldView);
-      this.ui.drawBigMap(this.views.values(), this.room.sessionId, this.npcs.map(n => ({ x: n.view.x, y: n.view.y, name: n.npc.name })));
+      this.ui.drawMinimap(visibleViews, this.room.sessionId, this.cameras.main.worldView);
+      this.ui.drawBigMap(visibleViews, this.room.sessionId, this.npcs.map(n => ({ x: n.view.x, y: n.view.y, name: n.npc.name })));
     }
   }
 

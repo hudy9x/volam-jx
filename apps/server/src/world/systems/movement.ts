@@ -58,3 +58,23 @@ export function face(sim: Sim, dx: number, dy: number): void {
 export function updateSpeed(sim: Sim): void {
   sim.speed = PLAYER_SPEED;
 }
+
+const RAND_MOVE_INTERVAL_MS = 333; // ~6 frames at 18 FPS (JX1 randmove)
+
+/** Confused movement (`randmove`, Ma Âm Phệ Phách 723): pick a random walkable direction every ~333ms and walk. */
+export function updateConfusedMove(w: World, sim: Sim, dt: number): void {
+  if (!sim.path.length || w.now >= (sim.randMoveAt ?? 0)) {
+    sim.randMoveAt = w.now + RAND_MOVE_INTERVAL_MS;
+    const from = { x: sim.a.x, y: sim.a.y };
+    for (let tries = 0; tries < 6; tries++) {
+      const angle = w.random() * Math.PI * 2;
+      const dist = 70 + w.random() * 70;
+      const dest = { x: Math.round(from.x + Math.cos(angle) * dist), y: Math.round(from.y + (Math.sin(angle) * dist) / 2) };
+      if (isWalkable(w.grid, dest.x, dest.y) && clearSegment(w.grid, from, dest, true)) {
+        sim.path = [dest];
+        break;
+      }
+    }
+  }
+  followPath(sim, dt);
+}

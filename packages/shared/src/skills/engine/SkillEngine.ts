@@ -14,6 +14,7 @@ import {
   GenerateStyle, JX_TICK_MS, MissileForm, MoveKind, SkillStyle, Target, type MissileDef, type SkillDef,
 } from '../core/types.js';
 import { healAmount } from './damage.js';
+import { attrOf } from '../../formulas/attrs.js';
 import { resolveHit, skillDamage } from '../../formulas/damage.js';
 import { SPEED } from '../../formulas/tuning.js';
 import { resolveSpeed } from '../../formulas/speed.js';
@@ -136,8 +137,17 @@ export class SkillEngine {
     return v && v[2] > 0 ? Math.floor(v[2]) : 0;
   }
 
+  /** Remove any active stealth (`hide`) state when the combatant attacks or debuffs. */
+  private breakHide(c: Combatant): void {
+    if (!c.states?.size) return;
+    for (const sid of [...c.states.keys()]) {
+      if (getSkill(sid)?.attrs?.hide) this.port.removeState(c, sid);
+    }
+  }
+
   /** Why `c` cannot use `id` right now (null = it can, cooldown aside). */
   check(c: Combatant, id: number): string | null {
+    if (attrOf(this.port.stats(c).bag, 'randmove') > 0) return 'Đang bị hoảng loạn.';
     const level = levelOf(c, id);
     const s = getSkill(id);
     if (!s || level === undefined) return 'Chưa học kỹ năng này.';
@@ -188,6 +198,8 @@ export class SkillEngine {
     const minTime = attr1(s, c.a.mounted ? 'skill_mintimepercastonhorse_v' : 'skill_mintimepercast_v', level);
     const cd = Math.max(s.cooldown ?? 0, minTime) * JX_TICK_MS + (tuningOf(id).cooldownMs ?? 0);
     if (cd > 0) c.cooldowns.set(id, now + cd);
+    const cat = skillCategory(s);
+    if (!s.attrs?.hide && (cat === 'attack' || cat === 'debuff')) this.breakHide(c);
     const to = target ? { x: target.a.x, y: target.a.y } : aim;
     this.port.emit({ t: 'cast', id: c.id, skill: id, x: Math.round(c.a.x), y: Math.round(c.a.y) });
     const anim = castAnim(s, c.a.mounted);
@@ -340,10 +352,11 @@ export class SkillEngine {
         const o = this.port.get(ownerId);
         if (!o) return;
         const kind = skillCategory(s) === 'debuff' ? 'debuff' : 'buff';
+        const hasSelfState = stateAttrs(s).length > 0;
         const ms = stateDurationMs(s, level);
-        if (kind === 'buff') this.port.addState(o, { skill: s.id, kind, ms, by: o.id, level });
+        if (kind === 'buff' && hasSelfState) this.port.addState(o, { skill: s.id, kind, ms, by: o.id, level });
         const reach = s.radius ?? 0;
-        if (reach > 0 && (s.target ?? 0) & (Target.Ally | Target.Enemy)) {
+        if (hasSelfState && reach > 0 && (s.target ?? 0) & (Target.Ally | Target.Enemy)) {
           for (const t of this.port.combatants()) {
             if (t === o || t.dead || isoDistance(o.a.x, o.a.y, t.a.x, t.a.y) > reach) continue;
             const ok = kind === 'buff' ? this.port.friendly(o, t) : this.port.hostile(o, t);
@@ -712,7 +725,10 @@ export class SkillEngine {
    */
   private strike(m: Missile, owner: Combatant, t: Combatant): void {
     const s = m.skill, lv = m.level, r = this.port.random;
+    const missRate = attr1(s, 'missle_missrate', lv, 0);
+    if (missRate > 0 && r() * 100 < missRate) return;
     const hostile = this.port.hostile(owner, t);
+    if (hostile) this.breakHide(owner);
     const states = stateAttrs(s);
     const root = getSkill(m.root);
     const attack = hasDamage(s) || (!states.length && !isHeal(s) && (!root || skillCategory(root) === 'attack'));
@@ -754,7 +770,8 @@ export class SkillEngine {
     for (const [id, rawLevel] of c.skills) {
       if (rawLevel <= 0) continue;
       const passive = getSkill(id);
-      if (!passive || passive.inactive || passive.style !== SkillStyle.Passive || !passive.attrs) continue;
+      if (!passive || passive.inactive || !passive.attrs) continue;
+      if (kind !== 'death' && passive.style !== SkillStyle.Passive) continue;
       const level = levelOf(c, id) ?? rawLevel;
       if (level <= 0) continue;
       for (const tr of triggersOf(passive, level)) {

@@ -393,6 +393,44 @@ test('level-0 passives (2127) do not trigger and tier-180 Mai Danh Ẩn Tính (2
   assert.equal(xy.states?.has(2134) ?? false, false, 'inactive 2132 must not trigger 2134');
 });
 
+test('Xiaoyao balance overrides (passives, 90/150 sword & guqin, 2129 tier-3 tooltip & 3s cooldown)', () => {
+  // Passives: Wudang-matched attack/cast speed (65/65), reduced HP & speed bonuses
+  const pBag = passiveBag(new Map([[2121, 20], [2122, 20], [2123, 30], [2137, 20]]), 0);
+  assert.deepEqual(pBag.fastwalkrun_p, [40, 0, 0]);
+  assert.deepEqual(pBag.lifemax_v, [600, 0, 0]);
+  assert.deepEqual(pBag.lifemax_p, [20, 0, 0]);
+  assert.deepEqual(pBag.attackspeed_v, [65, 0, 0]);
+  assert.deepEqual(pBag.castspeed_v, [65, 0, 0]);
+  assert.deepEqual(pBag.addlightingdamage_v, [150, 0, 0]);
+  assert.deepEqual(pBag.addlightingmagic_p, [78, 0, 0]); // 35 (2123) + 43 (2137)
+  assert.deepEqual(pBag.me2waterdamage_p, [10, 0, 0]);
+  assert.deepEqual(pBag.water2medamage_p, [10, 0, 0]);
+
+  // Sword 90 (2124/2125/2126): 300% phys, stun only on final 2126 (15%)
+  assert.equal(getSkill(2124)?.attrs?.stun_p, undefined);
+  assert.equal(getSkill(2125)?.attrs?.stun_p, undefined);
+  assert.equal(getSkill(2126)?.attrs?.stun_p?.[0]?.find(([l]) => l === 20)?.[1], 15);
+  assert.equal(getSkill(2125)?.attrs?.physicsenhance_p?.[0]?.find(([l]) => l === 20)?.[1], 300);
+
+  // Sword 150 (2129 -> 2131 -> 2130): 500% phys, 3s cooldown (54 ticks), 6-frame invincibility + tier-3 tooltip
+  const s2129 = getSkill(2129)!;
+  assert.equal(s2129.cooldown, 54);
+  assert.equal(s2129.attrs?.physicsenhance_p?.[0]?.find(([l]) => l === 20)?.[1], 500);
+  assert.equal(getSkill(2130)?.attrs?.invincibility?.[1]?.[0]?.[1], 6);
+  const tip = describeSkill(s2129, 20, 20).current.map(l => l.map(s => s.text).join('')).join('\n');
+  assert.match(tip, /Thời gian giãn cách: 3 giây/);
+  assert.match(tip, /Tầng 3: Thập Bộ Nhất Sát_Buff/);
+  assert.match(tip, /Bất tử trong lúc thi triển/);
+  assert.match(tip, /Không thể bị chọn làm mục tiêu/);
+
+  // Guqin 90/150 (2141/2142/2143)
+  assert.equal(getSkill(2141)?.attrs?.lightingdamage_p?.[0]?.find(([l]) => l === 20)?.[1], 16);
+  assert.equal(getSkill(2141)?.attrs?.stun_p?.[0]?.find(([l]) => l === 20)?.[1], 30);
+  assert.equal(getSkill(2142)?.attrs?.lightingdamage_p?.[0]?.find(([l]) => l === 20)?.[1], 30);
+  assert.equal(getSkill(2143)?.attrs?.lightingdamage_p?.[0]?.find(([l]) => l === 20)?.[1], 18);
+  assert.equal(getSkill(2143)?.attrs?.stun_p?.[0]?.find(([l]) => l === 20)?.[1], 25);
+});
+
 
 
 

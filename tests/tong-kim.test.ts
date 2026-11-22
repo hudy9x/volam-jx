@@ -9,6 +9,7 @@ import {
   SHOP_OF,
   TK_BATTLE_MAP_ID,
   TK_MAP_LAYOUT,
+  TK_POINTS,
   TK_SIGNUP_MAP_ID,
   canAttack,
   combatPairRules,
@@ -16,6 +17,7 @@ import {
   isInTkSafeCamp,
   maxStackOf,
   normalizeBotScenario,
+  tkBotRewardMultiplier,
   tkHomeCampAt,
   tkKillPlayerPoints,
   tkRankForPoints,
@@ -645,4 +647,19 @@ test('Tống Kim: Bot TongKimBehavior Khinh công thoát vây (>= 3 địch / m�
   const moveMsg = sent.find(s => s.type === C2S.move);
   assert.ok(moveMsg, 'phải gửi lệnh di chuyển về cổng Hậu doanh');
   assert.deepEqual(moveMsg.msg, { x: 4592, y: 8080 });
+});
+
+test('Thưởng kết thúc Tống Kim cho bot: 200 vạn + 50M EXP & hệ số Top 1/3/5/10', () => {
+  assert.equal(TK_POINTS.botBaseMoney, 2_000_000);
+  assert.equal(TK_POINTS.botBaseExp, 50_000_000);
+  assert.equal(tkBotRewardMultiplier(1, 100), 5);
+  assert.equal(tkBotRewardMultiplier(2, 100), 3.5);
+  assert.equal(tkBotRewardMultiplier(3, 100), 3.5);
+  assert.equal(tkBotRewardMultiplier(4, 100), 3);
+  assert.equal(tkBotRewardMultiplier(5, 100), 3);
+  assert.equal(tkBotRewardMultiplier(6, 100), 2);
+  assert.equal(tkBotRewardMultiplier(10, 100), 2);
+  assert.equal(tkBotRewardMultiplier(11, 100), 1);
+  assert.equal(tkBotRewardMultiplier(0, 100), 1);
+  assert.equal(tkBotRewardMultiplier(1, 0), 1);
 });

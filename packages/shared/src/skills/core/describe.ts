@@ -175,13 +175,14 @@ export function describeAttr(skill: SkillDef, name: string, level: number): TipL
 const line = (text: string, c?: string): TipLine => [c ? { text, color: c } : { text }];
 
 /** What one level of a skill does (GetDescAboutLevel). `depth` limits the "Tầng" recursion. */
-function levelBlock(s: SkillDef, level: number, depth = 0): TipLine[] {
+function levelBlock(s: SkillDef, level: number, depth = 0, seen = new Set<number>([s.id])): TipLine[] {
   const out: TipLine[] = [];
   const series = attr(s, 'seriesdamage_p', level);
   if (series && series[0]) out.push(line(`Ngũ hành tương khắc: ${series[0]}%`));
   if (depth === 0) {
     const cost = skillResourceCost(s, level);
     if (cost.amount) out.push(line(`Tiêu hao ${cost.resource === 'hp' ? 'sinh lực' : 'nội lực'}: ${cost.amount}`));
+    if (s.cooldown && s.cooldown > 0) out.push(line(`Thời gian giãn cách: ${Math.round((s.cooldown / 18) * 10) / 10} giây`));
     if (tuningOf(s.id).timing) out.push(line(`Nhịp xuất chiêu riêng: ${Math.round(skillActionMs(s, 0))} ms (không phụ thuộc tốc độ đánh)`));
     if (cost.resource === 'hp' && cost.minRemainingHpRatio > 0) out.push(line(`Sau thi triển cần còn ít nhất ${cost.minRemainingHpRatio * 100}% sinh lực tối đa.`));
     const range = skillRange(s, level);
@@ -195,22 +196,21 @@ function levelBlock(s: SkillDef, level: number, depth = 0): TipLine[] {
   }
   // Tầng chiêu (core/events.ts): child skills fired on start / fly / collide / vanish. A layer that opens at a later
   // skill level is listed as "mở ở cấp N" until then; skill_showevent hides layers the original does not describe.
-  if (depth < 1) {
-    let tier = 2;
-    const seen = new Set<number>();
+  if (depth < 2) {
+    let tier = depth + 2;
     for (const kind of ['start', 'fly', 'collide', 'vanish'] as const) {
       const from = eventFromLevel(s, kind);
       if (!from || tier > 4) continue;
       const open = level >= from;
       const id = eventSkill(s, kind, open ? level : from);
-      if (!id || id === s.id || seen.has(id)) continue;
+      if (!id || seen.has(id)) continue;
       if (open && !shownEvents(s, level).includes(kind)) continue;
       seen.add(id);
       const k = getSkill(id);
       if (!k) continue;
       const head: TipLine = [{ text: `Tầng ${tier++}: `, color: '#8fa0ff' }, { text: k.name, color: '#ffe14d' }];
       if (!open) { out.push([...head, { text: ` (mở ở cấp ${from})`, color: '#a0a0a0' }]); continue; }
-      const lines = levelBlock(k, level, depth + 1);
+      const lines = levelBlock(k, level, depth + 1, seen);
       if (lines.length) out.push(head, ...lines);
     }
   }

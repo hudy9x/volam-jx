@@ -32,7 +32,17 @@ for (const pack of [shaolin, tianwang, tangmen, wudu, emei, cuiyan, gaibang, tia
 }
 for (const [id, patch] of Object.entries(SKILL_OVERRIDES)) {
   const s = getSkill(Number(id));
-  if (s) Object.assign(s, patch);
+  if (!s) continue;
+  const { attrs, ...rest } = patch;
+  Object.assign(s, rest);
+  if (attrs) {
+    const merged = { ...s.attrs };
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v === undefined) delete merged[k];
+      else merged[k] = v;
+    }
+    s.attrs = merged;
+  }
 }
 
 for (const pack of [tianwang]) validateCastingTuning(Object.keys(pack.tuning ?? {}).map(Number));

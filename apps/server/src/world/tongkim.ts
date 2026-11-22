@@ -1,5 +1,6 @@
 import {
   ITEMS,
+  MAX_MONEY,
   TK_BALANCE_DIFF,
   TK_BATTLE_MAP_ID,
   TK_CAMP_KICK_SEC,
@@ -26,6 +27,7 @@ import {
   isoDistance,
   maxLevelOf,
   nearestWalkable,
+  tkBotRewardMultiplier,
   tkHomeCampAt,
   tkKillPlayerPoints,
   tkRankForPoints,
@@ -48,6 +50,7 @@ import { db } from '../account/db.js';
 import { devTools } from '../env.js';
 import { Actor } from '../net/schema.js';
 import { BASIC_ATTACK, makeSim, type Sim } from './entity.js';
+import { addMoney } from './inventory.js';
 import { gainExp, refreshStats } from './progress.js';
 import { revive } from './players.js';
 import { dropBattleItem } from './systems/drops.js';
@@ -879,6 +882,30 @@ class TongKimManager {
           w.hooks.inventory(sim);
         }
         w.hooks.notify(sim, `Hạng ${i + 1} Tống Kim! Nhận +${expReward.toLocaleString('vi-VN')} EXP và ${elixirCount} Tiên Thảo Lộ đặc biệt!`);
+      }
+    }
+
+    // 3. Thưởng kết thúc trận cho Bot (200 vạn + 50 triệu EXP, nhân hệ số Top 10/5/3/1)
+    const rankByChar = new Map<string, number>();
+    for (let i = 0; i < sorted.length; i++) {
+      if (sorted[i].points > 0) rankByChar.set(sorted[i].charId, i + 1);
+    }
+    for (const entry of this.entries.values()) {
+      const char = db.getCharacter(entry.charId);
+      const user = char ? db.getUser(char.owner) : undefined;
+      if (!char || (!user?.bot && !char.bot)) continue;
+      const mult = tkBotRewardMultiplier(rankByChar.get(entry.charId) ?? 0, entry.points);
+      const moneyReward = Math.round(TK_POINTS.botBaseMoney * mult);
+      const expReward = Math.round(TK_POINTS.botBaseExp * mult);
+      const sim = onlineByChar.get(entry.charId);
+      if (sim && w) {
+        addMoney(sim, moneyReward);
+        gainExp(w, sim, expReward);
+        w.hooks.inventory(sim);
+        const multTxt = mult > 1 ? ` (×${mult})` : '';
+        w.hooks.log(sim, 'exp', `Thưởng bot Tống Kim${multTxt}: +${moneyReward.toLocaleString('vi-VN')} lượng và +${expReward.toLocaleString('vi-VN')} EXP.`);
+      } else {
+        db.updateCharacter(entry.charId, { money: Math.min(MAX_MONEY, (char.money ?? 0) + moneyReward) });
       }
     }
   }

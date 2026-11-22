@@ -1,3 +1,37 @@
+## 2026-11-22 · Tặng 100 vạn cho toàn bộ bot & Thưởng kết thúc Tống Kim cho bot (chưa commit)
+
+- **USER yêu cầu:** tặng cho toàn bộ bot 100 vạn (`1.000.000` lượng); mỗi trận Tống Kim đánh xong thưởng cho mỗi bot `200 vạn` (`2.000.000` lượng) và `50.000.000` EXP, nhân hệ số theo thứ hạng: Top 10 `×2`, Top 5 `×3`, Top 3 `×3.5`, Top 1 `×5`.
+- **Thay đổi:**
+  - `packages/shared/src/battle/tongkim.ts`: thêm `TK_POINTS.botBaseMoney = 2_000_000`, `TK_POINTS.botBaseExp = 50_000_000` và hàm `tkBotRewardMultiplier(rankPos, points)` (`×5` / `×3.5` / `×3` / `×2` / `×1`).
+  - `apps/server/src/world/tongkim.ts`: trong `grantEndRewards`, bổ sung phần thưởng kết thúc trận cho toàn bộ bot tham gia `this.entries` (cộng `moneyReward` qua `addMoney` + `gainExp` + `w.hooks.inventory` khi online, fallback cập nhật `db.updateCharacter` khi offline).
+  - `apps/server/src/dev/botAdmin.ts`: thêm endpoint `POST /api/dev/bots/grant-money` cộng bạc cho toàn bộ bot (online qua `LIVE_WORLDS`, `pending` qua `setup.money`, và offline qua `char.money`), gọi `db.flush()`. Đã chạy cấp `+1.000.000` lượng cho **200/200 bot** (44 bot đang online).
+  - `tests/tong-kim.test.ts`: bổ sung test kiểm chứng `TK_POINTS.botBaseMoney`/`botBaseExp` và `tkBotRewardMultiplier`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**17/17 pass**), `git diff --check` đạt; đã xác minh trên `apps/server/data/db.json` toàn bộ bot tại map `323` hiện có tối thiểu `964.050` lượng (sau khi tự mua thuốc). Chưa commit/push.
+
+## 2026-11-22 · Bảng thống kê Skill 120 Thập Đại Phái & Fix Thúy Yên (`713`), Thiên Nhẫn (`715`/`723`), Cooldown Client (đã commit)
+
+- **USER yêu cầu:** ghi lại bảng thống kê trạng thái skill 120 Thập Đại Phái, áp dụng fix cho Thúy Yên (Ngự Tuyết Ẩn `713`: tàng hình, không chịu sát thương, vô hình trong mắt quái/boss/đối thủ) và Thiên Nhẫn (Ma Âm Phệ Phách `715` → `723`: hoảng loạn áp dụng cả người lẫn quái/boss, kích hoạt khi chết), cùng cooldown Client, và đánh dấu trạng thái `RESOLVED` để kiểm tra.
+- **Thay đổi:**
+  - `docs/skill-120-status.md`: lập bảng thống kê tiến độ 10 skill 120 Thập Đại Phái, đánh dấu `RESOLVED (chờ kiểm tra)` cho Cooldown Client, Thúy Yên (`713`) và Thiên Nhẫn (`715` → `723`).
+  - `packages/shared/src/skills/common/skill-overrides.ts`: đồng bộ thông số theo `volam-3005` cho `713` (`hide` `5s→15s`, `fastwalkrun_p` `+1%→+30%`, CD `60s→35s` lv20 / `30s` lv30) và `715` (CD `45s→15s` lv20).
+  - `packages/shared/src/skills/engine/SkillEngine.ts`: cho phép `autodeathskill` kích hoạt trên skill không phải `Passive` (`715`), xử lý `missle_missrate`, bỏ gắn buff rỗng 30s trên caster khi `SkillStyle.State` không có `stateAttrs`, cấm cast khi đang `randmove`, và tự phá `hide` khi ra chiêu tấn công/debuff.
+  - `apps/server/src/world/{entity,targeting,World,commands,players,ai/monster,systems/combat,systems/movement,systems/status}.ts`:
+    - `hide`: `attackable()` & `EnginePort.hostile()` chặn target/hit từ quái/boss/đối thủ (quái & boss mất target ngay); `applyHit()` chặn toàn bộ sát thương khi đang `hide`; `allowDeadAttacker` trên `hostile()` để `autodeathskill` của Thiên Nhẫn trúng kẻ địch sau khi chết.
+    - `randmove`: cấm `commandMove` / `commandCast` / `castNow`, hủy lệnh đang chờ khi trúng debuff, và tự chạy ngẫu nhiên (`updateConfusedMove`, đổi hướng mỗi `333ms` trong vùng walkable) cho **cả người chơi lẫn quái & boss**.
+  - `apps/client/src/{state/skillbar,game/actors/PaperDoll,game/actors/ActorView,game/WorldScene}.ts`: đồng bộ cooldown Client theo `skill_mintimepercast_v` / `skill_mintimepercastonhorse_v`; render ẩn hoàn toàn sprite/tên/HP/FX/chấm minimap+bigmap & chặn click đối với đối thủ đang `hide`, hiển thị mờ `alpha = 0.45` cho bản thân & đồng đội.
+  - `tests/skill-120-cuiyan-tianren.test.ts`: bổ sung test kiểm chứng toàn bộ hành vi Thúy Yên `713` & Thiên Nhẫn `715`/`723` (người, quái, boss, `missle_missrate`, `autodeathskill`).
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `tests/skill-120-cuiyan-tianren.test.ts` (**2/2 pass**), `npm run test:effects` (**23/23 pass**), `npm run build` & `git diff --check` đạt. Dùng chung Web/Desktop/Mobile; cần restart server & reload client để nhận thay đổi mới. Chưa commit/push.
+
+## 2026-11-22 · Cân bằng bộ chỉ số kỹ năng Tiêu Dao & hiển thị tầng 3 + giãn cách trên tooltip (đã commit)
+
+- **USER yêu cầu:** commit thay đổi trước đó (`3ed553f`) và triển khai bảng cân bằng thông số kỹ năng cho toàn bộ phái Tiêu Dao (giữ `attackspeed_v = 65` & `castspeed_v = 65` theo chuẩn Võ Đang cấp 30 để không làm yếu tuyến nội công Cổ Cầm).
+- **Thay đổi:**
+  - `packages/shared/src/skills/index.ts`: merge từng key `attrs` khi áp dụng `SKILL_OVERRIDES` (giữ nguyên các thuộc tính khác và hỗ trợ xóa thuộc tính qua `undefined`).
+  - `packages/shared/src/skills/common/skill-overrides.ts`: cân bằng bị động (`2121`, `2122`, `2123`), Kiếm 90/150 (`2124..2126`, `2129`, `2130`) và Cổ Cầm 90/150 (`2141..2143`).
+  - `packages/shared/src/skills/core/describe.ts`: mở rộng `levelBlock` tới `depth < 2` (dùng `seen` chống lặp) để tooltip `2129` hiển thị rõ tầng 3 (`2130` bất tử / không thể bị chọn) và hiển thị `Thời gian giãn cách: X giây` khi `cooldown > 0`.
+  - `tests/xiaoyao.test.ts`, `docs/tieu-dao.md`: bổ sung test kiểm chứng toàn bộ chỉ số cân bằng mới, cooldown 3s và tooltip tầng 3 của `2129`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/xiaoyao.test.ts` (**10/10 pass**), `npm run test:effects` (**23/23 pass**), `npm run build` & `git diff --check` đạt. Cần restart server & reload client để nhận thay đổi mới (dùng chung Web/Desktop/Mobile). Chưa commit/push.
+
 ## 2026-11-22 · Fix bị động cấp 0 tự kích hoạt (`SkillEngine.trigger`), đưa `2132` (cấp 180) về cột `180` trạng thái `inactive` & cân bằng `staticmagicshield_p` (đã commit)
 
 - **USER yêu cầu:** commit thay đổi trước đó (`4ceaee3`), triển khai cân bằng `staticmagicshield_p` (`scale: 0.15`, trần `100% MaxHP`, không hồi đầy khi cùng skill còn hiệu lực), sửa lỗi skill bị động cấp 0 (`2127`/`2132`) tự kích hoạt, xác minh `2132` bên `volam-3005` (`factionhead.lua:532` thuộc nhóm cấp 180 / Thất truyền) và chuyển sang cột `180` ở trạng thái hoàn toàn `inactive` (do game hiện chỉ mới hỗ trợ đến cấp 150).

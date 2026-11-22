@@ -1,5 +1,5 @@
 import {
-  ITEMS, JX_TICK_MS, getSkill, isCastable, itemDef, learnTiers, skillCategory, tuningOf, usableItem, weaponOk, weaponTypeOf,
+  ITEMS, JX_TICK_MS, attr1, getSkill, isCastable, itemDef, learnTiers, skillCategory, tuningOf, usableItem, weaponOk, weaponTypeOf,
 } from '@vltk/shared';
 import { storage } from '../platform/storage';
 import { inventory } from './inventory';
@@ -152,9 +152,12 @@ class SkillBarState {
     return null;
   }
 
-  startCooldown(id: number): void {
+  startCooldown(id: number, mounted = false): void {
     const s = getSkill(id);
-    const ms = (s?.cooldown ?? 0) * JX_TICK_MS + (tuningOf(id).cooldownMs ?? 0);
+    if (!s) return;
+    const level = Math.max(1, this.levelOf(id));
+    const minTime = attr1(s, mounted ? 'skill_mintimepercastonhorse_v' : 'skill_mintimepercast_v', level);
+    const ms = Math.max(s.cooldown ?? 0, minTime) * JX_TICK_MS + (tuningOf(id).cooldownMs ?? 0);
     if (ms <= 0) return;
     const now = performance.now();
     this.cooldowns.set(id, { start: now, end: now + ms });

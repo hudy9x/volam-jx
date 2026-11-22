@@ -45,6 +45,7 @@ export class ActorView {
   private jx: JxSprite | null = null;
   private sourceKey = '';
   private shown = false;
+  private stealth: 'visible' | 'translucent' | 'hidden' = 'visible';
   /** Diagnostic A/B switch. State and animation clocks advance while culled. */
   cullingEnabled = true;
   private inView = true;
@@ -126,6 +127,26 @@ export class ActorView {
       (!!shot && this.jx.intersects(camera.worldView, this.x, this.y, shot.key, lift)) ||
       (!!this.frozen && this.jx.intersects(camera.worldView, this.x, this.y, this.frozen.key, lift));
     this.lift = 0;
+    if (this.stealth === 'hidden') {
+      this.jx?.hide();
+      this.shown = false;
+      this.leaderFlag.setVisible(false);
+      this.elementBadge?.setVisible(false);
+      this.rankLabel?.setVisible(false);
+      this.label.setVisible(false);
+      this.bar.setVisible(false);
+      this.stallBg.setVisible(false);
+      this.stallLeft?.setVisible(false);
+      this.stallMid?.setVisible(false);
+      this.stallRight?.setVisible(false);
+      this.stallText.setVisible(false);
+      this.decor.update([], this.x, this.y, this.headHeight, 0, false);
+      return;
+    }
+    const alpha = this.stealth === 'translucent' ? 0.45 : 1;
+    if (this.jx) this.jx.alpha = alpha;
+    this.label.setAlpha(this.stealth === 'translucent' ? 0.65 : 1);
+    this.bar.setAlpha(this.stealth === 'translucent' ? 0.65 : 1);
     const dead = s.kind !== 'npc' && s.hp <= 0;
     if (dead) this.diedAt ??= this.scene.time.now;
     else this.diedAt = null;
@@ -479,6 +500,7 @@ export class ActorView {
 
   /** Point (world) hit test for clicking on the actor. */
   contains(wx: number, wy: number): boolean {
+    if (this.stealth === 'hidden') return false;
     if (this.state.hp <= 0 && this.state.kind !== 'npc') return false;
     const half = this.jx?.mounted ? 44 : 26;
     return Math.abs(wx - this.x) <= half && wy >= this.y - this.headHeight && wy <= this.y + 8;
@@ -487,6 +509,14 @@ export class ActorView {
   /** Top-of-head position for floating text. */
   get headY(): number {
     return this.y - this.lift - this.headHeight;
+  }
+
+  get isStealthHidden(): boolean {
+    return this.stealth === 'hidden';
+  }
+
+  setStealth(mode: 'visible' | 'translucent' | 'hidden'): void {
+    this.stealth = mode;
   }
 
   setPeaceful(on: boolean): void {

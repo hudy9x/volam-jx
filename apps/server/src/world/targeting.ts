@@ -1,12 +1,16 @@
-import { combatPairRules, canAttack, clearSegment, isoDistance, type Camp, type CombatantInfo } from '@vltk/shared';
+import { attrOf, combatPairRules, canAttack, clearSegment, isoDistance, type Camp, type CombatantInfo } from '@vltk/shared';
 import type { Sim } from './entity.js';
+import { combatOf } from './systems/effects.js';
 import type { World } from './World.js';
 
 // Who may hit whom on this map (shared canAttack + training dummies never fight) and nearest-enemy searches.
 
-function info(sim: Sim): CombatantInfo {
+export const isHidden = (sim: Sim): boolean => attrOf(combatOf(sim).bag, 'hide') > 0;
+export const isConfused = (sim: Sim): boolean => attrOf(combatOf(sim).bag, 'randmove') > 0;
+
+function info(sim: Sim, deadOverride?: boolean): CombatantInfo {
   return {
-    kind: sim.kind, id: sim.id, dead: sim.dead, pk: sim.a.pk,
+    kind: sim.kind, id: sim.id, dead: deadOverride ?? sim.dead, pk: sim.a.pk,
     camp: (sim.a.camp || 'new') as Camp, team: sim.a.team,
     battleCamp: (sim.a.battleCamp || '') as 'tong' | 'kim' | '',
     protectedUntil: sim.a.protectedUntil,
@@ -28,9 +32,10 @@ export function friendly(w: World, a: Sim, b: Sim): boolean {
   return (!!a.a.team && a.a.team === b.a.team) || (a.a.camp || 'new') === (b.a.camp || 'new');
 }
 
-export function attackable(w: World, attacker: Sim, target: Sim): boolean {
+export function attackable(w: World, attacker: Sim, target: Sim, allowDeadAttacker = false): boolean {
   if (attacker.def?.dummy) return false;
-  return canAttack(info(attacker), info(target), combatPairRules(w.meta, attacker.a, target.a, w.rules), w.now);
+  if (isHidden(target)) return false;
+  return canAttack(info(attacker, allowDeadAttacker ? false : undefined), info(target), combatPairRules(w.meta, attacker.a, target.a, w.rules), w.now);
 }
 
 /** Closest Sim `sim` may hit within `radius` of x,y that also passes `ok`. */

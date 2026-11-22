@@ -1,5 +1,5 @@
 import { combatRulesAt, HORSES, getSkill, levelOf, maxLevelOf, skillCategory, type PkMode } from '@vltk/shared';
-import { attackable } from './targeting.js';
+import { attackable, isConfused } from './targeting.js';
 import type { Sim } from './entity.js';
 import { refreshStats } from './progress.js';
 import { setPath, updateSpeed } from './systems/movement.js';
@@ -10,7 +10,7 @@ import type { World } from './World.js';
 
 /** Click on the ground: walk there (cancels a queued attack). */
 export function commandMove(w: World, sim: Sim, x: number, y: number): void {
-  if (sim.dead || sim.a.stallTitle || !Number.isFinite(x) || !Number.isFinite(y)) return;
+  if (sim.dead || sim.a.stallTitle || isConfused(sim) || !Number.isFinite(x) || !Number.isFinite(y)) return;
   sim.pending = null;
   sim.lockedAttack = undefined;
   sim.pickup = undefined;
@@ -24,7 +24,7 @@ export function commandMove(w: World, sim: Sim, x: number, y: number): void {
 /** Use a skill on a target / point. Out of range => walk closer first. `lock` = keep attacking that target. */
 export function commandCast(w: World, sim: Sim, skillId: number, targetId: string | undefined, x: number, y: number, lock = false,
   reach?: number): void {
-  if (sim.dead || sim.a.stallTitle || !Number.isFinite(x) || !Number.isFinite(y)) return;
+  if (sim.dead || sim.a.stallTitle || isConfused(sim) || !Number.isFinite(x) || !Number.isFinite(y)) return;
   sim.queuedMove = undefined;
   if (sim.slotAura && getSkill(skillId)?.aura) {
     w.hooks.notify(sim, 'Hào quang đang đặt ở ô tay trái / phải: tự bật, đổi chiêu ở ô đó để thay hoặc tắt.');

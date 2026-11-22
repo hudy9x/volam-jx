@@ -1,9 +1,9 @@
 import { chooseSkill, isWalkable, isoDistance } from '@vltk/shared';
 import type { Sim } from '../entity.js';
 import { castNow } from '../systems/combat.js';
-import { face, followPath, setPath } from '../systems/movement.js';
+import { face, followPath, setPath, updateConfusedMove } from '../systems/movement.js';
 import { syncVitals } from '../systems/sync.js';
-import { attackable, nearestBattleEnemy, nearestPlayer } from '../targeting.js';
+import { attackable, isConfused, nearestBattleEnemy, nearestPlayer } from '../targeting.js';
 import type { World } from '../World.js';
 import { leashes } from './boss.js';
 
@@ -21,6 +21,11 @@ export function updateMonster(w: World, sim: Sim, dt: number): void {
     return;
   }
   if (w.now < sim.castUntil) return;
+  if (isConfused(sim)) {
+    sim.plan = null;
+    updateConfusedMove(w, sim, dt);
+    return;
+  }
 
   if (sim.returning) {
     if (def.boundedHome && !sim.path.length && isoDistance(sim.a.x, sim.a.y, home.x, home.y) > 8) {

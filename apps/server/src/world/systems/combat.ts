@@ -35,7 +35,8 @@ const CORPSE_SECONDS = 2;
 /** Start a skill now (players and monsters alike): the engine fires it, the caster holds the pose. */
 export function castNow(w: World, sim: Sim, skillId: number, target: Sim | undefined, aim: Point): void {
   if (combatRulesAt(w.meta, sim.a, w.rules).safe) return;
-  if (attrOf(combatOf(sim).bag, 'forbit_attack') > 0) return;
+  const bag = combatOf(sim).bag;
+  if (attrOf(bag, 'forbit_attack') > 0 || attrOf(bag, 'randmove') > 0) return;
   const timing = castTiming(w, sim, skillId);
   const pose = w.engine.cast(sim, skillId, target, aim, timing.cycleMs);
   if (pose.note && sim.kind === 'player') w.hooks.notify(sim, pose.note);
@@ -50,7 +51,8 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
   // Protect at impact time too: missiles, area hits, reflection and ongoing damage.
   if (combatPairRules(w.meta, attacker.a, target.a, w.rules).safe) return;
   if (target.dead || target.jump) return; // Khinh công in flight: no damage (see World's EnginePort.hostile)
-  if (attrOf(combatOf(target).bag, 'invincibility') > 0) return; // Thập Bộ Nhất Sát_Buff (2130)
+  const targetBag = combatOf(target).bag;
+  if (attrOf(targetBag, 'invincibility') > 0 || attrOf(targetBag, 'hide') > 0) return; // Thập Bộ Nhất Sát (2130) / Ngự Tuyết Ẩn (713)
   target.lastDamagedAt = w.now;
   attacker.lastAttackAt = w.now;
   if (target.kind === 'monster' && !target.def?.dummy && !target.target && !target.returning && attacker !== target) target.target = attacker.id;
