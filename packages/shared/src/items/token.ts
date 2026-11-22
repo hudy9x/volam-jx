@@ -12,7 +12,7 @@ import type { Gender } from '../characters/factions.js';
 export { TOKEN_ITEM, TOKEN_ITEM_ID, TOWN_PORTAL_ITEM, TOWN_PORTAL_ID } from './books.js';
 
 /** Options; 'faction' / 'gender' reset potential + skill points to their defaults, keep items and level (USER 2026-11-12). */
-export type TokenOp = 'level' | 'exp' | 'skills' | 'money' | 'gold' | 'faction' | 'gender' | 'washPotential' | 'washSkills' | 'ring' | 'graduate' | 'tkAccum';
+export type TokenOp = 'level' | 'exp' | 'skills' | 'money' | 'gold' | 'faction' | 'gender' | 'washPotential' | 'washSkills' | 'ring' | 'graduate' | 'tkAccum' | 'horse150' | 'potionMax';
 
 export const TOKEN = {
   /** "Thăng cấp 150". */
@@ -26,6 +26,11 @@ export const TOKEN = {
   tkAccum: 100_000,
   /** Skill tiers "Học kĩ năng 90, 120, 150". */
   tiers: [90, 120, 150] as const,
+  /** Ngựa 150 ngẫu nhiên: Bôn Tiêu, Phiên Vũ, Dương Sa. */
+  horsePool: ['horse-60', 'horse-70', 'horse-260'] as const,
+  /** Ngũ Hoa Ngọc Lộ Hoàn tối đa 60 lọ. */
+  potionId: 'potion-2-5',
+  potionMax: 60,
 };
 
 /** Hoàng kim môn phái sets a faction can take: suite number, a name (the words its pieces share) and the pieces. */

@@ -1,3 +1,13 @@
+## 2026-11-22 · Bổ sung option Ngựa 150 ngẫu nhiên & Ngũ Hoa Ngọc Lộ Hoàn max 60 lọ vào Lệnh bài (đã commit)
+
+- **USER yêu cầu:** trong Lệnh bài, bổ sung thêm option: (1) mua ngựa 150 — random 1 con trong Bôn Tiêu, Phiên Vũ, Dương Sa; (2) mua Ngũ Hoa Ngọc Lộ Hoàn max ×60 lọ.
+- **Thay đổi:**
+  - `packages/shared/src/items/token.ts`: mở rộng `TokenOp` thêm `'horse150' | 'potionMax'`, thêm `TOKEN.horsePool = ['horse-60', 'horse-70', 'horse-260']` (Bôn Tiêu, Phiên Vũ, Dương Sa), `TOKEN.potionId = 'potion-2-5'`, `TOKEN.potionMax = 60`.
+  - `apps/server/src/world/token.ts`: xử lý `horse150` (random 1 trong 3 ngựa, kiểm tra chỗ trống `2×3` trong hành trang) và `potionMax` (dùng `roomFor` để nạp tối đa tới trần `MAX_BAG_POTIONS = 60` bình thuốc trong hành trang, tự gộp/tách stack 50 + 10).
+  - `apps/client/src/ui/windows/token.ts`: thêm 2 nút tương ứng trong menu Lệnh bài.
+  - `tests/token.test.ts`: bổ sung test cho `horse150` và `potionMax`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/token.test.ts` (**4/4 pass**), `npm run build` & `git diff --check` đạt. Cần restart server & reload client để nhận thay đổi mới (dùng chung Web/Desktop/Mobile). Chưa commit/push.
+
 ## 2026-11-22 · Tặng 100 vạn cho toàn bộ bot & Thưởng kết thúc Tống Kim cho bot (đã commit)
 
 - **USER yêu cầu:** tặng cho toàn bộ bot 100 vạn (`1.000.000` lượng); mỗi trận Tống Kim đánh xong thưởng cho mỗi bot `200 vạn` (`2.000.000` lượng) và `50.000.000` EXP, nhân hệ số theo thứ hạng: Top 10 `×2`, Top 5 `×3`, Top 3 `×3.5`, Top 1 `×5`.

@@ -1,6 +1,6 @@
 import {
-  CAMP_NAMES, CANKHON_RING_ID, FACTIONS, LEVEL, campOf, factionAllowsGender, pointsAtLevel, type Element, MAX_MONEY, TOKEN, TOKEN_ITEM, TOKEN_ITEM_ID, TOWN_PORTAL_ID, addToBag, createGold, expToNext, factionSuites, findPlace, getSkill,
-  learnTiers, levelCap, type Item, type TokenOp,
+  CAMP_NAMES, CANKHON_RING_ID, FACTIONS, ITEMS, LEVEL, MAX_BAG_POTIONS, MAX_MONEY, TOKEN, TOKEN_ITEM, TOKEN_ITEM_ID, TOWN_PORTAL_ID, addToBag, bagPotionCount, campOf, createGold, expToNext, factionAllowsGender, factionSuites, findPlace, getSkill,
+  learnTiers, levelCap, pointsAtLevel, roomFor, type Element, type Item, type TokenOp,
 } from '@vltk/shared';
 import { db } from '../account/db.js';
 import type { Sim } from './entity.js';
@@ -68,6 +68,31 @@ export function useToken(w: World, sim: Sim, op: TokenOp, suite?: number, factio
       const made = makeItem(CANKHON_RING_ID);
       if (!made || !addToBag(sim.bag!, made)) { w.hooks.notify(sim, 'Hành trang không đủ chỗ.'); return false; }
       w.hooks.notify(sim, 'Nhận được Càn Khôn Giới Chỉ.');
+      return true;
+    }
+    case 'horse150': {
+      const defId = TOKEN.horsePool[Math.floor(Math.random() * TOKEN.horsePool.length)];
+      const def = ITEMS[defId];
+      const made = makeItem(defId);
+      if (!def || !made || !addToBag(sim.bag!, made)) { w.hooks.notify(sim, 'Hành trang không đủ chỗ.'); return false; }
+      w.hooks.notify(sim, `Nhận được ngựa ${def.name}.`);
+      return true;
+    }
+    case 'potionMax': {
+      const def = ITEMS[TOKEN.potionId];
+      if (!def) return false;
+      const room = roomFor(sim.bag!, def, TOKEN.potionMax);
+      if (room <= 0) {
+        w.hooks.notify(
+          sim,
+          bagPotionCount(sim.bag!) >= MAX_BAG_POTIONS
+            ? `Hành trang đã đạt tối đa ${MAX_BAG_POTIONS} bình thuốc.`
+            : 'Hành trang không đủ chỗ.',
+        );
+        return false;
+      }
+      addToBag(sim.bag!, { uid: newItemUid(), def: TOKEN.potionId, qty: room });
+      w.hooks.notify(sim, `Nhận được ${room} × ${def.name}.`);
       return true;
     }
     case 'washPotential':

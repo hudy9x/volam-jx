@@ -1,4 +1,4 @@
-import { FACTIONS, TOKEN, factionAllowsGender, factionSuites } from '@vltk/shared';
+import { FACTIONS, TOKEN, factionAllowsGender, factionSuites, type TokenOp } from '@vltk/shared';
 import { dialogs } from '../kit/dialog';
 import { $, mount } from '../kit/dom';
 import type { HudContext } from '../hud/context';
@@ -18,6 +18,8 @@ const HTML = `
     <button type="button" class="btn" data-op="graduate">Xuất sư / Về trận doanh phái (màu đỏ ↔ màu phái)</button>
     <button type="button" class="btn" data-op="forge">Nhận đồ xanh (mở Chế tạo, miễn phí, ở mọi nơi)</button>
     <button type="button" class="btn" data-op="ring">Nhận Càn Khôn Giới Chỉ (kích hoạt toàn bộ thuộc tính ẩn)</button>
+    <button type="button" class="btn" data-op="horse150">Mua ngựa 150 (ngẫu nhiên: Bôn Tiêu / Phiên Vũ / Dương Sa)</button>
+    <button type="button" class="btn" data-op="potionMax">Mua Ngũ Hoa Ngọc Lộ Hoàn (tối đa ${TOKEN.potionMax} lọ)</button>
     <button type="button" class="btn" data-op="gender">Đổi giới tính</button>
     <button type="button" class="btn" data-op="washPotential">Tẩy tủy: trả lại toàn bộ điểm tiềm năng</button>
     <button type="button" class="btn" data-op="washSkills">Tẩy tủy: trả lại toàn bộ điểm kỹ năng</button>
@@ -49,7 +51,7 @@ export class TokenWindow {
       else if (op === 'gender') { if (confirm('Đổi giới tính? Điểm tiềm năng và kỹ năng sẽ trả về mặc định.')) this.send({ op: 'gender' }); }
       else if (op === 'washPotential' || op === 'washSkills') {
         if (confirm(op === 'washPotential' ? 'Tẩy tủy toàn bộ điểm tiềm năng?' : 'Tẩy tủy toàn bộ điểm kỹ năng (chiêu luyện / bí kíp giữ nguyên)?')) this.send({ op });
-      } else this.send({ op: op as 'level' | 'exp' | 'skills' | 'money' | 'ring' | 'graduate' | 'tkAccum' });
+      } else this.send({ op: op as TokenOp });
     }));
     $('token-back').addEventListener('click', () => this.back());
   }
