@@ -8,8 +8,32 @@ export const MISSILE_OVERRIDES: Record<number, Partial<MissileDef>> = {
   // 1. Thiên Vương: Bá Vương Tạm Kim (#1060 -> #1088 -> #350) chậm lại để dễ nhìn rõ từng thức
   350: { speed: 24, life: 6 },
 
-  // 2. Đường Môn: Bạo Vũ Lê Hoa (#302 -> #96) & Thiết Liên Tứ Sát (#1070 -> #332) xoay nhanh hơn
+  // 2. Đường Môn:
+  //    - Bạo Vũ Lê Hoa (#302 -> #96) & Thiết Liên Tứ Sát (#1070 -> #332) xoay nhanh hơn
+  //    - Tiểu Lý Phi Đao (#249 -> #106): phóng phi đao bay thẳng (move: 1, speed: 64, life: 6) + hiệu ứng nổ khi trúng
+  //    - Nhiếp Hồn Nguyệt Ảnh (#339 -> #149): bay nhanh gấp đôi (speed: 32 -> 64, life: 16 -> 8, tpf: 0.5)
+  //    - Vô Ảnh Xuyên (#1069 -> #331): bay nhanh gấp đôi (speed: 40 -> 80, life: 13 -> 7)
   96: { fx: { fly: { key: 'skill/fx/4543a8c4', tpf: 1 } } },
+  106: {
+    move: 1,
+    speed: 64,
+    life: 6,
+    colVanish: true,
+    fx: {
+      fly: { key: 'skill/fx/d1f0327d', tpf: 0.5 },
+      collide: { key: 'skill/fx/0ce6b749', tpf: 0.5 },
+    },
+  },
+  149: {
+    speed: 64,
+    life: 8,
+    fx: { fly: { key: 'skill/fx/7f1d7cef', tpf: 0.5 } },
+  },
+  331: {
+    speed: 80,
+    life: 7,
+    fx: { fly: { key: 'skill/fx/d1f0327d', tpf: 0.5 } },
+  },
   332: { fx: { fly: { key: 'skill/fx/53144a68', tpf: 0.5 } } },
 
   // 3. Ngũ Độc: U Hồn Phệ Ảnh (#1067 -> #329) bay thẳng và xuyên qua mục tiêu

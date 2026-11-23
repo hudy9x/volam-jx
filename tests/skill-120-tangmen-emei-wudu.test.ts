@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MapSchema } from '@colyseus/schema';
 import {
-  attr1, getSkill, JX_TICK_MS, MAPS, registerNav, triggersOf,
+  attr1, getMissile, getSkill, JX_TICK_MS, MAPS, registerNav, triggersOf,
 } from '@vltk/shared';
 import { Actor } from '../apps/server/src/net/schema.js';
 import { makeSim, type Sim } from '../apps/server/src/world/entity.js';
@@ -161,4 +161,46 @@ test('Ngũ Độc Kỳ Kinh (75, Trấn phái max 30): tốc đánh ngoại côn
   assert.equal(attr1(s75, 'addpoisondamage_v', 30), 100);
   assert.equal(attr1(s75, 'addpoisonmagic_v', 30), 100);
   assert.equal(attr1(s75, 'deadlystrikeenhance_p', 30), 45);
+});
+
+test('Đường Môn 60/90/150: xuất hiện ngay (wait=0), Bạo Vũ Lê Hoa (302) & Thiết Liên Tứ Sát (1070) bung tia ngay lập tức, Tiểu Lý Phi Đao (249) / Nhiếp Hồn Nguyệt Ảnh (339) / Vô Ảnh Xuyên (1069) bay nhanh gấp đôi', () => {
+  for (const id of [58, 249, 301, 302, 339, 340, 341, 342, 1069, 1070, 1071, 1097, 1098]) {
+    assert.equal(getSkill(id)?.wait ?? 0, 0, `Skill ${id} should have wait=0`);
+  }
+  // Tiểu Lý Phi Đao (#249 -> M106): bay thẳng speed=64
+  assert.equal(getSkill(249)?.form, 1);
+  assert.equal(getMissile(106)?.move, 1);
+  assert.equal(getMissile(106)?.speed, 64);
+  assert.equal(getMissile(106)?.life, 6);
+
+  // Nhiếp Hồn Nguyệt Ảnh (#339 -> M149): speed 64, life 8
+  assert.equal(attr1(getSkill(339)!, 'missle_speed_v', 20), 64);
+  assert.equal(getMissile(149)?.speed, 64);
+  assert.equal(getMissile(149)?.life, 8);
+
+  // Vô Ảnh Xuyên (#1069 -> M331): speed 80, life 7
+  assert.equal(attr1(getSkill(1069)!, 'missle_speed_v', 20), 80);
+  assert.equal(getMissile(331)?.speed, 80);
+  assert.equal(getMissile(331)?.life, 7);
+
+  // Bạo Vũ Lê Hoa (#302) & Thiết Liên Tứ Sát (#1070) ở lv20 bung ngay 8 tia (#301 M126 / #1098 M360) ngay khi tâm xoáy xuất hiện
+  const w = makeWorld();
+  const tm = addPlayer(w, 'tm-fast', { x: 2000, y: 2000, camp: 'balance' });
+  tm.weaponType = 102; // Nỏ
+  tm.skills.set(302, 20);
+  tm.skills.set(1070, 20);
+
+  w.engine.cast(tm, 302, undefined, { x: 2200, y: 2000 }, 10);
+  w.now += 20;
+  w.engine.update();
+  const ev302 = w.takeEvents();
+  assert.ok(ev302.some(e => e.t === 'msl' && e.k === 96), 'M96 vortex spawns immediately');
+  assert.equal(ev302.filter(e => e.t === 'msl' && e.k === 126).length, 8, '8 rays of Truy Tinh Trục Điện (M126) burst immediately on start');
+
+  w.engine.cast(tm, 1070, undefined, { x: 2200, y: 2000 }, 10);
+  w.now += 20;
+  w.engine.update();
+  const ev1070 = w.takeEvents();
+  assert.ok(ev1070.some(e => e.t === 'msl' && e.k === 332), 'M332 vortex spawns immediately');
+  assert.equal(ev1070.filter(e => e.t === 'msl' && e.k === 360).length, 8, '8 rays of Thiết Sa Xạ Tinh (M360) burst immediately on start');
 });

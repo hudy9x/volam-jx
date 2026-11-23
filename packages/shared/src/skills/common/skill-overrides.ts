@@ -22,6 +22,45 @@ export const SKILL_OVERRIDES: Record<number, SkillOverride> = {
   // 8. Thúy Yên: Băng Tước Hoạt Kỳ (#1063) 3 tia từ người chơi tách dần 2 bên (~10° mỗi tia)
   1063: { form: 2, childNum: 3, p1: 1.8 },
 
+  // 9. Đường Môn (cấp 60 / 90 / 150): xuất hiện ngay khi ra chiêu (wait: 0);
+  //    Bạo Vũ Lê Hoa (#302 -> #301) & Thiết Liên Tứ Sát (#1070 -> #1098) bung tia ám khí ngay lập tức;
+  //    Tiểu Lý Phi Đao (#249), Nhiếp Hồn Nguyệt Ảnh (#339) & Vô Ảnh Xuyên (#1069) bay nhanh gấp đôi (2x).
+  58: { wait: 0 },
+  249: { form: 1, wait: 0 },
+  301: { wait: 0 },
+  302: {
+    wait: 0,
+    events: { start: 301, fly: 301, flyTicks: 15 },
+    attrs: {
+      skill_startevent: [[[1, 0], [10, 0], [10, 1], [20, 1]], null, [[1, 301], [20, 301]]],
+    },
+  },
+  339: {
+    wait: 0,
+    attrs: {
+      missle_speed_v: [[[1, 56], [20, 64], [21, 64]], null, null],
+    },
+  },
+  340: { wait: 0 },
+  341: { wait: 0 },
+  342: { wait: 0 },
+  1069: {
+    wait: 0,
+    attrs: {
+      missle_speed_v: [[[1, 64], [20, 80], [21, 80]], null, null],
+    },
+  },
+  1070: {
+    wait: 0,
+    events: { start: 1098, fly: 1098, flyTicks: 12 },
+    attrs: {
+      skill_startevent: [[[1, 0], [10, 0], [10, 1], [20, 1]], null, [[1, 1098], [20, 1098]]],
+    },
+  },
+  1071: { wait: 0 },
+  1097: { wait: 0 },
+  1098: { wait: 0 },
+
   // Ngũ Độc: Ngũ Độc Kỳ Kinh (#75, Trấn phái max 30) — tốc độ đánh ngoại công & nội công đạt +20% ở cấp 30 (giữ nguyên các dòng khác)
   75: {
     attrs: {

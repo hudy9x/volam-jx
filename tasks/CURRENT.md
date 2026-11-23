@@ -21,6 +21,22 @@
   - `apps/server/data/db.json`: khởi tạo sẵn 18 tài khoản và nhân vật `botfixed_201`..`botfixed_218` (template `level-150-200`, trang bị Hoàng Kim `gold`, `2.000.000` lượng, `50× Chiến Cổ` + `50× Lệnh Bài`, `pending: true` để tự mặc bộ Hoàng Kim Tiêu Dao chuẩn khi vào game).
 - **Kiểm tra:** `node --import tsx --test tests/bot-roster.test.ts tests/bot-gold-loadouts.test.ts tests/bot-config-delete.test.ts tests/bot-scenario-assignment.test.ts` (**9/9 pass**), `npm run typecheck` (0 lỗi), `git diff --check` đạt. Cần restart server để nạp 18 tài khoản bot mới từ `db.json` (công cụ `bots:ui` tự reload). Đã commit trên `main`, chưa push.
 
+## 2026-11-23 · Đường Môn 60/90/150: Xuất hiện chiêu ngay lập tức (`wait = 0`, bung tia ngay khi đặt tâm xoáy `#302`/`#1070`) & Tăng tốc bay gấp đôi (2×) cho Tiểu Lý Phi Đao (`#249`), Nhiếp Hồn Nguyệt Ảnh (`#339`), Vô Ảnh Xuyên (`#1069`) (đã commit)
+
+- **USER yêu cầu:** cho các chiêu thức cấp 60, 90, 150 của Đường Môn xuất hiện ngay lập tức (như *Thiết Liên Tứ Sát `#1070`* và *Bạo Vũ Lê Hoa `#302`*), đồng thời tăng tốc độ bay gấp đôi cho *Tiểu Lý Phi Đao (`#249`)*, *Nhiếp Hồn Nguyệt Ảnh (`#339`)* và *Vô Ảnh Xuyên (`#1069`)*.
+- **Thay đổi:**
+  - `packages/shared/src/skills/common/skill-overrides.ts`:
+    - Đặt `wait: 0` cho toàn bộ chiêu Đường Môn cấp 60/90/150 và chiêu con (`58`, `249`, `301`, `302`, `339`, `340`, `341`, `342`, `1069`, `1070`, `1071`, `1097`, `1098`).
+    - **Bạo Vũ Lê Hoa (`#302` → `#301`)** & **Thiết Liên Tứ Sát (`#1070` → `#1098`)**: thêm `events.start` + `skill_startevent` (mở từ cấp 10 giống `skill_flyevent`) và giảm `flyTicks` một nửa (`30 → 15`, `18 → 12`) để ngay khoảnh khắc tâm xoáy xuất hiện là bung ngay đợt 8 tia ám khí đầu tiên thay vì phải chờ 1,5–2,1 giây.
+    - **Tiểu Lý Phi Đao (`#249`)**: đổi `form: 6 → 1` để phóng phi đao bay thẳng từ nhân vật tới mục tiêu.
+    - **Nhiếp Hồn Nguyệt Ảnh (`#339`)** & **Vô Ảnh Xuyên (`#1069`)**: tăng gấp đôi `missle_speed_v` (`32 → 64` và `40 → 80`).
+  - `packages/shared/src/skills/common/missile-tuning.ts`:
+    - `106` (*Tiểu Lý Phi Đao*): `move: 1`, `speed: 64`, `life: 6`, `colVanish: true`, `fx.fly` (`skill/fx/d1f0327d`, `tpf: 0.5`) + `fx.collide` (`skill/fx/0ce6b749`, `tpf: 0.5`).
+    - `149` (*Nhiếp Hồn Nguyệt Ảnh*): `speed: 64`, `life: 8`, `fx.fly.tpf: 0.5` (giữ nguyên tầm bay `512 px`, bay nhanh gấp đôi).
+    - `331` (*Vô Ảnh Xuyên*): `speed: 80`, `life: 7`, `fx.fly.tpf: 0.5` (giữ nguyên tầm bay, bay nhanh gấp đôi).
+  - `tests/skill-120-tangmen-emei-wudu.test.ts`: bổ sung test kiểm chứng `wait = 0`, tốc độ bay 2× của `#249`/`#339`/`#1069`, và việc `#302`/`#1070` bung ngay 8 tia `M126`/`M360` khi xuất hiện.
+- **Kiểm tra:** `node --import tsx --test tests/skill-120-tangmen-emei-wudu.test.ts tests/xiaoyao.test.ts` (**16/16 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần restart server & reload client để áp dụng (dùng chung Web/Desktop/Mobile). Đã commit trên `main`, chưa push.
+
 ## 2026-11-23 · Sửa Táp Đạp Lưu Tinh (`#2118` → `#2119`) dịch chuyển tự do kèm tàn ảnh như Mê Ảnh Tung & Tăng tốc gấp đôi (2×) chiêu Kiếm 10 (`#2114`), 40 (`#2120`), 90 (`#2124`) (đã commit)
 
 - **USER yêu cầu:**
