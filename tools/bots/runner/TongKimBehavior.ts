@@ -27,8 +27,10 @@ import {
 import type { Behavior, BotClient } from './BotClient.js';
 import {
   KIM_LANES_378,
+  MARSHAL_SQUAD_COHESION_RADIUS,
   TK_CAMP_DIRECTOR,
   TONG_LANES_378,
+  assignSiegeRole,
   assignTkRole,
   buildTacticalLanes,
   computeKitePoint,
@@ -39,6 +41,7 @@ import {
   type TkBotRole,
   type TkCampDirector,
   type TkMarshalEndgame,
+  type TkSiegeRole,
 } from './TkTactics.js';
 
 function legacyLanesFor(battleMapId: number, camp: TkCamp): readonly (readonly Point2D[])[] {
@@ -241,9 +244,9 @@ export class TongKimBehavior implements Behavior {
     const myCamp = (me.battleCamp || st?.me?.camp || (this.botIndex % 2 === 0 ? 'tong' : 'kim')) as TkCamp;
     const inCamp = !!st?.me?.inCamp || isInTkSafeCamp(battleMapId, me.x, me.y);
 
-    // Bơm máu / nội lực (Survival Loop) & dùng vật phẩm Tống Kim nhặt được
+    // Bơm máu / nội lực (Survival Loop) & dùng vật phẩm Tống Kim khi ở trong Hậu doanh (mở Bí Bảo, buff trước)
     this.upkeepPotions(me, now);
-    this.useTkBagItems(me, inCamp, now);
+    if (inCamp) this.useTkBagItems(me, true, 'none', now);
 
     // Giữ hào quang & bùa lợi
     this.upkeepBuffs(me, now);
@@ -275,7 +278,9 @@ export class TongKimBehavior implements Behavior {
     }
 
     const tactic = this.effectiveTactic(this.bot.mapId, myCamp);
-    const role: TkBotRole = assignTkRole(this.botIndex, me.faction ?? this.bot.stats?.faction);
+    const faction = me.faction ?? this.bot.stats?.faction;
+    const role: TkBotRole = assignTkRole(this.botIndex, faction);
+    const siegeRole: TkSiegeRole = assignSiegeRole(this.botIndex, faction);
     let endgame: TkMarshalEndgame = 'none';
     if (tactic !== 'charge') {
       const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
@@ -291,12 +296,16 @@ export class TongKimBehavior implements Behavior {
         exitedAt: this.exitedCampAt,
         seenAt: now,
         isRusher,
+        siegeRole,
       });
       endgame = this.director.resolveMarshalEndgame(this.bot.mapId, myCamp, st, this.botIndex, cfg[myCamp].marshal, now);
       if (tactic === 'tactical' || tactic === 'defend') {
         this.scanOwnMarshalThreat(myCamp, now);
       }
     }
+
+    // Dùng vật phẩm Tống Kim (bật sẵn buff tại điểm tập kết, giữ Bẫy/Hiệu Phù khi giao tranh thật sự)
+    this.useTkBagItems(me, inCamp, endgame, now);
 
     // 3b. Đang bay Khinh công -> chờ tiếp đất rồi mới hành động tiếp.
     if ((me.jumpMs ?? 0) > 0 || me.anim === 'jump') return;
@@ -312,7 +321,7 @@ export class TongKimBehavior implements Behavior {
 
     // 4. Giao tranh ngoài tiền tuyến: tìm mục tiêu phe địch ưu tiên.
     const scanRadius = this.sc.tongkim?.scanRadius ?? DEFAULT_BOT_TONGKIM.scanRadius;
-    const target = this.pickTarget(me, myCamp, scanRadius, tactic, endgame, now);
+    const target = this.pickTarget(me, myCamp, scanRadius, tactic, endgame, siegeRole, now);
     // Nhặt vật phẩm Tống Kim rơi trong tầm (song song khi giao tranh) hoặc chạy tới nhặt khi không có địch.
     if (this.pickupTkDrops(me, now, !!target || endgame !== 'none')) return;
     if (target) {
@@ -336,7 +345,7 @@ export class TongKimBehavior implements Behavior {
     if (tactic === 'charge') {
       this.advanceWaypoints(me, myCamp, now);
     } else {
-      this.advanceTactical(me, myCamp, tactic, role, endgame, now);
+      this.advanceTactical(me, myCamp, tactic, role, siegeRole, endgame, now);
     }
   }
 
@@ -496,16 +505,17 @@ export class TongKimBehavior implements Behavior {
     scanRadius: number,
     tactic: ConcreteTkTactic,
     endgame: TkMarshalEndgame,
+    siegeRole: TkSiegeRole,
     now: number,
   ): { id: string; x: number; y: number } | null {
-    // Đang tập kết tại điểm Nguyên Soái phe mình vừa chết -> bỏ qua địch để gom đủ 100% quân trước khi tổng lực.
+    // Đang tập kết tại điểm Nguyên Soái phe mình vừa chết -> bỏ qua địch để gom đủ quân cho Đợt công thành.
     if (endgame === 'rally_for_rush') {
       this.lockedTargetId = '';
       return null;
     }
 
     const actors = this.bot.actors();
-    const useUtility = tactic === 'tactical' || tactic === 'defend' || endgame === 'defend_marshal';
+    const useUtility = tactic === 'tactical' || tactic === 'defend' || endgame === 'defend_marshal' || (endgame === 'rush_enemy_marshal' && siegeRole === 'breacher');
     const mySeries = (this.bot.stats?.series ?? (me.series as Element | undefined)) as Element | undefined;
     const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
     const myMarshal = cfg[myCamp].marshal;
@@ -515,6 +525,7 @@ export class TongKimBehavior implements Behavior {
 
     let bestLegacy: { id: string; x: number; y: number; tier: number; dist: number } | null = null;
     let bestUtil: { id: string; x: number; y: number; score: number; hpRatio: number; isPriority: boolean } | null = null;
+    let selfDefenseTarget: { id: string; x: number; y: number; dist: number } | null = null;
 
     for (const a of actors) {
       if (a.isSelf || a.state.hp <= 0) continue;
@@ -528,11 +539,27 @@ export class TongKimBehavior implements Behavior {
 
       const isMarshal = a.state.kind === 'monster' && Number(a.state.boss) >= 2;
 
-      // 70% quân phe mất Nguyên Soái: bỏ qua toàn bộ bot/lính địch, chỉ đánh Nguyên Soái địch.
+      // Nhóm 70% công thành (phân 3 tiểu đội: slayer / support / breacher):
       if (endgame === 'rush_enemy_marshal') {
-        if (!isMarshal) continue;
-        this.lockedTargetId = a.id;
-        return { id: a.id, x: a.x, y: a.y };
+        if (isMarshal) {
+          this.lockedTargetId = a.id;
+          return { id: a.id, x: a.x, y: a.y };
+        }
+        if (siegeRole === 'slayer') {
+          // Sát thủ Soái: bỏ qua địch ở xa, chỉ đánh trả tự vệ nếu bị áp sát <= 160 px.
+          if (dist <= 160 && (!selfDefenseTarget || dist < selfDefenseTarget.dist)) {
+            selfDefenseTarget = { id: a.id, x: a.x, y: a.y, dist };
+          }
+          continue;
+        }
+        if (siegeRole === 'support') {
+          // Nga Mi hỗ trợ: chỉ đánh trả nếu địch áp sát <= 280 px, ưu tiên bám cụm đồng đội.
+          if (dist <= 280 && (!selfDefenseTarget || dist < selfDefenseTarget.dist)) {
+            selfDefenseTarget = { id: a.id, x: a.x, y: a.y, dist };
+          }
+          continue;
+        }
+        // `breacher` (Mở đường): rơi xuống `scoreTargetUtility` để chủ động đánh & khống chế bot địch chắn đường!
       }
 
       // Phe còn Nguyên Soái đang dồn về thủ Soái: bỏ qua địch ngoài vùng bảo vệ nếu bản thân còn xa Soái nhà.
@@ -581,9 +608,9 @@ export class TongKimBehavior implements Behavior {
       }
     }
 
-    if (endgame === 'rush_enemy_marshal') {
-      this.lockedTargetId = '';
-      return null;
+    if (endgame === 'rush_enemy_marshal' && siegeRole !== 'breacher') {
+      this.lockedTargetId = selfDefenseTarget?.id ?? '';
+      return selfDefenseTarget ? { id: selfDefenseTarget.id, x: selfDefenseTarget.x, y: selfDefenseTarget.y } : null;
     }
 
     if (!useUtility) {
@@ -714,7 +741,7 @@ export class TongKimBehavior implements Behavior {
     this.followLane(me, list, now);
   }
 
-  private advanceTactical(me: any, myCamp: TkCamp, tactic: ConcreteTkTactic, role: TkBotRole, endgame: TkMarshalEndgame, now: number): void {
+  private advanceTactical(me: any, myCamp: TkCamp, tactic: ConcreteTkTactic, role: TkBotRole, siegeRole: TkSiegeRole, endgame: TkMarshalEndgame, now: number): void {
     const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
     const mine = cfg[myCamp];
     const enemy = cfg[myCamp === 'tong' ? 'kim' : 'tong'];
@@ -732,7 +759,7 @@ export class TongKimBehavior implements Behavior {
       return;
     }
 
-    // 0b. Chiến lược Nguyên Soái: phe mình mất Soái -> nhóm 70% tập trung đủ 100% tại điểm Nguyên Soái phe mình trước.
+    // 0b. Chiến lược Nguyên Soái: phe mình mất Soái -> nhóm 70% tập kết thành Đợt tại điểm Nguyên Soái phe mình trước.
     if (endgame === 'rally_for_rush') {
       const angle = ((this.botIndex % 14) / 14) * Math.PI * 2;
       const ring = 90 + (this.botIndex % 3) * 45;
@@ -745,20 +772,66 @@ export class TongKimBehavior implements Behavior {
       return;
     }
 
-    // 0c. Đã đủ 100% tập kết -> toàn bộ 70% đồng loạt lao thẳng về doanh trại/Nguyên Soái địch, bỏ qua bot địch.
+    // 0c. Đợt công thành (Wave): hành quân bọc sườn theo Đội trưởng (luân phiên cánh Trái/Phải) -> đồng loạt ập vào Soái địch.
     if (endgame === 'rush_enemy_marshal') {
-      if (isoDistance(me.x, me.y, this.lastPos.x, this.lastPos.y) > 25) {
-        this.lastPos = { x: me.x, y: me.y, at: now };
-      } else if (now - this.lastPos.at > 3500) {
-        this.lastPos.at = now;
-        this.rollJitter();
+      const wave = this.director.getSiegeWave(this.bot.mapId, myCamp, enemy.marshal, now);
+      const myId = me.id ?? this.bot.name;
+      const isLeader = wave.leaderId === myId;
+
+      // Tiểu đội Hỗ trợ (Nga Mi): bám giữa đội hình / Đội trưởng để phủ hào quang & Chiến Cổ.
+      if (siegeRole === 'support') {
+        const anchor = wave.leaderPos ?? this.findNearestAllyCluster(me, myCamp, 2400) ?? enemy.marshal;
+        if (isoDistance(me.x, me.y, anchor.x, anchor.y) > 200 && now >= this.nextMoveAt) {
+          this.nextMoveAt = now + 750;
+          this.bot.send(C2S.move, { x: anchor.x + Math.round(this.jitter.x * 0.35), y: anchor.y + Math.round(this.jitter.y * 0.35) });
+        }
+        return;
       }
-      if (now >= this.nextMoveAt) {
-        this.nextMoveAt = now + 800;
-        const tx = enemy.marshal.x + Math.round(this.jitter.x * 0.5);
-        const ty = enemy.marshal.y + Math.round(this.jitter.y * 0.5);
-        this.bot.send(C2S.move, { x: tx, y: ty });
+
+      // Trên đường hành quân bọc sườn (!wave.engaged): đồng đội giữ đội hình quanh Đội trưởng, không chạy vọt lên lẻ nạp mạng.
+      if (!wave.engaged && !isLeader && wave.leaderPos) {
+        const distToLeader = isoDistance(me.x, me.y, wave.leaderPos.x, wave.leaderPos.y);
+        const myDistEnemy = isoDistance(me.x, me.y, enemy.marshal.x, enemy.marshal.y);
+        const leaderDistEnemy = isoDistance(wave.leaderPos.x, wave.leaderPos.y, enemy.marshal.x, enemy.marshal.y);
+        const tooFarAhead = myDistEnemy + 240 < leaderDistEnemy;
+        const tooFarBehind = distToLeader > MARSHAL_SQUAD_COHESION_RADIUS;
+        if (tooFarAhead || tooFarBehind) {
+          if (now >= this.nextMoveAt) {
+            this.nextMoveAt = now + 750;
+            this.bot.send(C2S.move, {
+              x: wave.leaderPos.x + Math.round(this.jitter.x * 0.4),
+              y: wave.leaderPos.y + Math.round(this.jitter.y * 0.4),
+            });
+          }
+          return;
+        }
       }
+
+      // Khi đã vào vùng công thành (wave.engaged) -> dồn thẳng vào Nguyên Soái địch; chưa vào -> đi theo cánh bọc sườn của Wave.
+      if (wave.engaged) {
+        if (isoDistance(me.x, me.y, this.lastPos.x, this.lastPos.y) > 25) {
+          this.lastPos = { x: me.x, y: me.y, at: now };
+        } else if (now - this.lastPos.at > 3500) {
+          this.lastPos.at = now;
+          this.rollJitter();
+        }
+        if (now >= this.nextMoveAt) {
+          this.nextMoveAt = now + 750;
+          this.bot.send(C2S.move, {
+            x: enemy.marshal.x + Math.round(this.jitter.x * 0.45),
+            y: enemy.marshal.y + Math.round(this.jitter.y * 0.45),
+          });
+        }
+        return;
+      }
+
+      const lanes = buildTacticalLanes(this.bot.mapId, myCamp);
+      const flankLane = lanes[wave.lane] ?? lanes[0];
+      if (this.assignedLane !== wave.lane) {
+        this.assignedLane = wave.lane;
+        this.wpIndex = -1;
+      }
+      this.followLane(me, flankLane, now);
       return;
     }
 
@@ -957,12 +1030,13 @@ export class TongKimBehavior implements Behavior {
     return true;
   }
 
-  private useTkBagItems(me: any, inCamp: boolean, now: number): void {
+  private useTkBagItems(me: any, inCamp: boolean, endgame: TkMarshalEndgame, now: number): void {
     if (now < this.nextTkItemUseAt) return;
     const active = new Set<number>([...(me.states ?? [])]);
     const hpRatio = me.maxHp > 0 ? me.hp / me.maxHp : 1;
     const mpRatio = me.maxMp > 0 ? me.mp / me.maxMp : 1;
     const fighting = this.bot.tkState?.phase === 'fighting';
+    const rallying = endgame === 'rally_for_rush';
 
     for (let i = 0; i < this.bot.bag.length; i++) {
       const def = itemDef(this.bot.bag[i]);
@@ -978,13 +1052,13 @@ export class TongKimBehavior implements Behavior {
         this.bot.send(C2S.use, { index: i });
         return;
       }
-      if (eff.kind === 'clarion' && !inCamp && fighting && now >= this.nextClarionAt) {
+      if (eff.kind === 'clarion' && !inCamp && !rallying && fighting && now >= this.nextClarionAt) {
         this.nextClarionAt = now + 8000;
         this.nextTkItemUseAt = now + 1000;
         this.bot.send(C2S.use, { index: i });
         return;
       }
-      if (eff.kind === 'trap' && !inCamp && fighting && now >= this.nextTrapAt) {
+      if (eff.kind === 'trap' && !inCamp && !rallying && fighting && now >= this.nextTrapAt) {
         this.nextTrapAt = now + 4500;
         this.nextTkItemUseAt = now + 1000;
         this.bot.send(C2S.use, { index: i });

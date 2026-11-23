@@ -13,17 +13,35 @@ import {
 
 export type ConcreteTkTactic = Exclude<BotTongKimTactic, 'random'>;
 export type TkBotRole = 'vanguard' | 'flanker' | 'guard' | 'support';
+export type TkSiegeRole = 'breacher' | 'slayer' | 'support';
 export type TkMarshalEndgame = 'none' | 'defend_marshal' | 'rally_for_rush' | 'rush_enemy_marshal';
 
 export const MARSHAL_DEFEND_DELAY_MS = 30_000;
 export const MARSHAL_RALLY_RADIUS = 450;
-export const MARSHAL_RALLY_MAX_WAIT_MS = 45_000;
+export const MARSHAL_RALLY_MAX_WAIT_MS = 22_000;
+export const MARSHAL_WAVE_COLLAPSE_AFTER_MS = 12_000;
+export const MARSHAL_SQUAD_COHESION_RADIUS = 320;
+export const MARSHAL_BREACH_RADIUS = 720;
+
+const BREACHER_FACTIONS = new Set(['shaolin', 'tianwang', 'gaibang', 'wudu']);
 
 /**
  * Kiểm tra xem bot có thuộc nhóm 70% tổng lực diệt Soái khi phe mình mất Nguyên Soái hay không.
  */
 export function isMarshalRusherSlot(botIndex: number): boolean {
   return (Math.abs(botIndex) % 10) < 7;
+}
+
+/**
+ * Phân 3 tiểu đội trong nhóm 70% công thành:
+ * - `support`: Nga Mi — bám cụm đồng đội, bật Chiến Cổ/Lệnh Bài/hào quang.
+ * - `breacher`: Cận chiến/AoE (Thiếu Lâm, Thiên Vương, Cái Bang, Ngũ Độc hoặc 20% đầu) — mở đường & khống chế bot địch.
+ * - `slayer`: DPS/Tầm xa — bám Đội trưởng, ưu tiên dồn sát thương Nguyên Soái địch, chỉ tự vệ khi địch áp sát.
+ */
+export function assignSiegeRole(botIndex: number, faction?: string): TkSiegeRole {
+  if (faction === 'emei') return 'support';
+  if ((faction && BREACHER_FACTIONS.has(faction)) || (Math.abs(botIndex) % 10) < 2) return 'breacher';
+  return 'slayer';
 }
 
 /**
@@ -78,6 +96,17 @@ export interface TkBotPresence {
   seenAt: number;
   /** Thuộc nhóm 70% tổng lực diệt Soái địch khi phe mình mất Nguyên Soái. */
   isRusher?: boolean;
+  /** Vai trò tiểu đội công thành (breacher / slayer / support). */
+  siegeRole?: TkSiegeRole;
+}
+
+export interface TkSiegeWaveSnapshot {
+  waveNumber: number;
+  state: 'rallying' | 'marching';
+  lane: 1 | 2;
+  leaderId: string;
+  leaderPos: Point2D | null;
+  engaged: boolean;
 }
 
 export interface TkMarshalAlert {
@@ -275,7 +304,12 @@ interface CampBoard {
   endgameMatchKey: string;
   enemyMarshalDiedAt: number;
   myMarshalDiedAt: number;
-  rushLaunched: boolean;
+  waveNumber: number;
+  waveState: 'rallying' | 'marching';
+  waveRallyStartedAt: number;
+  waveLaunchedAt: number;
+  waveLane: 1 | 2;
+  waveLeaderId: string;
 }
 
 const CONCRETE_TACTICS: readonly ConcreteTkTactic[] = ['charge', 'flank', 'tactical', 'defend'];
@@ -299,7 +333,12 @@ export class TkCampDirector {
         endgameMatchKey: '',
         enemyMarshalDiedAt: 0,
         myMarshalDiedAt: 0,
-        rushLaunched: false,
+        waveNumber: 0,
+        waveState: 'rallying',
+        waveRallyStartedAt: 0,
+        waveLaunchedAt: 0,
+        waveLane: 1,
+        waveLeaderId: '',
       };
       this.boards.set(key, b);
     }
@@ -392,11 +431,43 @@ export class TkCampDirector {
     return picked;
   }
 
+  private pickWaveLeader(b: CampBoard): TkBotPresence | null {
+    const existing = b.waveLeaderId ? b.bots.get(b.waveLeaderId) : undefined;
+    if (existing && existing.isRusher) return existing;
+    let best: TkBotPresence | null = null;
+    for (const p of b.bots.values()) {
+      if (!p.isRusher) continue;
+      if (!best || (p.siegeRole === 'breacher' && best.siegeRole !== 'breacher')) {
+        best = p;
+      }
+    }
+    b.waveLeaderId = best?.id ?? '';
+    return best;
+  }
+
+  /** Thông tin đợt công thành hiện tại (Đội trưởng, cánh bọc sườn, đã vào vùng giao chiến quanh Soái địch chưa). */
+  getSiegeWave(mapId: number, camp: TkCamp, enemyMarshalPos: Point2D, now: number): TkSiegeWaveSnapshot {
+    const b = this.board(mapId, camp);
+    this.prune(b, now);
+    const leader = this.pickWaveLeader(b);
+    const leaderPos = leader ? { x: leader.x, y: leader.y } : null;
+    const engaged = !!leaderPos && isoDistance(leaderPos.x, leaderPos.y, enemyMarshalPos.x, enemyMarshalPos.y) <= MARSHAL_BREACH_RADIUS;
+    return {
+      waveNumber: b.waveNumber,
+      state: b.waveState,
+      lane: b.waveLane,
+      leaderId: b.waveLeaderId,
+      leaderPos,
+      engaged,
+    };
+  }
+
   /**
    * Điều phối chiến lược chế độ Nguyên Soái theo thời gian thực trên toàn phe:
    * - Phe đang thắng (`myAlive && !enemyAlive`): chờ đúng 30s (`MARSHAL_DEFEND_DELAY_MS`) rồi mới dồn toàn lực về bảo vệ Soái nhà.
-   * - Phe mất Nguyên Soái (`!myAlive && enemyAlive`): nhóm 70% tập trung đủ 100% tại điểm Nguyên Soái phe mình vừa chết
-   *   (`rally_for_rush`) rồi mới đồng loạt lao về Nguyên Soái phe địch (`rush_enemy_marshal`).
+   * - Phe mất Nguyên Soái (`!myAlive && enemyAlive`): tổ chức thành từng **Đợt (Wave)** lặp lại:
+   *   tập kết đủ quân tại điểm Nguyên Soái phe mình vừa chết (`rally_for_rush`) -> xuất kích bọc sườn cùng Đội trưởng (`rush_enemy_marshal`)
+   *   -> khi đợt bị đánh tan sẽ tự động gom đợt mới và đổi cánh.
    */
   resolveMarshalEndgame(
     mapId: number,
@@ -414,7 +485,12 @@ export class TkCampDirector {
       b.endgameMatchKey = matchKey;
       b.enemyMarshalDiedAt = 0;
       b.myMarshalDiedAt = 0;
-      b.rushLaunched = false;
+      b.waveNumber = 0;
+      b.waveState = 'rallying';
+      b.waveRallyStartedAt = 0;
+      b.waveLaunchedAt = 0;
+      b.waveLane = 1;
+      b.waveLeaderId = '';
     }
 
     const myAlive = camp === 'tong' ? !!tkState.tongMarshalAlive : !!tkState.kimMarshalAlive;
@@ -426,25 +502,50 @@ export class TkCampDirector {
       return now - b.enemyMarshalDiedAt >= MARSHAL_DEFEND_DELAY_MS ? 'defend_marshal' : 'none';
     }
 
-    // 2. Phe mất Nguyên Soái: nhóm 70% tập kết đủ 100% tại điểm Soái phe mình rồi mới đồng loạt lao sang Soái địch.
+    // 2. Phe mất Nguyên Soái: nhóm 70% tổ chức theo từng Đợt (Wave) lặp lại.
     if (!myAlive && enemyAlive) {
-      if (b.myMarshalDiedAt === 0) b.myMarshalDiedAt = now;
-      if (!isMarshalRusherSlot(botIndex)) return 'none';
-      if (!b.rushLaunched) {
-        let rusherCount = 0;
-        let arrivedCount = 0;
-        for (const p of b.bots.values()) {
-          if (!p.isRusher) continue;
-          rusherCount++;
-          if (isoDistance(p.x, p.y, myMarshalPos.x, myMarshalPos.y) <= MARSHAL_RALLY_RADIUS) {
-            arrivedCount++;
-          }
-        }
-        const allArrived = rusherCount > 0 && arrivedCount === rusherCount;
-        const timedOut = now - b.myMarshalDiedAt >= MARSHAL_RALLY_MAX_WAIT_MS;
-        if (allArrived || timedOut) b.rushLaunched = true;
+      if (b.myMarshalDiedAt === 0) {
+        b.myMarshalDiedAt = now;
+        b.waveRallyStartedAt = now;
       }
-      return b.rushLaunched ? 'rush_enemy_marshal' : 'rally_for_rush';
+      if (!isMarshalRusherSlot(botIndex)) return 'none';
+
+      let rusherCount = 0;
+      let arrivedCount = 0;
+      let forwardCount = 0;
+      for (const p of b.bots.values()) {
+        if (!p.isRusher) continue;
+        rusherCount++;
+        const dHome = isoDistance(p.x, p.y, myMarshalPos.x, myMarshalPos.y);
+        if (dHome <= MARSHAL_RALLY_RADIUS) arrivedCount++;
+        else if (dHome > 950) forwardCount++;
+      }
+
+      if (b.waveState === 'rallying') {
+        if (b.waveRallyStartedAt === 0) b.waveRallyStartedAt = now;
+        const allArrived = rusherCount > 0 && arrivedCount === rusherCount;
+        const timedOut = now - b.waveRallyStartedAt >= MARSHAL_RALLY_MAX_WAIT_MS;
+        if (allArrived || timedOut) {
+          b.waveState = 'marching';
+          b.waveNumber++;
+          b.waveLaunchedAt = now;
+          b.waveLane = b.waveNumber % 2 === 1 ? 1 : 2; // Luân phiên Cánh Trái (1) / Cánh Phải (2)
+          b.waveLeaderId = '';
+          this.pickWaveLeader(b);
+        }
+      } else if (
+        now - b.waveLaunchedAt >= MARSHAL_WAVE_COLLAPSE_AFTER_MS &&
+        rusherCount >= 2 &&
+        forwardCount <= 1 &&
+        arrivedCount >= 1
+      ) {
+        // Đợt tấn công đã tan vỡ (phần lớn đã hồi sinh về sân nhà) -> gom Đợt mới thay vì chạy lẻ nạp mạng.
+        b.waveState = 'rallying';
+        b.waveRallyStartedAt = now;
+        b.waveLeaderId = '';
+      }
+
+      return b.waveState === 'marching' ? 'rush_enemy_marshal' : 'rally_for_rush';
     }
 
     return 'none';

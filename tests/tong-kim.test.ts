@@ -1045,7 +1045,7 @@ test('Chiến lược Nguyên Soái (thủ Soái vs 70% tổng lực diệt Soá
     'Chưa đủ 100% quân -> phải tập trung về điểm Nguyên Soái phe mình trước',
   );
 
-  // 3b. Khi đủ 100% nhóm 70% có mặt tại điểm Nguyên Soái phe mình -> đồng loạt dồn thẳng về Nguyên Soái phe địch, bỏ qua bot địch
+  // 3b. Khi đủ 100% nhóm 70% có mặt tại điểm Nguyên Soái phe mình -> kích hoạt Wave 1 (cánh Trái lane=1)
   meState.x = TK_MAP_LAYOUT.tong.marshal.x + 60;
   meState.y = TK_MAP_LAYOUT.tong.marshal.y;
   now += 1500;
@@ -1058,21 +1058,60 @@ test('Chiến lược Nguyên Soái (thủ Soái vs 70% tổng lực diệt Soá
     exitedAt: 1000,
     seenAt: now,
     isRusher: true,
+    siegeRole: 'slayer',
   });
+  // `bot-rush` (Thiếu Lâm, index 0) là `breacher` (Mở đường) -> chủ động đánh bot địch chắn đường
   actorList = [{ id: 'kim-bot-1', isSelf: false, x: meState.x + 120, y: meState.y, state: { hp: 3000, maxHp: 4000, kind: 'player', boss: 0 } }];
   rushBeh.update(now);
-  assert.equal(casts.length, 0, 'Sau khi tập kết đủ 100% và tổng lực, vẫn phải bỏ qua bot phe địch');
+  assert.equal(casts.at(-1), 'kim-bot-1', 'Tiểu đội Mở đường (breacher) phải chủ động đánh bot địch chắn đường');
+  const wave1 = director.getSiegeWave(378, 'tong', TK_MAP_LAYOUT.kim.marshal, now);
+  assert.equal(wave1.waveNumber, 1);
+  assert.equal(wave1.lane, 1, 'Đợt 1 phải bọc sườn theo Cánh Trái (lane 1)');
+  assert.equal(wave1.leaderId, 'bot-rush', 'Đội trưởng phải ưu tiên breacher (Thiếu Lâm)');
+
+  // 3c. Tiểu đội Sát thủ Soái (`slayer`, Đường Môn, index 3): bỏ qua bot địch ở xa 300px, bám Đội trưởng nếu chạy vọt lên trước, và đánh Nguyên Soái khi vào tầm
+  const slayerMoves: { x: number; y: number }[] = [];
+  const slayerCasts: string[] = [];
+  const slayerMe: any = { ...meState, id: 'bot-slayer', faction: 'tangmen', x: 9800, y: 5000 };
+  const slayerBot: any = {
+    ...fakeBot,
+    name: 'bot-slayer',
+    stats: { faction: 'tangmen', series: 'moc' },
+    me: () => slayerMe,
+    actors: () => [
+      { id: 'kim-bot-far', isSelf: false, x: slayerMe.x + 300, y: slayerMe.y, state: { hp: 3000, maxHp: 4000, kind: 'player', boss: 0 } },
+    ],
+    send: (type: string, payload: any) => { if (type === C2S.move) slayerMoves.push(payload); },
+    cast: (_skill: number, targetId?: string) => { if (targetId) slayerCasts.push(targetId); },
+  };
+  rawActors.set('kim-bot-far', { battleCamp: 'kim', series: 'moc', maxHp: 4000 });
+  const slayerBeh = new TongKimBehavior(slayerBot, sc, 3, director);
+  slayerBeh.update(now);
+  assert.equal(slayerCasts.length, 0, 'Sát thủ Soái (slayer) phải bỏ qua bot địch ở xa 300px');
   assert.ok(
-    isoDistance(moves.at(-1)!.x, moves.at(-1)!.y, TK_MAP_LAYOUT.kim.marshal.x, TK_MAP_LAYOUT.kim.marshal.y) < 300,
-    'Đủ 100% quân tại điểm Soái nhà -> phải đồng loạt lao thẳng về tọa độ Nguyên Soái địch',
+    slayerMoves.length >= 1 && isoDistance(slayerMoves.at(-1)!.x, slayerMoves.at(-1)!.y, meState.x, meState.y) < 300,
+    'Sát thủ Soái chạy vọt quá xa Đội trưởng phải quay về bám Đội trưởng',
   );
 
-  // 3c. Khi Nguyên Soái Kim ở trong tầm -> phải tấn công Nguyên Soái Kim
+  // Khi Nguyên Soái Kim ở trong tầm -> phải tấn công Nguyên Soái Kim ngay
   rawActors.set('kim-marshal', { battleCamp: 'kim', series: 'hoa', maxHp: 5_000_000 });
-  actorList.push({ id: 'kim-marshal', isSelf: false, x: meState.x + 200, y: meState.y, state: { hp: 4_000_000, maxHp: 5_000_000, kind: 'monster', boss: 2 } });
+  slayerBot.actors = () => [
+    { id: 'kim-bot-far', isSelf: false, x: slayerMe.x + 300, y: slayerMe.y, state: { hp: 3000, maxHp: 4000, kind: 'player', boss: 0 } },
+    { id: 'kim-marshal', isSelf: false, x: slayerMe.x + 200, y: slayerMe.y, state: { hp: 4_000_000, maxHp: 5_000_000, kind: 'monster', boss: 2 } },
+  ];
   now += 1000;
-  rushBeh.update(now);
-  assert.equal(casts.at(-1), 'kim-marshal', 'Phải đánh Nguyên Soái địch khi vào tầm');
+  slayerBeh.update(now);
+  assert.equal(slayerCasts.at(-1), 'kim-marshal', 'Phải đánh Nguyên Soái địch ngay khi vào tầm');
+
+  // 3d. Khi Wave 1 bị đánh tan sau >= 12s (các bot hồi sinh về sân nhà) -> tự gom Wave 2 và đổi sang Cánh Phải (lane 2)
+  now += 13_000;
+  director.reportBot(378, 'tong', { id: 'bot-rush', x: TK_MAP_LAYOUT.tong.marshal.x, y: TK_MAP_LAYOUT.tong.marshal.y, lane: 1, role: 'vanguard', exitedAt: now, seenAt: now, isRusher: true, siegeRole: 'breacher' });
+  director.reportBot(378, 'tong', { id: 'bot-slayer', x: TK_MAP_LAYOUT.tong.marshal.x + 50, y: TK_MAP_LAYOUT.tong.marshal.y, lane: 1, role: 'vanguard', exitedAt: now, seenAt: now, isRusher: true, siegeRole: 'slayer' });
+  assert.equal(director.resolveMarshalEndgame(378, 'tong', fakeBot.tkState, 0, TK_MAP_LAYOUT.tong.marshal, now), 'rally_for_rush', 'Wave 1 tan vỡ -> phải chuyển về gom Wave 2');
+  assert.equal(director.resolveMarshalEndgame(378, 'tong', fakeBot.tkState, 0, TK_MAP_LAYOUT.tong.marshal, now + 500), 'rush_enemy_marshal', 'Đủ 100% ở điểm tập kết -> xuất kích Wave 2');
+  const wave2 = director.getSiegeWave(378, 'tong', TK_MAP_LAYOUT.kim.marshal, now + 500);
+  assert.equal(wave2.waveNumber, 2);
+  assert.equal(wave2.lane, 2, 'Đợt 2 phải đổi sang bọc sườn Cánh Phải (lane 2)');
 
   // 4. Phe đang thắng (Tống còn Soái, Kim mất Soái): dưới 30s CHƯA co về thủ Soái, sau 30s MỚI dồn về bảo vệ Nguyên Soái nhà
   director.clear();

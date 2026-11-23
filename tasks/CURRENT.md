@@ -32,7 +32,7 @@
   - `tests/player-context-menu.test.ts`: kiểm chứng luật cừu sát 10s, chặn trong Tống Kim, bot/AutoPlay tự đánh trả khi `autoPk = false`, và theo sau server-side.
 - **Kiểm tra:** `node --import tsx --test tests/player-context-menu.test.ts` (**4/4 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần restart server & reload client để nhận thay đổi mới. Đã commit trên `main`, chưa push.
 
-## 2026-11-23 · Nâng cấp công thành Nguyên Soái theo Đợt (Wave) + Đội trưởng + 3 tiểu đội + Bọc sườn đổi cánh
+## 2026-11-23 · Nâng cấp công thành Nguyên Soái theo Đợt (Wave) + Đội trưởng + 3 tiểu đội + Bọc sườn đổi cánh (đã commit)
 
 - **USER yêu cầu:** nâng cấp giai đoạn phe mất Nguyên Soái công thành cho toàn bộ các chiến thuật mới (`flank`/`tactical`/`defend`/`random`, giữ nguyên `charge`) để khắc phục việc bot lao lẻ nạp mạng.
 - **Thay đổi:**
@@ -41,7 +41,7 @@
     - `rally_for_rush`: bật sẵn buff (Chiến Cổ, Lệnh Bài, Phi Tốc/Hoàn) ngay tại điểm tập kết, giữ lại Lệnh Bẫy & Binh Sĩ Hiệu Phù để bung khi giao tranh.
     - `rush_enemy_marshal`: hành quân bám Đội trưởng (`MARSHAL_SQUAD_COHESION_RADIUS = 320 px`) theo cánh bọc sườn của Wave cho tới khi Đội trưởng áp sát `<= 720 px` quanh Nguyên Soái địch rồi mới ập vào đồng loạt; `breacher` chủ động đánh & khống chế địch chắn đường, `slayer` ưu tiên Nguyên Soái địch và chỉ tự vệ khi địch áp sát `<= 160 px`, `support` (Nga Mi) bám cụm đồng đội.
   - `tests/tong-kim.test.ts`: mở rộng test kiểm chứng Đợt 1 (Cánh Trái, bầu Đội trưởng `breacher`), hành vi 3 tiểu đội + bám Đội trưởng của `slayer`, và tự động gom Đợt 2 đổi sang Cánh Phải khi Đợt 1 bị đánh tan.
-- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**27/27 pass**), `git diff --check` đạt. Chỉ sửa `tools/bots`, `bots:ui` tự nạp lại. Chưa commit/push.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**27/27 pass**), `git diff --check` đạt. Chỉ sửa `tools/bots`, `bots:ui` tự nạp lại. Đã commit trên `main`, chưa push.
 
 ## 2026-11-23 · Chiến lược chế độ Nguyên Soái, Binh Sĩ Hiệu Phù 70/20/10, 5 Lệnh Bẫy Ngũ Hành cấp 20 & Chế độ Tàng hình kiểm thử (đã commit)
 
