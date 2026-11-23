@@ -1292,3 +1292,168 @@ test('5 Lệnh Bẫy Ngũ Hành cấp 20 (khắc hệ lớn trong Tống Kim) & 
   assert.ok(TK_BOT_REWARD_POOL.includes('tk-pill-179'));
   assert.ok(TK_BOT_REWARD_POOL.includes('tk-trap-light'));
 });
+
+test('Binh Sĩ Hiệu Phù triệu hồi không tái sinh khi chết (vẫn cộng điểm/rơi đồ); NPC thường vẫn tái sinh', async () => {
+  const { ITEMS } = await import('@vltk/shared');
+  const { tongKim } = await import('../apps/server/src/world/tongkim.js');
+
+  tongKim.stopMatch();
+  const now = Date.now();
+  const prevMatch = tongKim.startMatch({ mode: 1, battleMapId: TK_BATTLE_MAP_ID, signupSec: 1, durationSec: 600, marshalDelaySec: 300, endSec: 5, allowSolo: true });
+  assert.equal(prevMatch.ok, true);
+
+  const added: any[] = [];
+  const drops: any[] = [];
+  const sims = new Map<string, any>();
+  const fakeWorld: any = {
+    now: now + 2_000,
+    nextMonsterId: 1,
+    meta: MAPS[TK_BATTLE_MAP_ID],
+    grid: null,
+    sims,
+    ground: new Map(),
+    groundSync: new Map(),
+    add(sim: any) { sims.set(sim.id, sim); added.push(sim); },
+    removeSim(id: string) { sims.delete(id); },
+    hooks: {
+      notify() {},
+      log() {},
+      announce() {},
+      progress() {},
+      inventory() {},
+      transfer() {},
+      dropAdded(d: any) { drops.push(d); },
+    },
+  };
+
+  try {
+    // Đăng ký 1 Tống (dùng Hiệu Phù) và 1 Kim (giết lính triệu hồi)
+    const makePlayer = (id: string, camp: 'tong' | 'kim') => {
+      const a = new Actor();
+      a.id = id;
+      a.kind = 'player';
+      a.name = id;
+      a.level = 100;
+      a.x = 7000;
+      a.y = 6000;
+      a.battleCamp = camp;
+      const sim = makeSim(id, 'player', a, 'kim', 200);
+      sim.charId = `char-${id}`;
+      sim.money = 100_000;
+      sim.bag = Array(60).fill(null);
+      return sim;
+    };
+    const tongP = makePlayer('p-tong-clarion', 'tong');
+    const kimP = makePlayer('p-kim-clarion', 'kim');
+    tongKim.registerPlayer(tongP, 'tong');
+    tongKim.registerPlayer(kimP, 'kim');
+    sims.set(tongP.id, tongP);
+    sims.set(kimP.id, kimP);
+
+    // Chuyển sang pha fighting (signupSec tối thiểu 10s)
+    const fightAt = now + 15_000;
+    fakeWorld.now = fightAt;
+    tongKim.tickBattleWorld(fakeWorld, fightAt);
+    const beforeCount = added.length;
+
+    // Dùng Binh Sĩ Hiệu Phù -> gọi 2 lính có tkSummoned = true
+    const clarionDef = ITEMS['tk-clarion'];
+    assert.ok(clarionDef);
+    const ok = tongKim.useBattleItem(fakeWorld, tongP, clarionDef);
+    assert.equal(ok, true);
+    const summoned = added.slice(beforeCount);
+    assert.equal(summoned.length, 2);
+    for (const s of summoned) {
+      assert.equal(s.tkSummoned, true, 'Lính gọi từ Binh Sĩ Hiệu Phù phải có tkSummoned = true');
+    }
+
+    // Kim hạ 2 lính triệu hồi -> vẫn được cộng điểm, nhưng không đưa vào hàng chờ respawn
+    const respawnsBefore = ((tongKim as any).npcRespawns as any[]).length;
+    for (const s of summoned) {
+      const handled = tongKim.onTkKill(fakeWorld, s, kimP);
+      assert.equal(handled, true);
+    }
+    const respawnsAfterSummonKill = ((tongKim as any).npcRespawns as any[]).length;
+    assert.equal(respawnsAfterSummonKill, respawnsBefore, 'Lính triệu hồi từ Hiệu Phù chết không được đưa vào npcRespawns');
+    const kimEntry = (tongKim as any).entries.get(kimP.charId);
+    assert.ok(kimEntry.points > 0, 'Hạ lính triệu hồi vẫn phải cộng điểm tích lũy bình thường');
+
+    // Kiểm chứng NPC chiến trường bình thường chết vẫn được xếp hàng tái sinh
+    const normalNpc = added.find(s => s.kind === 'monster' && s.tkCamp === 'tong' && !s.tkSummoned && s.tkRole === 'soldier');
+    assert.ok(normalNpc, 'Phải có lính thường trực phe Tống');
+    tongKim.onTkKill(fakeWorld, normalNpc, kimP);
+    assert.equal(((tongKim as any).npcRespawns as any[]).length, respawnsBefore + 1, 'NPC thường trực chết vẫn phải tái sinh bình thường');
+  } finally {
+    tongKim.stopMatch(fakeWorld);
+  }
+});
+
+test('Đứng quá 20s trong điểm tập trung Hậu doanh tự động đẩy ra ngoài điểm đáp (không đá về báo danh)', async () => {
+  const { TK_CAMP_KICK_SEC, TK_MAP_LAYOUT, isInTkSafeCamp } = await import('@vltk/shared');
+  const { tongKim } = await import('../apps/server/src/world/tongkim.js');
+
+  assert.equal(TK_CAMP_KICK_SEC, 20);
+
+  tongKim.stopMatch();
+  const now = Date.now();
+  const started = tongKim.startMatch({ mode: 1, battleMapId: TK_BATTLE_MAP_ID, signupSec: 1, durationSec: 600, marshalDelaySec: 300, endSec: 5, allowSolo: true });
+  assert.equal(started.ok, true);
+
+  const transfers: any[] = [];
+  const notifies: string[] = [];
+  const sims = new Map<string, any>();
+  const fakeWorld: any = {
+    now: now + 2_000,
+    nextMonsterId: 1,
+    meta: MAPS[TK_BATTLE_MAP_ID],
+    grid: null,
+    sims,
+    add(sim: any) { sims.set(sim.id, sim); },
+    removeSim(id: string) { sims.delete(id); },
+    hooks: {
+      notify(_sim: any, msg: string) { notifies.push(msg); },
+      log() {},
+      announce() {},
+      progress() {},
+      inventory() {},
+      transfer(sim: any, mapId: number, x: number, y: number) { transfers.push({ id: sim.id, mapId, x, y }); },
+    },
+  };
+
+  try {
+    const a = new Actor();
+    a.id = 'p-camp-idle';
+    a.kind = 'player';
+    a.name = 'CampIdle';
+    a.level = 100;
+    a.x = TK_MAP_LAYOUT.tong.spawn.x;
+    a.y = TK_MAP_LAYOUT.tong.spawn.y;
+    a.battleCamp = 'tong';
+    const sim = makeSim(a.id, 'player', a, 'kim', 200);
+    sim.charId = 'char-camp-idle';
+    sim.money = 100_000;
+    tongKim.registerPlayer(sim, 'tong');
+    sims.set(sim.id, sim);
+
+    // Khai chiến tại t = now + 15_000 (signupSec tối thiểu 10s)
+    const fightAt = now + 15_000;
+    fakeWorld.now = fightAt;
+    tongKim.tickBattleWorld(fakeWorld, fightAt);
+    // Sau 19s: vẫn ở trong doanh trại
+    fakeWorld.now = fightAt + 19_000;
+    tongKim.tickBattleWorld(fakeWorld, fightAt + 19_000);
+    assert.equal(isInTkSafeCamp(TK_BATTLE_MAP_ID, sim.a.x, sim.a.y), true, 'Chưa đủ 20s vẫn ở trong doanh trại');
+    assert.equal(transfers.length, 0);
+
+    // Đủ 20s (t = fightAt + 20_000): tự động đẩy ra ngoài cổng, không transfer về 323
+    fakeWorld.now = fightAt + 20_000;
+    tongKim.tickBattleWorld(fakeWorld, fightAt + 20_000);
+    assert.equal(transfers.length, 0, 'Không được chuyển về điểm báo danh 323');
+    assert.equal(isInTkSafeCamp(TK_BATTLE_MAP_ID, sim.a.x, sim.a.y), false, 'Phải được đẩy ra khỏi vùng an toàn Hậu doanh');
+    assert.equal(sim.a.pk, 1);
+    assert.equal((tongKim as any).entries.get(sim.charId).inCamp, false);
+    assert.ok(notifies.some(m => m.includes('20 giây') && m.includes('ngoài cổng')));
+  } finally {
+    tongKim.stopMatch(fakeWorld);
+  }
+});

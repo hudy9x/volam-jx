@@ -482,6 +482,27 @@ class TongKimManager {
     return true;
   }
 
+  /** Đẩy người chơi/bot ra điểm đáp bên ngoài cổng khi đứng quá lâu trong Hậu doanh. */
+  private pushOutOfCamp(w: World, sim: Sim, entry: TkPlayerEntry): void {
+    const outPortal = w.meta.portals?.find(p => p.id === `tk-${entry.camp}-out`);
+    const base = outPortal ? { x: outPortal.toX, y: outPortal.toY } : this.layout()[entry.camp].gateExit;
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 40 + Math.random() * 110;
+    let [x, y] = nearestWalkable(w.grid, base.x + Math.cos(angle) * dist, base.y + Math.sin(angle) * dist * 0.5);
+    if (isInTkSafeCamp(this.currentBattleMapId, x, y)) {
+      [x, y] = nearestWalkable(w.grid, base.x, base.y);
+    }
+    sim.a.x = x;
+    sim.a.y = y;
+    sim.path = [];
+    sim.queuedMove = undefined;
+    sim.pending = null;
+    sim.lockedAttack = undefined;
+    sim.a.attackTarget = '';
+    sim.a.pk = 1;
+    entry.inCamp = false;
+  }
+
   /** Bước qua cổng doanh trại ra chiến trường (sau 5s chờ). */
   exitGate(w: World, sim: Sim): { ok: boolean; message: string } {
     if (!sim.charId) return { ok: false, message: 'Không xác định được nhân vật.' };
@@ -658,9 +679,8 @@ class TongKimManager {
           entry.inCamp = true;
           entry.enteredCampAt = now;
         } else if (this.phase === 'fighting' && now - entry.enteredCampAt >= TK_CAMP_KICK_SEC * 1000) {
-          w.hooks.notify(sim, `Bạn ở trong doanh trại quá ${TK_CAMP_KICK_SEC} giây không xuất trận, bị đưa về Điểm báo danh.`);
-          const back = TK_SIGNUP_ENTRY[entry.camp];
-          w.hooks.transfer(sim, TK_SIGNUP_MAP_ID, back.x, back.y);
+          this.pushOutOfCamp(w, sim, entry);
+          w.hooks.notify(sim, `Bạn ở trong doanh trại quá ${TK_CAMP_KICK_SEC} giây, đã tự động xuất trận ra ngoài cổng!`);
         }
       } else {
         entry.inCamp = false;
@@ -770,7 +790,7 @@ class TongKimManager {
           }
         }
         const respawnMs = TK_NPC_STATS[role].respawnMs;
-        if (respawnMs > 0 && target.home) {
+        if (respawnMs > 0 && target.home && !target.tkSummoned) {
           this.npcRespawns.push({ camp: npcCamp, role, x: target.home.x, y: target.home.y, respawnAt: w.now + respawnMs });
         }
       }
@@ -837,7 +857,7 @@ class TongKimManager {
         const ox = (i === 0 ? -45 : 45);
         const [sx, sy] = nearestWalkable(w.grid, sim.a.x + ox, sim.a.y + 20);
         const role = rollClarionNpcRole();
-        this.spawnOneNpc(w, myCamp, role, sx, sy);
+        this.spawnOneNpc(w, myCamp, role, sx, sy, true);
         spawnedTitles.push(TK_NPC_TITLES[myCamp][role]);
       }
       w.hooks.notify(sim, `Đã triệu hồi ${eff.count} chi viện (${spawnedTitles.join(', ')}) (${this.clarionUses[myCamp]}/20)!`);
@@ -1011,7 +1031,7 @@ class TongKimManager {
     w.hooks.announce('Tống Nguyên Soái và Kim Nguyên Soái đã xuất trận! Hãy bảo vệ Nguyên Soái phe mình và hạ gục Nguyên Soái đối phương để giành ưu thế chiến thắng!');
   }
 
-  private spawnOneNpc(w: World, camp: TkCamp, role: TkNpcRole, x: number, y: number): Sim {
+  private spawnOneNpc(w: World, camp: TkCamp, role: TkNpcRole, x: number, y: number, summoned = false): Sim {
     const idx = w.nextMonsterId++;
     const element = TK_ELEMENTS[idx % TK_ELEMENTS.length];
     const def = makeTkMonsterDef(camp, role, element);
@@ -1042,6 +1062,7 @@ class TongKimManager {
     sim.baseDamage = s.damage;
     sim.tkCamp = camp;
     sim.tkRole = role;
+    if (summoned) sim.tkSummoned = true;
     for (const [sid, lvl] of s.skills) {
       const sk = getSkill(sid);
       if (sk) sim.skills.set(sid, Math.min(lvl, maxLevelOf(sk)));

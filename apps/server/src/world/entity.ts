@@ -130,6 +130,7 @@ export interface Sim {
   // Tống Kim battlefield runtime fields
   tkCamp?: TkCamp;
   tkRole?: TkNpcRole;
+  tkSummoned?: boolean;
   tkRespawnAt?: number;
 }
 

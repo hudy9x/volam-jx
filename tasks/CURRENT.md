@@ -1,4 +1,4 @@
-## 2026-11-23 · Binh Sĩ Hiệu Phù không tái sinh khi chết & tự đẩy khỏi Hậu doanh sau 20s (chưa commit)
+## 2026-11-23 · Binh Sĩ Hiệu Phù không tái sinh khi chết & tự đẩy khỏi Hậu doanh sau 20s (đã commit)
 
 - **USER yêu cầu:**
   1. Binh sĩ triệu hồi từ Binh Sĩ Hiệu Phù bị đánh chết sẽ **không tái sinh** nữa; không giới hạn thời gian sống; vẫn rơi đồ và cộng điểm bình thường.
@@ -9,7 +9,7 @@
     - Thêm `Sim.tkSummoned?: boolean`, truyền `summoned = true` khi `useBattleItem` (`clarion`) gọi `spawnOneNpc`; trong `onTkKill` giữ nguyên cộng điểm & rơi đồ nhưng bỏ qua `npcRespawns.push` khi `target.tkSummoned === true`.
     - Thêm `pushOutOfCamp()` trong `TongKimManager` (đẩy ra điểm đáp cổng `tk-<camp>-out` hoặc `gateExit`, tránh rơi vào vùng an toàn Hậu doanh, bật `pk = 1`, `entry.inCamp = false`) và gọi trong `tickBattleWorld` khi ở Hậu doanh quá `20s` lúc đang giao chiến.
   - `tests/tong-kim.test.ts`: bổ sung 2 test kiểm chứng lính Hiệu Phù không tái sinh nhưng vẫn cộng điểm/rơi đồ, và đứng quá 20s trong Hậu doanh tự đẩy ra ngoài cổng.
-- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**27/27 pass**), `git diff --check` đạt. Luật chạy phía server & shared nên dùng chung Web/Desktop/Mobile; cần restart server để nhận thay đổi mới. Chưa commit/push.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**27/27 pass**), `git diff --check` đạt. Luật chạy phía server & shared nên dùng chung Web/Desktop/Mobile; cần restart server để nhận thay đổi mới. Đã commit trên `main`, chưa push.
 
 ## 2026-11-23 · Context Menu người chơi/bot (`Ctrl + chuột phải` / nhấn giữ Mobile): Mời tổ đội, Xem thông tin, Cừu sát 10s & Theo sau (đã commit)
 
