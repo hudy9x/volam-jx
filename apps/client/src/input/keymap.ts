@@ -16,6 +16,7 @@ export const KEYS = {
   mount: { code: 'M', label: 'M' },
   pk: { code: 'A', label: 'A' },
   auto: { code: 'Z', label: 'Z' },
+  autoToggle: { code: 'F', label: 'F' },
   /** Tổ đội, Kỳ Trân Các, Thợ rèn (USER 2026-11-12: phím tắt cho thanh dưới). */
   team: { code: 'P', label: 'P' },
   kytran: { code: 'V', label: 'V' },
@@ -41,7 +42,7 @@ export function shortcutHelp(): [string, string][] {
     [`${k('char')} · ${k('skills')} · ${k('bag')} · ${k('travel')} / Shift+${k('bigmap')} · ${k('bigmap')}`, 'Trang bị và Thuộc tính · Kỹ năng · Hành trang · Chuyển map (Xa phu) · Bản đồ'],
     [`${k('mount')} · ${k('pk')}`, 'Lên / xuống ngựa · Đổi chế độ PK (Luyện công → Chiến đấu → Đồ sát)'],
     [`${k('team')} · ${k('kytran')} · ${k('shop')}`, 'Tổ đội · Kỳ Trân Các · Thợ rèn (trong thành)'],
-    [`${k('auto')} · Shift+${k('auto')}`, 'Mở cài đặt Auto · Bật / tắt nhanh Auto'],
+    [`${k('auto')} · ${k('autoToggle')} / Shift+${k('auto')}`, 'Mở cài đặt Auto · Bật / tắt nhanh Auto'],
     [k('system'), 'Đóng cửa sổ trên cùng / mở Hệ thống'],
     ['Lăn chuột', 'Phóng to / thu nhỏ'],
   ];

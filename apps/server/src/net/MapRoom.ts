@@ -343,7 +343,7 @@ export class MapRoom extends Room<{ state: MapState }> {
       sendStash(client, sim);
       this.saveCharacter(sim);
     });
-    inventoryOp<PickupMsg>(C2S.pickup, (sim, msg) => pickup(this.world, sim, String(msg?.id)));
+    inventoryOp<PickupMsg>(C2S.pickup, (sim, msg) => pickup(this.world, sim, String(msg?.id), !!msg?.noWalk));
 
     // ---- progression: potential points (F3), faction at level 10, skill points, suggestions (world/progress.ts) ----
     progressOp<AddPotentialMsg>(C2S.addPotential, (sim, msg) => addPotential(this.world, sim, msg?.stat as Potential, Number(msg?.n)));

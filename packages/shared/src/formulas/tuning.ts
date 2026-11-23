@@ -156,7 +156,7 @@ export const DROPS = {
   /** Chance for an ordinary spawn slot to spawn as a Boss Xanh (1) on each respawn (DATA maplist.ini AutoGoldenNpc idea — CHỌN 3%). */
   blueBossChance: 0.03,
   /** Picking up from this far (original map units; CHỌN, the original walks next to the item). */
-  pickupRange: 80,
+  pickupRange: 180,
   /** Money of one drop: ⌈level × MoneyScale / 10 × U(0.5, 1.5)⌉ (CHỌN: the original formula is server script). */
   moneyPerLevel: 0.1,
 } as const;

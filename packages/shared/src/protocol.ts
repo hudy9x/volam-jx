@@ -197,8 +197,8 @@ export interface TrainMsg { quiet?: boolean; returnPrevious?: boolean }
 export interface TeleportMsg { mapId: number }
 /** Dev: set the level of a learned skill (1..max). */
 export interface SkillLevelMsg { skill: number; level: number }
-/** Pick up drop `id` from the ground (walks there when far; MapState.ground). */
-export interface PickupMsg { id: string }
+/** Pick up drop `id` from the ground (walks there when far unless `noWalk` is set; MapState.ground). */
+export interface PickupMsg { id: string; noWalk?: boolean }
 /** Spend `n` potential points on one potential (F3). */
 export interface AddPotentialMsg { stat: Potential; n: number }
 /** Join a faction of the own hệ (level 10+, no faction yet). */

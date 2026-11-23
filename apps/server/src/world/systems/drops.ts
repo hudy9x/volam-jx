@@ -187,14 +187,15 @@ export function updateDrops(w: World): void {
   }
 }
 
-/** Pick up drop `id`: walk there first when far (sim.pickup), then take it into the bag / purse. */
-export function pickup(w: World, sim: Sim, id: string): boolean {
+/** Pick up drop `id`: walk there first when far (sim.pickup, unless `noWalk`), then take it into the bag / purse. */
+export function pickup(w: World, sim: Sim, id: string, noWalk = false): boolean {
   const d = w.ground.get(id);
   if (!d || sim.dead) return false;
   // The killer and their team mates first (VT7: "người đánh chết quái + tổ đội").
   const inTeam = sameTeam(w.sims.get(d.owner), sim) || (!!d.team && d.team === sim.a.team);
   if (d.owner && d.owner !== sim.id && !inTeam) { w.hooks.notify(sim, 'Vật phẩm này chưa thuộc về bạn.'); return false; }
   if (isoDistance(sim.a.x, sim.a.y, d.x, d.y) > DROPS.pickupRange) {
+    if (noWalk) return false;
     sim.pickup = id;
     sim.pending = null;
     setPath(w, sim, { x: d.x, y: d.y });

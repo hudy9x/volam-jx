@@ -63,8 +63,8 @@ test('boss focus is retained when another boss of the same tier moves closer', (
 test('in-range loot runs in parallel without interrupting a living boss lock; far loot waits', () => {
   const r = rig();
   r.host.drops = () => [
-    { id: 'near-money', def: 'money', q: 0, owner: '', x: 5, y: 0 },
-    { id: 'far-money', def: 'money', q: 0, owner: '', x: 150, y: 0 },
+    { id: 'near-money', def: 'money', q: 0, owner: '', x: 160, y: 0 },
+    { id: 'far-money', def: 'money', q: 0, owner: '', x: 210, y: 0 },
   ];
   r.auto.start(); r.auto.update(1000, r.opts);
   r.auto.update(1250, { ...r.opts, autoMoney: true });
@@ -105,11 +105,11 @@ test('buff and curse replace the server cast but preserve selected enemy and res
   }
 });
 test('far pickup after kill completes before next lock; cannot steal focus in the next fight', () => {
-  const r=rig();let ground=[{id:'money',def:'money',q:0,owner:'',x:150,y:0}];r.host.drops=()=>ground;
+  const r=rig();let ground=[{id:'money',def:'money',q:0,owner:'',x:210,y:0}];r.host.drops=()=>ground;
   const opts={...r.opts,autoMoney:true};r.auto.start();r.auto.update(1000,opts);assert.deepEqual(r.pickups,[]);
   r.actors[2].state.hp=0;r.auto.update(1250,opts);assert.deepEqual(r.pickups,['money']);
   ground=[];r.auto.update(1500,opts);assert.equal((r.auto as unknown as {target:string}).target,'blue');
-  ground=[{id:'new-money',def:'money',q:0,owner:'',x:150,y:0}];r.auto.update(1750,opts);assert.deepEqual(r.pickups,['money']);
+  ground=[{id:'new-money',def:'money',q:0,owner:'',x:210,y:0}];r.auto.update(1750,opts);assert.deepEqual(r.pickups,['money']);
 });
 test('policy changes apply immediately but unchanged HP never abandons a fight', () => {
   const r=rig();r.actors[2].x=600;r.auto.start();r.auto.update(1000,r.opts);
@@ -303,7 +303,7 @@ test('a new target is detected within one server tick', () => {
   assert.equal(r.casts.length, 1);
 });
 
-test('first offensive lock precedes missing buffs and curses, then both still run', () => {
+test('missing buffs cast immediately on start outside safe zones, then curse and attack run', () => {
   const r = rig(); r.slots.push(41); // Thiên Vương curse, alongside learned self buffs
   r.host.learnedSkills = () => [33, 42]; r.host.usable = r.host.ready = () => true;
   const log: {id:number; target?:string}[] = [];
@@ -313,12 +313,18 @@ test('first offensive lock precedes missing buffs and curses, then both still ru
     if (skillCategory(getSkill(id)!) === 'buff') r.self.state.states = [...(r.self.state.states ?? []), id];
   };
   const opts = {...r.opts, autoBuff:true, autoCurse:true};
+  // Inside safe zone (e.g. Điểm tập trung / thành): no buff is cast
+  r.host.safe = () => true;
+  r.auto.start(); r.auto.update(500, opts);
+  assert.equal(log.length, 0);
+  // Outside safe zone: buff immediately on start, then curse and attack
+  r.host.safe = () => false;
   r.auto.start(); r.auto.update(1000,opts);
-  assert.equal(skillCategory(getSkill(log[0].id)!), 'attack');
-  assert.equal(log[0].target, 'gold');
+  assert.equal(skillCategory(getSkill(log[0].id)!), 'buff');
   for(let now=1050;now<=4000;now+=50) r.auto.update(now,opts);
   assert.ok(log.some(c=>c.id===33)); assert.ok(log.some(c=>c.id===42));
-  assert.ok(log.some(c=>c.id===41), 'curse is maintained after the initial attack');
+  assert.ok(log.some(c=>c.id===41 && c.target==='gold'), 'curse is applied to target');
+  assert.ok(log.some(c=>skillCategory(getSkill(c.id)!)==='attack' && c.target==='gold'), 'attack follows buffs/curse');
 });
 
 test('manual monster focus wins over Auto priorities until a movement releases it', () => {
@@ -374,11 +380,12 @@ test('an unacknowledged queued buff is not overwritten by the next attack or ano
 
 test('a rejected utility times out without forgetting the enemy, and a manual command cancels the wait', () => {
   const r=rig();r.host.learnedSkills=()=>[15];r.host.usable=r.host.ready=()=>true;
-  const opts={...r.opts,autoBuff:true};r.auto.start();r.auto.update(1000,opts);r.auto.update(1050,opts);
-  r.auto.update(4000,opts);assert.equal(r.casts.at(-1),15);
+  const opts={...r.opts,autoBuff:true};r.auto.start();r.auto.update(1000,opts);
+  assert.equal(r.casts.at(-1),15);
   r.auto.update(4050,opts);assert.equal(skillCategory(getSkill(r.casts.at(-1)!)!),'attack');
-  const t=rig();t.host.learnedSkills=()=>[15];t.host.usable=t.host.ready=()=>true;t.auto.start();t.auto.update(1000,opts);t.auto.update(1050,opts);
-  t.auto.pause(1100,null);t.auto.start();t.auto.update(1101,opts);
+  const t=rig();t.host.learnedSkills=()=>[15];t.host.usable=t.host.ready=()=>true;t.auto.start();t.auto.update(1000,opts);
+  assert.equal(t.casts.at(-1),15);
+  t.auto.pause(1100,null);t.auto.update(1300,opts);
   assert.equal(skillCategory(getSkill(t.casts.at(-1)!)!),'attack');
 });
 
@@ -515,4 +522,80 @@ test('autoPk prioritizes hostile players over golden bosses and monsters, and re
   r.auto.start();
   r.auto.update(2000, { ...r.opts, autoPk: true, autoPriority: 'boss' });
   assert.equal(r.self.state.attackTarget, 'enemy-player');
+});
+
+test('autoMonster=false skips all monsters and bosses, while still buffing, cursing and attacking enemy players', () => {
+  const r = rig();
+  r.slots.push(41); // Thiên Vương curse (debuff)
+  r.host.learnedSkills = () => [100, 109]; // Thúy Yên buffs
+  r.host.usable = r.host.ready = () => true;
+  r.self.state.pk = 1;
+  r.self.state.camp = 'justice';
+  r.self.state.battleCamp = 'tong';
+  const log: { id: number; target?: string }[] = [];
+  r.host.cast = (id, target) => {
+    log.push({ id, target: target?.id });
+    if (skillCategory(getSkill(id)!) === 'buff') r.self.state.states = [...(r.self.state.states ?? []), id];
+    if (target && skillCategory(getSkill(id)!) === 'debuff') target.state.states = [...(target.state.states ?? []), id];
+    if (target && skillCategory(getSkill(id)!) === 'attack') r.self.state.attackTarget = target.id;
+  };
+
+  // Khi chỉ có quái/boss mà tắt autoMonster: vẫn tự buff đầy đủ nhưng không đánh quái
+  const pveOffOpts = { ...r.opts, autoMonster: false, autoPk: true, autoBuff: true, autoCurse: true };
+  r.auto.start();
+  r.auto.update(1000, pveOffOpts);
+  r.auto.update(1400, pveOffOpts);
+  r.auto.update(1800, pveOffOpts);
+  assert.deepEqual(log.map(c => c.id), [100, 109]);
+  assert.equal((r.auto as unknown as { focus: string | null }).focus, null);
+
+  // Khi xuất hiện người chơi địch: tự tung bùa hại lên người chơi địch rồi đánh người chơi đó, vẫn bỏ qua quái/boss
+  r.actors.push({
+    id: 'enemy-player', x: 200, y: 0, isSelf: false,
+    state: { kind: 'player', level: 90, hp: 1000, maxHp: 1000, mp: 100, maxMp: 100, boss: 0, sprite: '', pk: 1, camp: 'evil', battleCamp: 'kim' },
+  });
+  r.auto.update(2200, pveOffOpts);
+  assert.equal(log.at(-1)?.id, 41);
+  assert.equal(log.at(-1)?.target, 'enemy-player');
+  r.auto.update(2600, pveOffOpts);
+  assert.equal(r.self.state.attackTarget, 'enemy-player');
+  assert.equal(normalizeAuto({ autoMonster: false }).autoMonster, false);
+  assert.equal(normalizeAuto({}).autoMonster, true);
+});
+
+test('pickInRange picks pass-by items within 180 iso with noWalk=true, and server noWalk never hijacks path or pending cast', async () => {
+  const { DROPS } = await import('../packages/shared/src/index.js');
+  const { Actor, Ground } = await import('../apps/server/src/net/schema.js');
+  const { makeSim } = await import('../apps/server/src/world/entity.js');
+  const { pickup } = await import('../apps/server/src/world/systems/drops.js');
+
+  assert.equal(DROPS.pickupRange, 180);
+  const r = rig();
+  const calls: { id: string; noWalk?: boolean }[] = [];
+  r.host.pickup = (id, noWalk) => calls.push({ id, noWalk });
+  r.host.drops = () => [
+    { id: 'pass-by-175', def: 'money', q: 0, owner: '', x: 175, y: 0 },
+    { id: 'beyond-195', def: 'money', q: 0, owner: '', x: 195, y: 0 },
+  ];
+  r.auto.start();
+  r.auto.update(1000, { ...r.opts, autoMoney: true });
+  assert.deepEqual(calls, [{ id: 'pass-by-175', noWalk: true }]);
+
+  // Server check: if player has already moved beyond 180 by the time noWalk packet arrives, do not overwrite pending/path
+  const a = new Actor();
+  Object.assign(a, { kind: 'player', x: 250, y: 0, hp: 100, maxHp: 100 });
+  const sim = makeSim('p1', 'player', a, 'kim', 100);
+  const pendingOrder = { skill: 1, targetId: 'm1', x: 300, y: 0, repathAt: 0, lock: true };
+  sim.pending = pendingOrder;
+  const g = new Ground();
+  Object.assign(g, { x: 0, y: 0, def: 'money', q: 0, amount: 100, owner: '', team: '', ownerUntil: 0 });
+  const w = {
+    now: 1000,
+    sims: new Map([[sim.id, sim]]),
+    ground: new Map([['d1', { id: 'd1', item: null, money: 100, x: 0, y: 0, owner: '', team: '', ownerUntil: 0, until: 99999, g }]]),
+    hooks: { notify() {}, log() {} },
+  } as never;
+  assert.equal(pickup(w, sim, 'd1', true), false);
+  assert.equal(sim.pickup, undefined);
+  assert.equal(sim.pending, pendingOrder);
 });

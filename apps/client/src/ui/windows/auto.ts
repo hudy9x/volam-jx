@@ -11,19 +11,20 @@ const ID = 'auto-dlg';
 const HTML = `
 <section id="${ID}" class="dlg hidden" data-title="Tự động đánh">
   <button type="button" class="btn" id="auto-on">▶ Chạy auto</button>
-  <p class="muted">${keyLabel('auto')} mở cài đặt · Shift+${keyLabel('auto')} bật / tắt nhanh. Lưu riêng cho nhân vật; tự tiếp tục sau khi tải lại nếu đang bật.</p>
+  <p class="muted">${keyLabel('auto')} mở cài đặt · ${keyLabel('autoToggle')} (hoặc Shift+${keyLabel('auto')}) bật / tắt nhanh. Lưu riêng cho nhân vật; tự tiếp tục sau khi tải lại nếu đang bật.</p>
   <div class="tabs auto-tabs" role="tablist" aria-label="Cài đặt Auto">
     ${[['combat', 'Chiến đấu'], ['training', 'Bãi luyện'], ['loot', 'Nhặt đồ'], ['potions', 'Thuốc']].map(([id, title], i) => `<button type="button" class="tab${i === 0 ? ' on' : ''}" id="auto-tab-${id}" role="tab" aria-controls="auto-panel-${id}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${title}</button>`).join('')}
   </div>
   <div class="auto-panels">
   <div id="auto-panel-combat" role="tabpanel" aria-labelledby="auto-tab-combat" tabindex="0">
   <div class="auto-h">Đánh quái &amp; PK</div>
+  <label class="check"><input type="checkbox" data-set="autoMonster" /> Tự động đánh quái</label>
   <label class="check"><input type="checkbox" data-set="autoPk" /> Tự động đánh người (ưu tiên cao hơn đánh quái)</label>
   <label class="row">Ưu tiên mục tiêu <select data-set="autoPriority"><option value="near">Gần nhất</option><option value="boss">Hoàng Kim → Boss Xanh → quái thường</option><option value="blue">Boss Xanh → Quái thường (bỏ Hoàng Kim)</option></select></label>
   <label class="check"><input type="checkbox" data-set="autoSkipBoss" /> Bỏ qua boss</label>
   <label class="check"><input type="checkbox" data-set="autoRotate" /> Xoay chiêu: dùng lần lượt chiêu tấn công trên phím 1 – 9 (cả khi đánh boss)</label>
   <label class="check"><input type="checkbox" data-set="autoBuff" /> Tự dùng bùa lợi đã học và duy trì hào quang</label>
-  <label class="check"><input type="checkbox" data-set="autoCurse" /> Tự dùng bùa hại trên phím 1 – 9 (lên boss hoặc khi có từ 3 quái)</label>
+  <label class="check"><input type="checkbox" data-set="autoCurse" /> Tự dùng bùa hại trên phím 1 – 9 (lên người chơi, boss hoặc khi có từ 3 quái)</label>
   <div class="auto-h">Tiếp cận quái</div>
   <label class="slider">Chiêu tầm xa: đứng cách quái (% tầm chiêu) <input type="range" min="30" max="100" step="5" data-set="autoReachPct" /><span></span></label>
   <label class="check"><input type="checkbox" data-set="autoMeleeClose" /> Chiêu cận chiến: áp sát quái</label>

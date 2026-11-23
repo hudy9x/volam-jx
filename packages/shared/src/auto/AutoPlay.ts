@@ -103,7 +103,7 @@ export interface AutoHost {
   wearable(def: ItemDef): boolean;
   /** Drops on the ground of this map and picking one up (the server walks there first). */
   drops(): Iterable<AutoDrop>;
-  pickup(id: string): void;
+  pickup(id: string, noWalk?: boolean): void;
   /** Travel: level-based bãi or saved departure point (server resolves), town, revive. */
   train(quiet: boolean, returnPrevious?: boolean): void;
   goTown(): void;
@@ -151,7 +151,7 @@ const BAN_MS = 10000;
 const NUDGE_WINDOW_MS = 8000;
 const NUDGE_STEP = 240;
 /** Loot (jx-web-main equipment-02.js hp): with a live target only drops this near; give up a drop after a try. */
-const LOOT_NEAR = 220;
+const LOOT_NEAR = 260;
 const PICKUP_WAIT_MS = 1500;
 const PICKUP_RETRY_MS = 6000;
 const PICKUP_TRIES = 2;
@@ -372,13 +372,12 @@ export class AutoPlay {
     if (this.focus !== (target?.id ?? null)) this.engaged = null;
     this.focus = target?.id ?? null;
     if (this.waitForUtility(now, self)) return;
-    // Start the offensive action first; buffs must not replace an unconfirmed approach / first strike.
-    if (opts.autoBuff && (!target || this.engaged) && this.buff(now, self, learned)) return;
+    if (opts.autoBuff && this.buff(now, self, learned)) return;
     if (target) {
       if (opts.autoSeek) this.anchor = { x: target.x, y: target.y };
       if (this.stuck(now, self, target, opts)) return;
       if (isoDistance(self.x, self.y, target.x, target.y) > WALK_BEYOND) { this.walkTo(now, target); return; }
-      if (opts.autoCurse && this.engaged && this.curse(now, self, target)) return;
+      if (opts.autoCurse && this.curse(now, self, target)) return;
       this.attack(now, target, opts);
       return;
     }
@@ -629,10 +628,10 @@ export class AutoPlay {
     return false;
   }
 
-  /** A bùa hại from keys 1–9 on the target when it is a boss or many monsters are around (jx-web-main A6). */
+  /** A bùa hại from keys 1–9 on the target when it is a player, a boss, or many monsters are around (jx-web-main A6). */
   private curse(now: number, self: AutoActor, target: AutoActor): boolean {
     if (isoDistance(self.x, self.y, target.x, target.y) > CURSE_RANGE) return false;
-    if (!target.state.boss) {
+    if (!target.state.boss && target.state.kind !== 'player') {
       let crowd = 0;
       for (const v of this.host.actors()) if (v.state.kind === 'monster' && v.state.hp > 0 && isoDistance(target.x, target.y, v.x, v.y) < CURSE_RANGE) crowd++;
       if (crowd < CURSE_CROWD) return false;
@@ -711,7 +710,7 @@ export class AutoPlay {
     if (v.state.kind === 'player') {
       return (this.isEnmityOpponent(v, self) || !!opts.autoPk) && this.isHostilePlayer(v, self);
     }
-    if (v.state.kind !== 'monster') return false;
+    if (v.state.kind !== 'monster' || opts.autoMonster === false) return false;
     if (self?.state.battleCamp && v.state.battleCamp && self.state.battleCamp === v.state.battleCamp) return false;
     if (opts.autoSkipBoss && v.state.boss) return false;
     if (opts.autoPriority === 'blue' && Number(v.state.boss) >= 2) return false;
@@ -811,7 +810,7 @@ export class AutoPlay {
       }
       this.pickTried.set(d.id, { n: (tried?.n ?? 0) + 1, at: now });
       if (this.pickTried.size > 200) this.pickTried.clear();
-      this.host.pickup(d.id);
+      this.host.pickup(d.id, true);
       if (++sent >= PICKUP_BURST_MAX) break;
     }
     if (sent > 0) this.lastInRangePick = now;

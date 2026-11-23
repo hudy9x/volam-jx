@@ -1,3 +1,18 @@
+## 2026-11-23 · Auto: Phím tắt `F` bật/tắt nhanh, Tự buff ngay ngoài vùng an toàn, Bùa hại hỗ trợ PK, Tùy chọn `Tự động đánh quái` (`autoMonster`) & Nhặt đồ lướt qua (`pickupRange = 180`, `noWalk`) (đã commit)
+
+- **USER yêu cầu:**
+  1. Bổ sung phím tắt **`F`** để bật/tắt nhanh Auto.
+  2. Tự buff bùa lợi ngay khi bấm Play ở **bên ngoài vùng an toàn / điểm tập trung** (trong vùng an toàn / điểm tập trung thì không buff), khắc phục lỗi Thúy Yên đi PK Tống Kim không tự buff khi chưa xác nhận đòn đánh `engaged`.
+  3. Cho bùa hại (`autoCurse`) trên phím `1–9` tự kích hoạt lên cả mục tiêu **người chơi địch (`kind === 'player'`)** khi PK.
+  4. Bổ sung thêm tùy chọn **Tự động đánh quái (`autoMonster`, mặc định bật)** để có thể tắt đánh quái/lính NPC, chỉ đánh người khi đi PK.
+  5. Nâng phạm vi tự nhặt đồ (`DROPS.pickupRange`) và cho phép nhân vật vừa chạy lướt qua là tự nhặt luôn mà không bị khựng/kéo ngược lại.
+- **Thay đổi:**
+  - `packages/shared/src/auto/{settings.ts,AutoPlay.ts}`: thêm `autoMonster: boolean` (`DEFAULT_AUTO.autoMonster = true`); bỏ điều kiện chặn `(!target || this.engaged)` ở `this.buff()` và `this.engaged` ở `this.curse()` để nhân vật tự buff ngay khi ở ngoài vùng an toàn (`!this.host.safe()`); mở `curse()` cho `target.state.kind === 'player'`; lọc bỏ `v.state.kind === 'monster'` trong `candidate()` khi `opts.autoMonster === false`; nâng `LOOT_NEAR` lên `260` và gửi `noWalk = true` trong `pickInRange()`.
+  - `packages/shared/src/formulas/tuning.ts`, `packages/shared/src/protocol.ts`, `apps/server/src/world/systems/drops.ts`, `apps/server/src/net/MapRoom.ts`, `apps/client/src/game/WorldScene.ts`, `tools/bots/runner/BotClient.ts`: nâng `DROPS.pickupRange` từ `80` lên `180` iso; thêm `PickupMsg.noWalk?: boolean` để lệnh nhặt lướt qua ngoài tầm không xóa `sim.pending` và không bẻ đường chạy ngược lại.
+  - `apps/client/src/{input/keymap.ts,game/WorldScene.ts,ui/windows/auto.ts,ui/hud/notices.ts}`, `tools/bots/ui/BotPanel.ts`: thêm `KEYS.autoToggle = { code: 'F', label: 'F' }` bật/tắt nhanh Auto (giữ cả `Shift+Z`), thêm checkbox `Tự động đánh quái` (`data-set="autoMonster"`) trong tab Chiến đấu, cập nhật nhãn `autoCurse` và `AUTO_LABELS`.
+  - `tests/auto-behavior.test.ts`, `docs/auto.md`: cập nhật và bổ sung test kiểm chứng tự buff ngay ngoài vùng an toàn (không buff trong vùng an toàn), bùa hại lên người chơi địch, `autoMonster = false` bỏ qua quái/boss, và nhặt lướt qua trong bán kính `180` với `noWalk = true`.
+- **Kiểm tra:** `node --import tsx --test tests/auto-behavior.test.ts tests/auto-passive-fx.test.ts tests/auto-server-target.test.ts tests/locked-attack.test.ts` (**63/63 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần restart server & reload client để nhận `pickupRange = 180`, phím tắt `F` và UI mới (dùng chung Web/Desktop/Mobile). Đã commit trên `main`, chưa push.
+
 ## 2026-11-23 · Bảng JSON trang bị Hoàng Kim theo phái & tuyến kỹ năng cho bot (`gold-loadouts.json`) (đã commit)
 
 - **USER yêu cầu:** điều tra thực trạng mặc đồ Hoàng Kim của toàn bộ bot, sau đó tạo file JSON ánh xạ trực tiếp trang bị `gold` theo từng hệ phái và tuyến kỹ năng với thứ tự ưu tiên: (1) full bộ Hoàng Kim môn phái đúng tuyến kỹ năng đang theo, (2) lấp ô trống bằng đồ Hoàng Kim khác cùng phái không xung khắc vũ khí, (3) lấp nốt ô thiếu bằng đồ xanh ngũ hành; gắn Phi phong vừa đủ Tài phú kích hoạt, ngựa để `auto:horse`, Càn Khôn Giới Chỉ theo cờ `ring` của template bot (Cách A), và áp dụng lại cho toàn bộ bot `gold` hiện có.

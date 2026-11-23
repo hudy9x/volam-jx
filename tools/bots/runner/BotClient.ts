@@ -411,7 +411,7 @@ export class BotClient {
         (this.room?.state as any)?.ground?.forEach((g: any, id: string) => out.push({ id, x: g.x, y: g.y, owner: g.owner, team: g.team, def: g.def, q: g.q }));
         return out;
       },
-      pickup: id => this.send(C2S.pickup, { id }),
+      pickup: (id, noWalk) => this.send(C2S.pickup, noWalk ? { id, noWalk: true } : { id }),
       train: (quiet, returnPrevious) => this.send(C2S.train, { quiet, returnPrevious }),
       goTown: () => this.send(C2S.teleport, { mapId: TOWN_MAP_ID }),
       respawn: () => this.send(C2S.respawn, {}),

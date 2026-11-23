@@ -10,7 +10,7 @@ export class Notices {
     this.box = mount(parent, '<div id="notices"></div>');
     mount(parent, `<button type="button" id="auto-badge" aria-label="Chạy auto" aria-pressed="false">▶ Auto</button>`);
     $('hud-char').prepend($('auto-badge'));
-    $('auto-badge').title = 'Chạy Auto';
+    $('auto-badge').title = 'Chạy Auto (F)';
     $('auto-badge').addEventListener('click', () => this.onAutoToggle?.());
   }
 
@@ -28,6 +28,6 @@ export class Notices {
     button.textContent = on ? '❚❚ Auto' : '▶ Auto';
     button.setAttribute('aria-pressed', String(on));
     button.setAttribute('aria-label', on ? 'Dừng auto' : 'Chạy auto');
-    button.title = on ? 'Auto đang chạy · Bấm để dừng' : 'Auto đang dừng · Bấm để chạy';
+    button.title = on ? 'Auto đang chạy · Bấm hoặc nhấn F để dừng' : 'Auto đang dừng · Bấm hoặc nhấn F để chạy';
   }
 }

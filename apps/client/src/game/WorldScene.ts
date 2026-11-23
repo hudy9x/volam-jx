@@ -365,6 +365,7 @@ export class WorldScene extends Phaser.Scene {
         if (event?.shiftKey) this.ui.setAuto(!this.ui.auto);
         else this.ui.openAuto();
       });
+      bind('autoToggle', () => this.ui.setAuto(!this.ui.auto));
       bind('bag', () => this.ui.toggleWindow('bag'));
       bind('char', () => this.ui.toggleWindow('char'));
       bind('travel', () => this.ui.toggleWindow('travel'));
@@ -478,7 +479,7 @@ export class WorldScene extends Phaser.Scene {
       sortBag: () => this.actions.bagSort(-1, 'bag'),
       wearable: def => { const v = itemViewer(this.self?.state ?? null); return !!v && !equipError(def, v); },
       drops: () => [...this.ground.values()].map(v => ({ id: v.id, x: v.g.x, y: v.g.y, owner: v.g.owner, team: v.g.team, def: v.g.def, q: v.g.q })),
-      pickup: id => this.room.send(C2S.pickup, { id }),
+      pickup: (id, noWalk) => this.room.send(C2S.pickup, noWalk ? { id, noWalk: true } : { id }),
       train: (quiet, returnPrevious) => this.room.send(C2S.train, { quiet, returnPrevious }),
       goTown: () => this.room.send(C2S.teleport, { mapId: TOWN_MAP_ID }),
       respawn: () => this.actions.respawn(),
