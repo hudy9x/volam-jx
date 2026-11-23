@@ -840,6 +840,62 @@
         "dir": 0
       }
     ],
+    "378": [
+      {
+        "id": "npc-tk378-drug-tong",
+        "name": "Chủ dược điếm (Tống)",
+        "res": "passerby007",
+        "action": "drug",
+        "x": 2608,
+        "y": 9192,
+        "dir": 0
+      },
+      {
+        "id": "npc-tk378-stash-tong",
+        "name": "Rương chứa đồ (Tống)",
+        "res": "passerby198",
+        "action": "stash",
+        "x": 2804,
+        "y": 9174,
+        "dir": 0
+      },
+      {
+        "id": "npc-tk378-drug-kim",
+        "name": "Chủ dược điếm (Kim)",
+        "res": "passerby007",
+        "action": "drug",
+        "x": 17236,
+        "y": 1590,
+        "dir": 0
+      },
+      {
+        "id": "npc-tk378-stash-kim",
+        "name": "Rương chứa đồ (Kim)",
+        "res": "passerby198",
+        "action": "stash",
+        "x": 17036,
+        "y": 1590,
+        "dir": 0
+      },
+      {
+        "id": "npc-79130591-2717-456a-8b8d-c176470229fe",
+        "name": "Quân Nhu Quan",
+        "res": "enemy029",
+        "action": "tkQuartermaster",
+        "x": 2762,
+        "y": 9295,
+        "dir": 0
+      },
+      {
+        "id": "npc-ac851aae-b9dc-46cb-b864-c20bad384e0d",
+        "name": "Quân Nhu Quan",
+        "res": "enemy029",
+        "action": "tkQuartermaster",
+        "x": 17019,
+        "y": 1781,
+        "dir": 0
+      }
+    ],
     "384": [
       {
         "id": "npc-8171a6e7-7cdd-4d1d-8075-ad0c5d0e8d7e",

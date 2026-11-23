@@ -26,3 +26,4 @@ tools/bots/data/.assignments.json*
 
 demo
 apps/client/zip
+**/.DS_Store
