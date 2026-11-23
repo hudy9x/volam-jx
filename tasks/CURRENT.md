@@ -32,6 +32,19 @@
   - `tests/player-context-menu.test.ts`: kiểm chứng luật cừu sát 10s, chặn trong Tống Kim, bot/AutoPlay tự đánh trả khi `autoPk = false`, và theo sau server-side.
 - **Kiểm tra:** `node --import tsx --test tests/player-context-menu.test.ts` (**4/4 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần restart server & reload client để nhận thay đổi mới. Đã commit trên `main`, chưa push.
 
+## 2026-11-23 · Bảo vệ Nguyên Soái khi mất ≥ 20% HP (30% quân + Nga Mi buff #93) & Cân bằng xuất trận 2 phe Tống/Kim (đã commit)
+
+- **USER yêu cầu:** khi Nguyên Soái bị đánh mất ≥ 20% máu thì cắt cử 30% quân về bảo vệ và điều Nga Mi về buff máu cho Nguyên Soái; đồng thời cân bằng để phe Tống không luôn tổ chức tấn công trước phe Kim.
+- **Thay đổi:**
+  - `tools/bots/runner/TkTactics.ts`:
+    - Sửa `isMarshalRusherSlot(botIndex)` sang `Math.floor(Math.abs(botIndex) / 2) % 10 < 7` và thêm `isMarshalDefenseReserve(botIndex)` (`< 3`) để cả phe Tống (chẵn) lẫn phe Kim (lẻ) đều cân bằng tuyệt đối **70/70** và **30/30**.
+    - Thêm `reportOwnMarshalHp()`, `MARSHAL_HURT_THRESHOLD = 0.8` và trạng thái `support_hurt_marshal` trong `resolveMarshalEndgame()`: khi Nguyên Soái phe mình còn `≤ 80%` HP, cắt cử đúng **30%** quân thường + **toàn bộ Nga Mi (`emei`)** về bảo vệ & buff máu cho Nguyên Soái.
+  - `tools/bots/runner/TongKimBehavior.ts`:
+    - Cân bằng xuất trận 2 phe: gửi trực tiếp `C2S.tkAction { op: 'exitGate' }` ngay khi hết `gateWaitSec` thay vì chạy bộ qua quãng đường portal lệch nhau giữa 2 hậu doanh.
+    - Bổ sung `tryHealOwnMarshal()`: bot Nga Mi chạy về áp sát Nguyên Soái nhà (`≤ 380 px`) và chủ động cast **Từ Hàng Phổ Độ (`#93` / `#1234`)** hồi máu cho Nguyên Soái.
+  - `tests/tong-kim.test.ts`: bổ sung test kiểm chứng cân bằng 70/70 & 30/30 giữa 2 phe, kích hoạt `support_hurt_marshal` khi Nguyên Soái còn ≤ 80% HP, và bot Nga Mi chạy về cast `#93` lên Nguyên Soái.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**28/28 pass**), `git diff --check` đạt. Chỉ sửa `tools/bots/`, `bots:ui` tự nạp lại. Đã commit trên `main`, chưa push.
+
 ## 2026-11-23 · Nâng cấp công thành Nguyên Soái theo Đợt (Wave) + Đội trưởng + 3 tiểu đội + Bọc sườn đổi cánh (đã commit)
 
 - **USER yêu cầu:** nâng cấp giai đoạn phe mất Nguyên Soái công thành cho toàn bộ các chiến thuật mới (`flank`/`tactical`/`defend`/`random`, giữ nguyên `charge`) để khắc phục việc bot lao lẻ nạp mạng.

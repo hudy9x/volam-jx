@@ -14,9 +14,10 @@ import {
 export type ConcreteTkTactic = Exclude<BotTongKimTactic, 'random'>;
 export type TkBotRole = 'vanguard' | 'flanker' | 'guard' | 'support';
 export type TkSiegeRole = 'breacher' | 'slayer' | 'support';
-export type TkMarshalEndgame = 'none' | 'defend_marshal' | 'rally_for_rush' | 'rush_enemy_marshal';
+export type TkMarshalEndgame = 'none' | 'defend_marshal' | 'support_hurt_marshal' | 'rally_for_rush' | 'rush_enemy_marshal';
 
 export const MARSHAL_DEFEND_DELAY_MS = 30_000;
+export const MARSHAL_HURT_THRESHOLD = 0.8;
 export const MARSHAL_RALLY_RADIUS = 450;
 export const MARSHAL_RALLY_MAX_WAIT_MS = 22_000;
 export const MARSHAL_WAVE_COLLAPSE_AFTER_MS = 12_000;
@@ -27,9 +28,18 @@ const BREACHER_FACTIONS = new Set(['shaolin', 'tianwang', 'gaibang', 'wudu']);
 
 /**
  * Kiểm tra xem bot có thuộc nhóm 70% tổng lực diệt Soái khi phe mình mất Nguyên Soái hay không.
+ * Chia theo `Math.floor(botIndex / 2) % 10 < 7` để cả phe Tống (chẵn) lẫn phe Kim (lẻ) đều tròn đúng 70%.
  */
 export function isMarshalRusherSlot(botIndex: number): boolean {
-  return (Math.abs(botIndex) % 10) < 7;
+  return (Math.floor(Math.abs(botIndex) / 2) % 10) < 7;
+}
+
+/**
+ * Kiểm tra xem bot có thuộc nhóm 30% cắt cử về bảo vệ Nguyên Soái khi Nguyên Soái mất >= 20% máu hay không.
+ * Chia theo `Math.floor(botIndex / 2) % 10 < 3` để cả phe Tống và phe Kim đều tròn đúng 30%.
+ */
+export function isMarshalDefenseReserve(botIndex: number): boolean {
+  return (Math.floor(Math.abs(botIndex) / 2) % 10) < 3;
 }
 
 /**
@@ -304,6 +314,8 @@ interface CampBoard {
   endgameMatchKey: string;
   enemyMarshalDiedAt: number;
   myMarshalDiedAt: number;
+  ownMarshalHpRatio: number;
+  ownMarshalHpAt: number;
   waveNumber: number;
   waveState: 'rallying' | 'marching';
   waveRallyStartedAt: number;
@@ -333,6 +345,8 @@ export class TkCampDirector {
         endgameMatchKey: '',
         enemyMarshalDiedAt: 0,
         myMarshalDiedAt: 0,
+        ownMarshalHpRatio: 1,
+        ownMarshalHpAt: 0,
         waveNumber: 0,
         waveState: 'rallying',
         waveRallyStartedAt: 0,
@@ -362,6 +376,13 @@ export class TkCampDirector {
   reportMarshalThreat(mapId: number, camp: TkCamp, alert: TkMarshalAlert): void {
     const b = this.board(mapId, camp);
     b.marshalAlert = alert;
+  }
+
+  /** Ghi nhận tỉ lệ máu hiện tại của Nguyên Soái phe mình (kích hoạt cắt cử 30% + Nga Mi khi <= 80% HP). */
+  reportOwnMarshalHp(mapId: number, camp: TkCamp, hpRatio: number, now: number): void {
+    const b = this.board(mapId, camp);
+    b.ownMarshalHpRatio = Math.max(0, Math.min(1, hpRatio));
+    b.ownMarshalHpAt = now;
   }
 
   getMarshalAlert(mapId: number, camp: TkCamp, now: number): TkMarshalAlert | null {
@@ -476,6 +497,7 @@ export class TkCampDirector {
     botIndex: number,
     myMarshalPos: Point2D,
     now: number,
+    faction?: string,
   ): TkMarshalEndgame {
     if (!tkState || tkState.mode !== 1 || !tkState.marshalSpawned) return 'none';
     const b = this.board(mapId, camp);
@@ -485,6 +507,8 @@ export class TkCampDirector {
       b.endgameMatchKey = matchKey;
       b.enemyMarshalDiedAt = 0;
       b.myMarshalDiedAt = 0;
+      b.ownMarshalHpRatio = 1;
+      b.ownMarshalHpAt = 0;
       b.waveNumber = 0;
       b.waveState = 'rallying';
       b.waveRallyStartedAt = 0;
@@ -495,14 +519,23 @@ export class TkCampDirector {
 
     const myAlive = camp === 'tong' ? !!tkState.tongMarshalAlive : !!tkState.kimMarshalAlive;
     const enemyAlive = camp === 'tong' ? !!tkState.kimMarshalAlive : !!tkState.tongMarshalAlive;
+    const marshalHurt = myAlive && b.ownMarshalHpAt > 0 && now - b.ownMarshalHpAt <= 20_000 && b.ownMarshalHpRatio <= MARSHAL_HURT_THRESHOLD;
+    const isHurtResponder = isMarshalDefenseReserve(botIndex) || faction === 'emei';
 
-    // 1. Phe đang thắng (còn Soái, địch mất Soái): chỉ dồn về bảo vệ Soái nhà sau 30s.
+    // 1. Phe đang thắng (còn Soái, địch mất Soái): sau 30s dồn 100% về bảo vệ Soái nhà;
+    //    trong 30s đầu nếu Soái nhà đã mất >= 20% HP thì cắt cử 30% + Nga Mi về hỗ trợ ngay.
     if (myAlive && !enemyAlive) {
       if (b.enemyMarshalDiedAt === 0) b.enemyMarshalDiedAt = now;
-      return now - b.enemyMarshalDiedAt >= MARSHAL_DEFEND_DELAY_MS ? 'defend_marshal' : 'none';
+      if (now - b.enemyMarshalDiedAt >= MARSHAL_DEFEND_DELAY_MS) return 'defend_marshal';
+      return marshalHurt && isHurtResponder ? 'support_hurt_marshal' : 'none';
     }
 
-    // 2. Phe mất Nguyên Soái: nhóm 70% tổ chức theo từng Đợt (Wave) lặp lại.
+    // 2. Cả 2 Nguyên Soái cùng còn sống: khi Nguyên Soái nhà mất >= 20% HP -> cắt cử 30% về bảo vệ + điều Nga Mi về buff máu.
+    if (myAlive && enemyAlive) {
+      return marshalHurt && isHurtResponder ? 'support_hurt_marshal' : 'none';
+    }
+
+    // 3. Phe mất Nguyên Soái: nhóm 70% tổ chức theo từng Đợt (Wave) lặp lại.
     if (!myAlive && enemyAlive) {
       if (b.myMarshalDiedAt === 0) {
         b.myMarshalDiedAt = now;

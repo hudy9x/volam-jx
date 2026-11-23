@@ -1496,3 +1496,87 @@ test('Đứng quá 20s trong điểm tập trung Hậu doanh tự động đẩy
     tongKim.stopMatch(fakeWorld);
   }
 });
+
+test('Nguyên Soái mất >= 20% HP: cắt cử đúng 30% về bảo vệ + điều Nga Mi về buff Từ Hàng Phổ Độ (#93), cân bằng 70/70 & 30/30 hai phe', async () => {
+  const { DEFAULT_BOT_SCENARIO, TK_MAP_LAYOUT, C2S, isoDistance } = await import('../packages/shared/src/index.js');
+  const { TongKimBehavior } = await import('../tools/bots/runner/TongKimBehavior.js');
+  const { TkCampDirector, isMarshalRusherSlot, isMarshalDefenseReserve } = await import('../tools/bots/runner/TkTactics.js');
+
+  // 1. Cân bằng tuyệt đối giữa Tống (botIndex chẵn) và Kim (botIndex lẻ)
+  let tongRush = 0, kimRush = 0, tongDef = 0, kimDef = 0;
+  for (let i = 0; i < 20; i++) {
+    if (i % 2 === 0) {
+      if (isMarshalRusherSlot(i)) tongRush++;
+      if (isMarshalDefenseReserve(i)) tongDef++;
+    } else {
+      if (isMarshalRusherSlot(i)) kimRush++;
+      if (isMarshalDefenseReserve(i)) kimDef++;
+    }
+  }
+  assert.equal(tongRush, 7, 'Phe Tống (10 bot chẵn) phải có đúng 70% (7/10) rusher');
+  assert.equal(kimRush, 7, 'Phe Kim (10 bot lẻ) phải có đúng 70% (7/10) rusher');
+  assert.equal(tongDef, 3, 'Phe Tống phải có đúng 30% (3/10) dự bị bảo vệ Soái');
+  assert.equal(kimDef, 3, 'Phe Kim phải có đúng 30% (3/10) dự bị bảo vệ Soái');
+
+  // 2. Khi Nguyên Soái Tống mất 22% HP (còn 78% <= 80%) trong lúc cả 2 Soái đều sống
+  const director = new TkCampDirector();
+  const now = 50_000;
+  const bothAlive = { matchId: 77, mode: 1, marshalSpawned: true, tongMarshalAlive: true, kimMarshalAlive: true };
+  // Trước khi báo mất 20% -> chưa ai phải về
+  assert.equal(director.resolveMarshalEndgame(378, 'tong', bothAlive, 0, TK_MAP_LAYOUT.tong.marshal, now, 'shaolin'), 'none');
+
+  director.reportOwnMarshalHp(378, 'tong', 0.78, now);
+  let defenders = 0;
+  for (let i = 0; i < 20; i += 2) {
+    if (director.resolveMarshalEndgame(378, 'tong', bothAlive, i, TK_MAP_LAYOUT.tong.marshal, now, 'shaolin') === 'support_hurt_marshal') {
+      defenders++;
+    }
+  }
+  assert.equal(defenders, 3, 'Đúng 30% (3/10) bot thường phe Tống về bảo vệ khi Soái mất >= 20% máu');
+  // Nga Mi dù ở slot ngoài 30% (vd index 18 -> 9 % 10 >= 3) vẫn được điều về buff máu cho Soái
+  assert.equal(director.resolveMarshalEndgame(378, 'tong', bothAlive, 18, TK_MAP_LAYOUT.tong.marshal, now, 'emei'), 'support_hurt_marshal');
+
+  // 3. Bot Nga Mi chạy về gần Nguyên Soái và chủ động cast Từ Hàng Phổ Độ (#93) lên Nguyên Soái
+  const moves: { x: number; y: number }[] = [];
+  const casts: { skill: number; targetId?: string }[] = [];
+  const emeiMe: any = { id: 'emei-1', x: 9000, y: 5500, hp: 4000, maxHp: 4000, mp: 2000, maxMp: 2000, battleCamp: 'tong', faction: 'emei', states: [] };
+  const rawActors = new Map<string, any>([['tong-marshal', { battleCamp: 'tong', maxHp: 5_000_000 }]]);
+  let actorList: any[] = [];
+  const emeiBot: any = {
+    name: 'emei-1',
+    mapId: 378,
+    bag: [{ uid: 'p1', def: 'potion-0-5', qty: 10 }],
+    money: 100000,
+    levels: { 93: 20, 328: 20 },
+    stats: { faction: 'emei', series: 'thuy' },
+    autoSettings: { autoBuff: false },
+    tkState: { ...bothAlive, phase: 'fighting', battleMapId: 378, tongCount: 10, kimCount: 10, me: { camp: 'tong', inCamp: false, gateWaitSec: 0 } },
+    room: { state: { actors: rawActors } },
+    host: { drops: () => [], aura: () => {} },
+    me: () => emeiMe,
+    actors: () => actorList,
+    rand: () => 0.5,
+    send: (type: string, payload: any) => { if (type === C2S.move) moves.push(payload); },
+    prepareCombat: () => false,
+    attacks: () => [328],
+    range: () => 360,
+    ready: () => true,
+    usable: () => true,
+    levelOf: (id: number) => (id === 93 || id === 328 ? 20 : 0),
+    cast: (skill: number, targetId?: string) => { casts.push({ skill, targetId }); },
+    reviveIfDead: () => {},
+  };
+  const sc = { ...DEFAULT_BOT_SCENARIO, tongkim: { ...DEFAULT_BOT_SCENARIO.tongkim!, tactic: 'tactical' as const } };
+  const emeiBeh = new TongKimBehavior(emeiBot, sc, 18, director);
+
+  // Khi đang ở xa (9000, 5500) -> chạy về sát Nguyên Soái Tống
+  emeiBeh.update(now + 100);
+  assert.ok(moves.length >= 1 && isoDistance(moves.at(-1)!.x, moves.at(-1)!.y, TK_MAP_LAYOUT.tong.marshal.x, TK_MAP_LAYOUT.tong.marshal.y) < 300, 'Nga Mi phải chạy về sát Nguyên Soái nhà');
+
+  // Khi đã áp sát trong tầm 380px -> cast Từ Hàng Phổ Độ (#93) lên Nguyên Soái
+  emeiMe.x = TK_MAP_LAYOUT.tong.marshal.x + 120;
+  emeiMe.y = TK_MAP_LAYOUT.tong.marshal.y;
+  actorList = [{ id: 'tong-marshal', isSelf: false, x: TK_MAP_LAYOUT.tong.marshal.x, y: TK_MAP_LAYOUT.tong.marshal.y, state: { hp: 3_900_000, maxHp: 5_000_000, kind: 'monster', boss: 2 } }];
+  emeiBeh.update(now + 1000);
+  assert.deepEqual(casts.at(-1), { skill: 93, targetId: 'tong-marshal' }, 'Nga Mi phải cast Từ Hàng Phổ Độ (#93) lên Nguyên Soái đang mất máu');
+});

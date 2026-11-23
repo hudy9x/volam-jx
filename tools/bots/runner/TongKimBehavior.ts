@@ -92,6 +92,7 @@ function backPortalFor(mapId: number, camp: TkCamp): { x: number; y: number } {
 }
 
 const KHINH_CONG_ID = 210;
+const EMEI_HEAL_SKILLS = [93, 1234] as const;
 
 /**
  * Bot PK Chiến trường Tống Kim — Giai đoạn 1 (Non nớt / Naive FSM).
@@ -130,6 +131,7 @@ export class TongKimBehavior implements Behavior {
   private nextTkItemUseAt = 0;
   private nextClarionAt = 0;
   private nextTrapAt = 0;
+  private nextHealMarshalAt = 0;
   private lastOwnMarshalHp = new Map<string, number>();
   private liveTacticAll: BotTongKimTactic | null = null;
   private liveTacticByCamp: Partial<Record<TkCamp, BotTongKimTactic>> = {};
@@ -261,10 +263,11 @@ export class TongKimBehavior implements Behavior {
       if (!st || st.phase !== 'fighting' || (st.me?.gateWaitSec ?? 0) > 0) return;
       if (now >= this.nextCampExitAt) {
         this.nextCampExitAt = now + 2200 + this.bot.rand() * 800;
+        // Xuất trận trực tiếp qua cổng để 2 phe Tống/Kim ra tiền tuyến đồng đều (tránh lệch quãng đường chạy tới portal giữa 2 hậu doanh).
         const { point: p, hasPortal } = outgoingPortalFor(this.bot.mapId, myCamp);
-        this.bot.send(C2S.move, { x: p.x, y: p.y });
-        if (!hasPortal || isoDistance(me.x, me.y, p.x, p.y) < 150) {
-          this.bot.send(C2S.tkAction, { op: 'exitGate' });
+        this.bot.send(C2S.tkAction, { op: 'exitGate' });
+        if (hasPortal && isoDistance(me.x, me.y, p.x, p.y) >= 150) {
+          this.bot.send(C2S.move, { x: p.x, y: p.y });
         }
       }
       return;
@@ -298,10 +301,8 @@ export class TongKimBehavior implements Behavior {
         isRusher,
         siegeRole,
       });
-      endgame = this.director.resolveMarshalEndgame(this.bot.mapId, myCamp, st, this.botIndex, cfg[myCamp].marshal, now);
-      if (tactic === 'tactical' || tactic === 'defend') {
-        this.scanOwnMarshalThreat(myCamp, now);
-      }
+      this.scanOwnMarshalThreat(myCamp, now);
+      endgame = this.director.resolveMarshalEndgame(this.bot.mapId, myCamp, st, this.botIndex, cfg[myCamp].marshal, now, faction);
     }
 
     // Dùng vật phẩm Tống Kim (bật sẵn buff tại điểm tập kết, giữ Bẫy/Hiệu Phù khi giao tranh thật sự)
@@ -318,6 +319,11 @@ export class TongKimBehavior implements Behavior {
 
     // 3e. Chiến thuật tổng hợp: rút về cụm đồng đội khi bị áp đảo quân số (1 vs 3+) và máu dưới 55%.
     if (tactic === 'tactical' && endgame === 'none' && this.tryTacticalFallback(me, myCamp, role, now)) return;
+
+    // 3f. Nga Mi về buff máu (Từ Hàng Phổ Độ #93) cho Nguyên Soái phe mình khi Nguyên Soái mất >= 20% máu.
+    if (tactic !== 'charge' && faction === 'emei' && (endgame === 'support_hurt_marshal' || endgame === 'defend_marshal')) {
+      if (this.tryHealOwnMarshal(me, myCamp, now)) return;
+    }
 
     // 4. Giao tranh ngoài tiền tuyến: tìm mục tiêu phe địch ưu tiên.
     const scanRadius = this.sc.tongkim?.scanRadius ?? DEFAULT_BOT_TONGKIM.scanRadius;
@@ -515,7 +521,8 @@ export class TongKimBehavior implements Behavior {
     }
 
     const actors = this.bot.actors();
-    const useUtility = tactic === 'tactical' || tactic === 'defend' || endgame === 'defend_marshal' || (endgame === 'rush_enemy_marshal' && siegeRole === 'breacher');
+    const defendingMarshal = endgame === 'defend_marshal' || endgame === 'support_hurt_marshal';
+    const useUtility = tactic === 'tactical' || tactic === 'defend' || defendingMarshal || (endgame === 'rush_enemy_marshal' && siegeRole === 'breacher');
     const mySeries = (this.bot.stats?.series ?? (me.series as Element | undefined)) as Element | undefined;
     const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
     const myMarshal = cfg[myCamp].marshal;
@@ -562,10 +569,11 @@ export class TongKimBehavior implements Behavior {
         // `breacher` (Mở đường): rơi xuống `scoreTargetUtility` để chủ động đánh & khống chế bot địch chắn đường!
       }
 
-      // Phe còn Nguyên Soái đang dồn về thủ Soái: bỏ qua địch ngoài vùng bảo vệ nếu bản thân còn xa Soái nhà.
-      if (endgame === 'defend_marshal') {
+      // Phe đang dồn về thủ Soái (100% hoặc 30% + Nga Mi khi Soái mất >= 20% máu): bỏ qua địch xa Soái nhà nếu bản thân còn xa Soái.
+      if (defendingMarshal) {
         const enemyDistToMarshal = isoDistance(a.x, a.y, myMarshal.x, myMarshal.y);
         if (myDistToMarshal > 900 && enemyDistToMarshal > 950) continue;
+        if (endgame === 'support_hurt_marshal' && (me.faction ?? this.bot.stats?.faction) === 'emei' && dist > 220) continue;
       }
 
       if (!useUtility) {
@@ -592,8 +600,8 @@ export class TongKimBehavior implements Behavior {
           lockedTargetId: this.lockedTargetId,
           focusTargetId: focus?.id,
           myMarshal,
-          marshalThreatened: !!alert || endgame === 'defend_marshal',
-          defending: tactic === 'defend' || endgame === 'defend_marshal',
+          marshalThreatened: !!alert || defendingMarshal,
+          defending: tactic === 'defend' || defendingMarshal,
         },
       );
       if (!bestUtil || score > bestUtil.score) {
@@ -657,7 +665,10 @@ export class TongKimBehavior implements Behavior {
     const key = `${this.bot.mapId}:${myCamp}`;
     const prevHp = this.lastOwnMarshalHp.get(key);
     const hpJustDropped = marshalHp >= 0 && prevHp !== undefined && marshalHp < prevHp;
-    if (marshalHp >= 0) this.lastOwnMarshalHp.set(key, marshalHp);
+    if (marshalHp >= 0) {
+      this.lastOwnMarshalHp.set(key, marshalHp);
+      this.director.reportOwnMarshalHp(this.bot.mapId, myCamp, marshalHpRatio, now);
+    }
 
     if (enemyNearMarshal > 0 || hpJustDropped) {
       this.director.reportMarshalThreat(this.bot.mapId, myCamp, {
@@ -668,6 +679,29 @@ export class TongKimBehavior implements Behavior {
         at: now,
       });
     }
+  }
+
+  /** Bot Nga Mi chủ động cast Từ Hàng Phổ Độ (#93 / #1234) hồi máu cho Nguyên Soái phe mình khi đứng trong tầm. */
+  private tryHealOwnMarshal(me: any, myCamp: TkCamp, now: number): boolean {
+    if (now < this.nextHealMarshalAt) return false;
+    const healSkill = EMEI_HEAL_SKILLS.find(id => this.bot.levelOf(id) > 0 && this.bot.ready(id, now));
+    if (!healSkill) return false;
+
+    for (const a of this.bot.actors()) {
+      if (a.state.hp <= 0 || a.state.kind !== 'monster' || Number(a.state.boss) < 2) continue;
+      const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
+      if (raw?.battleCamp !== myCamp) continue;
+      const maxHp = Math.max(1, Number(a.state.maxHp || raw?.maxHp || a.state.hp));
+      if (a.state.hp >= maxHp) return false;
+      const dist = isoDistance(me.x, me.y, a.x, a.y);
+      if (dist > 380) return false;
+      if (this.bot.prepareCombat(now)) return true;
+      this.nextHealMarshalAt = now + 1250;
+      this.nextCastAt = now + 350;
+      this.bot.cast(healSkill, a.id, a.x, a.y, false);
+      return true;
+    }
+    return false;
   }
 
   private findNearestAllyCluster(me: any, myCamp: TkCamp, maxRange = 1600): Point2D | null {
@@ -746,13 +780,15 @@ export class TongKimBehavior implements Behavior {
     const mine = cfg[myCamp];
     const enemy = cfg[myCamp === 'tong' ? 'kim' : 'tong'];
 
-    // 0a. Chiến lược Nguyên Soái: phe mình còn Soái, phe địch mất Soái -> 100% dồn về bảo vệ Nguyên Soái phe mình.
-    if (endgame === 'defend_marshal') {
+    // 0a. Chiến lược Nguyên Soái: dồn về bảo vệ Nguyên Soái phe mình (100% khi phe địch mất Soái sau 30s, hoặc 30% + Nga Mi khi Soái nhà mất >= 20% HP).
+    if (endgame === 'defend_marshal' || endgame === 'support_hurt_marshal') {
+      const isEmeiSupport = endgame === 'support_hurt_marshal' && (me.faction ?? this.bot.stats?.faction) === 'emei';
       const angle = ((this.botIndex % 12) / 12) * Math.PI * 2;
-      const ring = 180 + (this.botIndex % 3) * 65;
-      const gx = Math.round(mine.marshal.x + Math.cos(angle) * ring + Math.round(this.jitter.x * 0.3));
-      const gy = Math.round(mine.marshal.y + Math.sin(angle) * ring * 0.5 + Math.round(this.jitter.y * 0.3));
-      if (isoDistance(me.x, me.y, gx, gy) > 180 && now >= this.nextMoveAt) {
+      const ring = isEmeiSupport ? 140 : 180 + (this.botIndex % 3) * 65;
+      const gx = Math.round(mine.marshal.x + Math.cos(angle) * ring + Math.round(this.jitter.x * 0.25));
+      const gy = Math.round(mine.marshal.y + Math.sin(angle) * ring * 0.5 + Math.round(this.jitter.y * 0.25));
+      const stopRadius = isEmeiSupport ? 130 : 180;
+      if (isoDistance(me.x, me.y, gx, gy) > stopRadius && now >= this.nextMoveAt) {
         this.nextMoveAt = now + 750;
         this.bot.send(C2S.move, { x: gx, y: gy });
       }
