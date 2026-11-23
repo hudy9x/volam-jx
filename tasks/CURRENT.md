@@ -8,7 +8,7 @@
   - `apps/server/data/db.json`: khởi tạo sẵn 18 tài khoản và nhân vật `botfixed_201`..`botfixed_218` (template `level-150-200`, trang bị Hoàng Kim `gold`, `2.000.000` lượng, `50× Chiến Cổ` + `50× Lệnh Bài`, `pending: true` để tự mặc bộ Hoàng Kim Tiêu Dao chuẩn khi vào game).
 - **Kiểm tra:** `node --import tsx --test tests/bot-roster.test.ts tests/bot-gold-loadouts.test.ts tests/bot-config-delete.test.ts tests/bot-scenario-assignment.test.ts` (**9/9 pass**), `npm run typecheck` (0 lỗi), `git diff --check` đạt. Cần restart server để nạp 18 tài khoản bot mới từ `db.json` (công cụ `bots:ui` tự reload). Đã commit trên `main`, chưa push.
 
-## 2026-11-23 · Auto & Kỹ năng Tiêu Dao: Kiểm tra tầng `[Âm Luật]` (`cost_sp`) trong `canPaySkillCost`, ưu tiên chiêu tay trái & chờ hồi chiêu khi tắt `autoRotate` (chưa commit)
+## 2026-11-23 · Auto & Kỹ năng Tiêu Dao: Kiểm tra tầng `[Âm Luật]` (`cost_sp`) trong `canPaySkillCost`, ưu tiên chiêu tay trái & chờ hồi chiêu khi tắt `autoRotate` (đã commit)
 
 - **USER yêu cầu:**
   1. Điều tra `volam-3005` kiểm chứng chiêu **Thập Bộ Nhất Sát (`#2129`, Tiêu Dao Kiếm 150)** có yêu cầu tầng `[Âm Luật]` không → Đã xác minh trong `Server/settings/skills.txt:1864` và `Server/script/skill/xiaoyao.lua:226-230` có `cost_sp = 3` tầng `[Âm Luật]` (tích từ bị động chung cấp 20 **Di Cung Hoán Vũ `#2116`**).
@@ -20,7 +20,7 @@
     - Khi `autoRotate = true`: đòn đầu tiên lên mục tiêu luôn ưu tiên `list[0]` (`mainSkill()` ở tay trái) thay vì cộng `rotateIdx + 1` làm nhảy cóc sang phím `1–9`.
   - `apps/client/src/game/WorldScene.ts`, `tools/bots/runner/BotClient.ts`: bỏ gọi sớm `skillbar.startCooldown()` ngay lúc gửi gói `C2S.cast` trong `AutoHost.cast` (để `Effects.ts` chỉ bắt đầu đếm cooldown khi nhận sự kiện `cast` thực sự từ Server, tránh khóa cooldown giả 3s khi nhân vật còn đang chạy tiếp cận hoặc thiếu `[Âm Luật]`); đồng bộ `skill_mintimepercast_v` / `skill_mintimepercastonhorse_v` trong `BotClient.cast()`.
   - `tests/auto-behavior.test.ts`, `docs/auto.md`: bổ sung test kiểm chứng `canPaySkillCost` với `cost_sp = 3` của `#2129`, hành vi chờ hồi chiêu & `[Âm Luật]` khi `autoRotate = false`, và ưu tiên đánh `#2129` trước `#2124` khi `autoRotate = true`.
-- **Kiểm tra:** `node --import tsx --test tests/auto-behavior.test.ts tests/auto-passive-fx.test.ts tests/auto-server-target.test.ts tests/locked-attack.test.ts tests/xiaoyao.test.ts` (**74/74 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần reload client (và restart server/bot runner nếu đang chạy) để áp dụng (dùng chung Web/Desktop/Mobile). Chưa commit/push.
+- **Kiểm tra:** `node --import tsx --test tests/auto-behavior.test.ts tests/auto-passive-fx.test.ts tests/auto-server-target.test.ts tests/locked-attack.test.ts tests/xiaoyao.test.ts` (**74/74 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần reload client (và restart server/bot runner nếu đang chạy) để áp dụng (dùng chung Web/Desktop/Mobile). Đã commit trên `main`, chưa push.
 
 ## 2026-11-23 · Auto: Phím tắt `F` bật/tắt nhanh, Tự buff ngay ngoài vùng an toàn, Bùa hại hỗ trợ PK, Tùy chọn `Tự động đánh quái` (`autoMonster`) & Nhặt đồ lướt qua (`pickupRange = 180`, `noWalk`) (đã commit)
 

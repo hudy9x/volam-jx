@@ -466,7 +466,6 @@ export class WorldScene extends Phaser.Scene {
       range: skill => { const s = getSkill(skill); return s ? castRange(s, Math.max(1, skillbar.levelOf(skill))) : 0; },
       melee: skill => { const s = getSkill(skill); return !!s && isMelee(s); },
       cast: (skill, target, x, y, lock, reach) => {
-        skillbar.startCooldown(skill, !!this.self?.state.mounted);
         this.room.send(C2S.cast, { skill, targetId: target?.id, x: Math.round(x), y: Math.round(y), lock, reach });
       },
       move: (x, y) => this.room.send(C2S.move, { x: Math.round(x), y: Math.round(y) }),

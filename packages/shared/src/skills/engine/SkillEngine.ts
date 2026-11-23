@@ -159,10 +159,10 @@ export class SkillEngine {
     }
     if (c.kind === 'player') {
       const cost = skillResourceCost(s, level);
-      if (!canPaySkillCost(cost, { hp: c.hp, mp: c.mp, maxHp: c.a.maxHp })) {
+      if (!canPaySkillCost({ ...cost, sp: 0 }, { hp: c.hp, mp: c.mp, maxHp: c.a.maxHp })) {
         return cost.resource === 'hp' ? 'Không đủ sinh lực dự trữ để thi triển.' : 'Không đủ nội lực.';
       }
-      const needSp = this.spCost(s, level);
+      const needSp = cost.sp ?? 0;
       if (needSp > 0 && (c.sp ?? 0) < needSp) {
         return `Cần ${needSp} tầng Âm Luật (hiện có ${c.sp ?? 0}).`;
       }

@@ -1,6 +1,6 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  applyMapRegistry, canAttack, combatPairRules, combatRulesAt, BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillResourceCost, canPaySkillCost,
+  applyMapRegistry, attr1, canAttack, combatPairRules, combatRulesAt, BOT_TRADE_RULES, C2S, JX_TICK_MS, MAPS, MAP_ROOM, S2C, TOWN_MAP_ID, castRange, equipError, getSkill, isCastable, isMelee, itemDef, skillCategory, skillResourceCost, canPaySkillCost,
   tuningOf, weaponOk, weaponTypeOf, autoAuraSkill, autoBuffSkills, isoDistance,
   type AutoSettings, type AutoActor, type AutoDrop, type AutoHost, type BotBehavior, type BotLogin, type BotScenario, type Camp, type InventoryMsg, type Item,
   type SkillDef, type SkillsMsg, type StatsMsg, type TkStateMsg, type TransferMsg, type TeamMsg,
@@ -294,7 +294,9 @@ export class BotClient {
   /** Cast like a click: the client's cooldown guess starts (skillbar.startCooldown). */
   cast(skill: number, targetId: string | undefined, x: number, y: number, lock: boolean, reach?: number): void {
     const s = getSkill(skill);
-    const ms = (s?.cooldown ?? 0) * JX_TICK_MS + (tuningOf(skill).cooldownMs ?? 0);
+    const level = Math.max(1, this.levelOf(skill));
+    const minTime = s ? attr1(s, this.me()?.mounted ? 'skill_mintimepercastonhorse_v' : 'skill_mintimepercast_v', level) : 0;
+    const ms = Math.max(s?.cooldown ?? 0, minTime) * JX_TICK_MS + (tuningOf(skill).cooldownMs ?? 0);
     if (ms > 0) this.cooldowns.set(skill, performance.now() + ms);
     this.send(C2S.cast, { skill, targetId, x: Math.round(x), y: Math.round(y), lock, reach });
   }

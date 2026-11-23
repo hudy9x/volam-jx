@@ -599,3 +599,76 @@ test('pickInRange picks pass-by items within 180 iso with noWalk=true, and serve
   assert.equal(sim.pickup, undefined);
   assert.equal(sim.pending, pendingOrder);
 });
+
+test('canPaySkillCost checks cost_sp (Âm Luật); AutoPlay starts with left-hand skill and waits for cooldown/sp when autoRotate=false', async () => {
+  const { skillResourceCost, canPaySkillCost } = await import('../packages/shared/src/index.js');
+  const s2129 = getSkill(2129)!; // Thập Bộ Nhất Sát (requires 3 [Âm Luật], cooldown 3s)
+  const s2124 = getSkill(2124)!; // Kiếm Quyết Phù Vân (no sp cost, cooldown 0)
+  const cost2129 = skillResourceCost(s2129, 20);
+  assert.equal(cost2129.sp, 3);
+  assert.equal(canPaySkillCost(cost2129, { hp: 1000, mp: 1000, maxHp: 1000, sp: 2 }), false);
+  assert.equal(canPaySkillCost(cost2129, { hp: 1000, mp: 1000, maxHp: 1000, sp: 3 }), true);
+
+  const r = rig();
+  r.self.state.mp = 1000;
+  r.self.state.maxMp = 1000;
+  (r.self.state as { sp?: number }).sp = 3;
+  let cd2129Until = 0;
+  let nowMs = 1000;
+  r.host.skillAt = slot => (slot === 'left' ? 2129 : slot === 0 ? 2124 : null);
+  r.host.usable = id => id === 2129 || id === 2124 || id === 1;
+  r.host.resourceCost = id => {
+    const s = getSkill(id);
+    return s ? skillResourceCost(s, 20) : undefined;
+  };
+  r.host.ready = id => {
+    const s = getSkill(id);
+    if (!s) return false;
+    if (id === 2129 && nowMs < cd2129Until) return false;
+    return canPaySkillCost(skillResourceCost(s, 20), r.self.state);
+  };
+  r.host.cast = (id, target) => {
+    r.casts.push(id);
+    if (id === 2129) {
+      (r.self.state as { sp?: number }).sp = Math.max(0, ((r.self.state as { sp?: number }).sp ?? 0) - 3);
+      cd2129Until = nowMs + 3000;
+    }
+    if (target) r.self.state.attackTarget = target.id;
+  };
+
+  // 1) autoRotate = false: chỉ đánh chiêu tay trái (2129), khi đang hồi chiêu hoặc thiếu Âm Luật thì chờ chứ không nhảy sang 2124 hay đánh thường.
+  const noRotateOpts = { ...r.opts, autoRotate: false };
+  r.auto.start();
+  r.auto.update(nowMs, noRotateOpts);
+  assert.deepEqual(r.casts, [2129]);
+
+  // Trong thời gian hồi chiêu 3s hoặc chưa đủ 3 tầng Âm Luật: không chuyển sang 2124 hay đánh thường (1)
+  nowMs = 2000;
+  r.auto.update(nowMs, noRotateOpts);
+  assert.deepEqual(r.casts, [2129]);
+
+  // Hết 3s cooldown nhưng mới có 2 tầng Âm Luật: vẫn chờ đủ 3 tầng
+  nowMs = 4500;
+  (r.self.state as { sp?: number }).sp = 2;
+  r.auto.update(nowMs, noRotateOpts);
+  assert.deepEqual(r.casts, [2129]);
+
+  // Đủ 3 tầng Âm Luật và hết cooldown: tiếp tục đánh 2129
+  nowMs = 5000;
+  (r.self.state as { sp?: number }).sp = 3;
+  r.auto.update(nowMs, noRotateOpts);
+  assert.deepEqual(r.casts, [2129, 2129]);
+
+  // 2) autoRotate = true: đòn đầu tiên vào mục tiêu vẫn ưu tiên chiêu tay trái (2129) khi đủ Âm Luật, sau đó mới xoay sang 2124 khi 2129 hồi chiêu.
+  r.casts.length = 0;
+  cd2129Until = 0;
+  (r.self.state as { sp?: number }).sp = 3;
+  nowMs = 10000;
+  const rotateOpts = { ...r.opts, autoRotate: true };
+  r.auto.start();
+  r.auto.update(nowMs, rotateOpts);
+  assert.equal(r.casts[0], 2129, 'first hit with autoRotate=true starts with left-hand mainSkill 2129');
+  nowMs = 11300;
+  r.auto.update(nowMs, rotateOpts);
+  assert.deepEqual(r.casts, [2129, 2124], 'rotates to 2124 while 2129 is on cooldown');
+});

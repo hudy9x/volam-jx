@@ -528,12 +528,19 @@ export class AutoPlay {
     if (cost?.resource === 'hp' && self && !canPaySkillCost(cost, self.state)) return;
     if (opts.autoRotate) {
       const list = this.attackSkills().filter(id => this.host.ready(id));
-      if (list.length > 1 && (target.id !== this.target || now - this.lockedAt > ROTATE_MS)) {
-        this.rotateIdx = (this.rotateIdx + 1) % list.length;
+      if (list.length > 1 && target.id === this.target && now - this.lockedAt > ROTATE_MS) {
+        const curIdx = list.indexOf(this.skillUsed);
+        this.rotateIdx = ((curIdx >= 0 ? curIdx : this.rotateIdx) + 1) % list.length;
         skill = list[this.rotateIdx];
-      } else if (list.length) skill = list.includes(this.skillUsed) ? this.skillUsed : list[0];
+      } else if (list.length) {
+        this.rotateIdx = 0;
+        skill = target.id === this.target && list.includes(this.skillUsed) ? this.skillUsed : list[0];
+      }
+      if (!this.host.ready(skill)) skill = this.attackSkills().find(id => id !== BASIC_ATTACK && this.host.ready(id)) ?? BASIC_ATTACK;
+    } else if (!this.host.ready(skill)) {
+      // With rotation off: strictly wait for the main skill's cooldown / resource (e.g. [Âm Luật]) rather than switching skills.
+      return;
     }
-    if (!this.host.ready(skill)) skill = this.attackSkills().find(id => id !== BASIC_ATTACK && this.host.ready(id)) ?? BASIC_ATTACK;
     if (target.id !== this.target || skill !== this.skillUsed || now - this.lockedAt > RELOCK_MS) {
       if (!this.engaged) {
         this.requestedTargets.add(target.id);

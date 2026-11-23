@@ -1,4 +1,5 @@
 import { EFFECTS } from '../../formulas/effects/tuning.js';
+import { attr } from './formula.js';
 import { skillCost } from './info.js';
 import { getSkill, tuningOf } from './registry.js';
 import type { SkillDef } from './types.js';
@@ -8,8 +9,15 @@ export interface SkillResourceCost {
   amount: number;
   minRemainingHpRatio: number;
   minRemainingHp: number;
+  sp?: number;
 }
-export interface SkillVitals { hp: number; mp: number; maxHp: number }
+export interface SkillVitals { hp: number; mp: number; maxHp: number; sp?: number }
+
+/** Required special resource stacks (cost_sp P3, e.g. Tiêu Dao [Âm Luật]) to cast `s` at `level`. */
+export function skillSpCost(s: SkillDef, level: number): number {
+  const v = attr(s, 'cost_sp', level);
+  return v && v[2] > 0 ? Math.floor(v[2]) : 0;
+}
 
 /** Pure resolver; fixed actions bypass the global speed phase table. */
 export function skillActionMs(s: SkillDef, fallbackMs: number, slowed = false): number {
@@ -18,8 +26,12 @@ export function skillActionMs(s: SkillDef, fallbackMs: number, slowed = false): 
 }
 
 export function skillResourceCost(s: SkillDef, level: number): SkillResourceCost {
-  return { resource: 'mp', minRemainingHpRatio: 0, minRemainingHp: 0,
-    ...tuningOf(s.id).resourceCost, amount: skillCost(s, level) };
+  const sp = skillSpCost(s, level);
+  return {
+    resource: 'mp', minRemainingHpRatio: 0, minRemainingHp: 0,
+    ...tuningOf(s.id).resourceCost, amount: skillCost(s, level),
+    ...(sp > 0 ? { sp } : {}),
+  };
 }
 
 export function skillHpReserve(cost: SkillResourceCost, maxHp: number): number {
@@ -28,6 +40,7 @@ export function skillHpReserve(cost: SkillResourceCost, maxHp: number): number {
 
 export function canPaySkillCost(cost: SkillResourceCost, vitals: SkillVitals): boolean {
   if (!Number.isFinite(cost.amount) || cost.amount < 0) return false;
+  if ((cost.sp ?? 0) > 0 && (vitals.sp ?? 0) < cost.sp!) return false;
   return cost.resource === 'hp'
     ? vitals.hp - cost.amount >= skillHpReserve(cost, vitals.maxHp)
     : vitals.mp >= cost.amount;
