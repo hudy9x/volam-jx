@@ -229,4 +229,71 @@ export const SKILL_OVERRIDES: Record<number, SkillOverride> = {
       staticmagicshield_p: [[[1, 1800], [20, 50000], [21, 50050]], [[1, 1 * 18], [20, 5 * 18], [21, 5 * 18]], null],
     },
   },
+
+  // 5 Cạm bẫy Đường Môn / Lệnh Bẫy Tống Kim (cấp 20): tăng sát thương gấp ~3.75–4x cho PvP cấp 100–200,
+  // Xuyên Tâm Thích (#343/#344) bật hiệu ứng co giật 100% (`doHurt: 100`) như sát thương vật lý mạnh.
+  343: {
+    doHurt: 100,
+    attrs: {
+      physicsdamage_v: [[[1, 200], [20, 1600]], null, [[1, 200], [20, 1600]]],
+      seriesdamage_p: [[[1, 10], [20, 35]], null, null],
+    },
+  },
+  344: {
+    doHurt: 100,
+    attrs: {
+      physicsdamage_v: [[[1, 200], [20, 1600]], null, [[1, 200], [20, 1600]]],
+      seriesdamage_p: [[[1, 10], [20, 35]], null, null],
+    },
+  },
+  303: {
+    attrs: {
+      poisondamage_v: [[[1, 24], [20, 160]], [[1, 100], [20, 100]], [[1, 10], [20, 10]]],
+      seriesdamage_p: [[[1, 10], [20, 35]], null, null],
+    },
+  },
+  304: {
+    attrs: {
+      poisondamage_v: [[[1, 24], [20, 160]], [[1, 100], [20, 100]], [[1, 10], [20, 10]]],
+      seriesdamage_p: [[[1, 10], [20, 35]], null, null],
+    },
+  },
+  345: {
+    attrs: {
+      colddamage_v: [[[1, 180], [20, 1500]], [[1, 12], [20, 36]], [[1, 180], [20, 1500]]],
+      seriesdamage_p: [[[1, 10], [20, 35]], null, null],
+    },
+  },
+  346: {
+    attrs: {
+      colddamage_v: [[[1, 180], [20, 1500]], [[1, 12], [20, 36]], [[1, 180], [20, 1500]]],
+      seriesdamage_p: [[[1, 10], [20, 35]], null, null],
+    },
+  },
+  347: {
+    attrs: {
+      firedamage_v: [[[1, 200], [20, 1600]], null, [[1, 200], [20, 1600]]],
+      seriesdamage_p: [[[1, 10], [20, 35]], null, null],
+    },
+  },
+  348: {
+    attrs: {
+      firedamage_v: [[[1, 200], [20, 1600]], null, [[1, 200], [20, 1600]]],
+      seriesdamage_p: [[[1, 10], [20, 35]], null, null],
+    },
+  },
+  349: {
+    attrs: {
+      lightingdamage_v: [[[1, 180], [20, 1500]], null, [[1, 180], [20, 1500]]],
+      stun_p: [[[1, 5], [20, 25]], [[1, 10], [20, 25]], null],
+      seriesdamage_p: [[[1, 15], [20, 50], [21, 52]], null, null],
+    },
+  },
+  350: {
+    attrs: {
+      lightingdamage_v: [[[1, 180], [20, 1500]], null, [[1, 180], [20, 1500]]],
+      stun_p: [[[1, 5], [20, 25]], [[1, 10], [20, 25]], null],
+      seriesdamage_p: [[[1, 15], [20, 50], [21, 52]], null, null],
+    },
+  },
 };

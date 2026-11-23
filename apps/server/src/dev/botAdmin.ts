@@ -3,9 +3,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { Application, NextFunction, Request, Response } from 'express';
 import {
-  BOT_LEVEL_BANDS, botMapIds, BOT_IDENTITIES, BOT_CREATE_MAX, BOT_FILE_RE, FACTIONS, FACTION_IDS, MAX_MONEY, MAPS, PROGRESS_VERSION, SERIES, TOWN_MAP_ID, bestTrainingMap,
+  BOT_LEVEL_BANDS, botMapIds, BOT_IDENTITIES, BOT_CREATE_MAX, BOT_FILE_RE, FACTIONS, FACTION_IDS, ITEMS, MAX_MONEY, MAPS, PROGRESS_VERSION, SERIES, TOWN_MAP_ID, addToBag, bestTrainingMap,
   factionAllowsGender, newProgress, normalizeBotScenario, normalizeBotTemplate, snapToMap,
-  type BotInfo, type BotLogin, type BotTemplate, type Element, type Gender,
+  type BotInfo, type BotLogin, type BotTemplate, type Element, type Gender, type Item,
 } from '@vltk/shared';
 import { issueToken, newPassword } from '../account/auth.js';
 import { db, type CharacterRecord } from '../account/db.js';
@@ -164,6 +164,53 @@ export function registerBotRoutes(app: Application): void {
     db.flush();
     console.log(`[bots] granted +${amount.toLocaleString('vi-VN')} money to ${updated} bots (${onlineCount} online)`);
     res.json({ ok: true, amount, updated, online: onlineCount });
+  });
+
+  // Tặng vật phẩm (vd: 50x Chiến Cổ + 50x Lệnh Bài) cho toàn bộ bot (online + offline trong db.json).
+  app.post('/api/dev/bots/grant-items', local, (req, res) => {
+    const rawItems = Array.isArray(req.body?.items) ? req.body.items : [];
+    const grants: { id: string; qty: number }[] = [];
+    for (const entry of rawItems) {
+      const id = typeof entry?.id === 'string' ? entry.id : '';
+      const qty = Math.floor(Number(entry?.qty ?? 0));
+      if (ITEMS[id] && qty > 0 && qty <= 500) grants.push({ id, qty });
+    }
+    if (!grants.length) { res.status(400).json({ error: 'Danh sách vật phẩm không hợp lệ.' }); return; }
+    const onlineSims = new Map<string, { w: NonNullable<ReturnType<typeof LIVE_WORLDS.get>>; sim: any }>();
+    for (const w of LIVE_WORLDS.values()) {
+      for (const sim of w.sims.values()) {
+        if (sim.kind === 'player' && sim.charId) onlineSims.set(sim.charId, { w, sim });
+      }
+    }
+    let updated = 0;
+    let onlineCount = 0;
+    for (const user of botUsers()) {
+      for (const charId of user.characters) {
+        const char = db.getCharacter(charId);
+        if (!char) continue;
+        const live = onlineSims.get(charId);
+        if (live && live.sim.bag) {
+          for (const g of grants) {
+            const item: Item = { uid: `grant-${g.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, def: g.id, q: 0, qty: g.qty };
+            if (!addToBag(live.sim.bag, item)) (live.sim.bagSpill ??= []).push(item);
+          }
+          live.w.hooks.inventory(live.sim);
+          db.updateCharacter(charId, { bag: live.sim.bag });
+          onlineCount++;
+        } else {
+          const bag: (Item | null)[] = Array.isArray(char.bag) ? [...char.bag] : Array(60).fill(null);
+          for (const g of grants) {
+            const item: Item = { uid: `grant-${g.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, def: g.id, q: 0, qty: g.qty };
+            addToBag(bag, item);
+          }
+          db.updateCharacter(charId, { bag });
+        }
+        updated++;
+      }
+    }
+    db.flush();
+    console.log(`[bots] granted items (${grants.map(g => `${g.qty}x ${g.id}`).join(', ')}) to ${updated} bots (${onlineCount} online)`);
+    res.json({ ok: true, grants, updated, online: onlineCount });
   });
 
   // Runner: tokens of the bots to connect as (no passwords needed); offline ones first, at most `count` (0 = all).

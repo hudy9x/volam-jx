@@ -49,6 +49,278 @@
         "npcSpawns": []
       }
     },
+    "344": {
+      "id": 344,
+      "name": "Thành trấn (sơ cấp)",
+      "tong": {
+        "spawn": {
+          "x": 6496,
+          "y": 16329
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 4627,
+          "y": 12872
+        },
+        "marshal": {
+          "x": 3978,
+          "y": 13169
+        },
+        "frontlines": [
+          {
+            "x": 8454,
+            "y": 9407
+          },
+          {
+            "x": 9355,
+            "y": 8592
+          },
+          {
+            "x": 9562,
+            "y": 9766
+          },
+          {
+            "x": 9867,
+            "y": 8664
+          },
+          {
+            "x": 7833,
+            "y": 8596
+          },
+          {
+            "x": 8976,
+            "y": 7954
+          }
+        ],
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 5550,
+            "y": 12068,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 6428,
+            "y": 11241,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 7328,
+            "y": 10426,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 7352,
+            "y": 10506,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 8229,
+            "y": 9611,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 9129,
+            "y": 8796,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 9724,
+            "y": 8286,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 8975,
+            "y": 10901,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 9887,
+            "y": 10071,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 10185,
+            "y": 9354,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 6186,
+            "y": 8959,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 7471,
+            "y": 8336,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 8365,
+            "y": 7909,
+            "count": 1,
+            "radius": 160
+          }
+        ]
+      },
+      "kim": {
+        "spawn": {
+          "x": 18198,
+          "y": 1319
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 15883,
+          "y": 2681
+        },
+        "marshal": {
+          "x": 15509,
+          "y": 2702
+        },
+        "frontlines": [
+          {
+            "x": 12056,
+            "y": 6146
+          },
+          {
+            "x": 11253,
+            "y": 6843
+          },
+          {
+            "x": 12677,
+            "y": 6957
+          },
+          {
+            "x": 11534,
+            "y": 7599
+          },
+          {
+            "x": 10985,
+            "y": 5743
+          },
+          {
+            "x": 9964,
+            "y": 6912
+          }
+        ],
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 15105,
+            "y": 3348,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 13372,
+            "y": 4165,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 12591,
+            "y": 5249,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 12697,
+            "y": 4776,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 12281,
+            "y": 5942,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 11381,
+            "y": 6757,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 10750,
+            "y": 7301,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 13939,
+            "y": 6402,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 13039,
+            "y": 7217,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 11951,
+            "y": 7448,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 11971,
+            "y": 4667,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 10623,
+            "y": 5482,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 10125,
+            "y": 6267,
+            "count": 1,
+            "radius": 160
+          }
+        ]
+      }
+    },
     "378": {
       "id": 378,
       "name": "Xung phong (Sơ cấp)",
@@ -1159,6 +1431,278 @@
             "role": "commander",
             "x": 13265,
             "y": 6168,
+            "count": 1,
+            "radius": 160
+          }
+        ]
+      }
+    },
+    "879": {
+      "id": 879,
+      "name": "Kim Thạch sơn (sơ cấp)",
+      "tong": {
+        "spawn": {
+          "x": 2565,
+          "y": 12795
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 6283,
+          "y": 10405
+        },
+        "marshal": {
+          "x": 5500,
+          "y": 10752
+        },
+        "frontlines": [
+          {
+            "x": 9876,
+            "y": 7944
+          },
+          {
+            "x": 11509,
+            "y": 7741
+          },
+          {
+            "x": 11342,
+            "y": 8851
+          },
+          {
+            "x": 12135,
+            "y": 8135
+          },
+          {
+            "x": 10160,
+            "y": 7393
+          },
+          {
+            "x": 11313,
+            "y": 7094
+          }
+        ],
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 6593,
+            "y": 9559,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 7380,
+            "y": 8949,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 8847,
+            "y": 8395,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 8212,
+            "y": 8614,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 9629,
+            "y": 8071,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 11501,
+            "y": 7732,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 11848,
+            "y": 7551,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 10567,
+            "y": 9670,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 11556,
+            "y": 9163,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 12134,
+            "y": 8574,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 9046,
+            "y": 7736,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 10297,
+            "y": 7081,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 10820,
+            "y": 6909,
+            "count": 1,
+            "radius": 160
+          }
+        ]
+      },
+      "kim": {
+        "spawn": {
+          "x": 21892,
+          "y": 2185
+        },
+        "safeRadius": 1100,
+        "gateExit": {
+          "x": 18649,
+          "y": 4063
+        },
+        "marshal": {
+          "x": 18209,
+          "y": 4252
+        },
+        "frontlines": [
+          {
+            "x": 15146,
+            "y": 6570
+          },
+          {
+            "x": 13296,
+            "y": 6919
+          },
+          {
+            "x": 14772,
+            "y": 7075
+          },
+          {
+            "x": 13619,
+            "y": 7374
+          },
+          {
+            "x": 13622,
+            "y": 5617
+          },
+          {
+            "x": 12797,
+            "y": 6333
+          }
+        ],
+        "npcSpawns": [
+          {
+            "role": "general",
+            "x": 17660,
+            "y": 4570,
+            "count": 1,
+            "radius": 80
+          },
+          {
+            "role": "deputy",
+            "x": 16240,
+            "y": 4863,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "commander",
+            "x": 15240,
+            "y": 5053,
+            "count": 2,
+            "radius": 180
+          },
+          {
+            "role": "soldier",
+            "x": 15928,
+            "y": 4994,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 15084,
+            "y": 6565,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 13703,
+            "y": 6984,
+            "count": 8,
+            "radius": 380
+          },
+          {
+            "role": "captain",
+            "x": 13084,
+            "y": 6917,
+            "count": 2,
+            "radius": 220
+          },
+          {
+            "role": "soldier",
+            "x": 15919,
+            "y": 6862,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 14770,
+            "y": 7263,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 13905,
+            "y": 7516,
+            "count": 1,
+            "radius": 160
+          },
+          {
+            "role": "soldier",
+            "x": 14454,
+            "y": 4816,
+            "count": 6,
+            "radius": 300
+          },
+          {
+            "role": "captain",
+            "x": 13568,
+            "y": 5305,
+            "count": 2,
+            "radius": 200
+          },
+          {
+            "role": "commander",
+            "x": 12798,
+            "y": 5894,
             "count": 1,
             "radius": 160
           }

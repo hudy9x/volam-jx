@@ -67,7 +67,7 @@ export interface StallOpenMsg { title: string }
 export interface StallBuyMsg { sellerCharId: string; uid: string; price: number; currency: TradeCurrency }
 /** Chiến trường Tống Kim actions (client -> server). */
 export interface TkActionMsg {
-  op: 'register' | 'exitGate' | 'scout' | 'leave' | 'exchangeExp' | 'devStart' | 'devStop';
+  op: 'register' | 'exitGate' | 'scout' | 'leave' | 'exchangeExp' | 'devStart' | 'devStop' | 'devStealth';
   camp?: 'tong' | 'kim';
   mode?: 1 | 2;
   /** Map chiến trường muốn mở (chỉ dùng với devStart; mặc định 378). */
@@ -124,6 +124,8 @@ export interface TkStateMsg {
     inCamp: boolean;
     campRemainSec: number;
     gateWaitSec: number;
+    /** Chế độ Tàng hình kiểm thử (DEV_TOOLS). */
+    stealth?: boolean;
   };
   top10: TkLeaderEntry[];
 }

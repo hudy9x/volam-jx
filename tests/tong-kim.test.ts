@@ -201,8 +201,8 @@ test('Tống Kim: tọa độ Nguyên Soái 720/469 (Tống) & 1677/224 (Kim), v
   assert.ok(sent.length > 0 && sent.length <= 10, `expected 1..10 msg/s, got ${sent.length}`);
 });
 
-test('Tống Kim: Quân Nhu Quan có đủ 24 vật phẩm (Càn Khôn Đan, Chiến Cổ, Lệnh Bài, Hiệu Phù, 18 Hoàn) và Bí Bảo', () => {
-  assert.equal(SHOP_ITEMS.tongkim.length, 24);
+test('Tống Kim: Quân Nhu Quan có đủ 29 vật phẩm (Càn Khôn Đan, Chiến Cổ, Lệnh Bài, Hiệu Phù, 18 Hoàn, 5 Lệnh Bẫy) và Bí Bảo', () => {
+  assert.equal(SHOP_ITEMS.tongkim.length, 29);
   for (const def of SHOP_ITEMS.tongkim) {
     assert.equal(SHOP_OF[def.id], 'tongkim');
     assert.ok((def.tkAccumPrice ?? 0) > 0, `${def.id} phải có giá điểm tích lũy`);
@@ -491,7 +491,7 @@ test('Bot Manager & Chiến thuật Tống Kim: dải cấp 150–200 dùng Hoà
   assert.ok(new Set(ys).size === 3, `3 cánh phải có 3 tọa độ y khác nhau: ${ys.join(', ')}`);
 });
 
-test('Tống Kim: giết Nguyên Soái dừng trận, dọn NPC ngay và tự đóng trận sau <= 10s', () => {
+test('Tống Kim: hạ 1 Nguyên Soái trận vẫn tiếp tục tới hết giờ, phe còn Soái thắng, dọn NPC và đóng sau <= 10s', () => {
   tongKim.stopMatch();
   tongKim.startMatch({ mode: 1, signupSec: 10, durationSec: 300, marshalDelaySec: 5, endSec: 60, allowSolo: true });
   const now = Date.now();
@@ -531,19 +531,34 @@ test('Tống Kim: giết Nguyên Soái dừng trận, dọn NPC ngay và tự đ
     },
   };
 
-  // Đẩy sang fighting rồi giết Nguyên Soái Kim
+  // Đẩy sang fighting rồi giết Nguyên Soái Kim -> trận tiếp tục đánh (không dừng ngay)
   tongKim.tickBattleWorld(undefined, now + 15_000);
   assert.equal(tongKim.snapshotFor('char-win', now + 15_000).phase, 'fighting');
+  (tongKim as any).npcsSpawned = true;
+  (tongKim as any).marshalSpawned = true;
+  (tongKim as any).tongMarshalId = 'tong-marshal';
+  (tongKim as any).kimMarshalId = mSim.id;
 
   w.now = now + 20_000;
   tongKim.onTkKill(w as never, mSim, pSim);
-  assert.equal(tongKim.snapshotFor('char-win', now + 20_000).phase, 'ended');
+  const midSnap = tongKim.snapshotFor('char-win', now + 20_000);
+  assert.equal(midSnap.phase, 'fighting', 'giết 1 Nguyên Soái không dừng trận ngay');
+  assert.equal(midSnap.tongMarshalAlive, true);
+  assert.equal(midSnap.kimMarshalAlive, false);
+
+  // Hết giờ (sau 300s fighting) -> phe còn Nguyên Soái (Tống) thắng, dọn NPC & tắt PK ngay
+  const endAt = now + 315_000;
+  w.now = endAt;
+  tongKim.tickBattleWorld(w as never, endAt);
+  const endSnap = tongKim.snapshotFor('char-win', endAt);
+  assert.equal(endSnap.phase, 'ended');
+  assert.equal(endSnap.winner, 'tong');
   assert.equal(pSim.a.pk, 0);
-  assert.ok(removed.includes(mSim.id), 'phải dọn NPC chiến trường ngay khi Nguyên Soái chết');
+  assert.ok(removed.includes(mSim.id), 'phải dọn NPC chiến trường khi trận kết thúc');
 
   // Sau 10s -> tự đóng trận và chuyển toàn bộ người chơi về 323
-  tongKim.tickBattleWorld(w as never, now + 30_500);
-  assert.equal(tongKim.snapshotFor(undefined, now + 30_500).phase, 'closed');
+  tongKim.tickBattleWorld(w as never, endAt + 10_500);
+  assert.equal(tongKim.snapshotFor(undefined, endAt + 10_500).phase, 'closed');
   assert.ok(transferred.some(t => t.id === pSim.id && t.mapId === TK_SIGNUP_MAP_ID));
 });
 
@@ -933,4 +948,347 @@ test('Chiến thuật Bot Tống Kim: tactical (cứu Soái, kiting, khắc hệ
   }
   const perSec = (sent.length - startCount) / ((now - startAt) / 1000);
   assert.ok(perSec < 15, `Nhịp gửi lệnh phải thấp hơn rất nhiều so với 30 msg/s (thực tế: ${perSec.toFixed(2)}/s)`);
+});
+
+test('Chiến lược Nguyên Soái (thủ Soái vs 70% tổng lực diệt Soái bỏ qua bot) & Binh Sĩ Hiệu Phù 70/20/10', async () => {
+  const { DEFAULT_BOT_SCENARIO, TK_MAP_LAYOUT, C2S, isoDistance, rollClarionNpcRole } = await import('../packages/shared/src/index.js');
+  const { TongKimBehavior } = await import('../tools/bots/runner/TongKimBehavior.js');
+  const { TkCampDirector, resolveMarshalEndgame } = await import('../tools/bots/runner/TkTactics.js');
+
+  // 1. Kiểm chứng tỉ lệ Binh Sĩ Hiệu Phù: 70% Binh sĩ / 20% Hiệu úy / 10% Thống lĩnh
+  const counts = { soldier: 0, captain: 0, commander: 0 };
+  for (let i = 0; i < 100; i++) {
+    counts[rollClarionNpcRole(() => (i + 0.5) / 100)]++;
+  }
+  assert.equal(counts.soldier, 70);
+  assert.equal(counts.captain, 20);
+  assert.equal(counts.commander, 10);
+
+  // 2. Kiểm chứng phân bổ 70% quân tổng lực khi phe mình mất Nguyên Soái
+  const lostState = { mode: 1, marshalSpawned: true, tongMarshalAlive: false, kimMarshalAlive: true };
+  let rushers = 0;
+  for (let i = 0; i < 20; i++) {
+    if (resolveMarshalEndgame(lostState, 'tong', i) === 'rush_enemy_marshal') rushers++;
+    assert.equal(resolveMarshalEndgame(lostState, 'kim', i), 'defend_marshal');
+  }
+  assert.equal(rushers, 14, 'Phải có đúng 70% (14/20) bot phe mất Soái lao thẳng diệt Soái địch');
+
+  // 3. Kiểm chứng bot thuộc 70% phe mất Soái bỏ qua bot địch dọc đường, lao thẳng tới Nguyên Soái Kim & đánh Nguyên Soái khi vào tầm
+  const director = new TkCampDirector();
+  const moves: { x: number; y: number }[] = [];
+  const casts: string[] = [];
+  const rawActors = new Map<string, any>();
+  let actorList: any[] = [];
+  const meState: any = {
+    id: 'bot-rush',
+    x: 9000,
+    y: 5500,
+    hp: 4000,
+    maxHp: 4000,
+    mp: 1500,
+    maxMp: 1500,
+    battleCamp: 'tong',
+    faction: 'shaolin',
+    series: 'kim',
+    states: [],
+    mounted: false,
+    jumpMs: 0,
+    anim: 'stand',
+  };
+  let now = 20_000;
+  const fakeBot: any = {
+    name: 'bot-rush',
+    mapId: 378,
+    bag: [{ uid: 'p1', def: 'potion-0-5', qty: 10 }],
+    money: 100000,
+    levels: { 318: 20 },
+    stats: { faction: 'shaolin', series: 'kim' },
+    autoSettings: { autoBuff: false },
+    tkState: { phase: 'fighting', mode: 1, battleMapId: 378, marshalSpawned: true, tongMarshalAlive: false, kimMarshalAlive: true, tongCount: 10, kimCount: 10, me: { camp: 'tong', inCamp: false, gateWaitSec: 0 } },
+    room: { state: { actors: rawActors } },
+    host: { drops: () => [], aura: () => {} },
+    me: () => meState,
+    actors: () => actorList,
+    rand: () => 0.5,
+    send: (type: string, payload: any) => { if (type === C2S.move) moves.push(payload); },
+    prepareCombat: () => false,
+    attacks: () => [318],
+    range: () => 180,
+    ready: () => true,
+    usable: () => true,
+    levelOf: () => 20,
+    cast: (_skill: number, targetId?: string) => { if (targetId) casts.push(targetId); },
+    reviveIfDead: () => {},
+  };
+
+  const sc = { ...DEFAULT_BOT_SCENARIO, tongkim: { ...DEFAULT_BOT_SCENARIO.tongkim!, tactic: 'tactical' as const } };
+  const rushBeh = new TongKimBehavior(fakeBot, sc, 0, director); // index 0 -> thuộc nhóm 70%
+
+  // 3a. Trước khi xuất kích: còn đồng đội nhóm 70% ở xa -> bot phải chạy về tập trung tại điểm Nguyên Soái phe mình vừa chết
+  director.reportBot(378, 'tong', {
+    id: 'bot-rush-2',
+    x: 8500,
+    y: 5900,
+    lane: 0,
+    role: 'vanguard',
+    exitedAt: 1000,
+    seenAt: now,
+    isRusher: true,
+  });
+  rawActors.set('kim-bot-1', { battleCamp: 'kim', series: 'moc', maxHp: 4000 });
+  actorList = [{ id: 'kim-bot-1', isSelf: false, x: 9120, y: 5500, state: { hp: 3000, maxHp: 4000, kind: 'player', boss: 0 } }];
+  rushBeh.update(now);
+  assert.equal(casts.length, 0, 'Đang tập kết về điểm Nguyên Soái phe mình phải bỏ qua bot phe địch');
+  assert.ok(moves.length >= 1);
+  assert.ok(
+    isoDistance(moves.at(-1)!.x, moves.at(-1)!.y, TK_MAP_LAYOUT.tong.marshal.x, TK_MAP_LAYOUT.tong.marshal.y) < 350,
+    'Chưa đủ 100% quân -> phải tập trung về điểm Nguyên Soái phe mình trước',
+  );
+
+  // 3b. Khi đủ 100% nhóm 70% có mặt tại điểm Nguyên Soái phe mình -> đồng loạt dồn thẳng về Nguyên Soái phe địch, bỏ qua bot địch
+  meState.x = TK_MAP_LAYOUT.tong.marshal.x + 60;
+  meState.y = TK_MAP_LAYOUT.tong.marshal.y;
+  now += 1500;
+  director.reportBot(378, 'tong', {
+    id: 'bot-rush-2',
+    x: TK_MAP_LAYOUT.tong.marshal.x - 80,
+    y: TK_MAP_LAYOUT.tong.marshal.y,
+    lane: 0,
+    role: 'vanguard',
+    exitedAt: 1000,
+    seenAt: now,
+    isRusher: true,
+  });
+  actorList = [{ id: 'kim-bot-1', isSelf: false, x: meState.x + 120, y: meState.y, state: { hp: 3000, maxHp: 4000, kind: 'player', boss: 0 } }];
+  rushBeh.update(now);
+  assert.equal(casts.length, 0, 'Sau khi tập kết đủ 100% và tổng lực, vẫn phải bỏ qua bot phe địch');
+  assert.ok(
+    isoDistance(moves.at(-1)!.x, moves.at(-1)!.y, TK_MAP_LAYOUT.kim.marshal.x, TK_MAP_LAYOUT.kim.marshal.y) < 300,
+    'Đủ 100% quân tại điểm Soái nhà -> phải đồng loạt lao thẳng về tọa độ Nguyên Soái địch',
+  );
+
+  // 3c. Khi Nguyên Soái Kim ở trong tầm -> phải tấn công Nguyên Soái Kim
+  rawActors.set('kim-marshal', { battleCamp: 'kim', series: 'hoa', maxHp: 5_000_000 });
+  actorList.push({ id: 'kim-marshal', isSelf: false, x: meState.x + 200, y: meState.y, state: { hp: 4_000_000, maxHp: 5_000_000, kind: 'monster', boss: 2 } });
+  now += 1000;
+  rushBeh.update(now);
+  assert.equal(casts.at(-1), 'kim-marshal', 'Phải đánh Nguyên Soái địch khi vào tầm');
+
+  // 4. Phe đang thắng (Tống còn Soái, Kim mất Soái): dưới 30s CHƯA co về thủ Soái, sau 30s MỚI dồn về bảo vệ Nguyên Soái nhà
+  director.clear();
+  fakeBot.tkState.matchId = 99;
+  fakeBot.tkState.tongMarshalAlive = true;
+  fakeBot.tkState.kimMarshalAlive = false;
+  meState.x = 9000;
+  meState.y = 5500;
+  actorList = [];
+  now += 2000;
+  assert.equal(
+    director.resolveMarshalEndgame(378, 'tong', fakeBot.tkState, 0, TK_MAP_LAYOUT.tong.marshal, now),
+    'none',
+    'Ngay khi vừa hạ Soái địch (0s) chưa co về thủ Soái',
+  );
+  assert.equal(
+    director.resolveMarshalEndgame(378, 'tong', fakeBot.tkState, 0, TK_MAP_LAYOUT.tong.marshal, now + 29_000),
+    'none',
+    'Ở 29s (< 30s) vẫn chưa co về thủ Soái',
+  );
+  now += 30_500;
+  assert.equal(
+    director.resolveMarshalEndgame(378, 'tong', fakeBot.tkState, 0, TK_MAP_LAYOUT.tong.marshal, now),
+    'defend_marshal',
+    'Sau 30s phe đang thắng phải chuyển sang bảo vệ Nguyên Soái nhà',
+  );
+  rushBeh.update(now);
+  assert.ok(
+    isoDistance(moves.at(-1)!.x, moves.at(-1)!.y, TK_MAP_LAYOUT.tong.marshal.x, TK_MAP_LAYOUT.tong.marshal.y) < 450,
+    'Sau 30s phe còn Nguyên Soái phải dồn về bảo vệ Nguyên Soái phe mình',
+  );
+});
+
+test('Chế độ Tàng hình kiểm thử (devStealth): ẩn với quái/boss/bot/người chơi khác và bật/tắt qua Dialog `', async () => {
+  const { attackable, isHidden } = await import('../apps/server/src/world/targeting.js');
+  const { DEFAULT_BOT_SCENARIO } = await import('../packages/shared/src/index.js');
+  const { TongKimBehavior } = await import('../tools/bots/runner/TongKimBehavior.js');
+
+  const tester = new Actor();
+  tester.id = 'tester-1';
+  tester.name = 'Tester';
+  tester.kind = 'player';
+  tester.level = 120;
+  tester.hp = 5000;
+  tester.maxHp = 5000;
+  tester.battleCamp = 'tong';
+  tester.pk = 1;
+  const testerSim = makeSim(tester.id, 'player', tester, 'kim', 120);
+  testerSim.charId = 'char-tester-stealth';
+
+  const boss = new Actor();
+  boss.id = 'boss-1';
+  boss.name = 'Boss';
+  boss.kind = 'monster';
+  boss.level = 100;
+  boss.boss = 2;
+  boss.hp = 100000;
+  boss.maxHp = 100000;
+  boss.battleCamp = 'kim';
+  const bossSim = makeSim(boss.id, 'monster', boss, 'hoa', 120);
+
+  const enemyPlayer = new Actor();
+  enemyPlayer.id = 'enemy-p';
+  enemyPlayer.name = 'Dich';
+  enemyPlayer.kind = 'player';
+  enemyPlayer.level = 120;
+  enemyPlayer.hp = 5000;
+  enemyPlayer.maxHp = 5000;
+  enemyPlayer.battleCamp = 'kim';
+  enemyPlayer.pk = 1;
+  const enemySim = makeSim(enemyPlayer.id, 'player', enemyPlayer, 'moc', 120);
+
+  const fakeWorld = {
+    now: Date.now(),
+    meta: MAPS[TK_BATTLE_MAP_ID],
+    hooks: { announce: () => {}, notify: () => {}, log: () => {}, transfer: () => {} },
+  };
+
+  // Trước khi bật -> có thể bị đánh
+  assert.equal(isHidden(testerSim), false);
+  assert.equal(attackable(fakeWorld as never, bossSim, testerSim), true);
+  assert.equal(attackable(fakeWorld as never, enemySim, testerSim), true);
+
+  // Bật devStealth -> ẩn hoàn toàn với boss, quái, người chơi khác và bot
+  tongKim.handleAction(fakeWorld as never, testerSim, { op: 'devStealth' });
+  assert.equal(testerSim.a.stealth, true);
+  assert.equal(isHidden(testerSim), true);
+  assert.equal(tongKim.snapshotFor(testerSim.charId, Date.now()).me?.stealth, true);
+  assert.equal(attackable(fakeWorld as never, bossSim, testerSim), false);
+  assert.equal(attackable(fakeWorld as never, enemySim, testerSim), false);
+
+  // Bot Tống Kim không target người chơi đang stealth
+  const casts: string[] = [];
+  const rawActors = new Map<string, any>([['tester-1', { battleCamp: 'tong', stealth: true, maxHp: 5000 }]]);
+  const fakeBot: any = {
+    name: 'kim-bot',
+    mapId: 378,
+    bag: [{ uid: 'p1', def: 'potion-0-5', qty: 10 }],
+    money: 50000,
+    levels: { 318: 20 },
+    stats: { faction: 'shaolin', series: 'kim' },
+    autoSettings: { autoBuff: false },
+    tkState: { phase: 'fighting', mode: 1, battleMapId: 378, tongCount: 5, kimCount: 5, me: { camp: 'kim', inCamp: false, gateWaitSec: 0 } },
+    room: { state: { actors: rawActors } },
+    host: { drops: () => [], aura: () => {} },
+    me: () => ({ id: 'kim-bot', x: 9000, y: 5500, hp: 4000, maxHp: 4000, mp: 1000, maxMp: 1000, battleCamp: 'kim', states: [] }),
+    actors: () => [{ id: 'tester-1', isSelf: false, x: 9100, y: 5500, state: { hp: 5000, maxHp: 5000, kind: 'player', boss: 0, stealth: true } }],
+    rand: () => 0.5,
+    send: () => {},
+    prepareCombat: () => false,
+    attacks: () => [318],
+    range: () => 200,
+    ready: () => true,
+    usable: () => true,
+    levelOf: () => 20,
+    cast: (_s: number, targetId?: string) => { if (targetId) casts.push(targetId); },
+    reviveIfDead: () => {},
+  };
+  const beh = new TongKimBehavior(fakeBot, DEFAULT_BOT_SCENARIO, 0);
+  beh.update(10_000);
+  assert.equal(casts.length, 0, 'Bot không được phát hiện hoặc tấn công người chơi đang bật Tàng hình');
+
+  // Tắt lại -> trở về bình thường
+  tongKim.handleAction(fakeWorld as never, testerSim, { op: 'devStealth' });
+  assert.equal(testerSim.a.stealth, false);
+  assert.equal(isHidden(testerSim), false);
+});
+
+test('Nguyên Soái Tống Kim quay về home (returning) không reset đầy máu; NPC khác vẫn reset bình thường', async () => {
+  const { updateMonster } = await import('../apps/server/src/world/ai/monster.js');
+
+  const makeNpc = (id: string, tkRole: 'marshal' | 'soldier', maxHp: number, curHp: number) => {
+    const a = new Actor();
+    a.id = id;
+    a.kind = 'monster';
+    a.x = 5760;
+    a.y = 7504;
+    a.hp = curHp;
+    a.maxHp = maxHp;
+    a.battleCamp = 'tong';
+    const sim = makeSim(id, 'monster', a, 'hoa', 160);
+    sim.hp = curHp;
+    sim.home = { x: 5760, y: 7504 };
+    sim.tkCamp = 'tong';
+    sim.tkRole = tkRole;
+    sim.returning = true;
+    sim.path = [];
+    sim.combat = { bag: {} } as never;
+    sim.def = {
+      id: 9006, name: id, sprite: 'enemy004', level: 100, element: 'hoa',
+      hp: maxHp, damage: [100, 200], resist: 0, speed: 160, vision: 800, leash: 1000,
+      attackCooldown: 1, boundedHome: tkRole === 'marshal',
+    };
+    return sim;
+  };
+
+  const w = { now: 1000, sims: new Map(), events: [], meta: MAPS[TK_BATTLE_MAP_ID] } as never;
+
+  const marshal = makeNpc('tong-marshal', 'marshal', 5_000_000, 1_234_567);
+  updateMonster(w, marshal, 0.05);
+  assert.equal(marshal.returning, false);
+  assert.equal(marshal.hp, 1_234_567, 'Nguyên Soái không được reset đầy HP khi kết thúc returning');
+  assert.equal(marshal.a.hp, 1_234_567);
+
+  const soldier = makeNpc('tong-soldier', 'soldier', 36_000, 10_000);
+  updateMonster(w, soldier, 0.05);
+  assert.equal(soldier.returning, false);
+  assert.equal(soldier.hp, 36_000, 'NPC khác vẫn reset đầy HP khi kết thúc returning');
+});
+
+test('5 Lệnh Bẫy Ngũ Hành cấp 20 (khắc hệ lớn trong Tống Kim) & cấu hình thưởng 50× Phi Tốc + ngẫu nhiên cho bot', async () => {
+  const { ITEMS, TK_BOT_REWARD_DEFAULT_ITEM, TK_BOT_REWARD_POOL, TK_BOT_REWARD_QTY, getSkill, resolveHit } = await import('@vltk/shared');
+
+  const traps: [string, number][] = [
+    ['tk-trap-phys', 343],
+    ['tk-trap-poison', 303],
+    ['tk-trap-cold', 345],
+    ['tk-trap-fire', 347],
+    ['tk-trap-light', 349],
+  ];
+  for (const [id, skillId] of traps) {
+    const def = ITEMS[id];
+    assert.ok(def && def.tkItem?.kind === 'trap', `${id} phải là vật phẩm bẫy`);
+    assert.equal(def.tkItem.skillId, skillId);
+    assert.equal(def.tkItem.level, 20);
+    assert.ok(getSkill(skillId), `Skill bẫy #${skillId} phải tồn tại`);
+  }
+
+  // Kiểm chứng sát thương bẫy cấp 20 (vd Lôi Kích Thuật 349 hệ Thổ) khắc hệ (đánh Thủy) lớn hơn rõ rệt so với không khắc (đánh Hỏa)
+  const lightTrap = getSkill(349)!;
+  const attacker = { series: 'kim' as const, level: 100, ar: 9999, bag: {} };
+  const makeTarget = (series: 'thuy' | 'hoa') => ({
+    series,
+    level: 100,
+    def: 0,
+    resist: { phys: 50, cold: 50, fire: 50, light: 50, poison: 50 },
+    resistMax: { phys: 75, cold: 75, fire: 75, light: 75, poison: 75 },
+    bag: {},
+  });
+  const parts = { phys: [0, 0] as [number, number], cold: [0, 0] as [number, number], fire: [0, 0] as [number, number], light: [1500, 1500] as [number, number], poison: null };
+  const counterDmg = resolveHit(parts, { attacker, target: makeTarget('thuy'), skill: lightTrap, level: 20, targetLife: 10000, pvp: true } as never, () => 0.5).dmg;
+  const normalDmg = resolveHit(parts, { attacker, target: makeTarget('hoa'), skill: lightTrap, level: 20, targetLife: 10000, pvp: true } as never, () => 0.5).dmg;
+  assert.ok(counterDmg > normalDmg * 2, `Sát thương bẫy khắc hệ (${counterDmg}) phải lớn hơn gấp >2× không khắc (${normalDmg})`);
+
+  // Xuyên Tâm Thích (#343/#344) có hiệu ứng co giật 100% và sát thương vật lý cấp 20 = 1600
+  const physTrap = getSkill(343)!;
+  const physExplode = getSkill(344)!;
+  assert.equal(physTrap.doHurt, 100);
+  assert.equal(physExplode.doHurt, 100);
+
+  // Kiểm chứng thưởng vật phẩm bot kết thúc trận
+  assert.equal(TK_BOT_REWARD_QTY, 50);
+  assert.equal(TK_BOT_REWARD_DEFAULT_ITEM, 'tk-pill-190');
+  assert.ok(TK_BOT_REWARD_POOL.includes('tk-wardrum'));
+  assert.ok(TK_BOT_REWARD_POOL.includes('tk-pill-178'));
+  assert.ok(TK_BOT_REWARD_POOL.includes('tk-pill-180'));
+  assert.ok(TK_BOT_REWARD_POOL.includes('tk-pill-179'));
+  assert.ok(TK_BOT_REWARD_POOL.includes('tk-trap-light'));
 });

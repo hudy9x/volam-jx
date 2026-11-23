@@ -143,10 +143,11 @@ export class ActorView {
       this.decor.update([], this.x, this.y, this.headHeight, 0, false);
       return;
     }
-    const alpha = this.stealth === 'translucent' ? 0.45 : 1;
+    // Làm mờ 40% (alpha = 0.6) cho chế độ Tàng hình kiểm thử; 0.45 cho Ngự Tuyết Ẩn (713).
+    const alpha = this.stealth === 'translucent' ? (s.stealth ? 0.6 : 0.45) : 1;
     if (this.jx) this.jx.alpha = alpha;
-    this.label.setAlpha(this.stealth === 'translucent' ? 0.65 : 1);
-    this.bar.setAlpha(this.stealth === 'translucent' ? 0.65 : 1);
+    this.label.setAlpha(this.stealth === 'translucent' ? (s.stealth ? 0.6 : 0.65) : 1);
+    this.bar.setAlpha(this.stealth === 'translucent' ? (s.stealth ? 0.6 : 0.65) : 1);
     const dead = s.kind !== 'npc' && s.hp <= 0;
     if (dead) this.diedAt ??= this.scene.time.now;
     else this.diedAt = null;

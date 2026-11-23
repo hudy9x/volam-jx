@@ -341,7 +341,10 @@ export class BotClient {
     if (now - this.actorCache.at < 100) return this.actorCache.list;
     const list: AutoActor[] = [];
     const self = this.room?.sessionId;
-    (this.room?.state as any)?.actors?.forEach((a: any, id: string) => list.push({ id, x: a.x, y: a.y, isSelf: id === self, state: a }));
+    (this.room?.state as any)?.actors?.forEach((a: any, id: string) => {
+      if (id !== self && a.stealth) return;
+      list.push({ id, x: a.x, y: a.y, isSelf: id === self, state: a });
+    });
     this.actorCache = { at: now, list };
     return list;
   }

@@ -247,6 +247,17 @@ export class SkillEngine {
     return { anim, ms: pose };
   }
 
+  /** Kích hoạt kỹ năng từ vật phẩm (vd: Lệnh bẫy Tống Kim cấp 20) không đòi hỏi học chiêu hay trừ nội lực. */
+  castByItem(c: Combatant, id: number, level: number, aim: Point): boolean {
+    if (c.dead) return false;
+    const s = getSkill(id);
+    if (!s) return false;
+    const from = { x: c.a.x, y: c.a.y };
+    this.port.emit({ t: 'cast', id: c.id, skill: id, x: Math.round(from.x), y: Math.round(from.y) });
+    this.launch(c.id, s, level, from, aim, undefined, 0, 0, id);
+    return true;
+  }
+
   /** Aura `c` has switched on, if any. */
   auraOf(c: Combatant): number | undefined {
     return this.auras.get(c.id)?.s.id;

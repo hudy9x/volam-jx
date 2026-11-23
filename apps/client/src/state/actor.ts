@@ -25,6 +25,8 @@ export interface ActorState {
   actionMs?: number;
   /** Server control flags: 1 stun, 2 slow, 4 poison. */
   ctl?: number;
+  /** Chế độ Tàng hình kiểm thử (DEV_TOOLS): ẩn hoàn toàn với quái/boss/bot/người chơi khác. */
+  stealth?: boolean;
   /** Khinh công: flight time of the jump in progress (anim 'jump'), 0 otherwise. */
   jumpMs: number;
   hp: number;

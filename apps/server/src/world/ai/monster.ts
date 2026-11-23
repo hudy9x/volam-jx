@@ -35,8 +35,11 @@ export function updateMonster(w: World, sim: Sim, dt: number): void {
     followPath(sim, dt);
     if (!sim.path.length) {
       sim.returning = false;
-      sim.hp = sim.a.maxHp;
-      syncVitals(sim);
+      // Nguyên Soái Tống Kim quay về điểm giữ doanh nhưng không reset đầy máu.
+      if (sim.tkRole !== 'marshal') {
+        sim.hp = sim.a.maxHp;
+        syncVitals(sim);
+      }
     }
     return;
   }

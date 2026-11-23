@@ -4,7 +4,32 @@ export type TkItemEffect =
   | { kind: 'battlePotion' }
   | { kind: 'buff'; stateId: number; durationMs: number; attrs: Record<string, [number, number, number]>; aoeRadius?: number }
   | { kind: 'clarion'; count: number }
+  | { kind: 'trap'; skillId: number; level: number }
   | { kind: 'bibao'; minAccum: number; maxAccum: number };
+
+const trap = (
+  id: string,
+  type: number,
+  name: string,
+  skillId: number,
+  tkAccumPrice: number,
+  desc: string,
+): ItemDef => ({
+  id,
+  kind: 'elixir',
+  type,
+  level: 1,
+  name,
+  icon: 'items/tk-token',
+  price: 0,
+  tkAccumPrice,
+  size: [1, 1],
+  maxStack: 50,
+  desc,
+  base: [],
+  req: [],
+  tkItem: { kind: 'trap', skillId, level: 20 },
+});
 
 const pill = (
   id: string,
@@ -158,6 +183,13 @@ export const TK_BATTLE_ITEMS: ItemDef[] = [
   pill('tk-pill-193', 9118, 'Lôi Phòng Hoàn', 'items/obj-potion15', 150, 'Tăng +50% Kháng Lôi trong 3 phút.', { lightingres_p: [50, 0, 0] }),
   pill('tk-pill-194', 9119, 'Hỏa Phòng Hoàn', 'items/obj-potion15', 150, 'Tăng +50% Kháng Hỏa trong 3 phút.', { fireres_p: [50, 0, 0] }),
   pill('tk-pill-195', 9120, 'Độc Phòng Hoàn', 'items/obj-potion15', 150, 'Tăng +50% Kháng Độc trong 3 phút.', { poisonres_p: [50, 0, 0] }),
+
+  // ---- 5 Lệnh Bẫy Ngũ Hành Tống Kim (SHXT ParticularType 393–397, sát thương bẫy cấp 20, khắc hệ lớn trong Tống Kim) ----
+  trap('tk-trap-phys', 9031, 'Xuyên Tâm Thích Lệnh', 343, 300, 'Đặt bẫy Xuyên Tâm Thích cấp 20 (hệ Kim, sát thương Vật lý 1.600 & co giật 100%; gây sát thương khắc hệ lớn trong Tống Kim).'),
+  trap('tk-trap-poison', 9032, 'Độc Thích Cốt Lệnh', 303, 300, 'Đặt bẫy Độc Thích Cốt cấp 20 (hệ Mộc, Độc sát 160/nhịp xuyên khiên; gây sát thương khắc hệ lớn trong Tống Kim).'),
+  trap('tk-trap-cold', 9033, 'Hàn Băng Thích Lệnh', 345, 300, 'Đặt bẫy Hàn Băng Thích cấp 20 (hệ Thủy, Băng sát 1.500 & làm chậm 2s; gây sát thương khắc hệ lớn trong Tống Kim).'),
+  trap('tk-trap-fire', 9034, 'Địa Diệm Hỏa Lệnh', 347, 300, 'Đặt bẫy Địa Diệm Hỏa cấp 20 (hệ Hỏa, Hỏa sát 1.600; gây sát thương khắc hệ lớn trong Tống Kim).'),
+  trap('tk-trap-light', 9035, 'Lôi Kích Thuật Lệnh', 349, 300, 'Đặt bẫy Lôi Kích Thuật cấp 20 (hệ Thổ, Lôi sát 1.500 & choáng 25%; gây sát thương khắc hệ lớn trong Tống Kim).'),
 ];
 
 /** Tống Kim Bí Bảo (chỉ rơi từ lính/Thống lĩnh trên chiến trường, không bán trong shop). */
@@ -188,5 +220,27 @@ export const TK_DROP_COMMON_IDS: readonly string[] = [
 ];
 export const TK_DROP_OFFICER_IDS: readonly string[] = [
   'tk-zaohua-m', 'tk-zaohua-b', 'tk-wardrum', 'tk-token', 'tk-clarion', 'tk-bibao',
+  'tk-trap-phys', 'tk-trap-poison', 'tk-trap-cold', 'tk-trap-fire', 'tk-trap-light',
   ...TK_DROP_BUFF_IDS,
+];
+
+/** Vật phẩm thưởng mặc định và pool ngẫu nhiên (×50 mỗi món) cho bot sau mỗi trận Tống Kim. */
+export const TK_BOT_REWARD_QTY = 50;
+export const TK_BOT_REWARD_DEFAULT_ITEM = 'tk-pill-190'; // Phi Tốc Hoàn
+export const TK_BOT_REWARD_POOL: readonly string[] = [
+  'tk-wardrum',     // Chiến Cổ
+  'tk-token',       // Lệnh Bài Chiến Trường
+  'tk-pill-178',    // Ngoại Phổ Hoàn (Sát thương vật lý ngoại công)
+  'tk-pill-181',    // Nội Phổ Hoàn (Sát thương vật lý nội công)
+  'tk-pill-180',    // Ngoại Băng Hoàn (Băng sát ngoại công)
+  'tk-pill-183',    // Nội Băng Hoàn (Băng sát nội công)
+  'tk-pill-179',    // Ngoại Độc Hoàn (Độc sát ngoại công)
+  'tk-pill-182',    // Nội Độc Hoàn (Độc sát nội công)
+  'tk-pill-184',    // Nội Hỏa Hoàn
+  'tk-pill-185',    // Nội Lôi Hoàn
+  'tk-trap-phys',   // Bẫy Vật lý
+  'tk-trap-poison', // Bẫy Độc
+  'tk-trap-cold',   // Bẫy Băng
+  'tk-trap-fire',   // Bẫy Hỏa
+  'tk-trap-light',  // Bẫy Lôi
 ];

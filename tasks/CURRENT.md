@@ -1,3 +1,25 @@
+## 2026-11-23 · Chiến lược chế độ Nguyên Soái, Binh Sĩ Hiệu Phù 70/20/10, 5 Lệnh Bẫy Ngũ Hành cấp 20 & Chế độ Tàng hình kiểm thử (đã commit)
+
+- **USER yêu cầu:**
+  1. Chiến lược chế độ Nguyên Soái: khi 1 bên hạ Nguyên Soái địch, bên còn Nguyên Soái tập trung dồn về bảo vệ Nguyên Soái phe mình; bên mất Nguyên Soái dồn **70%** quân bỏ qua bot địch, lao thẳng về doanh trại địch để cố giết Nguyên Soái địch.
+  2. **Binh Sĩ Hiệu Phù** triệu hồi ngẫu nhiên: **70% Binh sĩ (`soldier`), 20% Hiệu úy (`captain`), 10% Thống lĩnh (`commander`)**.
+  3. Thêm nút bật/tắt **Tàng hình kiểm thử** trong Dialog `` ` `` giúp không bị quái, boss, bot, người chơi khác phát hiện và hiển thị làm mờ 40% (`alpha = 0.6`) cho bản thân để kiểm tra tính năng app.
+- **Thay đổi:**
+  - `packages/shared/src/battle/tongkim.ts`, `packages/shared/src/protocol.ts`: thêm `rollClarionNpcRole()` (70/20/10), `TkActionMsg.op = 'devStealth'` và `TkStateMsg.me.stealth`.
+  - `apps/server/src/world/tongkim.ts`, `apps/server/src/net/{schema.ts,MapRoom.ts}`, `apps/server/src/world/{targeting.ts,World.ts,systems/combat.ts}`:
+    - Chế độ Nguyên Soái (`mode === 1`): hạ 1 Nguyên Soái không dừng trận ngay mà tiếp tục tới hết giờ; khi hết giờ ưu tiên phe còn Nguyên Soái thắng, nếu tình trạng 2 Soái giống nhau mới so tổng điểm.
+    - `Binh Sĩ Hiệu Phù` dùng `rollClarionNpcRole()` triệu hồi ngẫu nhiên 70% Binh sĩ / 20% Hiệu úy / 10% Thống lĩnh.
+    - Thêm `Actor.stealth` (lưu theo `charId` trong `TongKimManager.devStealthChars` để giữ qua chuyển map), chặn hoàn toàn target/hit/sát thương trong `isHidden()` / `World.hostile()` / `applyHit()`.
+  - `tools/bots/runner/{TkTactics.ts,TongKimBehavior.ts,BotClient.ts}`: thêm `TkCampDirector.resolveMarshalEndgame()` — phe đang thắng chờ **30 giây** (`MARSHAL_DEFEND_DELAY_MS`) sau khi hạ Soái địch mới dồn toàn lực về bảo vệ Soái nhà (`defend_marshal`); phe mất Soái gom nhóm **70%** tập trung đủ **100%** tại điểm Nguyên Soái phe mình vừa chết (`rally_for_rush`, bán kính `450 px`, timeout an toàn `45s`) rồi mới đồng loạt lao thẳng về `enemy.marshal` bỏ qua bot địch (`rush_enemy_marshal`); ẩn mọi actor `stealth` khỏi `BotClient.actors()` và `TongKimBehavior`.
+  - `apps/client/src/{state/actor.ts,game/WorldScene.ts,game/actors/ActorView.ts,ui/hud/tongkim.ts}`: thêm nút `Tàng hình: Đang bật / Tắt` trong Dialog `` ` `` (khi `devTools` bật, dùng chung Web/Desktop/Mobile), hiển thị mờ 40% (`alpha = 0.6`) cho bản thân và ẩn hoàn toàn với mọi người chơi khác.
+  - `packages/shared/src/items/tongkim-items.ts`, `packages/shared/src/skills/common/skill-overrides.ts`, `packages/shared/src/skills/engine/SkillEngine.ts`, `apps/server/src/dev/botAdmin.ts`:
+    - Thêm **5 Lệnh Bẫy Ngũ Hành cấp 20** (`tk-trap-phys` `#343`, `tk-trap-poison` `#303`, `tk-trap-cold` `#345`, `tk-trap-fire` `#347`, `tk-trap-light` `#349`) vào Quân Nhu Quan (`29` vật phẩm) & bảng rơi Tống Kim; tăng sát thương bẫy cấp 20 trong `skill-overrides.ts` lên `1.500–1.600` (Độc `160/nhịp`), bật co giật `doHurt: 100` cho **Xuyên Tâm Thích (`#343/#344`)**, xuyên kháng `35%–50%`; đặt bẫy qua `SkillEngine.castByItem()` ở cấp 20; bot tự đặt bẫy khi giao tranh ngoài doanh trại.
+    - Bổ sung thưởng vật phẩm kết thúc trận cho mỗi bot trong `TongKimManager.grantEndRewards`: mặc định **50× Phi Tốc Hoàn** (`tk-pill-190`) + **50× 1 món ngẫu nhiên** trong `TK_BOT_REWARD_POOL` (Chiến Cổ, Lệnh Bài, Hoàn Vật lý / Băng / Độc / Hỏa / Lôi, và 5 Lệnh Bẫy).
+    - Thêm `POST /api/dev/bots/grant-items` và đã cấp ngay **50× Chiến Cổ + 50× Lệnh Bài** cho **200/200 bot** trong `apps/server/data/db.json` (0 bot đầy túi).
+  - `apps/server/src/world/ai/monster.ts`: tắt reset đầy máu khi `returning` riêng cho **Nguyên Soái Tống Kim** (`sim.tkRole !== 'marshal'`); giữ nguyên hành vi reset máu cho mọi quái/boss/NPC khác.
+  - `tests/tong-kim.test.ts`: cập nhật test luật kết thúc Nguyên Soái và bổ sung test mới kiểm chứng chiến lược Nguyên Soái (tập kết 100% + 70% tổng lực bỏ qua bot + phe thắng trễ 30s), Binh Sĩ Hiệu Phù 70/20/10, chế độ Tàng hình kiểm thử `devStealth`, Nguyên Soái không reset đầy máu khi quay về `home`, 5 Lệnh Bẫy Ngũ Hành cấp 20 khắc hệ lớn và thưởng bot 50× Phi Tốc + ngẫu nhiên.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `npm run test:effects` (**23/23 pass**), `node --import tsx --test tests/tong-kim.test.ts` (**25/25 pass**), `npm run build` & `git diff --check` đạt. Đã commit trên `main`, chưa push.
+
 ## 2026-11-22 · Chiến thuật Bot Tống Kim (5 chế độ + Đổi chiến thuật nóng + `bots:ui` tự watch) (đã commit)
 
 - **USER yêu cầu:** giữ nguyên cách đánh Tống Kim cũ (`charge`), bổ sung các chiến thuật mới thông minh hơn (tách 3 cánh đa-map, điều phối phe, cứu Soái, kiting, khắc hệ…) và cho phép chọn/đổi chiến thuật trực tiếp trong `tools/bots` mà không đụng `apps/server` hay `apps/client`.

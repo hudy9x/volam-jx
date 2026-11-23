@@ -135,6 +135,17 @@ export function tkBotRewardMultiplier(rankPos: number, points: number): number {
 
 export type TkNpcRole = 'soldier' | 'captain' | 'commander' | 'deputy' | 'general' | 'marshal';
 
+/**
+ * Tỉ lệ triệu hồi ngẫu nhiên của Binh Sĩ Hiệu Phù:
+ * 70% Binh sĩ (`soldier`), 20% Hiệu úy (`captain`), 10% Thống lĩnh (`commander`).
+ */
+export function rollClarionNpcRole(rand: () => number = Math.random): 'soldier' | 'captain' | 'commander' {
+  const r = rand();
+  if (r < 0.7) return 'soldier';
+  if (r < 0.9) return 'captain';
+  return 'commander';
+}
+
 export interface TkCampLayout {
   /** Điểm hồi sinh / vào Hậu doanh (an toàn). */
   spawn: { x: number; y: number };

@@ -52,7 +52,7 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
   if (combatPairRules(w.meta, attacker.a, target.a, w.rules).safe) return;
   if (target.dead || target.jump) return; // Khinh công in flight: no damage (see World's EnginePort.hostile)
   const targetBag = combatOf(target).bag;
-  if (attrOf(targetBag, 'invincibility') > 0 || attrOf(targetBag, 'hide') > 0) return; // Thập Bộ Nhất Sát (2130) / Ngự Tuyết Ẩn (713)
+  if (target.a.stealth || attrOf(targetBag, 'invincibility') > 0 || attrOf(targetBag, 'hide') > 0) return; // Dev stealth / Thập Bộ Nhất Sát (2130) / Ngự Tuyết Ẩn (713)
   target.lastDamagedAt = w.now;
   attacker.lastAttackAt = w.now;
   if (target.kind === 'monster' && !target.def?.dummy && !target.target && !target.returning && attacker !== target) target.target = attacker.id;

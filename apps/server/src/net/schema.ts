@@ -49,6 +49,7 @@ export const Actor = schema({
   stateEnds: t.array('uint32'),
   passiveFx: t.array('uint16'), // visual-only passive effects; never counted as timed states
   ctl: t.uint8(),            // control effects on it: 1 choáng, 2 chậm, 4 độc (world/systems/effects.ts)
+  stealth: t.boolean(),      // chế độ Tàng hình kiểm thử (ẩn hoàn toàn với quái/boss/bot/người chơi khác)
 }, 'Actor');
 export type Actor = SchemaType<typeof Actor>;
 

@@ -517,6 +517,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private isActorHidden(state: ActorState): boolean {
+    if (state.stealth) return true;
     if (!state.states) return false;
     for (const id of state.states) if (getSkill(id)?.attrs?.hide) return true;
     return false;
@@ -525,6 +526,7 @@ export class WorldScene extends Phaser.Scene {
   private stealthModeFor(view: ActorView): 'visible' | 'translucent' | 'hidden' {
     if (!this.isActorHidden(view.state)) return 'visible';
     if (view.isSelf) return 'translucent';
+    if (view.state.stealth) return 'hidden';
     const me = this.self?.state;
     if (!me) return 'hidden';
     if (me.battleCamp || view.state.battleCamp) {

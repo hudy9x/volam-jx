@@ -80,7 +80,7 @@ export class World {
         const target = b as Sim;
         if (target.jump) return false;
         const bag = combatOf(target).bag;
-        if (attrOf(bag, 'invincibility') > 0 || attrOf(bag, 'hidebodyunlock') > 0 || attrOf(bag, 'hide') > 0) return false;
+        if (target.a.stealth || attrOf(bag, 'invincibility') > 0 || attrOf(bag, 'hidebodyunlock') > 0 || attrOf(bag, 'hide') > 0) return false;
         return attackable(this, a as Sim, target, true);
       },
       friendly: (a, b) => friendly(this, a as Sim, b as Sim),

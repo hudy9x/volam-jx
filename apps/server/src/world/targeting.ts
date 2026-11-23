@@ -5,7 +5,7 @@ import type { World } from './World.js';
 
 // Who may hit whom on this map (shared canAttack + training dummies never fight) and nearest-enemy searches.
 
-export const isHidden = (sim: Sim): boolean => attrOf(combatOf(sim).bag, 'hide') > 0;
+export const isHidden = (sim: Sim): boolean => !!sim.a.stealth || attrOf(combatOf(sim).bag, 'hide') > 0;
 export const isConfused = (sim: Sim): boolean => attrOf(combatOf(sim).bag, 'randmove') > 0;
 
 function info(sim: Sim, deadOverride?: boolean): CombatantInfo {

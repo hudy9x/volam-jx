@@ -544,6 +544,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     const char = db.getCharacter(auth.charId)!;
     online.set(char.id, this.roomId);
     const sim = addPlayer(this.world, client.sessionId, char);
+    sim.a.stealth = tongKim.isDevStealth(char.id);
     // Bot made / reset by the dev API (dev/botAdmin.ts): its template is applied on its first entry.
     if (char.bot?.pending) {
       applyBotSetup(this.world, sim, char.bot.setup, char.bot.level, char.bot.faction);

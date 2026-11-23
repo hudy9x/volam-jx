@@ -4871,6 +4871,48 @@
         "toY": 8208
       }
     ],
+    "344": [
+      {
+        "id": "tk-tong-out",
+        "label": "Ra chiến trường (Tống)",
+        "x": 5779,
+        "y": 15852,
+        "radius": 64,
+        "toMap": 344,
+        "toX": 4627,
+        "toY": 12872
+      },
+      {
+        "id": "tk-tong-back",
+        "label": "Về Hậu doanh (Tống)",
+        "x": 4507,
+        "y": 14526,
+        "radius": 64,
+        "toMap": 344,
+        "toX": 6496,
+        "toY": 16329
+      },
+      {
+        "id": "tk-kim-out",
+        "label": "Ra chiến trường (Kim)",
+        "x": 18732,
+        "y": 2006,
+        "radius": 64,
+        "toMap": 344,
+        "toX": 15883,
+        "toY": 2681
+      },
+      {
+        "id": "tk-kim-back",
+        "label": "Về Hậu doanh (Kim)",
+        "x": 17415,
+        "y": 3209,
+        "radius": 64,
+        "toMap": 344,
+        "toX": 18198,
+        "toY": 1319
+      }
+    ],
     "384": [
       {
         "id": "tk-tong-out",
@@ -4995,6 +5037,48 @@
         "toMap": 876,
         "toX": 22720,
         "toY": 1593
+      }
+    ],
+    "879": [
+      {
+        "id": "tk-tong-out",
+        "label": "Ra chiến trường (Tống)",
+        "x": 3182,
+        "y": 12494,
+        "radius": 64,
+        "toMap": 879,
+        "toX": 6283,
+        "toY": 10405
+      },
+      {
+        "id": "tk-tong-back",
+        "label": "Về Hậu doanh (Tống)",
+        "x": 4417,
+        "y": 11428,
+        "radius": 64,
+        "toMap": 879,
+        "toX": 2565,
+        "toY": 12795
+      },
+      {
+        "id": "tk-kim-out",
+        "label": "Ra chiến trường (Kim)",
+        "x": 21077,
+        "y": 2657,
+        "radius": 64,
+        "toMap": 879,
+        "toX": 18649,
+        "toY": 4063
+      },
+      {
+        "id": "tk-kim-back",
+        "label": "Về Hậu doanh (Kim)",
+        "x": 19329,
+        "y": 3782,
+        "radius": 64,
+        "toMap": 879,
+        "toX": 21892,
+        "toY": 2185
       }
     ],
     "902": [

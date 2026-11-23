@@ -140,6 +140,7 @@ export class TongKimHud {
     else if (act === 'devStart1') this.send({ op: 'devStart', mode: 1, battleMapId: this.selectedBattleMapId, signupSec: 20, durationSec: 600, marshalDelaySec: 45 });
     else if (act === 'devStart2') this.send({ op: 'devStart', mode: 2, battleMapId: this.selectedBattleMapId, signupSec: 20, durationSec: 600 });
     else if (act === 'devStop') this.send({ op: 'devStop' });
+    else if (act === 'devStealth') this.send({ op: 'devStealth' });
     else if (act === 'regTong') this.send({ op: 'register', camp: 'tong' });
     else if (act === 'regKim') this.send({ op: 'register', camp: 'kim' });
   }
@@ -206,6 +207,8 @@ export class TongKimHud {
         } else {
           actions.push(`<button type="button" class="btn2 tk-btn-danger" data-tk-act="devStop">Đóng trận</button>`);
         }
+        const stealthOn = !!me?.stealth;
+        actions.push(`<button type="button" class="${stealthOn ? 'btn sm' : 'btn2'}" data-tk-act="devStealth" aria-pressed="${stealthOn}">${stealthOn ? 'Tàng hình: Đang bật' : 'Tàng hình: Tắt'}</button>`);
       }
 
       const meRow = isBattle && me?.camp

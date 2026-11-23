@@ -13,6 +13,34 @@ import {
 
 export type ConcreteTkTactic = Exclude<BotTongKimTactic, 'random'>;
 export type TkBotRole = 'vanguard' | 'flanker' | 'guard' | 'support';
+export type TkMarshalEndgame = 'none' | 'defend_marshal' | 'rally_for_rush' | 'rush_enemy_marshal';
+
+export const MARSHAL_DEFEND_DELAY_MS = 30_000;
+export const MARSHAL_RALLY_RADIUS = 450;
+export const MARSHAL_RALLY_MAX_WAIT_MS = 45_000;
+
+/**
+ * Kiểm tra xem bot có thuộc nhóm 70% tổng lực diệt Soái khi phe mình mất Nguyên Soái hay không.
+ */
+export function isMarshalRusherSlot(botIndex: number): boolean {
+  return (Math.abs(botIndex) % 10) < 7;
+}
+
+/**
+ * Hàm thuần kiểm tra nhanh vai trò endgame (không tính thời gian trễ 30s & tập kết 100% trên Director).
+ */
+export function resolveMarshalEndgame(
+  tkState: { mode?: number; marshalSpawned?: boolean; tongMarshalAlive?: boolean; kimMarshalAlive?: boolean } | null | undefined,
+  myCamp: TkCamp,
+  botIndex: number,
+): TkMarshalEndgame {
+  if (!tkState || tkState.mode !== 1 || !tkState.marshalSpawned) return 'none';
+  const myAlive = myCamp === 'tong' ? !!tkState.tongMarshalAlive : !!tkState.kimMarshalAlive;
+  const enemyAlive = myCamp === 'tong' ? !!tkState.kimMarshalAlive : !!tkState.tongMarshalAlive;
+  if (myAlive && !enemyAlive) return 'defend_marshal';
+  if (!myAlive && enemyAlive) return isMarshalRusherSlot(botIndex) ? 'rush_enemy_marshal' : 'none';
+  return 'none';
+}
 
 export interface Point2D {
   x: number;
@@ -48,6 +76,8 @@ export interface TkBotPresence {
   role: TkBotRole;
   exitedAt: number;
   seenAt: number;
+  /** Thuộc nhóm 70% tổng lực diệt Soái địch khi phe mình mất Nguyên Soái. */
+  isRusher?: boolean;
 }
 
 export interface TkMarshalAlert {
@@ -242,6 +272,10 @@ interface CampBoard {
   marshalAlert: TkMarshalAlert | null;
   focusTarget: TkFocusHint | null;
   randomChoice: Map<string, ConcreteTkTactic>;
+  endgameMatchKey: string;
+  enemyMarshalDiedAt: number;
+  myMarshalDiedAt: number;
+  rushLaunched: boolean;
 }
 
 const CONCRETE_TACTICS: readonly ConcreteTkTactic[] = ['charge', 'flank', 'tactical', 'defend'];
@@ -257,7 +291,16 @@ export class TkCampDirector {
     const key = `${mapId}:${camp}`;
     let b = this.boards.get(key);
     if (!b) {
-      b = { bots: new Map(), marshalAlert: null, focusTarget: null, randomChoice: new Map() };
+      b = {
+        bots: new Map(),
+        marshalAlert: null,
+        focusTarget: null,
+        randomChoice: new Map(),
+        endgameMatchKey: '',
+        enemyMarshalDiedAt: 0,
+        myMarshalDiedAt: 0,
+        rushLaunched: false,
+      };
       this.boards.set(key, b);
     }
     return b;
@@ -347,6 +390,64 @@ export class TkCampDirector {
     b.randomChoice.set(matchKey, picked);
     if (b.randomChoice.size > 16) b.randomChoice.clear();
     return picked;
+  }
+
+  /**
+   * Điều phối chiến lược chế độ Nguyên Soái theo thời gian thực trên toàn phe:
+   * - Phe đang thắng (`myAlive && !enemyAlive`): chờ đúng 30s (`MARSHAL_DEFEND_DELAY_MS`) rồi mới dồn toàn lực về bảo vệ Soái nhà.
+   * - Phe mất Nguyên Soái (`!myAlive && enemyAlive`): nhóm 70% tập trung đủ 100% tại điểm Nguyên Soái phe mình vừa chết
+   *   (`rally_for_rush`) rồi mới đồng loạt lao về Nguyên Soái phe địch (`rush_enemy_marshal`).
+   */
+  resolveMarshalEndgame(
+    mapId: number,
+    camp: TkCamp,
+    tkState: { matchId?: number; mode?: number; marshalSpawned?: boolean; tongMarshalAlive?: boolean; kimMarshalAlive?: boolean } | null | undefined,
+    botIndex: number,
+    myMarshalPos: Point2D,
+    now: number,
+  ): TkMarshalEndgame {
+    if (!tkState || tkState.mode !== 1 || !tkState.marshalSpawned) return 'none';
+    const b = this.board(mapId, camp);
+    this.prune(b, now);
+    const matchKey = `${mapId}:${tkState.matchId ?? 0}`;
+    if (b.endgameMatchKey !== matchKey) {
+      b.endgameMatchKey = matchKey;
+      b.enemyMarshalDiedAt = 0;
+      b.myMarshalDiedAt = 0;
+      b.rushLaunched = false;
+    }
+
+    const myAlive = camp === 'tong' ? !!tkState.tongMarshalAlive : !!tkState.kimMarshalAlive;
+    const enemyAlive = camp === 'tong' ? !!tkState.kimMarshalAlive : !!tkState.tongMarshalAlive;
+
+    // 1. Phe đang thắng (còn Soái, địch mất Soái): chỉ dồn về bảo vệ Soái nhà sau 30s.
+    if (myAlive && !enemyAlive) {
+      if (b.enemyMarshalDiedAt === 0) b.enemyMarshalDiedAt = now;
+      return now - b.enemyMarshalDiedAt >= MARSHAL_DEFEND_DELAY_MS ? 'defend_marshal' : 'none';
+    }
+
+    // 2. Phe mất Nguyên Soái: nhóm 70% tập kết đủ 100% tại điểm Soái phe mình rồi mới đồng loạt lao sang Soái địch.
+    if (!myAlive && enemyAlive) {
+      if (b.myMarshalDiedAt === 0) b.myMarshalDiedAt = now;
+      if (!isMarshalRusherSlot(botIndex)) return 'none';
+      if (!b.rushLaunched) {
+        let rusherCount = 0;
+        let arrivedCount = 0;
+        for (const p of b.bots.values()) {
+          if (!p.isRusher) continue;
+          rusherCount++;
+          if (isoDistance(p.x, p.y, myMarshalPos.x, myMarshalPos.y) <= MARSHAL_RALLY_RADIUS) {
+            arrivedCount++;
+          }
+        }
+        const allArrived = rusherCount > 0 && arrivedCount === rusherCount;
+        const timedOut = now - b.myMarshalDiedAt >= MARSHAL_RALLY_MAX_WAIT_MS;
+        if (allArrived || timedOut) b.rushLaunched = true;
+      }
+      return b.rushLaunched ? 'rush_enemy_marshal' : 'rally_for_rush';
+    }
+
+    return 'none';
   }
 
   clear(): void {

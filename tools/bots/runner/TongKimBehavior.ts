@@ -32,11 +32,13 @@ import {
   assignTkRole,
   buildTacticalLanes,
   computeKitePoint,
+  isMarshalRusherSlot,
   scoreTargetUtility,
   type ConcreteTkTactic,
   type Point2D,
   type TkBotRole,
   type TkCampDirector,
+  type TkMarshalEndgame,
 } from './TkTactics.js';
 
 function legacyLanesFor(battleMapId: number, camp: TkCamp): readonly (readonly Point2D[])[] {
@@ -124,6 +126,8 @@ export class TongKimBehavior implements Behavior {
   private lastHpDropAt = 0;
   private nextTkItemUseAt = 0;
   private nextClarionAt = 0;
+  private nextTrapAt = 0;
+  private lastOwnMarshalHp = new Map<string, number>();
   private liveTacticAll: BotTongKimTactic | null = null;
   private liveTacticByCamp: Partial<Record<TkCamp, BotTongKimTactic>> = {};
 
@@ -272,7 +276,12 @@ export class TongKimBehavior implements Behavior {
 
     const tactic = this.effectiveTactic(this.bot.mapId, myCamp);
     const role: TkBotRole = assignTkRole(this.botIndex, me.faction ?? this.bot.stats?.faction);
+    let endgame: TkMarshalEndgame = 'none';
     if (tactic !== 'charge') {
+      const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
+      const myMarshalAlive = myCamp === 'tong' ? !!st?.tongMarshalAlive : !!st?.kimMarshalAlive;
+      const enemyMarshalAlive = myCamp === 'tong' ? !!st?.kimMarshalAlive : !!st?.tongMarshalAlive;
+      const isRusher = !!st && st.mode === 1 && !!st.marshalSpawned && !myMarshalAlive && enemyMarshalAlive && isMarshalRusherSlot(this.botIndex);
       this.director.reportBot(this.bot.mapId, myCamp, {
         id: me.id ?? this.bot.name,
         x: me.x,
@@ -281,7 +290,9 @@ export class TongKimBehavior implements Behavior {
         role,
         exitedAt: this.exitedCampAt,
         seenAt: now,
+        isRusher,
       });
+      endgame = this.director.resolveMarshalEndgame(this.bot.mapId, myCamp, st, this.botIndex, cfg[myCamp].marshal, now);
       if (tactic === 'tactical' || tactic === 'defend') {
         this.scanOwnMarshalThreat(myCamp, now);
       }
@@ -293,24 +304,24 @@ export class TongKimBehavior implements Behavior {
     // 3c. Khinh công thoát vây công (>= 3 địch gần) hoặc bị đánh mất máu liên tục trong 2s.
     if (this.tryEscapeJump(me, myCamp, now)) return;
 
-    // 3d. Còn ít bình máu (<= 2) và có tiền -> chạy về cổng Hậu doanh mua máu rồi quay lại.
-    if (this.retreatToBuyPotions(myCamp, now)) return;
+    // 3d. Còn ít bình máu (<= 2) và có tiền + chỗ trống -> chạy về cổng Hậu doanh mua máu rồi quay lại (bỏ qua khi đang cảm tử diệt Soái).
+    if (this.retreatToBuyPotions(myCamp, endgame, now)) return;
 
     // 3e. Chiến thuật tổng hợp: rút về cụm đồng đội khi bị áp đảo quân số (1 vs 3+) và máu dưới 55%.
-    if (tactic === 'tactical' && this.tryTacticalFallback(me, myCamp, role, now)) return;
+    if (tactic === 'tactical' && endgame === 'none' && this.tryTacticalFallback(me, myCamp, role, now)) return;
 
     // 4. Giao tranh ngoài tiền tuyến: tìm mục tiêu phe địch ưu tiên.
     const scanRadius = this.sc.tongkim?.scanRadius ?? DEFAULT_BOT_TONGKIM.scanRadius;
-    const target = this.pickTarget(me, myCamp, scanRadius, tactic, now);
+    const target = this.pickTarget(me, myCamp, scanRadius, tactic, endgame, now);
     // Nhặt vật phẩm Tống Kim rơi trong tầm (song song khi giao tranh) hoặc chạy tới nhặt khi không có địch.
-    if (this.pickupTkDrops(me, now, !!target)) return;
+    if (this.pickupTkDrops(me, now, !!target || endgame !== 'none')) return;
     if (target) {
       if (this.bot.prepareCombat(now)) return;
       const attacks = this.bot.attacks();
       const skill = attacks.length ? attacks[this.atkIndex++ % attacks.length] : 1;
       const range = Math.max(60, this.bot.range(skill));
       // Thả diều (kiting) cho phái tầm xa trong chế độ Chiến thuật tổng hợp.
-      if (tactic === 'tactical' && range >= 240 && this.tryRangeKite(me, target, myCamp, range, now)) {
+      if (tactic === 'tactical' && endgame !== 'rush_enemy_marshal' && range >= 240 && this.tryRangeKite(me, target, myCamp, range, now)) {
         return;
       }
       if (this.bot.ready(skill, now) && now >= this.nextCastAt) {
@@ -325,7 +336,7 @@ export class TongKimBehavior implements Behavior {
     if (tactic === 'charge') {
       this.advanceWaypoints(me, myCamp, now);
     } else {
-      this.advanceTactical(me, myCamp, tactic, role, now);
+      this.advanceTactical(me, myCamp, tactic, role, endgame, now);
     }
   }
 
@@ -340,8 +351,8 @@ export class TongKimBehavior implements Behavior {
 
   private restockPotionsInCamp(now: number): void {
     if (now < this.nextBuyAt) return;
-    const needHp = Math.max(0, 12 - this.countPotions('hp'));
-    const needMp = Math.max(0, 6 - this.countPotions('mp'));
+    const needHp = Math.max(0, 50 - this.countPotions('hp'));
+    const needMp = Math.max(0, 15 - this.countPotions('mp'));
     if (needHp === 0 && needMp === 0) return;
 
     const tryBuy = (stat: 'hp' | 'mp', want: number): boolean => {
@@ -349,10 +360,11 @@ export class TongKimBehavior implements Behavior {
       const budget = Math.floor(this.bot.money * 0.6);
       const other = stat === 'hp' ? 'mp' : 'hp';
       const cand = SHOP_ITEMS.drug
-        .filter(d => potionTotal(d, stat) > 0 && potionTotal(d, other) === 0 && d.price > 0 && d.price <= budget)
+        .filter(d => potionTotal(d, stat) > 0 && potionTotal(d, other) === 0 && d.price > 0 && d.price <= budget && roomFor(this.bot.bag, d, 1) > 0)
         .sort((a, b) => potionTotal(b, stat) - potionTotal(a, stat))[0];
       if (!cand) return false;
-      const qty = Math.min(want, Math.floor(budget / cand.price));
+      const room = roomFor(this.bot.bag, cand, want);
+      const qty = Math.min(want, room, Math.floor(budget / cand.price));
       if (qty <= 0) return false;
       this.nextBuyAt = now + 2500;
       this.bot.send(C2S.buy, { item: cand.id, count: qty });
@@ -483,15 +495,23 @@ export class TongKimBehavior implements Behavior {
     myCamp: TkCamp,
     scanRadius: number,
     tactic: ConcreteTkTactic,
+    endgame: TkMarshalEndgame,
     now: number,
   ): { id: string; x: number; y: number } | null {
+    // Đang tập kết tại điểm Nguyên Soái phe mình vừa chết -> bỏ qua địch để gom đủ 100% quân trước khi tổng lực.
+    if (endgame === 'rally_for_rush') {
+      this.lockedTargetId = '';
+      return null;
+    }
+
     const actors = this.bot.actors();
-    const useUtility = tactic === 'tactical' || tactic === 'defend';
+    const useUtility = tactic === 'tactical' || tactic === 'defend' || endgame === 'defend_marshal';
     const mySeries = (this.bot.stats?.series ?? (me.series as Element | undefined)) as Element | undefined;
     const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
     const myMarshal = cfg[myCamp].marshal;
+    const myDistToMarshal = isoDistance(me.x, me.y, myMarshal.x, myMarshal.y);
     const alert = useUtility ? this.director.getMarshalAlert(this.bot.mapId, myCamp, now) : null;
-    const focus = tactic === 'tactical' ? this.director.getFocusTarget(this.bot.mapId, myCamp, now) : null;
+    const focus = tactic === 'tactical' && endgame === 'none' ? this.director.getFocusTarget(this.bot.mapId, myCamp, now) : null;
 
     let bestLegacy: { id: string; x: number; y: number; tier: number; dist: number } | null = null;
     let bestUtil: { id: string; x: number; y: number; score: number; hpRatio: number; isPriority: boolean } | null = null;
@@ -499,15 +519,30 @@ export class TongKimBehavior implements Behavior {
     for (const a of actors) {
       if (a.isSelf || a.state.hp <= 0) continue;
       const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
+      if (raw?.stealth) continue;
       const otherCamp = raw?.battleCamp as string | undefined;
       if (!otherCamp || otherCamp === myCamp) continue;
       if (isInTkSafeCamp(this.bot.mapId, a.x, a.y)) continue;
       const dist = isoDistance(me.x, me.y, a.x, a.y);
       if (dist > scanRadius) continue;
 
+      const isMarshal = a.state.kind === 'monster' && Number(a.state.boss) >= 2;
+
+      // 70% quân phe mất Nguyên Soái: bỏ qua toàn bộ bot/lính địch, chỉ đánh Nguyên Soái địch.
+      if (endgame === 'rush_enemy_marshal') {
+        if (!isMarshal) continue;
+        this.lockedTargetId = a.id;
+        return { id: a.id, x: a.x, y: a.y };
+      }
+
+      // Phe còn Nguyên Soái đang dồn về thủ Soái: bỏ qua địch ngoài vùng bảo vệ nếu bản thân còn xa Soái nhà.
+      if (endgame === 'defend_marshal') {
+        const enemyDistToMarshal = isoDistance(a.x, a.y, myMarshal.x, myMarshal.y);
+        if (myDistToMarshal > 900 && enemyDistToMarshal > 950) continue;
+      }
+
       if (!useUtility) {
         // Trọng số ưu tiên cũ: Nguyên Soái (0) > Người chơi (1) > Tướng/Boss Xanh (2) > Binh sĩ (3)
-        const isMarshal = a.state.kind === 'monster' && Number(a.state.boss) >= 2;
         const isPlayer = a.state.kind === 'player';
         const isOfficer = a.state.kind === 'monster' && Number(a.state.boss) === 1;
         const tier = isMarshal ? 0 : isPlayer ? 1 : isOfficer ? 2 : 3;
@@ -530,8 +565,8 @@ export class TongKimBehavior implements Behavior {
           lockedTargetId: this.lockedTargetId,
           focusTargetId: focus?.id,
           myMarshal,
-          marshalThreatened: !!alert,
-          defending: tactic === 'defend',
+          marshalThreatened: !!alert || endgame === 'defend_marshal',
+          defending: tactic === 'defend' || endgame === 'defend_marshal',
         },
       );
       if (!bestUtil || score > bestUtil.score) {
@@ -546,21 +581,24 @@ export class TongKimBehavior implements Behavior {
       }
     }
 
+    if (endgame === 'rush_enemy_marshal') {
+      this.lockedTargetId = '';
+      return null;
+    }
+
     if (!useUtility) {
       this.lockedTargetId = bestLegacy?.id ?? '';
       return bestLegacy ? { id: bestLegacy.id, x: bestLegacy.x, y: bestLegacy.y } : null;
     }
 
-    if (bestUtil && bestUtil.isPriority && (bestUtil.hpRatio < 0.42 || tactic === 'tactical')) {
-      if (bestUtil.hpRatio < 0.42) {
-        this.director.reportFocusTarget(this.bot.mapId, myCamp, {
-          id: bestUtil.id,
-          x: bestUtil.x,
-          y: bestUtil.y,
-          hpRatio: bestUtil.hpRatio,
-          at: now,
-        });
-      }
+    if (bestUtil && bestUtil.isPriority && bestUtil.hpRatio < 0.42) {
+      this.director.reportFocusTarget(this.bot.mapId, myCamp, {
+        id: bestUtil.id,
+        x: bestUtil.x,
+        y: bestUtil.y,
+        hpRatio: bestUtil.hpRatio,
+        at: now,
+      });
     }
     this.lockedTargetId = bestUtil?.id ?? '';
     return bestUtil ? { id: bestUtil.id, x: bestUtil.x, y: bestUtil.y } : null;
@@ -570,14 +608,17 @@ export class TongKimBehavior implements Behavior {
     const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
     const marshalPos = cfg[myCamp].marshal;
     let marshalHpRatio = 1;
+    let marshalHp = -1;
     let enemyNearMarshal = 0;
 
     for (const a of this.bot.actors()) {
       if (a.state.hp <= 0) continue;
       const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
+      if (raw?.stealth) continue;
       const camp = raw?.battleCamp as string | undefined;
       if (camp === myCamp && a.state.kind === 'monster' && Number(a.state.boss) >= 2) {
         const maxHp = Math.max(1, Number(a.state.maxHp || raw?.maxHp || 1));
+        marshalHp = a.state.hp;
         marshalHpRatio = a.state.hp / maxHp;
       } else if (camp && camp !== myCamp && !isInTkSafeCamp(this.bot.mapId, a.x, a.y)) {
         if (isoDistance(a.x, a.y, marshalPos.x, marshalPos.y) <= 680) {
@@ -586,7 +627,12 @@ export class TongKimBehavior implements Behavior {
       }
     }
 
-    if (enemyNearMarshal > 0 || marshalHpRatio < 0.96) {
+    const key = `${this.bot.mapId}:${myCamp}`;
+    const prevHp = this.lastOwnMarshalHp.get(key);
+    const hpJustDropped = marshalHp >= 0 && prevHp !== undefined && marshalHp < prevHp;
+    if (marshalHp >= 0) this.lastOwnMarshalHp.set(key, marshalHp);
+
+    if (enemyNearMarshal > 0 || hpJustDropped) {
       this.director.reportMarshalThreat(this.bot.mapId, myCamp, {
         x: marshalPos.x,
         y: marshalPos.y,
@@ -668,10 +714,53 @@ export class TongKimBehavior implements Behavior {
     this.followLane(me, list, now);
   }
 
-  private advanceTactical(me: any, myCamp: TkCamp, tactic: ConcreteTkTactic, role: TkBotRole, now: number): void {
+  private advanceTactical(me: any, myCamp: TkCamp, tactic: ConcreteTkTactic, role: TkBotRole, endgame: TkMarshalEndgame, now: number): void {
     const cfg = tkMapLayout(this.bot.mapId) ?? TK_MAPS[TK_BATTLE_MAP_ID];
     const mine = cfg[myCamp];
     const enemy = cfg[myCamp === 'tong' ? 'kim' : 'tong'];
+
+    // 0a. Chiến lược Nguyên Soái: phe mình còn Soái, phe địch mất Soái -> 100% dồn về bảo vệ Nguyên Soái phe mình.
+    if (endgame === 'defend_marshal') {
+      const angle = ((this.botIndex % 12) / 12) * Math.PI * 2;
+      const ring = 180 + (this.botIndex % 3) * 65;
+      const gx = Math.round(mine.marshal.x + Math.cos(angle) * ring + Math.round(this.jitter.x * 0.3));
+      const gy = Math.round(mine.marshal.y + Math.sin(angle) * ring * 0.5 + Math.round(this.jitter.y * 0.3));
+      if (isoDistance(me.x, me.y, gx, gy) > 180 && now >= this.nextMoveAt) {
+        this.nextMoveAt = now + 750;
+        this.bot.send(C2S.move, { x: gx, y: gy });
+      }
+      return;
+    }
+
+    // 0b. Chiến lược Nguyên Soái: phe mình mất Soái -> nhóm 70% tập trung đủ 100% tại điểm Nguyên Soái phe mình trước.
+    if (endgame === 'rally_for_rush') {
+      const angle = ((this.botIndex % 14) / 14) * Math.PI * 2;
+      const ring = 90 + (this.botIndex % 3) * 45;
+      const rx = Math.round(mine.marshal.x + Math.cos(angle) * ring);
+      const ry = Math.round(mine.marshal.y + Math.sin(angle) * ring * 0.5);
+      if (isoDistance(me.x, me.y, rx, ry) > 120 && now >= this.nextMoveAt) {
+        this.nextMoveAt = now + 750;
+        this.bot.send(C2S.move, { x: rx, y: ry });
+      }
+      return;
+    }
+
+    // 0c. Đã đủ 100% tập kết -> toàn bộ 70% đồng loạt lao thẳng về doanh trại/Nguyên Soái địch, bỏ qua bot địch.
+    if (endgame === 'rush_enemy_marshal') {
+      if (isoDistance(me.x, me.y, this.lastPos.x, this.lastPos.y) > 25) {
+        this.lastPos = { x: me.x, y: me.y, at: now };
+      } else if (now - this.lastPos.at > 3500) {
+        this.lastPos.at = now;
+        this.rollJitter();
+      }
+      if (now >= this.nextMoveAt) {
+        this.nextMoveAt = now + 800;
+        const tx = enemy.marshal.x + Math.round(this.jitter.x * 0.5);
+        const ty = enemy.marshal.y + Math.round(this.jitter.y * 0.5);
+        this.bot.send(C2S.move, { x: tx, y: ty });
+      }
+      return;
+    }
 
     // 1. Phản ứng cứu Nguyên Soái nhà khi có cảnh báo (ưu tiên nhóm Hộ vệ hoặc bot đứng gần sân nhà).
     if (tactic === 'tactical' || tactic === 'defend') {
@@ -807,6 +896,7 @@ export class TongKimBehavior implements Behavior {
     for (const a of this.bot.actors()) {
       if (a.isSelf || a.state.hp <= 0) continue;
       const raw = (this.bot.room?.state as any)?.actors?.get(a.id);
+      if (raw?.stealth) continue;
       const otherCamp = raw?.battleCamp as string | undefined;
       if (!otherCamp || otherCamp === myCamp) continue;
       if (isInTkSafeCamp(this.bot.mapId, a.x, a.y)) continue;
@@ -852,9 +942,12 @@ export class TongKimBehavior implements Behavior {
     return true;
   }
 
-  private retreatToBuyPotions(myCamp: TkCamp, now: number): boolean {
+  private retreatToBuyPotions(myCamp: TkCamp, endgame: TkMarshalEndgame, now: number): boolean {
+    if (endgame === 'rush_enemy_marshal' || endgame === 'rally_for_rush') return false;
     if (this.countPotions('hp') > 2) return false;
-    const canBuyHp = SHOP_ITEMS.drug.some(d => potionTotal(d, 'hp') > 0 && potionTotal(d, 'mp') === 0 && d.price > 0 && d.price <= this.bot.money);
+    const canBuyHp = SHOP_ITEMS.drug.some(d =>
+      potionTotal(d, 'hp') > 0 && potionTotal(d, 'mp') === 0 && d.price > 0 && d.price <= this.bot.money && roomFor(this.bot.bag, d, 1) > 0,
+    );
     if (!canBuyHp) return false;
     if (now >= this.nextMoveAt) {
       this.nextMoveAt = now + 800;
@@ -887,6 +980,12 @@ export class TongKimBehavior implements Behavior {
       }
       if (eff.kind === 'clarion' && !inCamp && fighting && now >= this.nextClarionAt) {
         this.nextClarionAt = now + 8000;
+        this.nextTkItemUseAt = now + 1000;
+        this.bot.send(C2S.use, { index: i });
+        return;
+      }
+      if (eff.kind === 'trap' && !inCamp && fighting && now >= this.nextTrapAt) {
+        this.nextTrapAt = now + 4500;
         this.nextTkItemUseAt = now + 1000;
         this.bot.send(C2S.use, { index: i });
         return;

@@ -3,6 +3,9 @@ import {
   MAX_MONEY,
   TK_BALANCE_DIFF,
   TK_BATTLE_MAP_ID,
+  TK_BOT_REWARD_DEFAULT_ITEM,
+  TK_BOT_REWARD_POOL,
+  TK_BOT_REWARD_QTY,
   TK_CAMP_KICK_SEC,
   TK_CAMP_NAMES,
   TK_DEFAULT_TIMING,
@@ -33,6 +36,7 @@ import {
   tkMapLayout,
   tkRankForPoints,
   tkTitleOf,
+  rollClarionNpcRole,
   type Element,
   type Item,
   type ItemDef,
@@ -200,6 +204,20 @@ class TongKimManager {
   private lastScheduleMinuteKey = '';
   private rewardsGranted = false;
   private clarionUses: Record<TkCamp, number> = { tong: 0, kim: 0 };
+  private devStealthChars = new Set<string>();
+
+  isDevStealth(charId?: string): boolean {
+    return !!charId && this.devStealthChars.has(charId);
+  }
+
+  toggleDevStealth(sim: Sim): boolean {
+    if (!sim.charId) return false;
+    const next = !this.devStealthChars.has(sim.charId);
+    if (next) this.devStealthChars.add(sim.charId);
+    else this.devStealthChars.delete(sim.charId);
+    sim.a.stealth = next;
+    return next;
+  }
 
   get currentPhase(): TkPhase { return this.phase; }
   get currentMatchId(): number { return this.matchId; }
@@ -571,10 +589,22 @@ class TongKimManager {
       }
       if (now >= this.phaseEndsAt) {
         const { tongScore, kimScore } = this.counts();
-        const win: 'tong' | 'kim' | 'draw' = tongScore > kimScore ? 'tong' : kimScore > tongScore ? 'kim' : 'draw';
-        const reason = win === 'draw'
-          ? `Hết giờ — hai phe hòa nhau (${tongScore} điểm)!`
-          : `Hết giờ — phe ${TK_CAMP_NAMES[win]} thắng theo tổng điểm (${tongScore} Tống vs ${kimScore} Kim)!`;
+        const tongAlive = !!this.tongMarshalId;
+        const kimAlive = !!this.kimMarshalId;
+        let win: 'tong' | 'kim' | 'draw';
+        let reason: string;
+        if (this.mode === 1 && this.marshalSpawned && tongAlive !== kimAlive) {
+          win = tongAlive ? 'tong' : 'kim';
+          reason = `Hết giờ — phe ${TK_CAMP_NAMES[win]} bảo toàn được Nguyên Soái và hạ gục Nguyên Soái đối phương để giành chiến thắng!`;
+        } else {
+          win = tongScore > kimScore ? 'tong' : kimScore > tongScore ? 'kim' : 'draw';
+          const marshalNote = this.mode === 1 && this.marshalSpawned
+            ? (tongAlive ? ' (cả hai Nguyên Soái đều còn sống)' : ' (cả hai Nguyên Soái đều đã ngã xuống)')
+            : '';
+          reason = win === 'draw'
+            ? `Hết giờ${marshalNote} — hai phe hòa nhau (${tongScore} điểm)!`
+            : `Hết giờ${marshalNote} — phe ${TK_CAMP_NAMES[win]} thắng theo tổng điểm (${tongScore} Tống vs ${kimScore} Kim)!`;
+        }
         this.finishMatch(w, win, reason, now);
       }
     } else if (this.phase === 'ended' && now >= this.phaseEndsAt) {
@@ -705,8 +735,13 @@ class TongKimManager {
         if (npcCamp === 'tong') this.tongMarshalId = null;
         else this.kimMarshalId = null;
         const winCamp: TkCamp = npcCamp === 'tong' ? 'kim' : 'tong';
-        const killerName = killer?.a.name ?? `phe ${TK_CAMP_NAMES[winCamp]}`;
-        this.finishMatch(w, winCamp, `${target.a.name} đã bị ${killerName} hạ gục! Phe ${TK_CAMP_NAMES[winCamp]} đại thắng!`, w.now);
+        const killerName = creditPlayer?.a.name ?? killer?.a.name ?? `phe ${TK_CAMP_NAMES[winCamp]}`;
+        const otherAlive = winCamp === 'tong' ? !!this.tongMarshalId : !!this.kimMarshalId;
+        if (otherAlive) {
+          w.hooks.announce(`${target.a.name} đã bị ${killerName} hạ gục! Phe ${TK_CAMP_NAMES[winCamp]} đang chiếm ưu thế — hãy bảo vệ Nguyên Soái tới hết giờ!`);
+        } else {
+          w.hooks.announce(`${target.a.name} đã bị ${killerName} hạ gục! Cả hai Nguyên Soái đều đã ngã xuống — thắng bại sẽ phân định bằng tổng điểm khi hết giờ!`);
+        }
       } else {
         // Rơi vật phẩm chiến trường khi hạ binh sĩ/tướng phe địch (không rơi trang bị/bạc)
         if (creditPlayer) {
@@ -797,12 +832,25 @@ class TongKimManager {
         return false;
       }
       this.clarionUses[myCamp]++;
+      const spawnedTitles: string[] = [];
       for (let i = 0; i < eff.count; i++) {
         const ox = (i === 0 ? -45 : 45);
         const [sx, sy] = nearestWalkable(w.grid, sim.a.x + ox, sim.a.y + 20);
-        this.spawnOneNpc(w, myCamp, 'soldier', sx, sy);
+        const role = rollClarionNpcRole();
+        this.spawnOneNpc(w, myCamp, role, sx, sy);
+        spawnedTitles.push(TK_NPC_TITLES[myCamp][role]);
       }
-      w.hooks.notify(sim, `Đã triệu hồi ${eff.count} Binh sĩ chi viện (${this.clarionUses[myCamp]}/20)!`);
+      w.hooks.notify(sim, `Đã triệu hồi ${eff.count} chi viện (${spawnedTitles.join(', ')}) (${this.clarionUses[myCamp]}/20)!`);
+      return true;
+    }
+    if (eff.kind === 'trap') {
+      if (this.phase !== 'fighting') {
+        w.hooks.notify(sim, 'Chỉ có thể đặt bẫy khi trận đấu đang giao chiến.');
+        return false;
+      }
+      const ok = w.engine.castByItem(sim, eff.skillId, eff.level, { x: sim.a.x, y: sim.a.y });
+      if (!ok) return false;
+      w.hooks.notify(sim, `Đã đặt ${def.name}!`);
       return true;
     }
     return false;
@@ -909,15 +957,31 @@ class TongKimManager {
       const mult = tkBotRewardMultiplier(rankByChar.get(entry.charId) ?? 0, entry.points);
       const moneyReward = Math.round(TK_POINTS.botBaseMoney * mult);
       const expReward = Math.round(TK_POINTS.botBaseExp * mult);
+      const randomItemId = TK_BOT_REWARD_POOL[Math.floor(Math.random() * TK_BOT_REWARD_POOL.length)];
+      const rewardDefs = [TK_BOT_REWARD_DEFAULT_ITEM, randomItemId];
+      const grantItemsToBag = (bag: (Item | null)[], spill?: Item[]) => {
+        for (const defId of rewardDefs) {
+          if (!ITEMS[defId]) continue;
+          const item: Item = { uid: `tk-bot-${this.matchId}-${defId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, def: defId, q: 0, qty: TK_BOT_REWARD_QTY };
+          if (!addToBag(bag, item) && spill) spill.push(item);
+        }
+      };
       const sim = onlineByChar.get(entry.charId);
       if (sim && w) {
         addMoney(sim, moneyReward);
         gainExp(w, sim, expReward);
+        if (sim.bag) grantItemsToBag(sim.bag, sim.bagSpill ??= []);
         w.hooks.inventory(sim);
         const multTxt = mult > 1 ? ` (×${mult})` : '';
-        w.hooks.log(sim, 'exp', `Thưởng bot Tống Kim${multTxt}: +${moneyReward.toLocaleString('vi-VN')} lượng và +${expReward.toLocaleString('vi-VN')} EXP.`);
+        const itemNames = rewardDefs.map(id => `${TK_BOT_REWARD_QTY}× ${ITEMS[id]?.name ?? id}`).join(' + ');
+        w.hooks.log(sim, 'exp', `Thưởng bot Tống Kim${multTxt}: +${moneyReward.toLocaleString('vi-VN')} lượng, +${expReward.toLocaleString('vi-VN')} EXP, ${itemNames}.`);
       } else {
-        db.updateCharacter(entry.charId, { money: Math.min(MAX_MONEY, (char.money ?? 0) + moneyReward) });
+        const bag: (Item | null)[] = Array.isArray(char.bag) ? [...char.bag] : Array(60).fill(null);
+        grantItemsToBag(bag);
+        db.updateCharacter(entry.charId, {
+          money: Math.min(MAX_MONEY, (char.money ?? 0) + moneyReward),
+          bag,
+        });
       }
     }
   }
@@ -944,7 +1008,7 @@ class TongKimManager {
     const [kx, ky] = nearestWalkable(w.grid, layout.kim.marshal.x, layout.kim.marshal.y);
     this.tongMarshalId = this.spawnOneNpc(w, 'tong', 'marshal', tx, ty).id;
     this.kimMarshalId = this.spawnOneNpc(w, 'kim', 'marshal', kx, ky).id;
-    w.hooks.announce('Tống Nguyên Soái và Kim Nguyên Soái đã xuất trận! Phe nào hạ Nguyên Soái đối phương trước sẽ giành chiến thắng ngay lập tức!');
+    w.hooks.announce('Tống Nguyên Soái và Kim Nguyên Soái đã xuất trận! Hãy bảo vệ Nguyên Soái phe mình và hạ gục Nguyên Soái đối phương để giành ưu thế chiến thắng!');
   }
 
   private spawnOneNpc(w: World, camp: TkCamp, role: TkNpcRole, x: number, y: number): Sim {
@@ -1065,6 +1129,7 @@ class TongKimManager {
         inCamp: entry?.inCamp ?? false,
         campRemainSec,
         gateWaitSec,
+        stealth: this.isDevStealth(charId),
       } : undefined,
       top10: this.leaderboard().slice(0, 10),
     };
@@ -1127,6 +1192,17 @@ class TongKimManager {
         if (!devTools()) return {};
         const res = this.stopMatch(w.meta.id === this.currentBattleMapId ? w : undefined);
         w.hooks.notify(sim, res.message);
+        return {};
+      }
+      case 'devStealth': {
+        if (!devTools()) {
+          w.hooks.notify(sim, 'Chỉ cho phép bật Tàng hình kiểm thử khi bật DEV_TOOLS.');
+          return {};
+        }
+        const on = this.toggleDevStealth(sim);
+        w.hooks.notify(sim, on
+          ? 'Đã bật chế độ Tàng hình kiểm thử (quái, boss, bot và người chơi khác không thể phát hiện).'
+          : 'Đã tắt chế độ Tàng hình kiểm thử.');
         return {};
       }
       default:
