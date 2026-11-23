@@ -30,7 +30,10 @@ export class Effects {
       return v && { kind: v.state.kind, sprite: v.state.sprite, gender: v.state.gender, mounted: v.state.mounted, x: v.x, y: v.y };
     };
     for (const e of events) {
-      if (e.t === 'cast' && e.id === this.selfId) this.onSelfCast(e.skill);
+      if (e.t === 'cast') {
+        if (e.id === this.selfId) this.onSelfCast(e.skill);
+        if (getSkill(e.skill)?.form === 13) this.views.get(e.id)?.onBlinkCast(e.x, e.y);
+      }
       fxSound(e, actor);
       if (this.skills.handle(e)) continue;
       switch (e.t) {

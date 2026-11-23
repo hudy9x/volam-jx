@@ -88,6 +88,20 @@ export class ActorView {
     runBonus: number;
     totalRun: number;
   } | null = null;
+  /** Blink / dash afterimage trail (Táp Đạp Lưu Tinh 2118 / Mê Ảnh Tung 710). */
+  private afterimages: Array<{
+    jx: JxSprite;
+    x: number;
+    y: number;
+    dir: number;
+    key: AssocKey;
+    frame: number;
+    start: number;
+    ms: number;
+    baseAlpha: number;
+  }> = [];
+  private blinkDashUntil = 0;
+  private pendingBlinkFrom: { x: number; y: number; until: number } | null = null;
 
   constructor(private scene: Phaser.Scene, readonly id: string, readonly state: ActorState, readonly isSelf: boolean,
     private peaceful: boolean) {
@@ -110,15 +124,26 @@ export class ActorView {
   /** Called every frame. */
   update(dt: number): void {
     const s = this.state;
+    const now = this.scene.time.now;
+    if (this.pendingBlinkFrom) {
+      if (now > this.pendingBlinkFrom.until) this.pendingBlinkFrom = null;
+      else if (Math.hypot(s.x - this.pendingBlinkFrom.x, s.y - this.pendingBlinkFrom.y) > 20) {
+        const from = this.pendingBlinkFrom;
+        this.pendingBlinkFrom = null;
+        this.spawnAfterimages(from.x, from.y, s.x, s.y);
+      }
+    }
     const dx = s.x - this.x, dy = s.y - this.y;
-    if (Math.abs(dx) > 400 || Math.abs(dy) > 400) { this.x = s.x; this.y = s.y; }
+    const fastDash = now < this.blinkDashUntil;
+    if (Math.abs(dx) > 400 && !fastDash || Math.abs(dy) > 400 && !fastDash) { this.x = s.x; this.y = s.y; }
     else {
-      const k = 1 - Math.exp(-dt * 14);
+      const k = 1 - Math.exp(-dt * (fastDash ? 45 : 14));
       this.x += dx * k;
       this.y += dy * k;
     }
     this.anchor.setPosition(this.x, this.y);
     this.syncSource();
+    this.updateAfterimages(now);
     const shot = this.oneShot;
     const lift = shot?.key === 'jump' ? jumpHeight(this.scene.time.now - shot.start, shot.ms) : 0;
     const camera = this.scene.cameras?.main;
@@ -529,7 +554,80 @@ export class ActorView {
     this.peaceful = on;
   }
 
+  /** Trigger a high-speed dash with ghostly afterimages from (fx, fy) to current state (s.x, s.y) (Táp Đạp Lưu Tinh / Mê Ảnh Tung). */
+  onBlinkCast(fx: number, fy: number): void {
+    const now = this.scene.time.now;
+    this.blinkDashUntil = now + 260;
+    const s = this.state;
+    if (Math.hypot(s.x - fx, s.y - fy) > 20) {
+      this.pendingBlinkFrom = null;
+      this.spawnAfterimages(fx, fy, s.x, s.y);
+    } else {
+      this.pendingBlinkFrom = { x: fx, y: fy, until: now + 300 };
+    }
+  }
+
+  private currentSource(): Source | null {
+    const s = this.state;
+    if (s.kind === 'player') {
+      const look = makeLook(s.gender, s.helm, s.armor, s.weapon, s.horse, s.mounted, s.mantle ?? -1);
+      return { kind: 'look', look };
+    }
+    if (hasNpc(s.sprite)) return { kind: 'npc', res: s.sprite };
+    return null;
+  }
+
+  private spawnAfterimages(fx: number, fy: number, tx: number, ty: number): void {
+    if (this.stealth === 'hidden' || !this.jx) return;
+    const src = this.currentSource();
+    if (!src) return;
+    const now = this.scene.time.now;
+    const key: AssocKey = this.peaceful ? 'townRun' : 'run';
+    const frame = this.jx.frame || 0;
+    const dir = this.state.dir & 7;
+    const steps = 4;
+    for (let i = 0; i < steps; i++) {
+      const t = i / steps; // 0, 0.25, 0.5, 0.75 along the path
+      const gx = Math.round(fx + (tx - fx) * t);
+      const gy = Math.round(fy + (ty - fy) * t);
+      const ghost = new JxSprite(this.scene, src);
+      ghost.tint = 0x9fe8ff;
+      this.afterimages.push({
+        jx: ghost,
+        x: gx,
+        y: gy,
+        dir,
+        key,
+        frame: (frame + i * 2) % Math.max(1, this.jx.frames || 8),
+        start: now + i * 25,
+        ms: 320 + i * 35,
+        baseAlpha: 0.42 + t * 0.22,
+      });
+    }
+  }
+
+  private updateAfterimages(now: number): void {
+    if (!this.afterimages.length) return;
+    this.afterimages = this.afterimages.filter(g => {
+      const elapsed = now - g.start;
+      if (elapsed >= g.ms || this.stealth === 'hidden') {
+        g.jx.destroy();
+        return false;
+      }
+      if (elapsed < 0) {
+        g.jx.hide();
+        return true;
+      }
+      const p = 1 - elapsed / g.ms;
+      g.jx.alpha = g.baseAlpha * p;
+      g.jx.render(g.x, g.y, g.y - 0.2, g.key, g.dir, () => g.frame);
+      return true;
+    });
+  }
+
   destroy(): void {
+    for (const g of this.afterimages) g.jx.destroy();
+    this.afterimages = [];
     this.leaderFlag.destroy();
     this.stallBg.destroy();
     this.stallLeft?.destroy();

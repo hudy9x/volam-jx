@@ -1,3 +1,8 @@
+## 2026-11-23 · Nén public thành ZIP chia phần 200 MB
+
+- Theo yêu cầu USER, đã nén toàn bộ `apps/client/public` vào `apps/client/zip/public.z01`…`public.z61` và `public.zip` (62 phần, mỗi phần ≤ 200.000.000 byte).
+- Lệnh nén hoàn tất mã 0; kiểm tra thứ tự phần liên tục, kích thước và bản ghi kết thúc ZIP đạt. Chưa kiểm CRC toàn bộ dữ liệu giải nén. Không commit/push.
+
 ## 2026-11-23 · Cập nhật tên 218 bot theo Bảng xếp hạng Thập Đại Cao Thủ & Võ Lâm Minh Chủ VNG (đã commit)
 
 - **USER yêu cầu:** đổi tên toàn bộ 218 bot cố định (`botfixed_001`..`botfixed_218`) sang tên các cao thủ thực tế từ Bảng xếp hạng **Võ Lâm Minh Chủ** và **Thập Đại Cao Thủ Môn Phái** của VNG (`volam.vnggames.com` — các máy chủ Châu Giang, Ngũ Độc, Cập Phong, Đường Môn, Hoa Sơn, Lưu Tiên, Nhạn Sơn, Lư Sơn, Đại Lý, Phượng Tường) kết hợp các huyền thoại VLTK 1 đời đầu (*LouisVuitton, Hắc-Điểu, TayChơiBốGià, VôĐịchThầnTăng, SunGoHan, HOANG_NGAO_THIEN, Excavator...*) và giữ lại một số tên cũ đẹp để loại bỏ tình trạng trùng họ hàng loạt.
@@ -15,6 +20,24 @@
   - `tests/bot-roster.test.ts`: cập nhật kiểm chứng `BOT_ROSTER.length === 218`, đủ 12 môn phái phân bổ đều (`18–19 bot/phái`) và `BOT_LEVEL_BANDS` 4 dải cấp.
   - `apps/server/data/db.json`: khởi tạo sẵn 18 tài khoản và nhân vật `botfixed_201`..`botfixed_218` (template `level-150-200`, trang bị Hoàng Kim `gold`, `2.000.000` lượng, `50× Chiến Cổ` + `50× Lệnh Bài`, `pending: true` để tự mặc bộ Hoàng Kim Tiêu Dao chuẩn khi vào game).
 - **Kiểm tra:** `node --import tsx --test tests/bot-roster.test.ts tests/bot-gold-loadouts.test.ts tests/bot-config-delete.test.ts tests/bot-scenario-assignment.test.ts` (**9/9 pass**), `npm run typecheck` (0 lỗi), `git diff --check` đạt. Cần restart server để nạp 18 tài khoản bot mới từ `db.json` (công cụ `bots:ui` tự reload). Đã commit trên `main`, chưa push.
+
+## 2026-11-23 · Sửa Táp Đạp Lưu Tinh (`#2118` → `#2119`) dịch chuyển tự do kèm tàn ảnh như Mê Ảnh Tung & Tăng tốc gấp đôi (2×) chiêu Kiếm 10 (`#2114`), 40 (`#2120`), 90 (`#2124`) (đã commit)
+
+- **USER yêu cầu:**
+  1. Tăng tốc độ của các chiêu thức cấp 10, 40, 90 của Tiêu Dao Kiếm nhanh hơn gấp đôi.
+  2. Sửa chiêu **Táp Đạp Lưu Tinh (`#2118`)** của Tiêu Dao cho đúng cơ chế giống **Mê Ảnh Tung (`#710`)** của Đường Môn: di chuyển cực nhanh từ vị trí hiện tại sang vị trí con trỏ chuột và để lại hình ảnh mờ (tàn ảnh).
+- **Thay đổi:**
+  - `apps/server/src/world/players.ts`, `apps/server/src/world/systems/combat.ts`, `packages/shared/src/skills/engine/SkillEngine.ts`:
+    - Sửa lỗi `selfCast` trong `processPending` (`players.ts`): trước đây chỉ nhận `!s.child` nên `#2118` (có `child: 2119`) bị ép tìm quái `nearestHostile` tại con trỏ (bấm ra đất trống bị hủy lệnh, bấm vào quái lại chạy bộ tới sát 16 px). Nay mở `selfCast` cho mọi kỹ năng `s.form === 13` (`BLINK_FORM`) để bấm bất kỳ đâu cũng lập tức phi thân về hướng chuột tối đa `280 px`.
+    - `blink()` xoay hướng nhân vật (`face`) theo hướng lướt; `SkillEngine.cast()` trả về `ms: 0` cho kỹ năng `BLINK_FORM` (`#2118` / `#710`) và `castNow()` không gọi `playOnce` cũng như không khóa `sim.castUntil` (`castUntil = 0`, `anim = 'idle'`), giúp nhân vật chỉ dịch chuyển sang vị trí mới mà không múa kiếm tấn công và có thể di chuyển / lướt tiếp ngay lập tức không bị delay.
+  - `apps/client/src/game/actors/ActorView.ts`, `apps/client/src/game/fx/Effects.ts`: thêm `onBlinkCast()` & chuỗi bóng mờ tàn ảnh (`spawnAfterimages` / `updateAfterimages`) khi nhận sự kiện `cast` của kỹ năng `form === 13` (`#2118`, `#710`), tạo 4 bóng mờ nhân vật dọc đường lướt mờ dần kèm tốc độ lướt thân nhân vật cực nhanh sang điểm đích.
+  - `packages/shared/src/skills/common/missile-tuning.ts`, `packages/shared/src/skills/common/skill-overrides.ts`, `packages/shared/src/skills/core/describe.ts`:
+    - `#2118` / `#2119` (`M638`): `wait: 0`, `tpf: 0.5` (chạy hết 20 frame vệt kiếm ảnh trong `10 ticks`), đồng bộ dòng mô tả `"Khoảng cách di hình tối đa: 280"`.
+    - `#2114` (`M637`): `wait: 1`, `life: 5`, `tpf: 0.5` (chạy hết 10 frame trong `5 ticks ≈ 278 ms`).
+    - `#2120` (`M649`): `wait: 1`, `life: 9`, `tpf: 0.5` (rơi hết trọn vẹn 17 frame trong `9 ticks = 500 ms`).
+    - `#2124` (`M641` → `M639`/`M640`): `speed: 64`, `life: 5`, `flyTicks: 1.5`, `M639`/`M640` `tpf: 0.5` (rải xong 3 thanh `#2125` + 1 thanh `#2126` trong `278 ms` và rơi hết 18 frame trong `500 ms`).
+  - `tests/xiaoyao.test.ts`, `docs/tieu-dao.md`: bổ sung test kiểm chứng `commandCast` + `w.update()` cho `#2118` dịch chuyển ra đất trống không cần mục tiêu quái và thông số tăng tốc 2×.
+- **Kiểm tra:** `node --import tsx --test tests/xiaoyao.test.ts tests/skill-120-tangmen-emei-wudu.test.ts` (**15/15 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần restart server & reload client để áp dụng (dùng chung Web/Desktop/Mobile). Đã commit trên `main`, chưa push.
 
 ## 2026-11-23 · Auto & Kỹ năng Tiêu Dao: Kiểm tra tầng `[Âm Luật]` (`cost_sp`) trong `canPaySkillCost`, ưu tiên chiêu tay trái & chờ hồi chiêu khi tắt `autoRotate` (đã commit)
 

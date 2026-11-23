@@ -230,13 +230,18 @@ export class SkillEngine {
       const k = d > reach ? reach / d : 1;
       const dest = { x: c.a.x + (to.x - c.a.x) * k, y: c.a.y + (to.y - c.a.y) * k };
       this.port.blink?.(c, dest.x, dest.y);
+      const landed = { x: c.a.x, y: c.a.y };
       const child = s.child ? getSkill(s.child) : undefined;
       if (child) {
-        this.launch(c.id, child, level, from, dest, target?.id, 0, 0, id);
+        const angle = Math.abs(landed.x - from.x) < 1 && Math.abs(landed.y - from.y) < 1
+          ? facingAngle(c.a.dir)
+          : logicAngle(from.x, from.y, landed.x, landed.y);
+        const mid = { x: Math.round((from.x + landed.x) / 2), y: Math.round((from.y + landed.y) / 2) };
+        this.launch(c.id, child, level, mid, landed, target?.id, 0, 0, id, angle);
       } else {
         this.port.addState(c, { skill: id, kind: 'buff', ms: 1500, by: c.id, level });
       }
-      return { anim, ms: pose };
+      return { anim, ms: 0 };
     }
     // One completed pose releases one primary cast. Secondary pulses / flight retain world timing.
     const from = { x: c.a.x, y: c.a.y }, destination = { ...to }, targetId = target?.id;

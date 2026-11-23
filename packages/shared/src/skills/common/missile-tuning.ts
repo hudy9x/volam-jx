@@ -51,4 +51,46 @@ export const MISSILE_OVERRIDES: Record<number, Partial<MissileDef>> = {
   //    Nghiệp Hỏa Phàn Thành (#363 -> #170) đứng yên tại điểm nổ thay vì trôi theo hướng đánh
   170: { move: 0, speed: 0 },
   171: { life: 4 },
+
+  // 9. Tiêu Dao Kiếm (10 / 30 / 40 / 90): tăng tốc độ hiệu ứng & rơi kiếm nhanh gấp đôi (tpf: 1 -> 0.5)
+  //    - #2114 Ngô Câu Sương Tuyết (M637): 10 frame chạy trong 5 ticks (~278ms)
+  //    - #2118 Táp Đạp Lưu Tinh -> #2119 (M638): 20 frame vệt kiếm ảnh chạy hết trong 10 ticks (~556ms)
+  //    - #2120 Ỷ Kiếm Phất Thiên (M649): 17 frame chạy hết trong 9 ticks (~500ms)
+  //    - #2124 Kiếm Quyết Phù Vân (M641 -> M639/M640): đạn dẫn đường bay nhanh gấp đôi (speed 32->64, life 10->5),
+  //      kiếm rơi M639/M640 chạy hết 18 frame trong 9 ticks (~500ms)
+  637: {
+    life: 5,
+    fx: {
+      fly: { key: 'skill/xiaoyao/m637_fly', tpf: 0.5 },
+      collide: { key: 'skill/xiaoyao/m637_collide', tpf: 0.5 },
+    },
+  },
+  638: {
+    life: 10,
+    fx: {
+      fly: { key: 'skill/xiaoyao/m638_fly', tpf: 0.5 },
+    },
+  },
+  639: {
+    life: 9,
+    fx: {
+      fly: { key: 'skill/xiaoyao/m639_fly', tpf: 0.5 },
+      collide: { key: 'skill/xiaoyao/m639_collide', tpf: 0.5 },
+    },
+  },
+  640: {
+    life: 9,
+    fx: {
+      fly: { key: 'skill/xiaoyao/m640_fly', tpf: 0.5 },
+      collide: { key: 'skill/xiaoyao/m640_collide', tpf: 0.5 },
+    },
+  },
+  641: { speed: 64, life: 5 },
+  649: {
+    life: 9,
+    fx: {
+      fly: { key: 'skill/xiaoyao/m649_fly', tpf: 0.5 },
+      collide: { key: 'skill/xiaoyao/m649_collide', tpf: 0.5 },
+    },
+  },
 };

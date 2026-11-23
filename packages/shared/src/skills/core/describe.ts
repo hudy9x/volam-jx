@@ -159,7 +159,7 @@ export function describeAttr(skill: SkillDef, name: string, level: number): TipL
   if (!v) return [];
   if (name === 'skill_mintimepercastonhorse_v' && skill.noHorse) return [];
   if (name === 'skill_param1_v' && skill.form === 13) {
-    return richText(`Khoảng cách dịch chuyển tối đa: <color=orange>${Math.floor(v[0])}<color>`);
+    return richText(`Khoảng cách di hình tối đa: <color=orange>${Math.floor(v[0])}<color>`);
   }
   if (name === 'ignoreskill_p') {
     return richText(`Xác suất bỏ qua bùa hại: <color=orange>+${v[0]}%<color>`);

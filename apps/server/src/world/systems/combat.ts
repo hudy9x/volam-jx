@@ -18,8 +18,8 @@ import { onMonsterKilled } from '../ai/boss.js';
 import { tongKim } from '../tongkim.js';
 import type { Sim } from '../entity.js';
 import type { World } from '../World.js';
-import { playOnce } from './anim.js';
-import { updateSpeed } from './movement.js';
+import { playOnce, setAnim } from './anim.js';
+import { face, updateSpeed } from './movement.js';
 import { endJump } from './jump.js';
 import { clearStates } from './status.js';
 import { practice, recordDamage, refreshStats, shareKillExp } from '../progress.js';
@@ -42,9 +42,14 @@ export function castNow(w: World, sim: Sim, skillId: number, target: Sim | undef
   const pose = w.engine.cast(sim, skillId, target, aim, timing.cycleMs);
   if (pose.note && sim.kind === 'player') w.hooks.notify(sim, pose.note);
   if (pose.rejected) return;
-  sim.castUntil = w.now + pose.ms;
-  sim.lastAttackAt = w.now;
-  playOnce(w, sim, pose.anim, pose.ms / 1000);
+  if (pose.ms > 0) {
+    sim.castUntil = w.now + pose.ms;
+    sim.lastAttackAt = w.now;
+    playOnce(w, sim, pose.anim, pose.ms / 1000);
+  } else {
+    sim.castUntil = 0;
+    setAnim(sim, 'idle');
+  }
   syncVitals(sim);
 }
 
@@ -192,13 +197,15 @@ export function dash(w: World, sim: Sim, target: Sim): void {
   sim.path = [];
 }
 
-/** Mê Ảnh Tung: land on the point, or as far towards it as the way is clear. */
+/** Mê Ảnh Tung / Táp Đạp Lưu Tinh: land on the point, or as far towards it as the way is clear. */
 export function blink(w: World, sim: Sim, x: number, y: number): void {
+  const fx = sim.a.x, fy = sim.a.y;
   let to = { x, y };
   for (let k = 1; k > 0.05 && !(clearSegment(w.grid, sim.a, to, true) && isWalkable(w.grid, to.x, to.y)); k -= 0.1) {
-    to = { x: sim.a.x + (x - sim.a.x) * k, y: sim.a.y + (y - sim.a.y) * k };
+    to = { x: fx + (x - fx) * k, y: fy + (y - fy) * k };
   }
   if (!isWalkable(w.grid, to.x, to.y)) return;
+  face(sim, to.x - fx, to.y - fy);
   sim.a.x = Math.round(to.x);
   sim.a.y = Math.round(to.y);
   sim.path = [];

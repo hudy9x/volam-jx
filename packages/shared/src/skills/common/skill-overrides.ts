@@ -30,7 +30,11 @@ export const SKILL_OVERRIDES: Record<number, SkillOverride> = {
     },
   },
 
-  // Tiêu Dao: cân bằng tổng thể về mặt bằng SHXT (bị động, Kiếm 90/150, Cổ Cầm 90/150)
+  // Tiêu Dao: cân bằng tổng thể về mặt bằng SHXT (bị động, Kiếm 90/150, Cổ Cầm 90/150) & tăng tốc chiêu Kiếm 10/30/40/90 gấp đôi
+  2114: { wait: 1 },
+  2118: { wait: 0 },
+  2119: { wait: 0 },
+  2120: { wait: 1 },
   2121: {
     attrs: {
       fastwalkrun_p: [[[1, 6], [20, 40], [21, 40]], [[1, -1], [20, -1]], null],
@@ -54,6 +58,7 @@ export const SKILL_OVERRIDES: Record<number, SkillOverride> = {
     },
   },
   2124: {
+    events: { fly: 2125, flyTicks: 1.5, vanish: 2126 },
     attrs: {
       physicsenhance_p: [[[1, 20], [20, 300], [33, 495]], null, null],
       lightingdamage_v: [[[1, 20], [15, 150], [20, 350], [26, 470]], null, [[1, 20], [15, 150], [20, 350], [26, 470]]],

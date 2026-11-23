@@ -224,7 +224,7 @@ function processPending(w: World, sim: Sim): void {
   if (!w.engine.ready(sim, p.skill)) return; // wait for the cooldown, keep the order queued
 
   const category = skillCategory(s);
-  const selfCast = s.style === SkillStyle.State || (s.style === SkillStyle.Melee && !s.child); // bùa on self, aura, jump
+  const selfCast = s.style === SkillStyle.State || (s.style === SkillStyle.Melee && (!s.child || s.form === 13)); // bùa on self, aura, jump, blink (710 / 2118)
   let target: Sim | undefined;
   if (selfCast) target = undefined;
   else if (category === 'support' || category === 'buff') {
