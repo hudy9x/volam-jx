@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fork, type ChildProcess } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { BOT_FILE_RE, BOT_IDENTITIES, BOT_TONGKIM_TACTIC_IDS, normalizeBotScenario, type BotTongKimTactic, type TkCamp } from '@vltk/shared';
+import { BOT_FILE_RE, BOT_IDENTITIES, BOT_ROSTER, BOT_TONGKIM_TACTIC_IDS, normalizeBotScenario, type BotTongKimTactic, type TkCamp } from '@vltk/shared';
 
 export interface RunningBot { username:string; scenario:string; title:string; phase:'preparing'|'queued'|'online'|'reconnecting'|'stopping'; runId:string }
 export interface LiveTkTactics { all: BotTongKimTactic | null; tong: BotTongKimTactic | null; kim: BotTongKimTactic | null }
@@ -28,7 +28,7 @@ export class RunManager {
   }
   async replace(scenario:unknown,users:unknown,server:unknown):Promise<void> {
     if(typeof scenario!=='string'||!BOT_FILE_RE.test(scenario)||!fs.existsSync(path.join(this.dataDir,scenario+'.json'))) throw Error('Chọn một kịch bản đã lưu.');
-    if(!Array.isArray(users)||!users.length||users.length>200||users.some(id=>typeof id!=='string'||!BOT_IDENTITIES.has(id))) throw Error('Chọn nhân vật hợp lệ.');
+    if(!Array.isArray(users)||!users.length||users.length>BOT_ROSTER.length||users.some(id=>typeof id!=='string'||!BOT_IDENTITIES.has(id))) throw Error('Chọn nhân vật hợp lệ.');
     if(typeof server!=='string'||!/^https?:\/\/[^\s]+$/.test(server)) throw Error('Địa chỉ máy chủ không hợp lệ.');
     normalizeBotScenario(JSON.parse(fs.readFileSync(path.join(this.dataDir,scenario+'.json'),'utf8')));
     const readOnline=async()=>{
@@ -98,7 +98,7 @@ export class RunManager {
   usesScenario(name:string):boolean {return this.starting.has(name)||[...this.runs.values()].some(run=>run.scenario===name);}
   async start(scenario:unknown, users:unknown, server:unknown): Promise<void> {
     if (typeof scenario!=='string'||!BOT_FILE_RE.test(scenario)) throw Error('Chọn một kịch bản đã lưu.');
-    if (!Array.isArray(users)||!users.length||users.length>200||users.some(id=>typeof id!=='string'||!BOT_IDENTITIES.has(id))) throw Error('Tích chọn nhân vật trong danh sách cố định.');
+    if (!Array.isArray(users)||!users.length||users.length>BOT_ROSTER.length||users.some(id=>typeof id!=='string'||!BOT_IDENTITIES.has(id))) throw Error('Tích chọn nhân vật trong danh sách cố định.');
     if (typeof server!=='string'||!/^https?:\/\/[^\s]+$/.test(server)) throw Error('Địa chỉ máy chủ không hợp lệ.');
     const file=path.join(this.dataDir,`${scenario}.json`);if(!fs.existsSync(file)) throw Error('Kịch bản không tồn tại.');
     const config=normalizeBotScenario(JSON.parse(fs.readFileSync(file,'utf8')));

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { Application, NextFunction, Request, Response } from 'express';
 import {
-  BOT_LEVEL_BANDS, botMapIds, BOT_IDENTITIES, BOT_CREATE_MAX, BOT_FILE_RE, FACTIONS, FACTION_IDS, ITEMS, MAX_MONEY, MAPS, PROGRESS_VERSION, SERIES, TOWN_MAP_ID, addToBag, bestTrainingMap,
+  BOT_LEVEL_BANDS, botMapIds, BOT_IDENTITIES, BOT_ROSTER, BOT_CREATE_MAX, BOT_FILE_RE, FACTIONS, FACTION_IDS, ITEMS, MAX_MONEY, MAPS, PROGRESS_VERSION, SERIES, TOWN_MAP_ID, addToBag, bestTrainingMap,
   factionAllowsGender, newProgress, normalizeBotScenario, normalizeBotTemplate, snapToMap,
   type BotInfo, type BotLogin, type BotTemplate, type Element, type Gender, type Item,
 } from '@vltk/shared';
@@ -37,7 +37,7 @@ export function registerBotRoutes(app: Application): void {
   // One action for the fixed roster: initialise unused identities or reconfigure existing offline characters.
   app.post('/api/dev/bots/configure', local, (req, res) => {
     const ids = Array.isArray(req.body?.usernames) ? [...new Set(req.body.usernames)] as string[] : [];
-    if (!ids.length || ids.some(id => !BOT_IDENTITIES.has(id))) { res.status(400).json({ error: 'Chọn nhân vật trong danh sách 200 tên.' }); return; }
+    if (!ids.length || ids.some(id => !BOT_IDENTITIES.has(id))) { res.status(400).json({ error: `Chọn nhân vật trong danh sách ${BOT_ROSTER.length} tên.` }); return; }
     const t = normalizeBotTemplate(req.body?.template);
     if (!BOT_LEVEL_BANDS.some(([lo, hi]) => t.level[0] === lo && t.level[1] === hi)) { res.status(400).json({ error: 'Chọn dải cấp 40–69, 70–90, 110–150 hoặc 150–200.' }); return; }
     if (!['green', 'gold'].includes(t.gear) || !['training', 'town', 'both'].includes(t.map.mode)) { res.status(400).json({ error: 'Kiểm tra trang bị và loại bản đồ.' }); return; }

@@ -1,3 +1,27 @@
+## 2026-11-23 · Bổ sung 18 bot phái Tiêu Dao (`botfixed_201` → `botfixed_218`), nâng tổng `BOT_ROSTER` lên 218 bot cân đối 12 phái (đã commit)
+
+- **USER yêu cầu:** bổ sung thêm 18 bot cố định cho phái **Tiêu Dao (`xiaoyao`)** theo Phương án 2 (giữ nguyên 200 bot cũ, thêm 18 bot Tiêu Dao để 12 môn phái đều cân đối 18–19 bot/phái, nâng tổng lên **218 bot**).
+- **Thay đổi:**
+  - `packages/shared/src/bots/roster.ts`: thêm 18 bot cố định `botfixed_201`..`botfixed_218` thuộc phái `xiaoyao` (9 Nam + 9 Nữ xen kẽ, họ `Tiêu`).
+  - `packages/shared/src/bots/index.ts`, `apps/server/src/dev/botAdmin.ts`, `tools/bots/RunManager.ts`, `tools/bots/ui/BotPanel.ts`: thay giới hạn cố định `200` bằng `BOT_ROSTER.length` (`218`).
+  - `tests/bot-roster.test.ts`: cập nhật kiểm chứng `BOT_ROSTER.length === 218`, đủ 12 môn phái phân bổ đều (`18–19 bot/phái`) và `BOT_LEVEL_BANDS` 4 dải cấp.
+  - `apps/server/data/db.json`: khởi tạo sẵn 18 tài khoản và nhân vật `botfixed_201`..`botfixed_218` (template `level-150-200`, trang bị Hoàng Kim `gold`, `2.000.000` lượng, `50× Chiến Cổ` + `50× Lệnh Bài`, `pending: true` để tự mặc bộ Hoàng Kim Tiêu Dao chuẩn khi vào game).
+- **Kiểm tra:** `node --import tsx --test tests/bot-roster.test.ts tests/bot-gold-loadouts.test.ts tests/bot-config-delete.test.ts tests/bot-scenario-assignment.test.ts` (**9/9 pass**), `npm run typecheck` (0 lỗi), `git diff --check` đạt. Cần restart server để nạp 18 tài khoản bot mới từ `db.json` (công cụ `bots:ui` tự reload). Đã commit trên `main`, chưa push.
+
+## 2026-11-23 · Auto & Kỹ năng Tiêu Dao: Kiểm tra tầng `[Âm Luật]` (`cost_sp`) trong `canPaySkillCost`, ưu tiên chiêu tay trái & chờ hồi chiêu khi tắt `autoRotate` (chưa commit)
+
+- **USER yêu cầu:**
+  1. Điều tra `volam-3005` kiểm chứng chiêu **Thập Bộ Nhất Sát (`#2129`, Tiêu Dao Kiếm 150)** có yêu cầu tầng `[Âm Luật]` không → Đã xác minh trong `Server/settings/skills.txt:1864` và `Server/script/skill/xiaoyao.lua:226-230` có `cost_sp = 3` tầng `[Âm Luật]` (tích từ bị động chung cấp 20 **Di Cung Hoán Vũ `#2116`**).
+  2. Sửa lỗi đặt **Thập Bộ Nhất Sát (`#2129`)** ở ô tay trái nhưng Auto luôn đánh **Kiếm Quyết Phù Vân (`#2124`)**; khi tắt **Xoay vòng kỹ năng (`autoRotate = false`)** thì bắt buộc chờ hồi chiêu/đủ tài nguyên của chiêu tay trái chứ không chuyển sang chiêu khác.
+- **Thay đổi:**
+  - `packages/shared/src/skills/core/casting.ts`, `packages/shared/src/skills/engine/SkillEngine.ts`: thêm `skillSpCost(s, level)` và trường `sp?: number` vào `SkillResourceCost` / `SkillVitals`; cập nhật `canPaySkillCost()` kiểm tra `(vitals.sp ?? 0) >= cost.sp` để Client/Bot biết chính xác khi nào đủ tầng `[Âm Luật]` trước khi gửi `C2S.cast`; giữ nguyên thông báo lỗi tách biệt giữa Nội lực/Sinh lực và `[Âm Luật]` trong `SkillEngine.check()`.
+  - `packages/shared/src/auto/AutoPlay.ts`:
+    - Khi `autoRotate = false`: chỉ dùng `mainSkill()` (chiêu tay trái); nếu `!this.host.ready(skill)` (đang hồi chiêu hoặc chưa đủ `[Âm Luật]` / nội lực) thì `return` chờ hồi chiêu, không nhảy sang phím `1–9` hay đánh thường.
+    - Khi `autoRotate = true`: đòn đầu tiên lên mục tiêu luôn ưu tiên `list[0]` (`mainSkill()` ở tay trái) thay vì cộng `rotateIdx + 1` làm nhảy cóc sang phím `1–9`.
+  - `apps/client/src/game/WorldScene.ts`, `tools/bots/runner/BotClient.ts`: bỏ gọi sớm `skillbar.startCooldown()` ngay lúc gửi gói `C2S.cast` trong `AutoHost.cast` (để `Effects.ts` chỉ bắt đầu đếm cooldown khi nhận sự kiện `cast` thực sự từ Server, tránh khóa cooldown giả 3s khi nhân vật còn đang chạy tiếp cận hoặc thiếu `[Âm Luật]`); đồng bộ `skill_mintimepercast_v` / `skill_mintimepercastonhorse_v` trong `BotClient.cast()`.
+  - `tests/auto-behavior.test.ts`, `docs/auto.md`: bổ sung test kiểm chứng `canPaySkillCost` với `cost_sp = 3` của `#2129`, hành vi chờ hồi chiêu & `[Âm Luật]` khi `autoRotate = false`, và ưu tiên đánh `#2129` trước `#2124` khi `autoRotate = true`.
+- **Kiểm tra:** `node --import tsx --test tests/auto-behavior.test.ts tests/auto-passive-fx.test.ts tests/auto-server-target.test.ts tests/locked-attack.test.ts tests/xiaoyao.test.ts` (**74/74 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần reload client (và restart server/bot runner nếu đang chạy) để áp dụng (dùng chung Web/Desktop/Mobile). Chưa commit/push.
+
 ## 2026-11-23 · Auto: Phím tắt `F` bật/tắt nhanh, Tự buff ngay ngoài vùng an toàn, Bùa hại hỗ trợ PK, Tùy chọn `Tự động đánh quái` (`autoMonster`) & Nhặt đồ lướt qua (`pickupRange = 180`, `noWalk`) (đã commit)
 
 - **USER yêu cầu:**

@@ -12,6 +12,7 @@ import { FACTIONS } from '../characters/factions.js';
 import { HORSES } from '../items/horses.js';
 import { ITEMS } from '../items/items.js';
 import { MAPS } from '../maps/index.js';
+import { BOT_ROSTER } from './roster.js';
 
 /** Bot account names start with this; the dev API touches only accounts it created (UserRecord.bot), never others. */
 export const BOT_ACCOUNT_PREFIX = 'bot';
@@ -246,7 +247,7 @@ export function normalizeBotScenario(raw: unknown): BotScenario {
   return {
     version: 1,
     title: typeof r.title === 'string' ? r.title.trim().slice(0, 80) : '',
-    ...(Array.isArray(r.initialSetup) ? { initialSetup: r.initialSetup.flatMap(value => { const group = record(value); return typeof group.template === 'string' && BOT_FILE_RE.test(group.template) && Array.isArray(group.usernames) ? [{ template: group.template, usernames: group.usernames.filter((id): id is string => typeof id === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(id)).slice(0, 200) }] : []; }).slice(0, 20) } : {}),
+    ...(Array.isArray(r.initialSetup) ? { initialSetup: r.initialSetup.flatMap(value => { const group = record(value); return typeof group.template === 'string' && BOT_FILE_RE.test(group.template) && Array.isArray(group.usernames) ? [{ template: group.template, usernames: group.usernames.filter((id): id is string => typeof id === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(id)).slice(0, BOT_ROSTER.length) }] : []; }).slice(0, 20) } : {}),
     activities: { grind: bool(activities.grind, true), chat: bool(activities.chat, true), sell: bool(activities.sell, true), tongkim: bool(activities.tongkim, false), autoAcceptTeam: !bool(activities.autoInviteTeam, false) && bool(activities.autoAcceptTeam, true), autoInviteTeam: bool(activities.autoInviteTeam, false) },
     note: typeof r.note === 'string' ? r.note.slice(0, 500) : '',
     server: typeof r.server === 'string' && /^https?:\/\/[^\s]+$/.test(r.server) ? r.server.replace(/\/+$/, '') : d.server,

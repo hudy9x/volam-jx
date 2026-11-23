@@ -94,7 +94,7 @@ const PAGE = `
 </section>
 
 <section class="bp-card">
-  <h2>1. Chọn nhân vật <span id="bl-picked"></span></h2><p class="bp-note">200 danh tính cố định · áp mẫu giữ nguyên tên, giới tính và môn phái.</p>
+  <h2>1. Chọn nhân vật <span id="bl-picked"></span></h2><p class="bp-note">${BOT_ROSTER.length} danh tính cố định · áp mẫu giữ nguyên tên, giới tính và môn phái.</p>
   <div id="bp-summary" class="bp-summary"></div>
   <div class="bp-row">
     <input id="bl-filter" placeholder="lọc: tên, phái, bản đồ…">
@@ -441,7 +441,7 @@ class BotPanel {
     all.disabled = shown.length === 0;
     this.updateRunActions();
     this.set('bt-logins', [...this.picked].join(', '));
-    this.$('bl-picked').textContent = `${this.picked.size} / 200 đã chọn`;
+    this.$('bl-picked').textContent = `${this.picked.size} / ${BOT_ROSTER.length} đã chọn`;
     if (!this.$('sc-picked')) return;
     this.$('sc-picked').textContent = `${this.picked.size} nhân vật · ${[...this.picked].slice(0, 4).map(id => BOT_IDENTITIES.get(id)?.name ?? id).join(', ')}${this.picked.size > 4 ? '…' : ''}`;
   }
@@ -756,7 +756,7 @@ class BotPanel {
   }
 
   private renderSummary(): void {
-    this.$('bp-summary').textContent = `${this.bots.filter(b => b.charId).length} đã thiết lập / 200 · ${this.bots.filter(b => b.online).length} online`;
+    this.$('bp-summary').textContent = `${this.bots.filter(b => b.charId).length} đã thiết lập / ${BOT_ROSTER.length} · ${this.bots.filter(b => b.online).length} online`;
   }
 
   private renderList(): void {
