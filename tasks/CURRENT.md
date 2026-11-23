@@ -47,6 +47,15 @@
   - `tests/player-context-menu.test.ts`: kiểm chứng luật cừu sát 10s, chặn trong Tống Kim, bot/AutoPlay tự đánh trả khi `autoPk = false`, và theo sau server-side.
 - **Kiểm tra:** `node --import tsx --test tests/player-context-menu.test.ts` (**4/4 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần restart server & reload client để nhận thay đổi mới. Đã commit trên `main`, chưa push.
 
+## 2026-11-23 · Rải ngẫu nhiên vị trí tại Điểm báo danh 323 & Điểm tập trung Hậu doanh 2 phe Tống/Kim (đã commit)
+
+- **USER yêu cầu:** khi bot/nhân vật trở về điểm báo danh Tống Kim (`323`) hoặc vào/hồi sinh tại điểm tập trung Hậu doanh 2 phe Tống/Kim thì đặt vị trí ngẫu nhiên để tránh đứng trùng khít lên nhau.
+- **Thay đổi:**
+  - `apps/server/src/world/tongkim.ts`: thêm `scatterTkPoint(center, 60, 240)` (tỉ lệ iso Y = 0.5), `safeCampSpawn()` (snap `nearestWalkable` và kiểm tra nằm gọn trong `isInTkSafeCamp`) và `signupPoint()` áp dụng cho cả bot lẫn người chơi ở `onEnterBattleMap`, `useBattlePortal` (về Hậu doanh), hồi sinh `tkRespawnAt`, `evacuateAll`, và `leave`.
+  - `apps/server/src/net/MapRoom.ts`: rải ngẫu nhiên + snap `nearestWalkable` khi dịch chuyển (`C2S.teleport`) vào Điểm báo danh `323`.
+  - `tests/tong-kim.test.ts`: bổ sung test kiểm chứng `scatterTkPoint` tạo nhiều tọa độ phân tán hợp lệ quanh tâm trong bán kính `60..240 px`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**29/29 pass**), `git diff --check` đạt. Cần restart server để áp dụng (dùng chung Web/Desktop/Mobile). Đã commit trên `main`, chưa push.
+
 ## 2026-11-23 · Bảo vệ Nguyên Soái khi mất ≥ 20% HP (30% quân + Nga Mi buff #93) & Cân bằng xuất trận 2 phe Tống/Kim (đã commit)
 
 - **USER yêu cầu:** khi Nguyên Soái bị đánh mất ≥ 20% máu thì cắt cử 30% quân về bảo vệ và điều Nga Mi về buff máu cho Nguyên Soái; đồng thời cân bằng để phe Tống không luôn tổ chức tấn công trước phe Kim.

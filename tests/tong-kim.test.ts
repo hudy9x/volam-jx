@@ -1580,3 +1580,18 @@ test('Nguyên Soái mất >= 20% HP: cắt cử đúng 30% về bảo vệ + đi
   emeiBeh.update(now + 1000);
   assert.deepEqual(casts.at(-1), { skill: 93, targetId: 'tong-marshal' }, 'Nga Mi phải cast Từ Hàng Phổ Độ (#93) lên Nguyên Soái đang mất máu');
 });
+
+test('Điểm báo danh 323 & Điểm tập trung Hậu doanh 2 phe: rải ngẫu nhiên quanh tâm để tránh trùng vị trí', async () => {
+  const { scatterTkPoint } = await import('../apps/server/src/world/tongkim.js');
+  const { TK_SIGNUP_ENTRY, isoDistance } = await import('../packages/shared/src/index.js');
+
+  const center = TK_SIGNUP_ENTRY.tong;
+  const pts = new Set<string>();
+  for (let i = 0; i < 20; i++) {
+    const p = scatterTkPoint(center, 60, 240);
+    const d = isoDistance(center.x, center.y, p.x, p.y);
+    assert.ok(d >= 55 && d <= 250, `Điểm rải (${p.x},${p.y}) phải nằm trong bán kính 60..240px quanh tâm (thực tế ${d.toFixed(1)})`);
+    pts.add(`${p.x},${p.y}`);
+  }
+  assert.ok(pts.size >= 15, '20 lần rải phải tạo nhiều tọa độ khác nhau, không đứng chồng 1 điểm');
+});

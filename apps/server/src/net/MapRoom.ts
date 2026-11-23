@@ -8,7 +8,7 @@ import {
 import { Room, ServerError, type Client } from 'colyseus';
 import {
   bestTrainingMap, trainingMaps, type TrainingMap, type TrainMsg, type TeamOrderMsg, type SuggestMsg, type TokenMsg,
-  BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, TK_SIGNUP_MAP_ID, expToNext, TICK_MS, TOWN_MAP_ID, TOWN_NPCS, combatRulesAt, getExpElixirMultiplier, getGrid, isTkBattleMap,
+  BAG_SIZE, STASH_SIZE, C2S, MAPS, PROGRESS_VERSION, S2C, TK_SIGNUP_MAP_ID, expToNext, TICK_MS, TOWN_MAP_ID, TOWN_NPCS, combatRulesAt, getExpElixirMultiplier, getGrid, isTkBattleMap, nearestWalkable,
   DEFAULT_SPEED, setActiveSpeedConfig,
   type BagMoveMsg, type BagSortMsg, type BagSplitMsg, type BagStashTransferMsg, type StashCurrencyMsg, type StashMoveMsg, type StashMsg,
   type BuyMsg, type CastMsg, type DevMoneyMsg, type DevLevelMsg, type DevSpeedMsg, type DiscardMsg, type EquipMsg, type ForgeMsg, type InventoryMsg, type MountMsg, type AuraMsg, type ChatMsg, type ChatMoreMsg, type ChatReactMsg, type MoveMsg,
@@ -35,7 +35,7 @@ import { configureBotBuffs } from '../world/botBuffs.js';
 import { applySuggestion, addPotential, expNext, gainExp, joinFaction, raiseSkill } from '../world/progress.js';
 import { refreshMoveScale } from '../world/systems/effects.js';
 import { pickup } from '../world/systems/drops.js';
-import { tongKim } from '../world/tongkim.js';
+import { tongKim, scatterTkPoint } from '../world/tongkim.js';
 import { World } from '../world/World.js';
 import { MapState } from './schema.js';
 import { PERF, devTools } from '../env.js';
@@ -505,8 +505,15 @@ export class MapRoom extends Room<{ state: MapState }> {
       if (!mapAvailable(mapId, true)) { this.notify(sim, 'Map đã tắt hoặc không còn tồn tại.'); return; }
       if (sim.dead) { this.notify(sim, 'Đang trọng thương, không thể đi xa.'); return; }
       // Map art + grid are generated per machine (npm run gen:maps); refuse maps that are not there yet.
-      try { getGrid(mapId); } catch { this.notify(sim, `Bản đồ ${MAPS[mapId].name} chưa được tạo trên máy chủ.`); return; }
+      let destGrid;
+      try { destGrid = getGrid(mapId); } catch { this.notify(sim, `Bản đồ ${MAPS[mapId].name} chưa được tạo trên máy chủ.`); return; }
       const entry = MAPS[mapId].raw.entry;
+      if (mapId === TK_SIGNUP_MAP_ID) {
+        const p = scatterTkPoint(entry, 60, 240);
+        const [sx, sy] = nearestWalkable(destGrid, p.x, p.y);
+        this.transfer(sim, mapId, sx, sy);
+        return;
+      }
       this.transfer(sim, mapId, entry.x, entry.y);
     });
 

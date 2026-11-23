@@ -184,6 +184,21 @@ function makeTkMonsterDef(camp: TkCamp, role: TkNpcRole, element: Element): Mons
   };
 }
 
+/** Rải ngẫu nhiên quanh tâm (tỉ lệ iso Y = 0.5) để bot & người chơi không đứng chồng khít lên 1 tọa độ. */
+export function scatterTkPoint(
+  center: { x: number; y: number },
+  minR = 60,
+  maxR = 240,
+  rand: () => number = Math.random,
+): { x: number; y: number } {
+  const angle = rand() * Math.PI * 2;
+  const dist = minR + rand() * Math.max(0, maxR - minR);
+  return {
+    x: Math.round(center.x + Math.cos(angle) * dist),
+    y: Math.round(center.y + Math.sin(angle) * dist * 0.5),
+  };
+}
+
 class TongKimManager {
   private matchId = 0;
   private currentBattleMapId = TK_BATTLE_MAP_ID;
@@ -223,6 +238,21 @@ class TongKimManager {
   get currentMatchId(): number { return this.matchId; }
   get battleMapId(): number { return this.currentBattleMapId; }
   private layout(): TkBattleMapConfig { return tkMapLayout(this.currentBattleMapId) ?? tkMapLayout(TK_BATTLE_MAP_ID)!; }
+
+  /** Chọn tọa độ ngẫu nhiên walkable trong vùng an toàn Hậu doanh của phe để tránh đứng chồng nhau. */
+  private safeCampSpawn(w: World, camp: TkCamp, center = this.layout()[camp].spawn): [number, number] {
+    for (let i = 0; i < 4; i++) {
+      const p = scatterTkPoint(center, 60, 240);
+      const [sx, sy] = nearestWalkable(w.grid, p.x, p.y);
+      if (isInTkSafeCamp(this.currentBattleMapId, sx, sy)) return [sx, sy];
+    }
+    return nearestWalkable(w.grid, center.x, center.y);
+  }
+
+  /** Tọa độ ngẫu nhiên quanh điểm báo danh map 323 của phe để tránh đứng chồng nhau. */
+  private signupPoint(camp: TkCamp): { x: number; y: number } {
+    return scatterTkPoint(TK_SIGNUP_ENTRY[camp], 60, 240);
+  }
 
   /** Kiểm tra lịch tự động (gọi mỗi giây từ server). */
   tickSchedule(now = Date.now()): void {
@@ -388,7 +418,7 @@ class TongKimManager {
     if (!entry || this.phase === 'closed') {
       const char = db.getCharacter(sim.charId);
       const destId = char?.tkCampLast ? TK_SIGNUP_MAP_ID : 78;
-      const destPos = char?.tkCampLast ? TK_SIGNUP_ENTRY[char.tkCampLast] : { x: 12800, y: 8960 };
+      const destPos = char?.tkCampLast ? this.signupPoint(char.tkCampLast) : { x: 12800, y: 8960 };
       setTimeout(() => {
         if (!w.sims.has(sim.id)) return;
         w.hooks.notify(sim, 'Chiến trường Tống Kim đã kết thúc hoặc bạn chưa báo danh.');
@@ -402,7 +432,7 @@ class TongKimManager {
     sim.a.battleCamp = entry.camp;
     sim.a.battleRank = entry.rank;
     sim.a.pk = this.phase === 'fighting' ? 1 : 0;
-    const [sx, sy] = nearestWalkable(w.grid, this.layout()[entry.camp].spawn.x, this.layout()[entry.camp].spawn.y);
+    const [sx, sy] = this.safeCampSpawn(w, entry.camp);
     sim.a.x = sx;
     sim.a.y = sy;
     sim.path = [];
@@ -467,8 +497,8 @@ class TongKimManager {
       entry.inCamp = false;
       return true;
     }
-    // Portal quay về Hậu doanh
-    const [bx, by] = nearestWalkable(w.grid, portal.toX, portal.toY);
+    // Portal quay về Hậu doanh (rải ngẫu nhiên quanh điểm đáp trong vùng an toàn)
+    const [bx, by] = this.safeCampSpawn(w, entry.camp, { x: portal.toX, y: portal.toY });
     sim.a.x = bx;
     sim.a.y = by;
     sim.path = [];
@@ -652,7 +682,7 @@ class TongKimManager {
 
       if (sim.dead && sim.tkRespawnAt && now >= sim.tkRespawnAt) {
         sim.tkRespawnAt = undefined;
-        const [rx, ry] = nearestWalkable(w.grid, this.layout()[entry.camp].spawn.x, this.layout()[entry.camp].spawn.y);
+        const [rx, ry] = this.safeCampSpawn(w, entry.camp);
         revive(w, sim, rx, ry);
         sim.a.pk = this.phase === 'fighting' ? 1 : 0;
         entry.inCamp = true;
@@ -1085,7 +1115,7 @@ class TongKimManager {
     for (const sim of [...w.sims.values()]) {
       if (sim.kind !== 'player') continue;
       const camp = (sim.a.battleCamp || 'tong') as TkCamp;
-      const back = TK_SIGNUP_ENTRY[camp];
+      const back = this.signupPoint(camp);
       w.hooks.transfer(sim, TK_SIGNUP_MAP_ID, back.x, back.y);
     }
   }
@@ -1183,7 +1213,7 @@ class TongKimManager {
       case 'leave': {
         if (w.meta.id !== this.currentBattleMapId) return {};
         const camp = (sim.a.battleCamp || 'tong') as TkCamp;
-        const back = TK_SIGNUP_ENTRY[camp];
+        const back = this.signupPoint(camp);
         w.hooks.notify(sim, 'Đã rời chiến trường quay về Điểm báo danh.');
         return { transfer: { mapId: TK_SIGNUP_MAP_ID, x: back.x, y: back.y } };
       }
