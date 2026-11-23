@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import type { Room } from '@colyseus/sdk';
 import { Callbacks, CloseCode } from '@colyseus/sdk';
 import {
-  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, skillCategory, skillResourceCost, canPaySkillCost, equipError, TOWN_MAP_ID, isTkBattleMap, pvpAllowed, type Camp,
+  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, skillCategory, skillResourceCost, canPaySkillCost, equipError, TOWN_MAP_ID, isTkBattleMap, isEnmityActive, pvpAllowed, type Camp,
   C2S, FACTIONS, ITEMS, MAPS, NPC_LINES, S2C, TOWN_NPCS, hasNav, registerNav,
   type FxEvent, type MapMeta, type NavFile, type NoticeMsg, type TownNpc, type TransferMsg,
 } from '@vltk/shared';
@@ -226,15 +226,59 @@ export class WorldScene extends Phaser.Scene {
       this.room.send(C2S.move, { x: Math.round(wx), y: Math.round(wy) });
     };
 
+    const openMenuFor = (target: ActorView, clientX: number, clientY: number) => {
+      this.ui.openPlayerMenu?.({
+        id: target.id,
+        name: target.state.name,
+        level: target.state.level,
+        faction: target.state.faction,
+        camp: target.state.camp,
+        team: target.state.team,
+        battleCamp: target.state.battleCamp,
+        enmityTarget: target.state.enmityTarget,
+        enmityAt: target.state.enmityAt,
+      }, clientX, clientY);
+    };
+    let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+    let longPressStart: { x: number; y: number } | null = null;
+    const cancelLongPress = () => {
+      if (longPressTimer !== null) { clearTimeout(longPressTimer); longPressTimer = null; }
+      longPressStart = null;
+    };
+    this.cleanups.push(cancelLongPress);
+
     const inside = (p: Phaser.Input.Pointer) => p.x >= 0 && p.y >= 0 && p.x < this.scale.width && p.y < this.scale.height;
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      cancelLongPress();
+      this.ui.closePlayerMenu?.();
       if (!this.ready || !inside(p)) return;
       p.updateWorldPoint(this.cameras.main);
+      const ev = p.event as Partial<MouseEvent & PointerEvent> | undefined;
       // A drop under the cursor: pick it up (the server walks there first when far).
       const drop = !p.rightButtonDown() ? this.pickGround(p.worldX, p.worldY) : undefined;
       if (drop) { this.auto?.pause(this.time.now); this.room.send(C2S.pickup, { id: drop.id }); return; }
       const target = this.pickActor(p.worldX, p.worldY);
-      if (p.rightButtonDown()) { cast('right', p.worldX, p.worldY, target && target.state.kind !== 'npc' ? target : undefined); return; }
+      const isOtherPlayer = !!target && target.state.kind === 'player' && target.id !== this.room.sessionId && !this.isActorHidden(target.state);
+      if (p.rightButtonDown()) {
+        if (ev?.ctrlKey && isOtherPlayer) {
+          openMenuFor(target, ev.clientX ?? p.x, ev.clientY ?? p.y);
+          return;
+        }
+        cast('right', p.worldX, p.worldY, target && target.state.kind !== 'npc' ? target : undefined);
+        return;
+      }
+      // Mobile: long-press on another player opens the same context menu.
+      if (ev?.pointerType === 'touch' && isOtherPlayer) {
+        const cx = ev.clientX ?? p.x, cy = ev.clientY ?? p.y;
+        longPressStart = { x: cx, y: cy };
+        longPressTimer = setTimeout(() => {
+          longPressTimer = null;
+          longPressStart = null;
+          if (this.views.get(target.id) === target && !this.isActorHidden(target.state)) {
+            openMenuFor(target, cx, cy);
+          }
+        }, 500);
+      }
       if (target && this.isHostile(target)) cast('left', target.x, target.y, target, true);
       else if (target?.state.kind === 'npc') this.talkTo(target);
       else if (target?.state.kind === 'player' && target.state.stallTitle && target.id !== this.room.sessionId) {
@@ -242,8 +286,14 @@ export class WorldScene extends Phaser.Scene {
       }
       else move(p.worldX, p.worldY);
     });
+    this.input.on('pointerup', () => cancelLongPress());
     // Hold the left button to keep walking toward the cursor; otherwise show what a click would do (original cursors).
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
+      if (longPressStart) {
+        const ev = p.event as Partial<MouseEvent> | undefined;
+        const cx = ev?.clientX ?? p.x, cy = ev?.clientY ?? p.y;
+        if (Math.hypot(cx - longPressStart.x, cy - longPressStart.y) > 12) cancelLongPress();
+      }
       if (!this.ready || !inside(p)) return;
       p.updateWorldPoint(this.cameras.main);
       const over = this.pickActor(p.worldX, p.worldY);
@@ -380,6 +430,12 @@ export class WorldScene extends Phaser.Scene {
       stallClose: () => this.room.send(C2S.stallClose, {}),
       stallBuy: (sellerCharId, uid, price, currency) => this.room.send(C2S.stallBuy, { sellerCharId, uid, price, currency }),
       tkAction: msg => this.room.send(C2S.tkAction, msg),
+      inspect: targetId => this.room.send(C2S.inspect, { targetId }),
+      enmity: targetId => this.room.send(C2S.enmity, { targetId: targetId ?? '' }),
+      follow: targetId => {
+        if (targetId) this.auto?.pause(this.time.now, null);
+        this.room.send(C2S.follow, { targetId: targetId ?? '' });
+      },
     };
   }
 
@@ -545,7 +601,23 @@ export class WorldScene extends Phaser.Scene {
       return !!me.battleCamp && !!view.state.battleCamp && me.battleCamp !== view.state.battleCamp;
     }
     if (view.state.kind === 'monster') return true;
-    return !!me && combatPairRules(this.meta, me, view.state).pvp && view.state.kind === 'player' && pvpAllowed(
+    if (!me || !combatPairRules(this.meta, me, view.state).pvp || view.state.kind !== 'player') return false;
+    const enmity = isEnmityActive(
+      {
+        kind: 'player', id: this.room.sessionId, dead: me.hp <= 0,
+        camp: (me.camp || 'new') as Camp, team: me.team ?? '',
+        battleCamp: (me.battleCamp || '') as 'tong' | 'kim' | '',
+        enmityTarget: me.enmityTarget ?? '', enmityAt: me.enmityAt ?? 0,
+      },
+      {
+        kind: 'player', id: view.id, dead: view.state.hp <= 0,
+        camp: (view.state.camp || 'new') as Camp, team: view.state.team ?? '',
+        battleCamp: (view.state.battleCamp || '') as 'tong' | 'kim' | '',
+        enmityTarget: view.state.enmityTarget ?? '', enmityAt: view.state.enmityAt ?? 0,
+      },
+      Date.now(),
+    );
+    return enmity || pvpAllowed(
       { pk: me.pk, camp: (me.camp || 'new') as Camp, team: me.team ?? '' },
       { camp: (view.state.camp || 'new') as Camp, team: view.state.team ?? '' });
   }

@@ -226,6 +226,25 @@ export interface DevSpeedMsg {
   reset?: boolean;
 }
 
+/** Inspect another player's info & equipped gear. */
+export interface InspectMsg { targetId: string }
+export interface InspectResultMsg {
+  targetId: string;
+  name: string;
+  faction: string;
+  series: Element;
+  gender: 'male' | 'female';
+  level: number;
+  camp: string;
+  pk: number;
+  fortune: number;
+  equip: Partial<Record<string, Item>>;
+}
+/** Cừu sát (enmity 1v1): targetId = session id of opponent; empty/omitted = cancel. */
+export interface EnmityMsg { targetId?: string }
+/** Theo sau (follow): targetId = session id of player to follow; empty/omitted = stop. */
+export interface FollowMsg { targetId?: string }
+
 export const C2S = {
   move: 'move',
   cast: 'cast',
@@ -273,6 +292,9 @@ export const C2S = {
   stallClose: 'stallClose',
   stallBuy: 'stallBuy',
   tkAction: 'tkAction',
+  inspect: 'inspect',
+  enmity: 'enmity',
+  follow: 'follow',
 } as const;
 
 // ---------- server -> client ----------
@@ -373,6 +395,8 @@ export const S2C = {
   stallClosed: 'stallClosed',
   /** Chiến trường Tống Kim state snapshot. */
   tkState: 'tkState',
+  /** InspectResultMsg: another player's profile & equipped gear. */
+  inspect: 'inspect',
 } as const;
 
 // ---------- REST ----------

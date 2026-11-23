@@ -17,7 +17,8 @@ import { checkPortals } from './systems/portals.js';
 import { clearStates } from './systems/status.js';
 import { clearEffects } from './systems/effects.js';
 import { syncVitals } from './systems/sync.js';
-import { attackable, isConfused, nearestHostile } from './targeting.js';
+import { attackable, isConfused, isHidden, nearestHostile } from './targeting.js';
+import { clearEnmity, clearFollow } from './commands.js';
 import type { World } from './World.js';
 
 // Player characters in the world: entering, reviving, regenerating, and carrying out queued orders
@@ -58,7 +59,7 @@ export function addPlayer(w: World, sessionId: string, char: PlayerRecord): Sim 
     x: Math.round(x), y: Math.round(y), dir: 0, anim: 'idle', animSeq: 0, attackTarget: '', jumpMs: 0, moveScale: 1,
     hp: 1, maxHp: 1, mp: 0, maxMp: 0,
     pk: 0, camp: campOf(faction, graduated), team: '', boss: 0, scale: 1, protectedUntil: Date.now() + SPAWN_PROTECTION * 1000,
-    horse: '', mounted: false, mantle: -1,
+    horse: '', mounted: false, mantle: -1, enmityTarget: '', enmityAt: 0, followTarget: '',
   });
   const sim = makeSim(sessionId, 'player', a, series, PLAYER_SPEED);
   updateSpeed(sim);
@@ -101,6 +102,8 @@ export function revive(w: World, sim: Sim, x: number, y: number): void {
   sim.lockedAttack = undefined;
   sim.pending = null;
   sim.a.attackTarget = '';
+  clearFollow(w, sim);
+  clearEnmity(w, sim);
   sim.hp = sim.a.maxHp;
   sim.mp = sim.a.maxMp;
   sim.a.x = Math.round(sx);
@@ -133,6 +136,17 @@ export function regen(w: World, sim: Sim, dt: number): void {
 
 export function updatePlayer(w: World, sim: Sim, dt: number): void {
   maintainBotBuffs(w, sim);
+  if (sim.enmity) {
+    const other = w.sims.get(sim.enmity.targetId);
+    if (!other || other.dead || sim.dead || sim.a.battleCamp || other.a.battleCamp || (sim.a.team && sim.a.team === other.a.team)) {
+      clearEnmity(w, sim, 'Trạng thái cừu sát đã kết thúc.', 'Trạng thái cừu sát đã kết thúc.');
+    } else if (!sim.enmity.announcedActive && w.now >= sim.enmity.activeAt) {
+      sim.enmity.announcedActive = true;
+      if (other.enmity?.targetId === sim.id) other.enmity.announcedActive = true;
+      w.hooks.notify(sim, `Cừu sát với ${other.a.name} đã bắt đầu!`);
+      w.hooks.notify(other, `Cừu sát với ${sim.a.name} đã bắt đầu!`);
+    }
+  }
   if (combatRulesAt(w.meta, sim.a, w.rules).safe) { sim.pending = null; sim.lockedAttack = undefined; sim.a.attackTarget = ''; }
   if (sim.lockedAttack) {
     const target = w.sims.get(sim.lockedAttack.targetId!);
@@ -150,6 +164,7 @@ export function updatePlayer(w: World, sim: Sim, dt: number): void {
       processPending(w, sim);
       if (!isConfused(sim)) return;
     }
+    clearFollow(w, sim);
     sim.pending = null;
     sim.queuedMove = undefined;
     sim.lockedAttack = undefined;
@@ -164,6 +179,23 @@ export function updatePlayer(w: World, sim: Sim, dt: number): void {
   }
   if (!sim.pending && !sim.pickup && sim.lockedAttack) sim.pending = { ...sim.lockedAttack, repathAt: 0 };
   if (sim.pending) processPending(w, sim);
+  if (!sim.pending && !sim.pickup && !sim.lockedAttack && sim.follow) {
+    const target = w.sims.get(sim.follow.targetId);
+    if (!target || target.dead || isHidden(target)) {
+      clearFollow(w, sim, !target ? 'Mục tiêu đã rời khỏi bản đồ, dừng theo sau.' : target.dead ? 'Mục tiêu đã tử vong, dừng theo sau.' : 'Mất dấu mục tiêu, dừng theo sau.');
+      sim.path = [];
+    } else {
+      const dist = isoDistance(sim.a.x, sim.a.y, target.a.x, target.a.y);
+      if (dist > 72) {
+        if (w.now >= sim.follow.repathAt) {
+          setPath(w, sim, { x: target.a.x, y: target.a.y });
+          sim.follow.repathAt = w.now + 300;
+        }
+      } else if (dist <= 56 && sim.path.length) {
+        sim.path = [];
+      }
+    }
+  }
   if (w.now < sim.castUntil) return;
   followPath(sim, dt);
   if (combatRulesAt(w.meta, sim.a, w.rules).safe) { sim.pending = null; sim.lockedAttack = undefined; sim.a.attackTarget = ''; }

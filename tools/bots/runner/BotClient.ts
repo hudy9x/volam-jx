@@ -363,12 +363,16 @@ export class BotClient {
           {
             kind: 'player', id: this.room?.sessionId ?? '', dead: me.hp <= 0,
             pk: me.pk ?? 0, camp: (me.camp || 'new') as Camp, team: me.team ?? '',
-            battleCamp: (me.battleCamp || '') as 'tong' | 'kim' | '', protectedUntil: me.protectedUntil ?? 0,
+            battleCamp: (me.battleCamp || '') as 'tong' | 'kim' | '',
+            enmityTarget: me.enmityTarget ?? '', enmityAt: me.enmityAt ?? 0,
+            protectedUntil: me.protectedUntil ?? 0,
           },
           {
             kind: target.state.kind === 'monster' ? 'monster' : 'player', id: target.id, dead: target.state.hp <= 0,
             pk: target.state.pk ?? 0, camp: (target.state.camp || 'new') as Camp, team: target.state.team ?? '',
-            battleCamp: (target.state.battleCamp || '') as 'tong' | 'kim' | '', protectedUntil: target.state.protectedUntil ?? 0,
+            battleCamp: (target.state.battleCamp || '') as 'tong' | 'kim' | '',
+            enmityTarget: target.state.enmityTarget ?? '', enmityAt: target.state.enmityAt ?? 0,
+            protectedUntil: target.state.protectedUntil ?? 0,
           },
           combatPairRules(map, me, target),
           Date.now(),

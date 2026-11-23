@@ -27,6 +27,11 @@ export interface ActorState {
   ctl?: number;
   /** Chế độ Tàng hình kiểm thử (DEV_TOOLS): ẩn hoàn toàn với quái/boss/bot/người chơi khác. */
   stealth?: boolean;
+  /** Cừu sát (enmity 1v1): opponent session id & activation epoch ms. */
+  enmityTarget?: string;
+  enmityAt?: number;
+  /** Theo sau (follow): session id being followed. */
+  followTarget?: string;
   /** Khinh công: flight time of the jump in progress (anim 'jump'), 0 otherwise. */
   jumpMs: number;
   hp: number;

@@ -16,10 +16,12 @@ import {
   type UnequipMsg, type UseMsg,
   type StallBuyMsg, type StallInspectMsg, type StallOpenMsg, type StallPriceMsg,
   type TkActionMsg,
+  type InspectMsg, type InspectResultMsg, type EnmityMsg, type FollowMsg,
 } from '@vltk/shared';
 import { verifyToken } from '../account/auth.js';
 import { db } from '../account/db.js';
-import { commandCast, commandMove, setMounted, setPk, setSkillLevel, setSlotAura } from '../world/commands.js';
+import { clearFollow, commandCast, commandEnmity, commandFollow, commandMove, setMounted, setPk, setSkillLevel, setSlotAura } from '../world/commands.js';
+import { isHidden } from '../world/targeting.js';
 import type { Sim } from '../world/entity.js';
 import {
   addMoney, buyItem, discardItem, equipItem, forgeItem, forgeItems, moveBagItem, moveStashItem, restoreStash, sellItem, sellItems, sortGrid, splitGridItem, transferBetweenGrids, transferStashCurrency, unequipItem, useItem,
@@ -391,6 +393,7 @@ export class MapRoom extends Room<{ state: MapState }> {
       const sim = this.simOf(client);
       if (!sim?.charId) return;
       if (isTkBattleMap(this.state.mapId)) { this.notify(sim, 'Không thể bày bán trong chiến trường Tống Kim.'); return; }
+      clearFollow(this.world, sim);
       stallOpen(sim.charId, typeof msg?.title === 'string' ? msg.title : '');
     });
     this.onMessage(C2S.stallClose, client => {
@@ -402,6 +405,37 @@ export class MapRoom extends Room<{ state: MapState }> {
       if (sim?.charId && typeof msg?.sellerCharId === 'string' && typeof msg?.uid === 'string') {
         stallBuy(sim.charId, msg.sellerCharId, msg.uid, Number(msg?.price), msg?.currency);
       }
+    });
+    // Context menu người chơi: Xem thông tin (trang bị), Cừu sát, Theo sau.
+    this.onMessage(C2S.inspect, (client, msg: InspectMsg) => {
+      const sim = this.simOf(client);
+      if (!sim || typeof msg?.targetId !== 'string') return;
+      const target = this.world.sims.get(msg.targetId);
+      if (!target || target.kind !== 'player' || isHidden(target)) {
+        this.notify(sim, 'Không tìm thấy nhân vật để xem thông tin.');
+        return;
+      }
+      const payload: InspectResultMsg = {
+        targetId: target.id,
+        name: target.a.name,
+        faction: target.a.faction,
+        series: target.element,
+        gender: target.a.gender === 'female' ? 'female' : 'male',
+        level: target.a.level,
+        camp: target.a.camp || 'new',
+        pk: target.a.pk,
+        fortune: target.fortune ?? 0,
+        equip: target.equip ? { ...target.equip } : {},
+      };
+      client.send(S2C.inspect, payload);
+    });
+    this.onMessage(C2S.enmity, (client, msg: EnmityMsg) => {
+      const sim = this.simOf(client);
+      if (sim) commandEnmity(this.world, sim, typeof msg?.targetId === 'string' ? msg.targetId : '');
+    });
+    this.onMessage(C2S.follow, (client, msg: FollowMsg) => {
+      const sim = this.simOf(client);
+      if (sim) commandFollow(this.world, sim, typeof msg?.targetId === 'string' ? msg.targetId : '');
     });
     // Lệnh bài (world/token.ts). Changing sex rebuilds the character on the clients: rejoin the same map.
     this.onMessage(C2S.token, (client, msg: TokenMsg) => {

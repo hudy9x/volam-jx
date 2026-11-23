@@ -13,6 +13,8 @@ function info(sim: Sim, deadOverride?: boolean): CombatantInfo {
     kind: sim.kind, id: sim.id, dead: deadOverride ?? sim.dead, pk: sim.a.pk,
     camp: (sim.a.camp || 'new') as Camp, team: sim.a.team,
     battleCamp: (sim.a.battleCamp || '') as 'tong' | 'kim' | '',
+    enmityTarget: sim.a.enmityTarget || '',
+    enmityAt: sim.a.enmityAt || 0,
     protectedUntil: sim.a.protectedUntil,
   };
 }

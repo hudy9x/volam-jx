@@ -1,6 +1,6 @@
 import { characterAuto, setCharacterAutoEnabled } from '../../state/characterAuto';
 import type { FactionDef, MapMeta } from '@vltk/shared';
-import type { MapActor, MapLabel, NpcTalk, ViewRect, WindowId, WorldActions, WorldUi } from '../../game/ports';
+import type { MapActor, MapLabel, NpcTalk, PlayerMenuTarget, ViewRect, WindowId, WorldActions, WorldUi } from '../../game/ports';
 import type { ActorState } from '../../state/actor';
 import { FACTIONS, isoDistance } from '@vltk/shared';
 import { keyLabel } from '../../input/keymap';
@@ -19,6 +19,7 @@ import { CharacterWindow } from '../windows/character';
 import { DeathWindow } from '../windows/death';
 import { ForgeWindow } from '../windows/forge';
 import { HorseShopWindow } from '../windows/horseShop';
+import { InspectWindow } from '../windows/inspect';
 import { InventoryWindow } from '../windows/inventory';
 import { TokenWindow } from '../windows/token';
 import { TeamWindow } from '../windows/team';
@@ -37,6 +38,7 @@ import { TravelWindow } from '../windows/travel';
 import type { HudContext, NearbyPlayer } from './context';
 import { MinimapPanel } from './minimap';
 import { Notices } from './notices';
+import { PlayerContextMenu } from './playerMenu';
 import { ChatBox } from './chat';
 import { ChatReactsWindow } from '../windows/chatReacts';
 import { Quickbar } from './quickbar';
@@ -68,6 +70,7 @@ export class Hud implements WorldUi {
   private readonly minimap: MinimapPanel;
   private readonly quickbar: Quickbar;
   private readonly notices: Notices;
+  private readonly playerMenu: PlayerContextMenu;
   private readonly tongKimHud: TongKimHud;
   private readonly bag: InventoryWindow;
   private readonly stash: StashWindow;
@@ -136,6 +139,7 @@ export class Hud implements WorldUi {
       useItem: defId => this.actions?.useItem(defId),
     });
     this.notices = new Notices(root);
+    this.playerMenu = new PlayerContextMenu(root, ctx);
     this.tongKimHud = new TongKimHud(root);
     const chatBox = new ChatBox(root, ctx);
     const chatReacts = new ChatReactsWindow(root, () => this.self?.name);
@@ -149,6 +153,7 @@ export class Hud implements WorldUi {
     this.suggestWin = new SuggestWindow(root, ctx);
     this.bag.onToken = () => token.open();
     this.character = new CharacterWindow(root, ctx);
+    new InspectWindow(root);
     const forge = new ForgeWindow(root, ctx);
     this.shop = new ShopWindow(root, ctx, trade, kind => forge.open(kind));
     token.onForge = () => forge.open(undefined, true);
@@ -362,9 +367,18 @@ export class Hud implements WorldUi {
 
   // ======================= app =======================
 
+  openPlayerMenu(target: PlayerMenuTarget, clientX: number, clientY: number): void {
+    this.playerMenu.open(target, clientX, clientY);
+  }
+
+  closePlayerMenu(): void {
+    this.playerMenu.close();
+  }
+
   /** Leaving the world: hide everything (auto-fight off without a notice). */
   hide(): void {
     if (this.autoOn) { this.autoOn = false; this.autoWin.setChecked(false); this.notices.setAutoBadge(false); this.quickbar.setAuto(false); }
+    this.playerMenu.close();
     this.root.classList.add('hidden');
     this.tongKimHud.hide();
     dialogs.closeAll(true);

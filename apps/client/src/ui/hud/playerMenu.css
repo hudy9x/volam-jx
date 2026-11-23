@@ -1,0 +1,82 @@
+/* Context menu người chơi (Ctrl + chuột phải trên Desktop, nhấn giữ trên Mobile) */
+#player-ctx-menu {
+  position: absolute;
+  z-index: 600;
+  min-width: 158px;
+  max-width: 220px;
+  padding: 5px;
+  border: 1px solid var(--teal-hi);
+  background: rgba(8, 12, 11, 0.96);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.72), inset 0 0 0 1px rgba(45, 95, 76, 0.45);
+  font: 12px Tahoma, sans-serif;
+  color: var(--text);
+  pointer-events: auto;
+  user-select: none;
+}
+#player-ctx-menu.hidden { display: none; }
+
+.pcm-head {
+  padding: 3px 6px 5px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(74, 122, 102, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.pcm-name {
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pcm-sub {
+  font-size: 11px;
+  color: #9ec0b0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pcm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pcm-item {
+  width: 100%;
+  min-height: 26px;
+  padding: 4px 8px;
+  border: 1px solid rgba(58, 104, 86, 0.55);
+  background: linear-gradient(180deg, #13211c 0%, #0a120f 100%);
+  color: #e6f1eb;
+  font: 12px Tahoma, sans-serif;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pcm-item:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, #1d322a 0%, #0f1b17 100%);
+  color: var(--gold);
+}
+.pcm-item:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.pcm-item.danger:not(:disabled) {
+  color: #ff8e8e;
+  border-color: rgba(168, 60, 60, 0.65);
+}
+.pcm-item.danger:hover:not(:disabled) {
+  color: #ffb8b8;
+  border-color: #ff5d5d;
+  background: linear-gradient(180deg, #341616 0%, #1c0b0b 100%);
+}
+.pcm-item.active:not(:disabled) {
+  color: var(--gold);
+  border-color: rgba(214, 178, 86, 0.7);
+}

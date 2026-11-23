@@ -387,14 +387,19 @@ export class ActorView {
     const labelX = hasBadge ? Math.round(this.x + (badgeSize + badgeGap) / 2) : Math.round(this.x);
     const labelY = top - Math.max(2, ui(plate.gapY));
     this.label.setPosition(labelX, labelY);
-    if (tkTag) {
+    const enmityRemain = !tkTag && s.kind === 'player' && s.hp > 0 && s.enmityTarget && (s.enmityAt ?? 0) > 0
+      ? Math.max(0, Math.ceil((s.enmityAt! - Date.now()) / 1000))
+      : -1;
+    const overheadTag = tkTag || (enmityRemain >= 0 ? (enmityRemain > 0 ? `⚔ Cừu sát (${enmityRemain}s)` : '⚔ Cừu sát') : '');
+    const overheadColor = tkTag ? color : '#ff4d4d';
+    if (overheadTag) {
       if (!this.rankLabel) {
         this.rankLabel = this.scene.add.text(0, 0, '', {
-          resolution: textResolution(), fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(12), fontStyle: 'bold', color, stroke: '#000', strokeThickness: ui(3),
+          resolution: textResolution(), fontFamily: 'Segoe UI, Tahoma, sans-serif', fontSize: uiPx(12), fontStyle: 'bold', color: overheadColor, stroke: '#000', strokeThickness: ui(3),
         }).setOrigin(0.5, 1).setDepth(1e6 + 1);
       }
-      if (this.rankLabel.text !== tkTag) this.rankLabel.setText(tkTag);
-      if (this.rankLabel.style.color !== color) this.rankLabel.setColor(color);
+      if (this.rankLabel.text !== overheadTag) this.rankLabel.setText(overheadTag);
+      if (this.rankLabel.style.color !== overheadColor) this.rankLabel.setColor(overheadColor);
       if (this.rankLabel.scaleX !== plate.textScale) this.rankLabel.setScale(plate.textScale);
       const labelH = typeof this.label.displayHeight === 'number' ? this.label.displayHeight : ui(13) * plate.textScale;
       this.rankLabel.setPosition(Math.round(this.x), Math.round(labelY - labelH - ui(1) * plate.textScale)).setVisible(true);

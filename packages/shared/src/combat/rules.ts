@@ -4,6 +4,9 @@
 /** Seconds of invulnerability after (re)spawning. */
 export const SPAWN_PROTECTION = 3;
 
+/** Countdown (ms) before Cừu sát (enmity 1v1) becomes active, matching original VLTK. */
+export const ENMITY_COUNTDOWN_MS = 10_000;
+
 /**
  * Trận doanh (camp) of a character, shown by the colour of its name: tân thủ (no faction yet), chính phái, trung lập,
  * tà phái, xuất sư (free / C_FREE). Each faction's camp: DATA settings/faction/门派设定.ini `Camp=` (C_JUSTICE / C_BALANCE / C_EVIL).
@@ -45,12 +48,34 @@ export interface CombatantInfo {
   team: string;
   /** Chiến trường Tống Kim camp ('' = ngoài chiến trường). */
   battleCamp?: 'tong' | 'kim' | '';
+  /** Cừu sát (enmity 1v1) opponent session id ('' = none). */
+  enmityTarget?: string;
+  /** Epoch ms when Cừu sát becomes active (0 = none). */
+  enmityAt?: number;
   protectedUntil: number;
 }
 
 export interface MapRules {
   safe: boolean;
   pvp: boolean;
+}
+
+/** True when two players are in an active Cừu sát (enmity 1v1) pair (countdown finished). */
+export function isEnmityActive(
+  a: Pick<CombatantInfo, 'kind' | 'id' | 'dead' | 'camp' | 'team' | 'battleCamp' | 'enmityTarget' | 'enmityAt'>,
+  b: Pick<CombatantInfo, 'kind' | 'id' | 'dead' | 'camp' | 'team' | 'battleCamp' | 'enmityTarget' | 'enmityAt'>,
+  now: number,
+): boolean {
+  if (a.kind !== 'player' || b.kind !== 'player') return false;
+  if (a.id === b.id || a.dead || b.dead) return false;
+  if (a.battleCamp || b.battleCamp) return false;
+  if (a.camp === 'new' || b.camp === 'new') return false;
+  if (a.team && a.team === b.team) return false;
+  if (!a.enmityTarget || !b.enmityTarget) return false;
+  if (a.enmityTarget !== b.id || b.enmityTarget !== a.id) return false;
+  const aAt = a.enmityAt ?? 0;
+  const bAt = b.enmityAt ?? 0;
+  return aAt > 0 && bAt > 0 && now >= aAt && now >= bAt;
 }
 
 /** Single source of truth for "may A hit B". Used by server for validation and by client for targeting hints. */
@@ -66,7 +91,7 @@ export function canAttack(a: CombatantInfo, b: CombatantInfo, rules: MapRules, n
   if (a.kind === 'monster') return b.kind === 'player';
   if (b.kind === 'monster') return true;
   // player vs player
-  return rules.pvp && pvpAllowed(a, b);
+  return rules.pvp && (isEnmityActive(a, b, now) || pvpAllowed(a, b));
 }
 
 /** PK rule between two players (map rules aside). */

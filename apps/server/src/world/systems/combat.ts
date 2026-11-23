@@ -26,6 +26,7 @@ import { practice, recordDamage, refreshStats, shareKillExp } from '../progress.
 import { applyHitEffects, castTiming, clearEffects, combatOf } from './effects.js';
 import { dropLoot } from './drops.js';
 import { syncVitals } from './sync.js';
+import { clearEnmity, clearFollow } from '../commands.js';
 
 // Using skills and taking their results. The shared SkillEngine decides what a skill does and how much it hurts
 // (packages/shared/src/skills/); it calls back here (World's EnginePort) to change the Sims.
@@ -134,6 +135,10 @@ export function kill(w: World, target: Sim, killer: Sim | undefined): void {
   target.pending = null;
   target.lockedAttack = undefined;
   target.a.attackTarget = '';
+  if (target.kind === 'player') {
+    clearFollow(w, target);
+    clearEnmity(w, target, 'Trạng thái cừu sát đã kết thúc.', 'Trạng thái cừu sát đã kết thúc.');
+  }
   target.castUntil = 0;
   endJump(target);
   target.potions = undefined;

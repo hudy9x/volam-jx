@@ -90,6 +90,10 @@ export interface Sim {
   slotAura?: number;
   /** Drop the player is walking to pick up (systems/drops.ts). */
   pickup?: string;
+  /** Player currently being followed on this map (commands.ts / players.ts). */
+  follow?: { targetId: string; repathAt: number };
+  /** Active or counting-down Cừu sát (enmity 1v1) state (commands.ts / players.ts). */
+  enmity?: { targetId: string; activeAt: number; announcedActive: boolean };
   /** Hệ, level / exp / points, practice exp (world/progress.ts). */
   progress?: PlayerProgress;
   /** Derived stats from the shared formulas (formulas/character.ts). */

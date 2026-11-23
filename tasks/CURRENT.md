@@ -1,3 +1,27 @@
+## 2026-11-23 · Binh Sĩ Hiệu Phù không tái sinh khi chết & tự đẩy khỏi Hậu doanh sau 20s (chưa commit)
+
+- **USER yêu cầu:**
+  1. Binh sĩ triệu hồi từ Binh Sĩ Hiệu Phù bị đánh chết sẽ **không tái sinh** nữa; không giới hạn thời gian sống; vẫn rơi đồ và cộng điểm bình thường.
+  2. Bot/người chơi đứng quá **20 giây** trong điểm tập trung Hậu doanh khi trận đang giao chiến sẽ tự động đẩy ra ngoài điểm đáp bên ngoài cổng (không đưa về điểm báo danh).
+- **Thay đổi:**
+  - `packages/shared/src/battle/tongkim.ts`: giảm `TK_CAMP_KICK_SEC` từ `180` xuống `20` giây.
+  - `apps/server/src/world/entity.ts`, `apps/server/src/world/tongkim.ts`:
+    - Thêm `Sim.tkSummoned?: boolean`, truyền `summoned = true` khi `useBattleItem` (`clarion`) gọi `spawnOneNpc`; trong `onTkKill` giữ nguyên cộng điểm & rơi đồ nhưng bỏ qua `npcRespawns.push` khi `target.tkSummoned === true`.
+    - Thêm `pushOutOfCamp()` trong `TongKimManager` (đẩy ra điểm đáp cổng `tk-<camp>-out` hoặc `gateExit`, tránh rơi vào vùng an toàn Hậu doanh, bật `pk = 1`, `entry.inCamp = false`) và gọi trong `tickBattleWorld` khi ở Hậu doanh quá `20s` lúc đang giao chiến.
+  - `tests/tong-kim.test.ts`: bổ sung 2 test kiểm chứng lính Hiệu Phù không tái sinh nhưng vẫn cộng điểm/rơi đồ, và đứng quá 20s trong Hậu doanh tự đẩy ra ngoài cổng.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**27/27 pass**), `git diff --check` đạt. Luật chạy phía server & shared nên dùng chung Web/Desktop/Mobile; cần restart server để nhận thay đổi mới. Chưa commit/push.
+
+## 2026-11-23 · Context Menu người chơi/bot (`Ctrl + chuột phải` / nhấn giữ Mobile): Mời tổ đội, Xem thông tin, Cừu sát 10s & Theo sau (đã commit)
+
+- **USER yêu cầu:** triển khai menu ngữ cảnh kiểu VLTK cũ khi `Ctrl + chuột phải` vào người chơi/bot (nhấn giữ trên Mobile) gồm 4 mục: (1) Mời tổ đội, (2) Xem thông tin (tên, phái, cấp độ + 15 ô trang bị đang mặc), (3) Cừu sát (đếm ngược 10 giây, chặn trong chiến trường Tống Kim, bot bị cừu sát tự đánh trả), (4) Theo sau (bám theo trong cùng bản đồ).
+- **Thay đổi:**
+  - `packages/shared/src/{combat/rules.ts,protocol.ts,auto/AutoPlay.ts}`: thêm `ENMITY_COUNTDOWN_MS = 10_000`, `isEnmityActive()` tích hợp vào `canAttack()`, thêm gói `C2S.{inspect,enmity,follow}` và `S2C.inspect`; cho `AutoPlay` tự đánh trả đối thủ cừu sát đang active kể cả khi `autoPk = false`.
+  - `apps/server/src/{net/schema.ts,net/MapRoom.ts,world/entity.ts,world/targeting.ts,world/commands.ts,world/players.ts,world/World.ts,world/systems/combat.ts}`: đồng bộ `Actor.{enmityTarget,enmityAt,followTarget}`; cài `C2S.inspect` trả đầy đủ hồ sơ & `equip`; cài `commandEnmity` (đếm ngược 10s, chặn trong Tống Kim / vùng an toàn / tân thủ / đồng đội, tự hủy khi chết hoặc rời map) và `commandFollow` (bám theo server-side không spam `C2S.move`, tự hủy khi di chuyển / ra chiêu / bày bán / mục tiêu rời map hoặc chết).
+  - `tools/bots/runner/BotClient.ts`: truyền `enmityTarget`/`enmityAt` vào `canAttack()` để bot tự đánh trả khi bị cừu sát.
+  - `apps/client/src/{state/actor.ts,state/inspect.ts,net/room.ts,game/ports.ts,game/WorldScene.ts,game/actors/ActorView.ts,ui/hud/Hud.ts,ui/hud/playerMenu.{ts,css},ui/windows/inspect.{ts,css}}`: mở `PlayerContextMenu` bằng `Ctrl + chuột phải` (Desktop/Web) hoặc nhấn giữ `500 ms` (Mobile), dựng cửa sổ `InspectWindow` chỉ đọc với 15 ô trang bị + tooltip, và hiển thị nhãn `⚔ Cừu sát (Xs)` / `⚔ Cừu sát` trên đầu nhân vật.
+  - `tests/player-context-menu.test.ts`: kiểm chứng luật cừu sát 10s, chặn trong Tống Kim, bot/AutoPlay tự đánh trả khi `autoPk = false`, và theo sau server-side.
+- **Kiểm tra:** `node --import tsx --test tests/player-context-menu.test.ts` (**4/4 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần restart server & reload client để nhận thay đổi mới. Đã commit trên `main`, chưa push.
+
 ## 2026-11-23 · Chiến lược chế độ Nguyên Soái, Binh Sĩ Hiệu Phù 70/20/10, 5 Lệnh Bẫy Ngũ Hành cấp 20 & Chế độ Tàng hình kiểm thử (đã commit)
 
 - **USER yêu cầu:**

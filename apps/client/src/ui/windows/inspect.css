@@ -1,0 +1,28 @@
+/* Cửa sổ Xem thông tin người chơi (chỉ đọc) */
+#inspect-panel { width: auto; }
+.insp-body { display: flex; gap: 10px; align-items: stretch; }
+.insp-info { width: 215px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.insp-top { display: flex; gap: 8px; align-items: center; }
+.insp-face {
+  width: 64px; height: 64px; flex: none; object-fit: cover;
+  border: 1px solid var(--teal); background: #050706;
+}
+.insp-id { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.insp-name {
+  font-weight: 700; font-size: 13px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.insp-faction { color: #e8d39a; font-size: 12px; }
+.insp-grid { display: grid; grid-template-columns: 74px 1fr; gap: 4px 6px; align-items: center; }
+.insp-equip { position: relative; width: 180px; border: 1px solid var(--line); background: #080a09; }
+#insp-slots { position: relative; height: 318px; }
+#insp-slots .slot { position: absolute; box-sizing: border-box; cursor: default; }
+#insp-slots .slot-name { font-size: 9px; line-height: 1.1; inset: auto 0 1px; }
+.insp-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.insp-foot .btn { min-width: 84px; }
+
+@container (max-width: 460px) {
+  .insp-body { flex-direction: column; }
+  .insp-info { width: auto; }
+  .insp-equip { align-self: center; }
+}

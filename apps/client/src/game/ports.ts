@@ -83,6 +83,23 @@ export interface WorldActions {
   stallBuy: (sellerCharId: string, uid: string, price: number, currency: import('@vltk/shared').TradeCurrency) => void;
   /** Chiến trường Tống Kim actions. */
   tkAction: (msg: import('@vltk/shared').TkActionMsg) => void;
+  /** Context menu: Xem thông tin (trang bị), Cừu sát, Theo sau. */
+  inspect: (targetId: string) => void;
+  enmity: (targetId?: string) => void;
+  follow: (targetId?: string) => void;
+}
+
+/** Target descriptor passed when opening the player context menu (Ctrl + Right-click / long-press). */
+export interface PlayerMenuTarget {
+  id: string;
+  name: string;
+  level: number;
+  faction: string;
+  camp?: string;
+  team?: string;
+  battleCamp?: string;
+  enmityTarget?: string;
+  enmityAt?: number;
 }
 
 /** Windows the scene opens (keys, NPCs). */
@@ -134,4 +151,7 @@ export interface WorldUi {
   openAuto(): void;
   setAuto(on: boolean, why?: string): void;
   onAuto: ((on: boolean) => void) | null;
+  /** Player context menu (Ctrl + Right-click on desktop, long-press on mobile). */
+  openPlayerMenu?(target: PlayerMenuTarget, clientX: number, clientY: number): void;
+  closePlayerMenu?(): void;
 }

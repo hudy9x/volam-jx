@@ -1,4 +1,4 @@
-import { canAttack, type Camp } from '../combat/rules.js';
+import { canAttack, isEnmityActive, type Camp } from '../combat/rules.js';
 import { botTradeReasons } from '../bots/social.js';
 import { DROPS } from '../formulas/tuning.js';
 import { isoDistance } from '../geometry.js';
@@ -37,6 +37,8 @@ export interface AutoActorState {
   pk?: number;
   camp?: string;
   battleCamp?: string;
+  enmityTarget?: string;
+  enmityAt?: number;
   protectedUntil?: number;
   /** Bùa lợi / bùa hại (skill ids) on it. */
   states?: Iterable<number>;
@@ -661,6 +663,25 @@ export class AutoPlay {
     return undefined;
   }
 
+  private isEnmityOpponent(v: AutoActor, self: AutoActor | undefined): boolean {
+    if (!self || v.state.kind !== 'player') return false;
+    return isEnmityActive(
+      {
+        kind: 'player', id: self.id, dead: self.state.hp <= 0,
+        camp: (self.state.camp || 'new') as Camp, team: self.state.team ?? '',
+        battleCamp: (self.state.battleCamp || '') as 'tong' | 'kim' | '',
+        enmityTarget: self.state.enmityTarget ?? '', enmityAt: self.state.enmityAt ?? 0,
+      },
+      {
+        kind: 'player', id: v.id, dead: v.state.hp <= 0,
+        camp: (v.state.camp || 'new') as Camp, team: v.state.team ?? '',
+        battleCamp: (v.state.battleCamp || '') as 'tong' | 'kim' | '',
+        enmityTarget: v.state.enmityTarget ?? '', enmityAt: v.state.enmityAt ?? 0,
+      },
+      Date.now(),
+    );
+  }
+
   private isHostilePlayer(v: AutoActor, self: AutoActor | undefined): boolean {
     if (this.host.hostile) return this.host.hostile(v);
     if (!self) return false;
@@ -669,12 +690,14 @@ export class AutoPlay {
         kind: 'player', id: self.id, dead: self.state.hp <= 0,
         pk: self.state.pk ?? 0, camp: (self.state.camp || 'new') as Camp,
         team: self.state.team ?? '', battleCamp: (self.state.battleCamp || '') as 'tong' | 'kim' | '',
+        enmityTarget: self.state.enmityTarget ?? '', enmityAt: self.state.enmityAt ?? 0,
         protectedUntil: self.state.protectedUntil ?? 0,
       },
       {
         kind: 'player', id: v.id, dead: v.state.hp <= 0,
         pk: v.state.pk ?? 0, camp: (v.state.camp || 'new') as Camp,
         team: v.state.team ?? '', battleCamp: (v.state.battleCamp || '') as 'tong' | 'kim' | '',
+        enmityTarget: v.state.enmityTarget ?? '', enmityAt: v.state.enmityAt ?? 0,
         protectedUntil: v.state.protectedUntil ?? 0,
       },
       { safe: this.host.safe(), pvp: true },
@@ -686,7 +709,7 @@ export class AutoPlay {
     if (v.isSelf || v.state.hp <= 0 || DUMMY_SPRITES.has(v.state.sprite)) return false;
     if ((this.bans.get(v.id) ?? 0) > now) return false;
     if (v.state.kind === 'player') {
-      return !!opts.autoPk && this.isHostilePlayer(v, self);
+      return (this.isEnmityOpponent(v, self) || !!opts.autoPk) && this.isHostilePlayer(v, self);
     }
     if (v.state.kind !== 'monster') return false;
     if (self?.state.battleCamp && v.state.battleCamp && self.state.battleCamp === v.state.battleCamp) return false;

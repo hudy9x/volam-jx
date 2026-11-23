@@ -15,6 +15,7 @@ import { snapPortals } from './systems/portals.js';
 import { createSpawnSlots, updateSlots } from './systems/spawner.js';
 import { addState, expireStates, removeState } from './systems/status.js';
 import { attackable, friendly } from './targeting.js';
+import { clearEnmity, clearFollow } from './commands.js';
 
 // One map's simulation (server-authoritative, TICK_RATE per second). This class only holds the shared state and
 // runs the tick in order; the work is in the files next to it:
@@ -110,6 +111,11 @@ export class World {
   }
 
   removeSim(id: string): void {
+    const sim = this.sims.get(id);
+    if (sim && sim.kind === 'player') {
+      clearFollow(this, sim);
+      clearEnmity(this, sim, undefined, `${sim.a.name} đã rời bản đồ, trạng thái cừu sát kết thúc.`);
+    }
     this.engine.cancel(id);
     this.sims.delete(id);
     this.actors.delete(id);

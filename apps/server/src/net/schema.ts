@@ -50,6 +50,9 @@ export const Actor = schema({
   passiveFx: t.array('uint16'), // visual-only passive effects; never counted as timed states
   ctl: t.uint8(),            // control effects on it: 1 choáng, 2 chậm, 4 độc (world/systems/effects.ts)
   stealth: t.boolean(),      // chế độ Tàng hình kiểm thử (ẩn hoàn toàn với quái/boss/bot/người chơi khác)
+  enmityTarget: t.string(),  // Cừu sát (enmity 1v1) opponent session id, '' = none
+  enmityAt: t.float64(),     // server epoch ms when Cừu sát becomes active, 0 = none
+  followTarget: t.string(),  // session id of player currently being followed, '' = none
 }, 'Actor');
 export type Actor = SchemaType<typeof Actor>;
 
