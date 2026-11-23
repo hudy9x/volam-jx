@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "title": "Tống Kim - Strategy Tổng hợp",
+  "title": "Tống kim 15 vs 15",
   "activities": {
     "grind": false,
     "chat": false,
@@ -45,6 +45,7 @@
   },
   "auto": {
     "autoRadius": 500,
+    "autoMonster": true,
     "autoSkipBoss": false,
     "autoPk": false,
     "autoBuff": true,
@@ -75,7 +76,7 @@
   "buffVersion": 1,
   "tongkim": {
     "campPreference": "auto",
-    "tactic": "tactical",
+    "tactic": "flank",
     "exitViaScoutRatio": 0.1,
     "hpHealThreshold": 0.7,
     "scanRadius": 850

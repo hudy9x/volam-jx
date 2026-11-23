@@ -25,3 +25,4 @@ tools/map-creator/projects/
 tools/bots/data/.assignments.json*
 
 demo
+apps/client/zip
