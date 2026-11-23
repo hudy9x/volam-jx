@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MapSchema } from '@colyseus/schema';
 import {
-  attr1, getMissile, getSkill, JX_TICK_MS, MAPS, registerNav, triggersOf,
+  attr1, castAnim, getMissile, getSkill, JX_TICK_MS, MAPS, registerNav, triggersOf,
 } from '@vltk/shared';
 import { Actor } from '../apps/server/src/net/schema.js';
 import { makeSim, type Sim } from '../apps/server/src/world/entity.js';
@@ -203,4 +203,9 @@ test('Đường Môn 60/90/150: xuất hiện ngay (wait=0), Bạo Vũ Lê Hoa (
   const ev1070 = w.takeEvents();
   assert.ok(ev1070.some(e => e.t === 'msl' && e.k === 332), 'M332 vortex spawns immediately');
   assert.equal(ev1070.filter(e => e.t === 'msl' && e.k === 360).length, 8, '8 rays of Thiết Sa Xạ Tinh (M360) burst immediately on start');
+
+  // Pose ném ám khí (Phi tiêu 100, Phi đao 101, Tụ tiễn 102): dùng attack (DartThrow MG01) thay vì cast (FreeMagic MG02)
+  assert.equal(castAnim(getSkill(341)!, false), 'attack', 'Tán Hoa Tiêu (100) uses DartThrow (attack)');
+  assert.equal(castAnim(getSkill(249)!, false), 'attack', 'Tiểu Lý Phi Đao (101) uses DartThrow (attack)');
+  assert.equal(castAnim(getSkill(302)!, false), 'attack', 'Bạo Vũ Lê Hoa (102) uses DartThrow (attack)');
 });

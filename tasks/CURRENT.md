@@ -21,6 +21,14 @@
   - `apps/server/data/db.json`: khởi tạo sẵn 18 tài khoản và nhân vật `botfixed_201`..`botfixed_218` (template `level-150-200`, trang bị Hoàng Kim `gold`, `2.000.000` lượng, `50× Chiến Cổ` + `50× Lệnh Bài`, `pending: true` để tự mặc bộ Hoàng Kim Tiêu Dao chuẩn khi vào game).
 - **Kiểm tra:** `node --import tsx --test tests/bot-roster.test.ts tests/bot-gold-loadouts.test.ts tests/bot-config-delete.test.ts tests/bot-scenario-assignment.test.ts` (**9/9 pass**), `npm run typecheck` (0 lỗi), `git diff --check` đạt. Cần restart server để nạp 18 tài khoản bot mới từ `db.json` (công cụ `bots:ui` tự reload). Đã commit trên `main`, chưa push.
 
+## 2026-11-23 · Đường Môn: Dùng pose nhảy ném ám khí `DartThrow` (`MG01`) cho Phi tiêu (`100`), Phi đao (`101`), Tụ tiễn (`102`) (đã commit)
+
+- **USER yêu cầu:** sửa động tác ra chiêu của Đường Môn từ đứng chưởng (`FreeMagic` `MG02`) sang nhảy bật người lên xoay ném ám khí (`DartThrow` `MG01`) theo đúng dữ liệu gốc `volam-3005` / `Client_VLTK_SHXT`.
+- **Thay đổi:**
+  - `packages/shared/src/skills/core/info.ts`: thêm `100, 101, 102` vào `HAND_WEAPONS` và `SWING_ON_FOOT` (`'attack'`) để `castAnim()` trả về `'attack'` (`DartThrow` `MG01`) cho các kỹ năng Phi tiêu, Phi đao, Tụ tiễn.
+  - `tests/skill-120-tangmen-emei-wudu.test.ts`: bổ sung kiểm chứng `castAnim` trả về `'attack'` cho `#341`, `#249`, `#302`.
+- **Kiểm tra:** `node --import tsx --test tests/skill-120-tangmen-emei-wudu.test.ts` (**5/5 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Đã commit trên `main`, chưa push.
+
 ## 2026-11-23 · Đường Môn 60/90/150: Xuất hiện chiêu ngay lập tức (`wait = 0`, bung tia ngay khi đặt tâm xoáy `#302`/`#1070`) & Tăng tốc bay gấp đôi (2×) cho Tiểu Lý Phi Đao (`#249`), Nhiếp Hồn Nguyệt Ảnh (`#339`), Vô Ảnh Xuyên (`#1069`) (đã commit)
 
 - **USER yêu cầu:** cho các chiêu thức cấp 60, 90, 150 của Đường Môn xuất hiện ngay lập tức (như *Thiết Liên Tứ Sát `#1070`* và *Bạo Vũ Lê Hoa `#302`*), đồng thời tăng tốc độ bay gấp đôi cho *Tiểu Lý Phi Đao (`#249`)*, *Nhiếp Hồn Nguyệt Ảnh (`#339`)* và *Vô Ảnh Xuyên (`#1069`)*.

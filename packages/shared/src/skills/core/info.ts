@@ -21,8 +21,8 @@ export function maxLevelOf(s: SkillDef): number {
  * côn Attack1 = RangeWCut. Kiếm and chùy keep Magic on foot (kiếm khí / a swing already).
  * Mounted every weapon uses RideCut (Attack1); RideMagic only raises the weapon like a bùa.
  */
-const SWING_ON_FOOT: Record<number, 'attack' | 'attack2'> = { 1: 'attack2', 2: 'attack', 3: 'attack2' };
-const HAND_WEAPONS = new Set([0, 1, 2, 3, 4]);
+const SWING_ON_FOOT: Record<number, 'attack' | 'attack2'> = { 1: 'attack2', 2: 'attack', 3: 'attack2', 100: 'attack', 101: 'attack', 102: 'attack' };
+const HAND_WEAPONS = new Set([0, 1, 2, 3, 4, 100, 101, 102]);
 
 /**
  * Pose of the caster: 'attack' / 'attack2' (ngoại công) or 'cast' (nội công) — skills.txt CharAnimId = column of the
