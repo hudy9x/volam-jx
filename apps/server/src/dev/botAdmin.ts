@@ -11,6 +11,7 @@ import { issueToken, newPassword } from '../account/auth.js';
 import { db, type CharacterRecord } from '../account/db.js';
 import { BOTS_DIR, MAPS_DIR, devTools } from '../env.js';
 import { LIVE_WORLDS, isOnline, trainingList } from '../net/MapRoom.js';
+import { regearCharRecordGold, regearSimGold } from '../world/botSetup.js';
 import { addMoney } from '../world/inventory.js';
 
 /**
@@ -211,6 +212,40 @@ export function registerBotRoutes(app: Application): void {
     db.flush();
     console.log(`[bots] granted items (${grants.map(g => `${g.qty}x ${g.id}`).join(', ')}) to ${updated} bots (${onlineCount} online)`);
     res.json({ ok: true, grants, updated, online: onlineCount });
+  });
+
+  // Áp lại trang bị từ packages/shared/src/bots/gold-loadouts.json cho toàn bộ bot có gear = 'gold' (cả online & offline).
+  app.post('/api/dev/bots/regear-gold', local, (req, res) => {
+    const users = Array.isArray(req.body?.usernames) && req.body.usernames.length ? selected(req.body.usernames) : botUsers();
+    let updated = 0, onlineCount = 0, pendingCount = 0;
+    for (const u of users) {
+      for (const charId of u.characters) {
+        const char = db.getCharacter(charId);
+        if (!char || char.bot?.setup?.gear !== 'gold') continue;
+        if (char.bot.pending) { pendingCount++; continue; }
+        let liveFound = false;
+        for (const w of LIVE_WORLDS.values()) {
+          const sim = [...w.sims.values()].find(s => s.kind === 'player' && s.charId === charId);
+          if (sim && regearSimGold(w, sim, !!char.bot.setup.ring)) {
+            db.updateCharacter(charId, {
+              equip: sim.equip,
+              progress: sim.progress?.prog,
+              horse: sim.equip?.horse?.def ?? char.horse,
+            });
+            liveFound = true; onlineCount++; break;
+          }
+        }
+        if (!liveFound) {
+          const patch = regearCharRecordGold(char);
+          if (!patch) continue;
+          db.updateCharacter(charId, patch);
+        }
+        updated++;
+      }
+    }
+    db.flush();
+    console.log(`[bots] re-geared gold loadouts for ${updated} bots (${onlineCount} online, ${pendingCount} pending)`);
+    res.json({ ok: true, updated, online: onlineCount, pending: pendingCount });
   });
 
   // Runner: tokens of the bots to connect as (no passwords needed); offline ones first, at most `count` (0 = all).

@@ -317,5 +317,10 @@ export interface BotInfo {
   pending: boolean;
 }
 
+export {
+  BOT_GOLD_LOADOUTS, resolveBotGoldLoadout,
+  type BotGoldLoadoutTable, type BotGoldRouteLoadout, type BotGoldSlots, type BotLoadoutSlotValue,
+} from './goldLoadouts.js';
+
 /** A bot the runner may connect as (POST /api/dev/bots/login). */
 export interface BotLogin { username: string; token: string; charId: string; mapId: number; autoBuff?: boolean }

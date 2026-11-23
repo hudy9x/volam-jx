@@ -1,3 +1,13 @@
+## 2026-11-23 · Bảng JSON trang bị Hoàng Kim theo phái & tuyến kỹ năng cho bot (`gold-loadouts.json`) (đã commit)
+
+- **USER yêu cầu:** điều tra thực trạng mặc đồ Hoàng Kim của toàn bộ bot, sau đó tạo file JSON ánh xạ trực tiếp trang bị `gold` theo từng hệ phái và tuyến kỹ năng với thứ tự ưu tiên: (1) full bộ Hoàng Kim môn phái đúng tuyến kỹ năng đang theo, (2) lấp ô trống bằng đồ Hoàng Kim khác cùng phái không xung khắc vũ khí, (3) lấp nốt ô thiếu bằng đồ xanh ngũ hành; gắn Phi phong vừa đủ Tài phú kích hoạt, ngựa để `auto:horse`, Càn Khôn Giới Chỉ theo cờ `ring` của template bot (Cách A), và áp dụng lại cho toàn bộ bot `gold` hiện có.
+- **Thay đổi:**
+  - `packages/shared/src/bots/gold-loadouts.json`, `goldLoadouts.ts`, `index.ts`: thêm bảng cấu hình tường minh 12 phái × mọi tuyến kỹ năng (tách `byGender` Nam/Nữ cho Tiêu Dao, `mantle-3` cho 11 phái có bộ HK và `mantle-2` cho Hoa Sơn, `horse: "auto:horse"`, `"auto:green"` cho ô còn thiếu) cùng `BOT_GOLD_LOADOUTS` và `resolveBotGoldLoadout()`.
+  - `apps/server/src/world/botSetup.ts`: thêm `buildBotGoldEquipment()`, `regearSimGold()`, `regearCharRecordGold()` đọc từ `gold-loadouts.json`, tự điều chỉnh tiềm năng `str`/`dex` nếu thiếu khi mặc lại đồ; cập nhật `applyBotSetup()` nhánh `gear === 'gold'` dùng trực tiếp `buildBotGoldEquipment()`.
+  - `apps/server/src/dev/botAdmin.ts`: thêm endpoint `POST /api/dev/bots/regear-gold` mặc lại đồ chuẩn cho toàn bộ bot `gear === 'gold'` (online lẫn offline trong `db.json`, giữ nguyên ngựa, tiền, thuốc, hành trang) và đã chạy áp dụng cho **57/57 bot `gold`** đã vào game (**88 bot `pending`** sẽ tự nhận khi vào game lần đầu).
+  - `tests/bot-gold-loadouts.test.ts`: kiểm chứng đủ 12 phái × mọi tuyến × giới tính, hợp lệ toàn bộ `itemId`, tương thích vũ khí với mọi chiêu đánh tuyến, đủ 10 ô + Phi phong kích hoạt ở `gq = 0`, đủ bộ chính `fullSuite` và đúng quy tắc cờ `ring`.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/bot-gold-loadouts.test.ts` (**2/2 pass**), `POST /api/dev/bots/regear-gold` (`updated: 57, pending: 88`), `git diff --check` đạt. Luật chạy ở `shared` + `server` nên dùng chung Web/Desktop/Mobile. Đã commit trên `main`, chưa push.
+
 ## 2026-11-23 · Binh Sĩ Hiệu Phù không tái sinh khi chết & tự đẩy khỏi Hậu doanh sau 20s (đã commit)
 
 - **USER yêu cầu:**
@@ -21,6 +31,17 @@
   - `apps/client/src/{state/actor.ts,state/inspect.ts,net/room.ts,game/ports.ts,game/WorldScene.ts,game/actors/ActorView.ts,ui/hud/Hud.ts,ui/hud/playerMenu.{ts,css},ui/windows/inspect.{ts,css}}`: mở `PlayerContextMenu` bằng `Ctrl + chuột phải` (Desktop/Web) hoặc nhấn giữ `500 ms` (Mobile), dựng cửa sổ `InspectWindow` chỉ đọc với 15 ô trang bị + tooltip, và hiển thị nhãn `⚔ Cừu sát (Xs)` / `⚔ Cừu sát` trên đầu nhân vật.
   - `tests/player-context-menu.test.ts`: kiểm chứng luật cừu sát 10s, chặn trong Tống Kim, bot/AutoPlay tự đánh trả khi `autoPk = false`, và theo sau server-side.
 - **Kiểm tra:** `node --import tsx --test tests/player-context-menu.test.ts` (**4/4 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Cần restart server & reload client để nhận thay đổi mới. Đã commit trên `main`, chưa push.
+
+## 2026-11-23 · Nâng cấp công thành Nguyên Soái theo Đợt (Wave) + Đội trưởng + 3 tiểu đội + Bọc sườn đổi cánh
+
+- **USER yêu cầu:** nâng cấp giai đoạn phe mất Nguyên Soái công thành cho toàn bộ các chiến thuật mới (`flank`/`tactical`/`defend`/`random`, giữ nguyên `charge`) để khắc phục việc bot lao lẻ nạp mạng.
+- **Thay đổi:**
+  - `tools/bots/runner/TkTactics.ts`: thêm `assignSiegeRole()` (3 tiểu đội `breacher` / `slayer` / `support`), vòng đời **Đợt công thành (Wave)** lặp lại trên `TkCampDirector` (`rallying` → `marching`, tự reset gom đợt mới sau `>= 12s` khi đợt cũ tan vỡ), luân phiên cánh bọc sườn Trái (`1`) / Phải (`2`) theo từng đợt, và `getSiegeWave()` tự bầu Đội trưởng ưu tiên `breacher`.
+  - `tools/bots/runner/TongKimBehavior.ts`:
+    - `rally_for_rush`: bật sẵn buff (Chiến Cổ, Lệnh Bài, Phi Tốc/Hoàn) ngay tại điểm tập kết, giữ lại Lệnh Bẫy & Binh Sĩ Hiệu Phù để bung khi giao tranh.
+    - `rush_enemy_marshal`: hành quân bám Đội trưởng (`MARSHAL_SQUAD_COHESION_RADIUS = 320 px`) theo cánh bọc sườn của Wave cho tới khi Đội trưởng áp sát `<= 720 px` quanh Nguyên Soái địch rồi mới ập vào đồng loạt; `breacher` chủ động đánh & khống chế địch chắn đường, `slayer` ưu tiên Nguyên Soái địch và chỉ tự vệ khi địch áp sát `<= 160 px`, `support` (Nga Mi) bám cụm đồng đội.
+  - `tests/tong-kim.test.ts`: mở rộng test kiểm chứng Đợt 1 (Cánh Trái, bầu Đội trưởng `breacher`), hành vi 3 tiểu đội + bám Đội trưởng của `slayer`, và tự động gom Đợt 2 đổi sang Cánh Phải khi Đợt 1 bị đánh tan.
+- **Kiểm tra:** `npm run typecheck` (0 lỗi), `node --import tsx --test tests/tong-kim.test.ts` (**27/27 pass**), `git diff --check` đạt. Chỉ sửa `tools/bots`, `bots:ui` tự nạp lại. Chưa commit/push.
 
 ## 2026-11-23 · Chiến lược chế độ Nguyên Soái, Binh Sĩ Hiệu Phù 70/20/10, 5 Lệnh Bẫy Ngũ Hành cấp 20 & Chế độ Tàng hình kiểm thử (đã commit)
 

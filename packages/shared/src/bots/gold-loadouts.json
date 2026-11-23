@@ -1,0 +1,640 @@
+{
+  "shaolin": {
+    "staff": {
+      "label": "Thiếu Lâm · Côn pháp",
+      "primarySuite": 2,
+      "slots": {
+        "weapon": "gold-6",
+        "helm": "gold-1",
+        "armor": "gold-7",
+        "belt": "gold-8",
+        "boot": "gold-10",
+        "cuff": "gold-ext-535",
+        "amulet": "gold-ext-532",
+        "pendant": "gold-9",
+        "ring1": "gold-ext-536",
+        "ring2": "gold-15",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "blade": {
+      "label": "Thiếu Lâm · Đao pháp",
+      "primarySuite": 3,
+      "slots": {
+        "weapon": "gold-11",
+        "helm": "gold-1",
+        "armor": "gold-12",
+        "belt": "gold-13",
+        "boot": "gold-ext-534",
+        "cuff": "gold-14",
+        "amulet": "gold-ext-532",
+        "pendant": "gold-4",
+        "ring1": "gold-15",
+        "ring2": "gold-ext-536",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "fist": {
+      "label": "Thiếu Lâm · Quyền pháp",
+      "primarySuite": 1,
+      "slots": {
+        "weapon": "gold-ext-533",
+        "helm": "gold-1",
+        "armor": "gold-2",
+        "belt": "gold-3",
+        "boot": "gold-ext-534",
+        "cuff": "gold-ext-535",
+        "amulet": "gold-ext-532",
+        "pendant": "gold-4",
+        "ring1": "gold-ext-536",
+        "ring2": "gold-15",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "tianwang": {
+    "spear": {
+      "label": "Thiên Vương · Thương pháp",
+      "primarySuite": 5,
+      "slots": {
+        "weapon": "gold-21",
+        "helm": "auto:green",
+        "armor": "gold-22",
+        "belt": "gold-23",
+        "boot": "gold-25",
+        "cuff": "gold-24",
+        "amulet": "gold-27",
+        "pendant": "auto:green",
+        "ring1": "gold-30",
+        "ring2": "auto:green",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "blade": {
+      "label": "Thiên Vương · Đao pháp",
+      "primarySuite": 6,
+      "slots": {
+        "weapon": "gold-26",
+        "helm": "auto:green",
+        "armor": "gold-17",
+        "belt": "gold-28",
+        "boot": "gold-20",
+        "cuff": "gold-29",
+        "amulet": "gold-27",
+        "pendant": "auto:green",
+        "ring1": "gold-30",
+        "ring2": "auto:green",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "hammer": {
+      "label": "Thiên Vương · Chùy pháp",
+      "primarySuite": 4,
+      "slots": {
+        "weapon": "gold-16",
+        "helm": "auto:green",
+        "armor": "gold-17",
+        "belt": "gold-18",
+        "boot": "gold-20",
+        "cuff": "gold-19",
+        "amulet": "gold-27",
+        "pendant": "auto:green",
+        "ring1": "gold-30",
+        "ring2": "auto:green",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "tangmen": {
+    "dart": {
+      "label": "Đường Môn · Phi tiêu",
+      "primarySuite": 17,
+      "slots": {
+        "weapon": "gold-81",
+        "helm": "gold-86",
+        "armor": "gold-82",
+        "belt": "gold-83",
+        "boot": "gold-85",
+        "cuff": "gold-79",
+        "amulet": "gold-77",
+        "pendant": "gold-84",
+        "ring1": "gold-80",
+        "ring2": "gold-88",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "knife": {
+      "label": "Đường Môn · Phi đao",
+      "primarySuite": 15,
+      "slots": {
+        "weapon": "gold-71",
+        "helm": "gold-86",
+        "armor": "gold-72",
+        "belt": "gold-73",
+        "boot": "gold-75",
+        "cuff": "gold-79",
+        "amulet": "gold-77",
+        "pendant": "gold-74",
+        "ring1": "gold-80",
+        "ring2": "gold-88",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "crossbow": {
+      "label": "Đường Môn · Tụ tiễn",
+      "primarySuite": 16,
+      "slots": {
+        "weapon": "gold-76",
+        "helm": "gold-86",
+        "armor": "gold-72",
+        "belt": "gold-78",
+        "boot": "gold-75",
+        "cuff": "gold-79",
+        "amulet": "gold-77",
+        "pendant": "gold-74",
+        "ring1": "gold-80",
+        "ring2": "gold-88",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "trap": {
+      "label": "Đường Môn · Bẫy",
+      "primarySuite": 18,
+      "slots": {
+        "weapon": "gold-71",
+        "helm": "gold-86",
+        "armor": "gold-72",
+        "belt": "gold-73",
+        "boot": "gold-90",
+        "cuff": "gold-89",
+        "amulet": "gold-87",
+        "pendant": "gold-74",
+        "ring1": "gold-88",
+        "ring2": "gold-80",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "wudu": {
+    "blade": {
+      "label": "Ngũ Độc · Đao pháp",
+      "primarySuite": 13,
+      "slots": {
+        "weapon": "gold-61",
+        "helm": "gold-56",
+        "armor": "gold-62",
+        "belt": "gold-58",
+        "boot": "gold-65",
+        "cuff": "gold-64",
+        "amulet": "gold-67",
+        "pendant": "auto:green",
+        "ring1": "gold-63",
+        "ring2": "gold-68",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "palm": {
+      "label": "Ngũ Độc · Chưởng pháp",
+      "primarySuite": 12,
+      "slots": {
+        "weapon": "gold-61",
+        "helm": "gold-56",
+        "armor": "gold-57",
+        "belt": "gold-58",
+        "boot": "gold-60",
+        "cuff": "gold-59",
+        "amulet": "gold-67",
+        "pendant": "auto:green",
+        "ring1": "gold-63",
+        "ring2": "gold-68",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "curse": {
+      "label": "Ngũ Độc · Bùa chú",
+      "primarySuite": 14,
+      "slots": {
+        "weapon": "gold-61",
+        "helm": "gold-66",
+        "armor": "gold-57",
+        "belt": "gold-58",
+        "boot": "gold-70",
+        "cuff": "gold-69",
+        "amulet": "gold-67",
+        "pendant": "auto:green",
+        "ring1": "gold-68",
+        "ring2": "gold-63",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "emei": {
+    "sword": {
+      "label": "Nga My · Kiếm pháp",
+      "primarySuite": 7,
+      "slots": {
+        "weapon": "gold-31",
+        "helm": "gold-36",
+        "armor": "gold-32",
+        "belt": "gold-33",
+        "boot": "gold-40",
+        "cuff": "gold-34",
+        "amulet": "gold-42",
+        "pendant": "gold-39",
+        "ring1": "gold-35",
+        "ring2": "gold-38",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "palm": {
+      "label": "Nga My · Chưởng pháp",
+      "primarySuite": 8,
+      "slots": {
+        "weapon": "gold-31",
+        "helm": "gold-36",
+        "armor": "gold-37",
+        "belt": "gold-33",
+        "boot": "gold-40",
+        "cuff": "gold-34",
+        "amulet": "gold-42",
+        "pendant": "gold-39",
+        "ring1": "gold-38",
+        "ring2": "gold-35",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "support": {
+      "label": "Nga My · Hỗ trợ",
+      "primarySuite": 9,
+      "slots": {
+        "weapon": "gold-31",
+        "helm": "gold-41",
+        "armor": "gold-32",
+        "belt": "gold-33",
+        "boot": "gold-40",
+        "cuff": "gold-34",
+        "amulet": "gold-42",
+        "pendant": "gold-44",
+        "ring1": "gold-43",
+        "ring2": "gold-45",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "cuiyan": {
+    "blade": {
+      "label": "Thúy Yên · Đơn đao",
+      "primarySuite": 10,
+      "slots": {
+        "weapon": "gold-46",
+        "helm": "auto:green",
+        "armor": "gold-47",
+        "belt": "gold-48",
+        "boot": "auto:green",
+        "cuff": "gold-49",
+        "amulet": "gold-52",
+        "pendant": "gold-54",
+        "ring1": "gold-50",
+        "ring2": "gold-55",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "dual": {
+      "label": "Thúy Yên · Song đao",
+      "primarySuite": 11,
+      "slots": {
+        "weapon": "gold-51",
+        "helm": "auto:green",
+        "armor": "gold-47",
+        "belt": "gold-53",
+        "boot": "auto:green",
+        "cuff": "gold-49",
+        "amulet": "gold-52",
+        "pendant": "gold-54",
+        "ring1": "gold-55",
+        "ring2": "gold-50",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "gaibang": {
+    "staff": {
+      "label": "Cái Bang · Bổng pháp",
+      "primarySuite": 20,
+      "slots": {
+        "weapon": "gold-96",
+        "helm": "gold-91",
+        "armor": "gold-97",
+        "belt": "gold-98",
+        "boot": "auto:green",
+        "cuff": "gold-99",
+        "amulet": "auto:green",
+        "pendant": "auto:green",
+        "ring1": "gold-100",
+        "ring2": "gold-95",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "palm": {
+      "label": "Cái Bang · Chưởng pháp",
+      "primarySuite": 19,
+      "slots": {
+        "weapon": "gold-96",
+        "helm": "gold-91",
+        "armor": "gold-92",
+        "belt": "gold-93",
+        "boot": "auto:green",
+        "cuff": "gold-94",
+        "amulet": "auto:green",
+        "pendant": "auto:green",
+        "ring1": "gold-95",
+        "ring2": "gold-100",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "tianren": {
+    "spear": {
+      "label": "Thiên Nhẫn · Mâu pháp",
+      "primarySuite": 21,
+      "slots": {
+        "weapon": "gold-101",
+        "helm": "gold-106",
+        "armor": "gold-102",
+        "belt": "gold-103",
+        "boot": "gold-110",
+        "cuff": "gold-104",
+        "amulet": "gold-107",
+        "pendant": "gold-114",
+        "ring1": "gold-105",
+        "ring2": "gold-113",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "fire": {
+      "label": "Thiên Nhẫn · Đao pháp · Nội công",
+      "primarySuite": 23,
+      "slots": {
+        "weapon": "gold-101",
+        "helm": "gold-111",
+        "armor": "gold-102",
+        "belt": "gold-103",
+        "boot": "gold-115",
+        "cuff": "gold-104",
+        "amulet": "gold-112",
+        "pendant": "gold-114",
+        "ring1": "gold-113",
+        "ring2": "gold-105",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "curse": {
+      "label": "Thiên Nhẫn · Bùa chú",
+      "primarySuite": 22,
+      "slots": {
+        "weapon": "gold-101",
+        "helm": "gold-106",
+        "armor": "gold-102",
+        "belt": "gold-108",
+        "boot": "gold-110",
+        "cuff": "gold-109",
+        "amulet": "gold-107",
+        "pendant": "gold-114",
+        "ring1": "gold-105",
+        "ring2": "gold-113",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "wudang": {
+    "qi": {
+      "label": "Võ Đang · Khí công",
+      "primarySuite": 24,
+      "slots": {
+        "weapon": "gold-116",
+        "helm": "auto:green",
+        "armor": "gold-117",
+        "belt": "gold-123",
+        "boot": "auto:green",
+        "cuff": "auto:green",
+        "amulet": "gold-122",
+        "pendant": "gold-119",
+        "ring1": "gold-118",
+        "ring2": "gold-120",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "sword": {
+      "label": "Võ Đang · Kiếm pháp",
+      "primarySuite": 25,
+      "slots": {
+        "weapon": "gold-121",
+        "helm": "auto:green",
+        "armor": "gold-117",
+        "belt": "gold-123",
+        "boot": "auto:green",
+        "cuff": "auto:green",
+        "amulet": "gold-122",
+        "pendant": "gold-124",
+        "ring1": "gold-125",
+        "ring2": "gold-118",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "kunlun": {
+    "blade": {
+      "label": "Côn Lôn · Đao pháp",
+      "primarySuite": 26,
+      "slots": {
+        "weapon": "gold-126",
+        "helm": "gold-131",
+        "armor": "gold-127",
+        "belt": "gold-128",
+        "boot": "gold-140",
+        "cuff": "gold-129",
+        "amulet": "gold-132",
+        "pendant": "gold-134",
+        "ring1": "gold-130",
+        "ring2": "gold-135",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "sword": {
+      "label": "Côn Lôn · Kiếm pháp · Lôi pháp",
+      "primarySuite": 27,
+      "slots": {
+        "weapon": "auto:green",
+        "helm": "gold-131",
+        "armor": "gold-127",
+        "belt": "gold-133",
+        "boot": "gold-140",
+        "cuff": "gold-129",
+        "amulet": "gold-132",
+        "pendant": "gold-134",
+        "ring1": "gold-135",
+        "ring2": "gold-130",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    },
+    "curse": {
+      "label": "Côn Lôn · Bùa chú",
+      "primarySuite": 28,
+      "slots": {
+        "weapon": "gold-126",
+        "helm": "gold-136",
+        "armor": "gold-127",
+        "belt": "gold-128",
+        "boot": "gold-140",
+        "cuff": "gold-129",
+        "amulet": "gold-137",
+        "pendant": "gold-139",
+        "ring1": "gold-138",
+        "ring2": "gold-130",
+        "mantle": "mantle-3",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "huashan": {
+    "sword": {
+      "label": "Hoa Sơn · Kiếm Tông",
+      "primarySuite": null,
+      "slots": {
+        "weapon": "auto:green",
+        "helm": "auto:green",
+        "armor": "auto:green",
+        "belt": "auto:green",
+        "boot": "auto:green",
+        "cuff": "auto:green",
+        "amulet": "auto:green",
+        "pendant": "auto:green",
+        "ring1": "auto:green",
+        "ring2": "auto:green",
+        "mantle": "mantle-2",
+        "horse": "auto:horse"
+      }
+    },
+    "qi": {
+      "label": "Hoa Sơn · Khí Tông",
+      "primarySuite": null,
+      "slots": {
+        "weapon": "auto:green",
+        "helm": "auto:green",
+        "armor": "auto:green",
+        "belt": "auto:green",
+        "boot": "auto:green",
+        "cuff": "auto:green",
+        "amulet": "auto:green",
+        "pendant": "auto:green",
+        "ring1": "auto:green",
+        "ring2": "auto:green",
+        "mantle": "mantle-2",
+        "horse": "auto:horse"
+      }
+    }
+  },
+  "xiaoyao": {
+    "sword": {
+      "label": "Tiêu Dao · Tiêu Dao Kiếm (Ngoại công)",
+      "primarySuite": {
+        "male": 30,
+        "female": 32
+      },
+      "byGender": {
+        "male": {
+          "weapon": "gold-xy-30-1",
+          "helm": "gold-xy-30-3",
+          "armor": "gold-xy-30-2",
+          "belt": "gold-xy-30-4",
+          "boot": "gold-xy-29-5",
+          "cuff": "gold-xy-30-5",
+          "amulet": "gold-xy-29-4",
+          "pendant": "auto:green",
+          "ring1": "auto:green",
+          "ring2": "auto:green",
+          "mantle": "mantle-3",
+          "horse": "auto:horse"
+        },
+        "female": {
+          "weapon": "gold-xy-32-1",
+          "helm": "gold-xy-32-3",
+          "armor": "gold-xy-32-2",
+          "belt": "gold-xy-32-4",
+          "boot": "gold-xy-31-5",
+          "cuff": "gold-xy-32-5",
+          "amulet": "gold-xy-31-4",
+          "pendant": "auto:green",
+          "ring1": "auto:green",
+          "ring2": "auto:green",
+          "mantle": "mantle-3",
+          "horse": "auto:horse"
+        }
+      }
+    },
+    "guqin": {
+      "label": "Tiêu Dao · Tiêu Dao Cầm (Nội công)",
+      "primarySuite": {
+        "male": 29,
+        "female": 31
+      },
+      "byGender": {
+        "male": {
+          "weapon": "gold-xy-29-1",
+          "helm": "gold-xy-29-3",
+          "armor": "gold-xy-29-2",
+          "belt": "gold-xy-30-4",
+          "boot": "gold-xy-29-5",
+          "cuff": "gold-xy-30-5",
+          "amulet": "gold-xy-29-4",
+          "pendant": "auto:green",
+          "ring1": "auto:green",
+          "ring2": "auto:green",
+          "mantle": "mantle-3",
+          "horse": "auto:horse"
+        },
+        "female": {
+          "weapon": "gold-xy-31-1",
+          "helm": "gold-xy-31-3",
+          "armor": "gold-xy-31-2",
+          "belt": "gold-xy-32-4",
+          "boot": "gold-xy-31-5",
+          "cuff": "gold-xy-32-5",
+          "amulet": "gold-xy-31-4",
+          "pendant": "auto:green",
+          "ring1": "auto:green",
+          "ring2": "auto:green",
+          "mantle": "mantle-3",
+          "horse": "auto:horse"
+        }
+      }
+    }
+  }
+}
