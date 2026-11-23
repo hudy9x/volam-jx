@@ -1,3 +1,11 @@
+## 2026-11-23 · Cập nhật tên 218 bot theo Bảng xếp hạng Thập Đại Cao Thủ & Võ Lâm Minh Chủ VNG (đã commit)
+
+- **USER yêu cầu:** đổi tên toàn bộ 218 bot cố định (`botfixed_001`..`botfixed_218`) sang tên các cao thủ thực tế từ Bảng xếp hạng **Võ Lâm Minh Chủ** và **Thập Đại Cao Thủ Môn Phái** của VNG (`volam.vnggames.com` — các máy chủ Châu Giang, Ngũ Độc, Cập Phong, Đường Môn, Hoa Sơn, Lưu Tiên, Nhạn Sơn, Lư Sơn, Đại Lý, Phượng Tường) kết hợp các huyền thoại VLTK 1 đời đầu (*LouisVuitton, Hắc-Điểu, TayChơiBốGià, VôĐịchThầnTăng, SunGoHan, HOANG_NGAO_THIEN, Excavator...*) và giữ lại một số tên cũ đẹp để loại bỏ tình trạng trùng họ hàng loạt.
+- **Thay đổi:**
+  - `packages/shared/src/bots/roster.ts`: cập nhật 218 tên cao thủ đúng theo từng môn phái (12 phái, tất cả `2..16` ký tự, không trùng lặp, giữ nguyên `id`, `gender` và `faction`).
+  - `apps/server/data/db.json`: đồng bộ tên mới cho toàn bộ 218 nhân vật bot (`botfixed_001`..`botfixed_218`).
+- **Kiểm tra:** `node --import tsx --test tests/bot-roster.test.ts tests/bot-gold-loadouts.test.ts tests/bot-config-delete.test.ts tests/bot-scenario-assignment.test.ts` (**9/9 pass**), `npm run typecheck` (0 lỗi), `git diff --check` đạt. Đã commit trên `main`, chưa push.
+
 ## 2026-11-23 · Bổ sung 18 bot phái Tiêu Dao (`botfixed_201` → `botfixed_218`), nâng tổng `BOT_ROSTER` lên 218 bot cân đối 12 phái (đã commit)
 
 - **USER yêu cầu:** bổ sung thêm 18 bot cố định cho phái **Tiêu Dao (`xiaoyao`)** theo Phương án 2 (giữ nguyên 200 bot cũ, thêm 18 bot Tiêu Dao để 12 môn phái đều cân đối 18–19 bot/phái, nâng tổng lên **218 bot**).
