@@ -1,3 +1,4 @@
+import type { NoticeTone } from '@vltk/shared';
 import { $, mount } from '../kit/dom';
 import './notices.css';
 
@@ -14,9 +15,9 @@ export class Notices {
     $('auto-badge').addEventListener('click', () => this.onAutoToggle?.());
   }
 
-  notice(text: string): void {
+  notice(text: string, tone?: NoticeTone): void {
     const el = document.createElement('div');
-    el.className = 'notice';
+    el.className = tone && tone !== 'default' ? `notice notice-${tone}` : 'notice';
     el.textContent = text;
     this.box.appendChild(el);
     setTimeout(() => el.remove(), 4000);

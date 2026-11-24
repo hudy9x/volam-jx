@@ -792,6 +792,14 @@ class TongKimManager {
         } else {
           w.hooks.announce(`${target.a.name} đã bị ${killerName} hạ gục! Cả hai Nguyên Soái đều đã ngã xuống — thắng bại sẽ phân định bằng tổng điểm khi hết giờ!`);
         }
+        for (const sim of w.sims.values()) {
+          if (sim.kind !== 'player') continue;
+          if (sim.a.battleCamp === npcCamp) {
+            w.hooks.notify(sim, 'Nguyên soái quân ta đã bị ám sát. Tổng tấn công phe địch', 'danger');
+          } else if (sim.a.battleCamp === winCamp) {
+            w.hooks.notify(sim, 'Nguyên soái quân địch đã bị giết.', 'victory');
+          }
+        }
       } else {
         // Rơi vật phẩm chiến trường khi hạ binh sĩ/tướng phe địch (không rơi trang bị/bạc)
         if (creditPlayer) {

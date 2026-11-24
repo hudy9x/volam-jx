@@ -1,5 +1,5 @@
 import type { MapSchema } from '@colyseus/schema';
-import { MAPS, SkillEngine, attrOf, getGrid, type EnginePort, type FxEvent, type LogKind, type MapMeta, type MapRules, type NavigationGrid } from '@vltk/shared';
+import { MAPS, SkillEngine, attrOf, getGrid, type EnginePort, type FxEvent, type LogKind, type MapMeta, type MapRules, type NavigationGrid, type NoticeTone } from '@vltk/shared';
 import type { Actor, Ground } from '../net/schema.js';
 import { updateMonster } from './ai/monster.js';
 import type { Sim, SpawnSlot } from './entity.js';
@@ -28,11 +28,11 @@ export interface WorldHooks {
   /** Player stepped into a portal. */
   transfer(sim: Sim, mapId: number, x: number, y: number): void;
   /** Private message to one player. */
-  notify(sim: Sim, text: string): void;
+  notify(sim: Sim, text: string, tone?: NoticeTone): void;
   /** Owner-only line of the Hệ thống channel (kills, exp, pick-ups, buying / selling). */
   log(sim: Sim, kind: LogKind, text: string): void;
   /** Message to everyone in the room. */
-  announce(text: string): void;
+  announce(text: string, tone?: NoticeTone): void;
   /** Owner-only: level / exp / points / stats changed (world/progress.ts). */
   progress(sim: Sim): void;
   /** Owner-only: learned skills or their levels changed. */

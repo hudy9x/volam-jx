@@ -194,10 +194,10 @@ export function resolveHit(parts: DamageParts, ctx: HitContext, rng: () => numbe
     if (fromWater > 0) dmg *= Math.max(0.2, 1 - fromWater / 100);
   }
   if (ctx.pvp) dmg *= pvpScale;
-  out.dmg = dmg > 0 ? Math.max(1, Math.round(dmg)) : 0;
+  out.dmg = dmg > 0 ? Math.max(1, Math.floor(dmg)) : 0;
   if (parts.poison && parts.poison.tick > 0) {
     const tick = (parts.poison.tick * (100 - effectiveResist('poison', ctx))) / 100 * pvpScale;
-    if (tick > 0) out.poison = { ...parts.poison, tick: Math.max(1, Math.round(tick)) };
+    if (tick > 0) out.poison = { ...parts.poison, tick: Math.max(1, Math.floor(tick)) };
   }
   return out;
 }
@@ -230,7 +230,7 @@ export function damageReturn(dmg: number, targetBag: AttrBag, attackerBag: AttrB
   const flat = attrOf(targetBag, melee ? 'meleedamagereturn_v' : 'rangedamagereturn_v');
   const back = (dmg * Math.max(0, pct)) / 100 + Math.max(0, flat);
   const res = Math.min(100, attrOf(attackerBag, 'returnres_p') + (melee ? attrOf(attackerBag, 'melee_returnres_p') : 0));
-  return Math.max(0, Math.round(back * (1 - Math.max(0, res) / 100)));
+  return Math.max(0, Math.floor(back * (1 - Math.max(0, res) / 100)));
 }
 
 /** Lượng máu ảo của Hộ Thuẫn Nội Lực tĩnh (`staticmagicshield_p`), quy đổi theo `STATIC_SHIELD.scale` và kẹp trần theo `STATIC_SHIELD.maxHpRatio × maxHp`. */

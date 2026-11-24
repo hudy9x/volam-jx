@@ -87,8 +87,12 @@ export class Quickbar {
       el.addEventListener('contextmenu', e => { e.preventDefault(); if (typeof slot === 'number') skillbar.assign(slot, null); });
       el.addEventListener('click', () => {
         const item = skillbar.itemAt(slot);
-        if (item) h.useItem(item);
-        else h.skills(true);
+        if (item) { h.useItem(item); return; }
+        if (typeof slot === 'number' && skillbar.skillAt(slot) !== null) {
+          skillbar.selectLeft(slot);
+          return;
+        }
+        h.skills(true);
       });
       el.addEventListener('mouseenter', () => {
         const item = skillbar.itemAt(slot);

@@ -501,9 +501,20 @@ test('Tống Kim: hạ 1 Nguyên Soái trận vẫn tiếp tục tới hết gi�
   p.kind = 'player';
   p.level = 90;
   p.pk = 1;
+  p.battleCamp = 'tong';
   const pSim = makeSim(p.id, 'player', p, 'metal', 120);
   pSim.charId = 'char-win';
   tongKim.registerPlayer(pSim, 'tong');
+
+  const k = new Actor();
+  k.id = 'p-lose';
+  k.name = 'KimPlayer';
+  k.kind = 'player';
+  k.level = 120;
+  k.battleCamp = 'kim';
+  const kSim = makeSim(k.id, 'player', k, 'wood', 120);
+  kSim.charId = 'char-lose';
+  tongKim.registerPlayer(kSim, 'kim');
 
   const m = new Actor();
   m.id = 'kim-marshal';
@@ -518,14 +529,15 @@ test('Tống Kim: hạ 1 Nguyên Soái trận vẫn tiếp tục tới hết gi�
 
   const removed: string[] = [];
   const transferred: { id: string; mapId: number }[] = [];
+  const notified: { id: string; text: string; tone?: string }[] = [];
   const w = {
     now,
     meta: MAPS[TK_BATTLE_MAP_ID],
-    sims: new Map([[pSim.id, pSim], [mSim.id, mSim]]),
+    sims: new Map([[pSim.id, pSim], [kSim.id, kSim], [mSim.id, mSim]]),
     removeSim: (id: string) => { removed.push(id); w.sims.delete(id); },
     hooks: {
       announce: () => {},
-      notify: () => {},
+      notify: (sim: { id: string }, text: string, tone?: string) => notified.push({ id: sim.id, text, tone }),
       log: () => {},
       transfer: (sim: { id: string }, mapId: number) => transferred.push({ id: sim.id, mapId }),
     },
@@ -541,6 +553,14 @@ test('Tống Kim: hạ 1 Nguyên Soái trận vẫn tiếp tục tới hết gi�
 
   w.now = now + 20_000;
   tongKim.onTkKill(w as never, mSim, pSim);
+  assert.deepEqual(
+    notified.find(n => n.id === pSim.id),
+    { id: pSim.id, text: 'Nguyên soái quân địch đã bị giết.', tone: 'victory' },
+  );
+  assert.deepEqual(
+    notified.find(n => n.id === kSim.id),
+    { id: kSim.id, text: 'Nguyên soái quân ta đã bị ám sát. Tổng tấn công phe địch', tone: 'danger' },
+  );
   const midSnap = tongKim.snapshotFor('char-win', now + 20_000);
   assert.equal(midSnap.phase, 'fighting', 'giết 1 Nguyên Soái không dừng trận ngay');
   assert.equal(midSnap.tongMarshalAlive, true);

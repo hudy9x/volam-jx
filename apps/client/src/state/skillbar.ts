@@ -152,6 +152,18 @@ class SkillBarState {
     return null;
   }
 
+  /** Select a skill from key slot 0–8 onto the left mouse slot without modifying the key slot. */
+  selectLeft(slot: number): boolean {
+    if (slot < 0 || slot >= BAR_KEYS) return false;
+    const keySkill = this.skillAt(slot);
+    if (keySkill === null) return false;
+    if (this.skillAt('left') === keySkill) return false;
+    this.bar.left = keySkill;
+    this.save();
+    this.changed('bar');
+    return true;
+  }
+
   startCooldown(id: number, mounted = false): void {
     const s = getSkill(id);
     if (!s) return;

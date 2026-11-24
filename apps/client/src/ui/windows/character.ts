@@ -175,7 +175,7 @@ export class CharacterWindow {
       if (!s || !p.combat) return `${st.physMin}/${st.physMax}`;
       const d = skillDamage(s, Math.max(1, skillbar.levelOf(id)), id, p.combat);
       const lo = d.phys[0] + d.cold[0] + d.fire[0] + d.light[0], hi = d.phys[1] + d.cold[1] + d.fire[1] + d.light[1];
-      return `${Math.round(lo)}/${Math.round(hi)}${d.poison ? ` +độc ${Math.round(d.poison.tick)}` : ''}`;
+      return `${Math.floor(lo)}/${Math.floor(hi)}${d.poison ? ` +độc ${Math.floor(d.poison.tick)}` : ''}`;
     };
     set('ca-dmg-l', hand('left')); set('ca-dmg-r', hand('right'));
     if (p.combat) {

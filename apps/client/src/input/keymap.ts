@@ -38,7 +38,7 @@ export function shortcutHelp(): [string, string][] {
     ['Click đất / bản đồ nhỏ', 'Chạy tới'],
     ['Click quái / người', 'Khóa mục tiêu, đánh liên tục bằng chiêu chuột trái (T)'],
     ['Chuột phải', 'Chiêu chuột phải (P)'],
-    ['1 – 9', 'Chiêu trên thanh phím tắt'],
+    ['1 – 9', 'Dùng thuốc hoặc chọn nhanh chiêu thức cho chuột trái (T)'],
     [`${k('char')} · ${k('skills')} · ${k('bag')} · ${k('travel')} / Shift+${k('bigmap')} · ${k('bigmap')}`, 'Trang bị và Thuộc tính · Kỹ năng · Hành trang · Chuyển map (Xa phu) · Bản đồ'],
     [`${k('mount')} · ${k('pk')}`, 'Lên / xuống ngựa · Đổi chế độ PK (Luyện công → Chiến đấu → Đồ sát)'],
     [`${k('team')} · ${k('kytran')} · ${k('shop')}`, 'Tổ đội · Kỳ Trân Các · Thợ rèn (trong thành)'],

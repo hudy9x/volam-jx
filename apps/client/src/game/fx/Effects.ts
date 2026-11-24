@@ -42,7 +42,8 @@ export class Effects {
           if (!view) break;
           if (e.miss) { this.floatText(view, 'Trượt', '#c8c8c8', 14); break; }
           if (e.fatal) this.floatText(view, 'Chí tử!', '#ff3df0', 16, -22);
-          this.floatText(view, e.crit ? `${e.dmg}!` : `${e.dmg}`, this.damageColor(view, !!e.crit, !!e.dot), e.crit ? 22 : 16);
+          const shownDmg = Math.floor(e.dmg);
+          this.floatText(view, e.crit ? `${shownDmg}!` : `${shownDmg}`, this.damageColor(view, !!e.crit, !!e.dot), e.crit ? 22 : 16);
           break;
         }
         case 'ctl': { // choáng / chậm / độc started (formulas/effects.ts)

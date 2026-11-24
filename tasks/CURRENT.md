@@ -1,3 +1,25 @@
+## 2026-11-24 · Làm tròn xuống (`Math.floor`) điểm sát thương, Phím `1–9` chọn nhanh chiêu lên tay trái & Thông báo hạ Nguyên Soái theo phe
+
+- **USER yêu cầu:**
+  1. Giá trị điểm sát thương hiển thị làm tròn theo số nguyên, làm tròn xuống (`Math.floor`), không làm tròn lên.
+  2. Khi người chơi ấn các phím `1–9` (nếu ô đó là chiêu thức của người chơi), tự động hiển thị chiêu thức đó lên ô chuột trái (`left`) mà giữ nguyên chiêu tại ô `1–9` (không swap 2 chiều; vật phẩm/thuốc trên phím `1–9` vẫn dùng ngay như cũ).
+  3. Bổ sung 2 thông báo khác màu khi Nguyên Soái Tống Kim bị hạ: phe mất Soái thấy `"Nguyên soái quân ta đã bị ám sát. Tổng tấn công phe địch"` (màu đỏ), phe thắng thấy `"Nguyên soái quân địch đã bị giết."` (màu xanh lá).
+- **Thay đổi:**
+  - **Làm tròn xuống điểm sát thương:**
+    - `packages/shared/src/formulas/damage.ts`: chuyển `resolveHit` (sát thương trực tiếp & độc sát theo tick) và `damageReturn` từ `Math.round` sang `Math.floor` (giữ mức tối thiểu `1` cho sát thương dương `< 1`).
+    - `packages/shared/src/skills/engine/SkillEngine.ts`: chuyển scale sát thương trực tiếp sang `Math.floor` và làm tròn xuống `hit.poison.tick * ownerScale` thành số nguyên ngay lúc gán độc.
+    - `apps/server/src/world/systems/combat.ts`: chuẩn hóa `dmg`, `absorb` (Hộ Thuẫn Nội Lực tĩnh) và `fromMp` (`manashield_p`) trong `applyHit` bằng `Math.floor`.
+    - `apps/client/src/game/fx/Effects.ts`, `apps/client/src/ui/windows/character.ts`: dùng `Math.floor` cho số sát thương nổi và chỉ số Lực tay trái/phải trong bảng Nhân vật (`Q`).
+  - **Chọn nhanh chiêu thức `1–9` lên tay trái (không swap):**
+    - `apps/client/src/state/skillbar.ts`: thêm `SkillBarState.selectLeft(slot)` gán `bar.left = keySkill` và giữ nguyên `bar.keys[slot]` (bỏ qua ô trống, ô thuốc hoặc trùng chiêu).
+    - `apps/client/src/game/WorldScene.ts`, `apps/client/src/ui/hud/quickbar.ts`, `apps/client/src/input/keymap.ts`: phím `1–9` và chạm vào ô chiêu `1–9` trên thanh Quickbar (Web/Desktop/Mobile) gọi `selectLeft` thay cho cast trực tiếp; ô thuốc vẫn dùng ngay, ô trống/chuột vẫn mở bảng Kỹ năng; cập nhật trợ giúp phím tắt.
+  - **Thông báo hạ Nguyên Soái theo phe với màu chữ riêng:**
+    - `packages/shared/src/protocol.ts`: thêm `NoticeTone = 'default' | 'danger' | 'victory'` và `NoticeMsg.tone`.
+    - `apps/server/src/world/World.ts`, `apps/server/src/net/MapRoom.ts`, `apps/server/src/world/tongkim.ts`: truyền `tone` qua `WorldHooks.notify`/`announce`; khi Nguyên Soái bị hạ trong `onTkKill`, gửi `notify` riêng cho từng người chơi theo phe (`'danger'` / `'victory'`).
+    - `apps/client/src/game/{ports.ts,WorldScene.ts}`, `apps/client/src/ui/hud/{Hud.ts,notices.ts,notices.css}`: hỗ trợ `notice(text, tone)` với `.notice-danger` (`#ff5c4d`) và `.notice-victory` (`#5dff7a`).
+  - `tests/damage-floor-and-skillbar-swap.test.ts`, `tests/tong-kim.test.ts`: kiểm chứng làm tròn xuống cho `resolveHit`, `damageReturn`, `SkillEngine`, `SkillBarState.selectLeft`, và thông báo `danger`/`victory` khi Nguyên Soái bị hạ.
+- **Kiểm tra:** `node --import tsx --test tests/damage-floor-and-skillbar-swap.test.ts tests/tong-kim.test.ts tests/mantle-fortune.test.ts tests/control-effects.test.ts tests/boss-resistance.test.ts tests/xiaoyao.test.ts tests/auto-behavior.test.ts tests/golden-boss-damage.test.ts` (**115/115 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Chưa commit/push.
+
 ## 2026-11-23 · Nén public thành ZIP chia phần 200 MB
 
 - Theo yêu cầu USER, đã nén toàn bộ `apps/client/public` vào `apps/client/zip/public.z01`…`public.z61` và `public.zip` (62 phần, mỗi phần ≤ 200.000.000 byte).

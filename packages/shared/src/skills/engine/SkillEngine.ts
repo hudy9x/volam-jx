@@ -773,9 +773,12 @@ export class SkillEngine {
     const scale = DAMAGE_SCALE * (tuningOf(m.root).damage ?? 1) * ownerScale;
     // Snapshot scaled poison once at application; later ticks must not scale it again.
     // hitEffects still applies poison reduction and the existing merge caps.
-    if (hit.poison) hit.poison = { ...hit.poison, tick: hit.poison.tick * ownerScale };
+    if (hit.poison) {
+      const scaledTick = hit.poison.tick * ownerScale;
+      hit.poison = scaledTick > 0 ? { ...hit.poison, tick: Math.max(1, Math.floor(scaledTick)) } : null;
+    }
     this.port.damage(owner, t, {
-      dmg: hit.dmg > 0 ? Math.max(1, Math.round(hit.dmg * scale)) : 0, crit: hit.crit, miss: hit.miss, fatal: hit.fatal,
+      dmg: hit.dmg > 0 ? Math.max(1, Math.floor(hit.dmg * scale)) : 0, crit: hit.crit, miss: hit.miss, fatal: hit.fatal,
       effects: hitEffects(s, lv, atk, def, hit, r), skill: m.root,
     });
     // Passive triggers (120 skills): on hitting / being hit / low Sinh lực.

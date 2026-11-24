@@ -333,7 +333,8 @@ export interface TeamInviteMsg { from: string }
 export interface InventoryMsg { pickedUp?: Item; bag: (Item | null)[]; equip: Partial<Record<string, Item>>; money: number; knb?: number }
 /** Account-shared stash (3 pages = STASH_SIZE) + shared money & KNB. */
 export interface StashMsg { stash: (Item | null)[]; money: number; knb: number }
-export interface NoticeMsg { text: string }
+export type NoticeTone = 'default' | 'danger' | 'victory';
+export interface NoticeMsg { text: string; tone?: NoticeTone }
 /** Characters online on every map (kênh Thế giới header — USER 2026-11-13). */
 export interface OnlineMsg { n: number }
 /** What a Hệ thống line is about (its colour on the client). Map changes are written by the client itself. */

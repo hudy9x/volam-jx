@@ -1,4 +1,4 @@
-import type { TokenMsg, TeamOrderMsg, SuggestMsg, EquipSlot, FactionDef, MapMeta, NpcAction, Potential } from '@vltk/shared';
+import type { TokenMsg, TeamOrderMsg, SuggestMsg, EquipSlot, FactionDef, MapMeta, NpcAction, NoticeTone, Potential } from '@vltk/shared';
 import type { ActorState } from '../state/actor';
 
 /**
@@ -132,7 +132,7 @@ export interface MapLabel { x: number; y: number; name: string }
 export interface WorldUi {
   /** Full-screen loading text; null hides it. */
   loading(text: string | null): void;
-  notice(text: string): void;
+  notice(text: string, tone?: NoticeTone): void;
   /** The scene is ready on a map: show the HUD for it. */
   show(meta: MapMeta, actions: WorldActions): void;
   /** The own character appeared. */

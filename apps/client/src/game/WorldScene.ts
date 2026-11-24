@@ -126,7 +126,7 @@ export class WorldScene extends Phaser.Scene {
 
     // ---- messages ----
     this.cleanups.push(this.room.onMessage(S2C.fx, (events: FxEvent[]) => this.effects.handle(events)));
-    this.cleanups.push(this.room.onMessage(S2C.notice, (msg: NoticeMsg) => this.ui.notice(msg.text)));
+    this.cleanups.push(this.room.onMessage(S2C.notice, (msg: NoticeMsg) => this.ui.notice(msg.text, msg.tone)));
     // Unexpected disconnects only: our own leave() (map transfer) closes with CONSENTED.
     const onLeave = (code: number) => {
       if (code === CloseCode.CONSENTED || code === 1000) return;
@@ -339,15 +339,15 @@ export class WorldScene extends Phaser.Scene {
       document.addEventListener('focusin', typing);
       document.addEventListener('focusout', typing);
       this.cleanups.push(() => { document.removeEventListener('focusin', typing); document.removeEventListener('focusout', typing); keys.enabled = true; });
-      const atPointer = (slot: number) => {
-        const p = this.input.activePointer;
-        if (!inside(p)) return;
-        const wp = this.cameras.main.getWorldPoint(p.x, p.y);
-        const target = this.pickActor(wp.x, wp.y);
-        cast(slot, wp.x, wp.y, target && target.state.kind !== 'npc' ? target : undefined);
+      const onKeySlot = (slot: number) => {
+        if (!this.self || this.self.state.hp <= 0) return;
+        const item = skillbar.itemAt(slot);
+        if (item) { this.actions.useItem(item); return; }
+        if (skillbar.skillAt(slot) !== null) { skillbar.selectLeft(slot); return; }
+        this.ui.notice(`Ô này chưa có chiêu: mở Kỹ năng (${KEYS.skills.label}) và kéo chiêu vào.`);
       };
       // Shortcuts: input/keymap.ts. Esc is handled by the window manager (ui/kit/dialog.ts).
-      SLOT_KEYS.forEach((name, i) => keys.on(`keydown-${name}`, () => atPointer(i)));
+      SLOT_KEYS.forEach((name, i) => keys.on(`keydown-${name}`, () => onKeySlot(i)));
       const bind = (action: KeyAction, run: (event: KeyboardEvent) => void) => keys.on(`keydown-${KEYS[action].code}`, run);
       // Tab would move the browser focus: keep it for the big map.
       keys.addCapture(KEYS.bigmap.code);

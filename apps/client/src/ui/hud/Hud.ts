@@ -1,5 +1,5 @@
 import { characterAuto, setCharacterAutoEnabled } from '../../state/characterAuto';
-import type { FactionDef, MapMeta } from '@vltk/shared';
+import type { FactionDef, MapMeta, NoticeTone } from '@vltk/shared';
 import type { MapActor, MapLabel, NpcTalk, PlayerMenuTarget, ViewRect, WindowId, WorldActions, WorldUi } from '../../game/ports';
 import type { ActorState } from '../../state/actor';
 import { FACTIONS, isoDistance } from '@vltk/shared';
@@ -193,8 +193,8 @@ export class Hud implements WorldUi {
     this.loadingScreen.set(text);
   }
 
-  notice(text: string): void {
-    this.notices.notice(text);
+  notice(text: string, tone?: NoticeTone): void {
+    this.notices.notice(text, tone);
   }
 
   show(meta: MapMeta, actions: WorldActions): void {

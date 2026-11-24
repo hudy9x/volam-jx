@@ -139,9 +139,9 @@ export class MapRoom extends Room<{ state: MapState }> {
     this.state.mapId = mapId;
     this.world = new World(mapId, this.state.actors, {
       transfer: (sim, toMap, x, y) => this.transfer(sim, toMap, x, y),
-      notify: (sim, text) => this.notify(sim, text),
+      notify: (sim, text, tone) => this.notify(sim, text, tone),
       log: (sim, kind, text) => this.clientOf(sim)?.send(S2C.log, { kind, text } satisfies LogMsg),
-      announce: text => this.broadcast(S2C.notice, { text } satisfies NoticeMsg),
+      announce: (text, tone) => this.broadcast(S2C.notice, (tone ? { text, tone } : { text }) satisfies NoticeMsg),
       progress: sim => { const c = this.clientOf(sim); if (c) this.sendStats(c, sim); },
       skills: sim => { const c = this.clientOf(sim); if (c) this.sendSkills(c, sim); },
       inventory: sim => { const c = this.clientOf(sim); if (c) { this.sendInventory(c, sim); this.saveCharacter(sim); } },
@@ -801,7 +801,7 @@ export class MapRoom extends Room<{ state: MapState }> {
     client?.send(S2C.transfer, { mapId } satisfies TransferMsg);
   }
 
-  private notify(sim: Sim, text: string): void {
-    this.clients.find(c => c.sessionId === sim.sessionId)?.send(S2C.notice, { text } satisfies NoticeMsg);
+  private notify(sim: Sim, text: string, tone?: import('@vltk/shared').NoticeTone): void {
+    this.clients.find(c => c.sessionId === sim.sessionId)?.send(S2C.notice, (tone ? { text, tone } : { text }) satisfies NoticeMsg);
   }
 }

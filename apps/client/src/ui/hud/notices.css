@@ -1,6 +1,8 @@
 #notices { position: absolute; top: 120px; left: 50%; transform: translateX(-50%); display: grid; gap: 4px; justify-items: center; width: min(600px, calc(var(--hud-w, 100vw) - 32px)); }
 .notice { color: var(--hl); font-size: 14px; font-weight: 700; padding: 3px 14px; text-align: center; text-shadow: var(--outline);
   background: linear-gradient(90deg, transparent, #000a 20%, #000a 80%, transparent); animation: fade 4s forwards; }
+.notice-danger { color: #ff5c4d; }
+.notice-victory { color: #5dff7a; }
 @keyframes fade { 0%, 75% { opacity: 1 } 100% { opacity: 0 } }
 /* Part of the same flex row as Cấp: no independent screen coordinates. */
 #auto-badge { position: relative; flex: none; height: 20px; min-width: 62px; padding: 0 5px; pointer-events: auto;
