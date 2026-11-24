@@ -672,3 +672,145 @@ test('canPaySkillCost checks cost_sp (Âm Luật); AutoPlay starts with left-han
   r.auto.update(nowMs, rotateOpts);
   assert.deepEqual(r.casts, [2129, 2124], 'rotates to 2124 while 2129 is on cooldown');
 });
+
+test('auto-mounts on long travel (> 450 iso) for combat, return-to-anchor and loot, throttled at 1s and skipped without horse', () => {
+  const r = rig();
+  const mounts: boolean[] = [];
+  const moves: { x: number; y: number }[] = [];
+  r.self.state.horse = 'horse-1';
+  r.self.state.mounted = false;
+  r.host.mount = (on: boolean) => { mounts.push(on); r.self.state.mounted = on; };
+  r.host.move = (x: number, y: number) => { moves.push({ x, y }); };
+
+  // 1) Far enemy (> 450 iso): auto-mounts even before casting
+  r.actors.splice(0, r.actors.length, {
+    id: 'far', x: 700, y: 0, isSelf: false,
+    state: { kind: 'monster', level: 100, hp: 100, maxHp: 100, mp: 100, maxMp: 100, boss: 0, sprite: '' },
+  });
+  r.slots.push(2124);
+  r.host.skillAt = slot => (slot === 'left' ? 2124 : r.slots[slot] ?? null);
+  r.host.usable = id => id === 2124;
+  r.host.ready = id => id === 2124;
+  r.host.range = () => 300;
+
+  r.auto.start();
+  r.auto.update(1000, r.opts);
+  assert.deepEqual(mounts, [true], 'should mount when approaching target > 450 iso');
+
+  // 2) Throttling: if server hasn't confirmed mounted=true yet, does not spam mount within 1000ms
+  mounts.length = 0;
+  r.self.state.mounted = false;
+  r.auto.update(1500, r.opts);
+  assert.deepEqual(mounts, [], 'throttles mount command within 1000ms');
+  r.auto.update(2100, r.opts);
+  assert.deepEqual(mounts, [true], 'retries mount after 1000ms');
+
+  // 3) Without a horse equipped, never sends mount
+  mounts.length = 0;
+  r.self.state.horse = '';
+  r.self.state.mounted = false;
+  r.auto.update(3500, r.opts);
+  assert.deepEqual(mounts, []);
+
+  // 4) Returning to anchor > 450 iso also auto-mounts (anchor was updated to 700 during autoSeek)
+  r.self.state.horse = 'horse-1';
+  r.actors.length = 0;
+  r.self.x = 1300;
+  r.auto.update(5000, { ...r.opts, autoSeek: false, autoReturn: true });
+  assert.deepEqual(mounts, [true], 'mounts when returning to anchor > 450 iso');
+  assert.ok(moves.length > 0);
+});
+
+test('auto-mounts when casting a horse-compatible attack skill (!noHorse)', () => {
+  const r = rig();
+  const mounts: boolean[] = [];
+  r.self.state.horse = 'horse-1';
+  r.self.state.mounted = false;
+  r.host.mount = (on: boolean) => { mounts.push(on); };
+
+  const mountedSkill = Array.from({ length: 2200 }, (_, id) => getSkill(id))
+    .find(s => s && s.id !== 1 && isCastable(s) && skillCategory(s) === 'attack' && !s.noHorse)!.id;
+  assert.equal(!!getSkill(mountedSkill)?.noHorse, false);
+  r.actors.splice(0, r.actors.length, {
+    id: 'near', x: 80, y: 0, isSelf: false,
+    state: { kind: 'monster', level: 100, hp: 100, maxHp: 100, mp: 100, maxMp: 100, boss: 0, sprite: '' },
+  });
+  r.host.skillAt = slot => (slot === 'left' ? mountedSkill : null);
+  r.host.learnedSkills = () => [mountedSkill];
+  r.host.usable = id => id === mountedSkill;
+  r.host.usableIgnoreMount = id => id === mountedSkill;
+  r.host.ready = id => id === mountedSkill;
+
+  r.auto.start();
+  r.auto.update(1000, r.opts);
+  assert.deepEqual(mounts, [true], 'auto-mounts for horse-compatible attack skill');
+  assert.deepEqual(r.casts, [mountedSkill], 'still casts the skill without blocking');
+});
+
+test('noHorse attack skill travels mounted when far, then dismounts and waits before casting', () => {
+  const r = rig();
+  const mounts: boolean[] = [];
+  const moves: { x: number; y: number }[] = [];
+  r.self.state.horse = 'horse-1';
+  r.self.state.mounted = true;
+  r.host.mount = (on: boolean) => { mounts.push(on); };
+  r.host.move = (x: number, y: number) => { moves.push({ x, y }); };
+
+  // 128 (Kháng Long Hữu Hối) is noHorse: true
+  assert.equal(getSkill(128)?.noHorse, true);
+  const foe: AutoActor = {
+    id: 'foe', x: 700, y: 0, isSelf: false,
+    state: { kind: 'monster', level: 100, hp: 100, maxHp: 100, mp: 100, maxMp: 100, boss: 0, sprite: '' },
+  };
+  r.actors.splice(0, r.actors.length, foe);
+  r.host.skillAt = slot => (slot === 'left' ? 128 : null);
+  r.host.learnedSkills = () => [128];
+  r.host.usableIgnoreMount = id => id === 128;
+  r.host.usable = id => id === 128 && !r.self.state.mounted;
+  r.host.ready = id => id === 128 && !r.self.state.mounted;
+  r.host.range = () => 300;
+
+  // 1) Far away (700 > 450): stays mounted and walks closer first
+  r.auto.start();
+  r.auto.update(1000, r.opts);
+  assert.deepEqual(mounts, [], 'stays mounted while far');
+  assert.equal(moves.length, 1, 'walks toward far target while mounted');
+  assert.deepEqual(r.casts, []);
+
+  // 2) Enters close range (120 <= 300): sends dismount and waits for confirmation before casting
+  r.self.x = 580;
+  r.auto.update(2000, r.opts);
+  assert.deepEqual(mounts, [false], 'sends dismount when in range for noHorse skill');
+  assert.deepEqual(r.casts, [], 'waits for server mounted=false confirmation');
+
+  // 3) Server confirms mounted=false: immediately casts 128
+  r.self.state.mounted = false;
+  r.auto.update(2100, r.opts);
+  assert.deepEqual(r.casts, [128]);
+});
+
+test('noHorse buff skill dismounts first when autoBuff is enabled, then casts buff', () => {
+  const r = rig();
+  const mounts: boolean[] = [];
+  r.self.state.horse = 'horse-1';
+  r.self.state.mounted = true;
+  r.host.mount = (on: boolean) => { mounts.push(on); };
+
+  // 1230 (Minh Kính Vô Di) is an auto-buff with noHorse: true
+  assert.equal(getSkill(1230)?.noHorse, true);
+  r.actors.length = 0;
+  r.host.learnedSkills = () => [1230];
+  r.host.usableIgnoreMount = id => id === 1230;
+  r.host.usable = id => id === 1230 && !r.self.state.mounted;
+  r.host.ready = id => id === 1230 && !r.self.state.mounted;
+
+  const buffOpts = { ...r.opts, autoBuff: true };
+  r.auto.start();
+  r.auto.update(1000, buffOpts);
+  assert.deepEqual(mounts, [false], 'sends dismount for noHorse buff');
+  assert.deepEqual(r.casts, [], 'waits for dismount before casting buff');
+
+  r.self.state.mounted = false;
+  r.auto.update(1100, buffOpts);
+  assert.deepEqual(r.casts, [1230], 'casts buff after server confirms dismount');
+});

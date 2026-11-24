@@ -386,6 +386,7 @@ export class BotClient {
         return slot === 'left' ? this.left : this.keys[slot] ?? null;
       },
       usable: id => this.usable(id),
+      usableIgnoreMount: id => { const s = getSkill(id); return !!s && this.levelOf(id) > 0 && weaponOk(s, this.weapon()); },
       ready: id => this.ready(id),
       resourceCost: id => { const s = getSkill(id); return s ? skillResourceCost(s, Math.max(1, this.levelOf(id))) : undefined; },
       cost: id => { const s = getSkill(id); const c = s && skillResourceCost(s, Math.max(1, this.levelOf(id))); return c?.resource === 'mp' ? c.amount : 0; },
@@ -393,6 +394,7 @@ export class BotClient {
       melee: id => { const s = getSkill(id); return !!s && isMelee(s); },
       cast: (skill, target, x, y, lock, reach) => this.cast(skill, target?.id, x, y, lock, reach),
       move: (x, y) => this.send(C2S.move, { x: Math.round(x), y: Math.round(y) }),
+      mount: on => this.send(C2S.mount, { on }),
       bag: () => this.bag,
       money: () => this.money,
       use: index => this.send(C2S.use, { index }),

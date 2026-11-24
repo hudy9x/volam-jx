@@ -456,6 +456,10 @@ export class WorldScene extends Phaser.Scene {
         const s = getSkill(skill);
         return !!s && skillbar.levelOf(skill) > 0 && skillbar.usable(skill) && !(s.noHorse && this.self?.state.mounted);
       },
+      usableIgnoreMount: skill => {
+        const s = getSkill(skill);
+        return !!s && skillbar.levelOf(skill) > 0 && skillbar.usable(skill);
+      },
       resourceCost: skill => { const s = getSkill(skill); return s ? skillResourceCost(s, Math.max(1, skillbar.levelOf(skill))) : undefined; },
       cost: skill => { const s = getSkill(skill); const c = s && skillResourceCost(s, Math.max(1, skillbar.levelOf(skill))); return c?.resource === 'mp' ? c.amount : 0; },
       ready: skill => {
@@ -469,6 +473,7 @@ export class WorldScene extends Phaser.Scene {
         this.room.send(C2S.cast, { skill, targetId: target?.id, x: Math.round(x), y: Math.round(y), lock, reach });
       },
       move: (x, y) => this.room.send(C2S.move, { x: Math.round(x), y: Math.round(y) }),
+      mount: on => this.room.send(C2S.mount, { on }),
       bag: () => inventory.get().bag,
       money: () => inventory.get().money,
       use: index => this.actions.use(index),

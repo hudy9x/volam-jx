@@ -1,4 +1,18 @@
-## 2026-11-24 · Làm tròn xuống (`Math.floor`) điểm sát thương, Phím `1–9` chọn nhanh chiêu lên tay trái & Thông báo hạ Nguyên Soái theo phe
+## 2026-11-24 · Auto: Tự động lên/xuống ngựa theo quãng đường di chuyển và điều kiện kỹ năng (đã commit)
+
+- **USER yêu cầu:**
+  1. Đã commit các thay đổi trước đó (`e36ad12`).
+  2. Bổ sung chức năng tự động lên/xuống ngựa cho Auto (dùng chung cho người chơi Web/Desktop/Mobile và Bot):
+     - Quãng đường di chuyển xa (`> AUTO_MOUNT_TRAVEL_DIST = 450` iso) → tự động lên ngựa.
+     - Chiêu thức có thể đánh trên ngựa (`!s.noHorse`) → tự động lên ngựa.
+     - Kỹ năng không thể dùng trên ngựa (`s.noHorse`: chiêu tấn công, bùa lợi, bùa hại) → tự động xuống ngựa và chờ xác nhận trước khi thi triển.
+- **Thay đổi:**
+  - `packages/shared/src/auto/AutoPlay.ts`: thêm `AUTO_MOUNT_TRAVEL_DIST = 450`, `AUTO_DISMOUNT_DIST = 300`, `MOUNT_GAP_MS = 1000`; mở rộng `AutoActorState` (`horse`, `mounted`, `stallTitle`) và `AutoHost` (`usableIgnoreMount`, `mount`); cài `ensureMount()`, `plannedAttackSkill()` và tích hợp vào `update()` (tiếp cận mục tiêu xa, quay về `anchor`), `pick()` (nhặt đồ xa), `attack()`, `buff()`, `curse()`.
+  - `apps/client/src/game/WorldScene.ts`, `tools/bots/runner/BotClient.ts`: nối `usableIgnoreMount` và `mount: on => ... (C2S.mount)` vào `AutoHost`.
+  - `tests/auto-behavior.test.ts`, `docs/auto.md`: bổ sung 4 test case kiểm chứng tự lên ngựa khi đi xa / dùng chiêu cưỡi ngựa, giữ cưỡi khi áp sát và xuống ngựa trước khi dùng chiêu/buff `noHorse`, giãn nhịp `1000 ms` và bỏ qua khi không có ngựa; cập nhật `docs/auto.md`.
+- **Kiểm tra:** `node --import tsx --test tests/auto-behavior.test.ts tests/auto-passive-fx.test.ts tests/auto-server-target.test.ts tests/locked-attack.test.ts tests/bot-map-confinement.test.ts tests/tong-kim.test.ts tests/damage-floor-and-skillbar-swap.test.ts` (**103/103 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. (Ghi chú: chạy `npm run test:auto` có 1 lỗi sẵn có không liên quan ở `tests/training-return.test.mts:68` trên map `37`). Đã commit trên `main`, chưa push.
+
+## 2026-11-24 · Làm tròn xuống (`Math.floor`) điểm sát thương, Phím `1–9` chọn nhanh chiêu lên tay trái & Thông báo hạ Nguyên Soái theo phe (đã commit `e36ad12`)
 
 - **USER yêu cầu:**
   1. Giá trị điểm sát thương hiển thị làm tròn theo số nguyên, làm tròn xuống (`Math.floor`), không làm tròn lên.

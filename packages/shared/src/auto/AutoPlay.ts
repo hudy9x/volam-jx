@@ -47,6 +47,10 @@ export interface AutoActorState {
   anim?: string;
   actionMs?: number;
   ctl?: number;
+  /** Ngựa đang mặc, trạng thái đang cưỡi và tên sạp (đang bày bán không thể lên/xuống ngựa). */
+  horse?: string;
+  mounted?: boolean;
+  stallTitle?: string;
 }
 
 /** An actor as auto-fight sees it (the client's actor views and the bot's room actors fit this). */
@@ -79,6 +83,8 @@ export interface AutoHost {
   skillAt(slot: 'left' | number): number | null;
   /** The worn weapon can use that skill and it is learned. */
   usable(skill: number): boolean;
+  /** Learned + weapon-compatible skill ignoring mount state (for auto mount/dismount decisions). */
+  usableIgnoreMount?(skill: number): boolean;
   /** Off cooldown and enough of the skill resource (including HP reserve). */
   ready(skill: number): boolean;
   /** Resource-aware hosts; legacy hosts expose only MP cost below. */
@@ -91,6 +97,7 @@ export interface AutoHost {
   /** `reach`: walk this close before casting (CastMsg.reach). */
   cast(skill: number, target: AutoActor | undefined, x: number, y: number, lock: boolean, reach?: number): void;
   move(x: number, y: number): void;
+  mount?(on: boolean): void;
   /** The own hành trang, money, and orders on it. */
   bag(): readonly (Item | null)[];
   money(): number;
@@ -134,6 +141,10 @@ const BASIC_ATTACK = 1;
 export const AUTO_NEAR_RADIUS = 600;
 /** USER 2026-11-20: priority loot mode detects and prioritizes drops within this isometric radius over all combat. */
 export const AUTO_LOOT_PRIORITY_RADIUS = 1200;
+/** Auto-mount when travelling further than this isometric distance, and wait for dismount inside AUTO_DISMOUNT_DIST. */
+export const AUTO_MOUNT_TRAVEL_DIST = 450;
+const AUTO_DISMOUNT_DIST = 300;
+const MOUNT_GAP_MS = 1000;
 /**
  * Approach (how close: state/settings.ts approachDistance): targets further than WALK_BEYOND are walked to first (the
  * server gives a lock up beyond 1600), the walk re-sent every WALK_GAP_MS.
@@ -207,6 +218,7 @@ export class AutoPlay {
   private buffTried = new Map<number, number>();
   private curseTried = new Map<string, number>();
   private lastReturn = -Infinity;
+  private lastMountAt = -Infinity;
   private manualPauseAt = -Infinity;
   private manualMoving = false;
   private bans = new Map<string, number>();
@@ -249,6 +261,7 @@ export class AutoPlay {
     this.pursuit = { id: '', at: 0 };
     this.moved = { x: self?.x ?? 0, y: self?.y ?? 0, at: 0 };
     this.lastWalk = -Infinity;
+    this.lastMountAt = -Infinity;
     this.buffTried.clear();
     this.lastBuff = -Infinity;
     this.utility = null;
@@ -376,13 +389,28 @@ export class AutoPlay {
     if (target) {
       if (opts.autoSeek) this.anchor = { x: target.x, y: target.y };
       if (this.stuck(now, self, target, opts)) return;
-      if (isoDistance(self.x, self.y, target.x, target.y) > WALK_BEYOND) { this.walkTo(now, target); return; }
+      const dist = isoDistance(self.x, self.y, target.x, target.y);
+      const planned = this.plannedAttackSkill();
+      const plannedDef = getSkill(planned);
+      const plannedReach = this.reachOf(planned, opts);
+      if (dist > Math.max(AUTO_MOUNT_TRAVEL_DIST, plannedReach + 120)) {
+        this.ensureMount(now, self, true);
+        if (dist > WALK_BEYOND || (plannedDef?.noHorse && dist > Math.max(plannedReach + 80, AUTO_DISMOUNT_DIST))) {
+          this.walkTo(now, target);
+          return;
+        }
+      } else if (dist > WALK_BEYOND) {
+        this.walkTo(now, target);
+        return;
+      }
       if (opts.autoCurse && this.curse(now, self, target)) return;
       this.attack(now, target, opts);
       return;
     }
     this.target = null;
-    if (opts.autoReturn && !opts.autoSeek && isoDistance(self.x, self.y, this.anchor.x, this.anchor.y) > 60 && now - this.lastReturn > RETURN_GAP_MS) {
+    const anchorDist = isoDistance(self.x, self.y, this.anchor.x, this.anchor.y);
+    if (opts.autoReturn && !opts.autoSeek && anchorDist > 60 && now - this.lastReturn > RETURN_GAP_MS) {
+      if (anchorDist > AUTO_MOUNT_TRAVEL_DIST) this.ensureMount(now, self, true);
       this.lastReturn = now;
       this.host.move(this.anchor.x, this.anchor.y);
     }
@@ -492,6 +520,45 @@ export class AutoPlay {
     };
   }
 
+  private canUseIgnoringMount(id: number): boolean {
+    return this.host.usableIgnoreMount ? this.host.usableIgnoreMount(id) : this.host.usable(id);
+  }
+
+  /**
+   * Ensure mount state matches `wantMounted` with a 1s command throttle.
+   * Returns true when we must wait for dismount confirmation before casting an on-foot skill.
+   */
+  private ensureMount(now: number, self: AutoActor, wantMounted: boolean): boolean {
+    if (!this.host.mount || self.state.hp <= 0 || self.state.stallTitle) return false;
+    if (wantMounted) {
+      if (!self.state.horse || self.state.mounted) return false;
+      if (now - this.lastMountAt >= MOUNT_GAP_MS) {
+        this.lastMountAt = now;
+        this.host.mount(true);
+      }
+      return false;
+    }
+    if (!self.state.mounted) return false;
+    if (now - this.lastMountAt >= MOUNT_GAP_MS) {
+      this.lastMountAt = now;
+      this.host.mount(false);
+    }
+    return true;
+  }
+
+  /** Preferred attack skill ignoring mount state, so mounted players/bots know to dismount for an on-foot skill. */
+  private plannedAttackSkill(): number {
+    const s = this.host.skillAt('left') ?? BASIC_ATTACK;
+    const primary = getSkill(s);
+    if (primary && this.canUseIgnoringMount(s) && skillCategory(primary) === 'attack' && !primary.aura) return s;
+    for (let key = 0; key < 9; key++) {
+      const id = this.host.skillAt(key);
+      const skill = id !== null ? getSkill(id) : undefined;
+      if (skill && isCastable(skill) && skillCategory(skill) === 'attack' && this.canUseIgnoringMount(skill.id)) return skill.id;
+    }
+    return BASIC_ATTACK;
+  }
+
   private mainSkill(): number {
     const s = this.host.skillAt('left') ?? BASIC_ATTACK;
     // A hào quang on the left hand is on by itself (C2S.aura), it is not the attack.
@@ -522,8 +589,13 @@ export class AutoPlay {
 
   /** Lock the target with the main skill, or (rotation, including bosses) the next ready attack skill of the bar. */
   private attack(now: number, target: AutoActor, opts: Settings): void {
+    const self = this.host.self();
+    const planned = this.plannedAttackSkill();
+    if (getSkill(planned)?.noHorse && self?.state.mounted) {
+      if (this.ensureMount(now, self, false)) return;
+    }
     let skill = this.mainSkill();
-    const cost = this.host.resourceCost?.(skill), self = this.host.self();
+    const cost = this.host.resourceCost?.(skill);
     // Wait for recovery rather than evade a life-cost reserve with free basic attacks.
     if (cost?.resource === 'hp' && self && !canPaySkillCost(cost, self.state)) return;
     if (opts.autoRotate) {
@@ -540,6 +612,13 @@ export class AutoPlay {
     } else if (!this.host.ready(skill)) {
       // With rotation off: strictly wait for the main skill's cooldown / resource (e.g. [Âm Luật]) rather than switching skills.
       return;
+    }
+    if (self) {
+      if (getSkill(skill)?.noHorse) {
+        if (this.ensureMount(now, self, false)) return;
+      } else {
+        this.ensureMount(now, self, true);
+      }
     }
     if (target.id !== this.target || skill !== this.skillUsed || now - this.lockedAt > RELOCK_MS) {
       if (!this.engaged) {
@@ -620,10 +699,14 @@ export class AutoPlay {
     if (now - this.lastBuff < BUFF_GAP_MS) return false;
     for (const id of autoBuffSkills(learned)) {
       const s = getSkill(id)!;
-      if (!this.host.usable(id) || !this.host.ready(id)) continue;
+      if (!this.canUseIgnoringMount(id)) continue;
       const carriers = [s.id, s.events?.start, s.child].filter((k): k is number => !!k);
       if (carriers.some(k => active.has(k))) continue;
       if (now - (this.buffTried.get(s.id) ?? -Infinity) < BUFF_RETRY_MS) continue;
+      if (s.noHorse && self.state.mounted) {
+        if (this.ensureMount(now, self, false)) return true;
+      }
+      if (!this.host.usable(id) || !this.host.ready(id)) continue;
       this.buffTried.set(s.id, now);
       this.lastBuff = now;
       this.target = null;
@@ -647,10 +730,14 @@ export class AutoPlay {
     for (let key = 0; key < 9; key++) {
       const id = this.host.skillAt(key);
       const s = id !== null ? getSkill(id) : undefined;
-      if (!s || s.aura || !isCastable(s) || skillCategory(s) !== 'debuff' || !this.host.usable(s.id) || !this.host.ready(s.id)) continue;
+      if (!s || s.aura || !isCastable(s) || skillCategory(s) !== 'debuff' || !this.canUseIgnoringMount(s.id)) continue;
       if (on.has(s.id) || (s.child && on.has(s.child))) continue;
       const k = `${s.id}|${target.id}`;
       if (now - (this.curseTried.get(k) ?? -Infinity) < CURSE_RETRY_MS) continue;
+      if (s.noHorse && self.state.mounted) {
+        if (this.ensureMount(now, self, false)) return true;
+      }
+      if (!this.host.usable(s.id) || !this.host.ready(s.id)) continue;
       this.curseTried.set(k, now);
       if (this.curseTried.size > 200) this.curseTried.clear();
       this.waitForApplied(now, self, s.id, target.id);
@@ -862,6 +949,7 @@ export class AutoPlay {
     const tried = this.pickTried.get(best.id);
     this.pickTried.set(best.id, { n: (tried?.n ?? 0) + 1, at: now });
     if (this.pickTried.size > 200) this.pickTried.clear();
+    if (bestD > AUTO_MOUNT_TRAVEL_DIST) this.ensureMount(now, self, true);
     this.picking = { id: best.id, until: now + PICKUP_WAIT_MS };
     this.host.pickup(best.id);
     return true;
