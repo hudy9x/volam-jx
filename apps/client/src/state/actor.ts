@@ -49,6 +49,10 @@ export interface ActorState {
   battleCamp?: string;
   /** Tống Kim rank: 0..5. */
   battleRank?: number;
+  /** Tống Kim Phá Trụ: 0 thường, 1 trụ đường, 2 trụ bảo vệ, 3 nhà chính, 4 trụ vỡ. */
+  tkTower?: number;
+  tkInvuln?: boolean;
+  tkTarget?: string;
   /** Players: team id ('' = none). */
   team?: string;
   teamLeader?: boolean;

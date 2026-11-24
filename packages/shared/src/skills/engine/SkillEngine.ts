@@ -100,6 +100,17 @@ function facingAngle(dir: number): number {
 }
 
 
+/** Tính điểm rơi của Tích Lịch Loạn Hoàn Kích (#1110): 30% trúng chính xác mục tiêu, 70% rải xung quanh bán kính 50 px. */
+export function resolveTichLichLanding(aim: Point, rand: () => number): Point {
+  if (rand() < 0.3) return { x: aim.x, y: aim.y };
+  const angle = rand() * Math.PI * 2;
+  const dist = 15 + rand() * 35;
+  return {
+    x: Math.round(aim.x + Math.cos(angle) * dist),
+    y: Math.round(aim.y + Math.sin(angle) * dist * 0.5),
+  };
+}
+
 /**
  * Runs the original skill data for any Combatant: missile layouts (MisslesForm), generation timing
  * (MslsGenerate), missile movement (MoveKind), collisions, range damage, explosions, event skills and the
@@ -465,6 +476,7 @@ export class SkillEngine {
     let life = attr1(s, 'missle_lifetime_v', level, def.life ?? 1) || def.life || 1;
     const move = def.move ?? MoveKind.Stand;
     if (move === MoveKind.Parabola && speed > 0) {
+      if (s.id === 1110) aim = resolveTichLichLanding(aim, () => this.port.random());
       // Lobbed: lands on the aim point.
       angle = logicAngle(at.x, at.y, aim.x, aim.y);
       life = Math.max(2, Math.min(life, Math.ceil(isoDistance(at.x, at.y, aim.x, aim.y) / speed)));
@@ -606,7 +618,9 @@ export class SkillEngine {
         m.flyNext += (m.skill.events?.flyTicks ?? 1) * JX_TICK_MS;
         this.event(m, 'fly');
       }
-      if (!m.def.autoExplode || m.def.colVanish) this.collide(m);
+      if (m.def.move === MoveKind.Parabola) {
+        // Đạn ném vòng cung bay hết quỹ đạo tới điểm rơi, không nổ sớm giữa không trung
+      } else if (!m.def.autoExplode || m.def.colVanish) this.collide(m);
       else if (m.last >= m.pulseNext && m.last < m.dies) { // lingering area (ice rain…): blasts every DmgInterval
         m.pulseNext += (m.def.dmgInterval ?? 1) * JX_TICK_MS;
         if (this.area(m)) {
@@ -615,6 +629,13 @@ export class SkillEngine {
       }
     }
     if (!m.done && now >= m.dies) {
+      if (m.def.move === MoveKind.Parabola) {
+        m.x = m.aim.x;
+        m.y = m.aim.y;
+        if ((m.def.autoExplode || m.def.rangeDmg) && this.area(m)) this.event(m, 'collide');
+        this.end(m, true);
+        return;
+      }
       if (m.def.autoExplode && this.area(m)) this.event(m, 'collide');
       this.end(m, !!m.def.autoExplode);
     }

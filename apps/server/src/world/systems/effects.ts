@@ -18,6 +18,8 @@ export interface Effects {
   poison: PoisonRun | null;
   /** Who poisoned it last (exp credit for the damage). */
   poisonBy: string;
+  /** Skill id that applied the current poison (used to skip trap reflection). */
+  poisonSkill?: number;
 }
 
 export const noEffects = (): Effects => ({ stunUntil: 0, slowUntil: 0, poison: null, poisonBy: '' });
@@ -68,7 +70,7 @@ export function castTiming(w: World, sim: Sim, skillId: number) {
 }
 
 /** Put a landed hit's effects on `target`. */
-export function applyHitEffects(w: World, attacker: Sim, target: Sim, fx: HitEffects): void {
+export function applyHitEffects(w: World, attacker: Sim, target: Sim, fx: HitEffects, skillId?: number): void {
   if (target.dead) return;
   // Xuất Ứ Bất Nhiễm (738, ignorenegativestate_p >= 100): miễn dịch hoàn toàn choáng, chậm, độc, co giật.
   if (target.combat?.bag && attrOf(target.combat.bag, 'ignorenegativestate_p') >= 100) return;
@@ -89,6 +91,7 @@ export function applyHitEffects(w: World, attacker: Sim, target: Sim, fx: HitEff
     const fresh = !e.poison || e.poison.endsAt <= w.now;
     e.poison = mergePoison(e.poison, fx.poison, w.now, target.kind === 'player');
     e.poisonBy = attacker.id;
+    e.poisonSkill = skillId;
     if (fresh) w.events.push({ t: 'ctl', id: target.id, kind: 'poison', ms: fx.poison.totalMs });
   }
   if (fx.hurtMs > 0 && e.stunUntil <= w.now) {
@@ -102,14 +105,14 @@ export function applyHitEffects(w: World, attacker: Sim, target: Sim, fx: HitEff
 }
 
 /** Every tick for Sims with effects: poison ticks, ends of stun / slow. `hit` deals poison damage (combat.applyHit). */
-export function updateEffects(w: World, sim: Sim, hit: (by: Sim | undefined, dmg: number) => void): void {
+export function updateEffects(w: World, sim: Sim, hit: (by: Sim | undefined, dmg: number, skill?: number) => void): void {
   const e = sim.effects;
   if (!e) return;
   if (e.poison) {
     const p = e.poison;
     while (p.nextAt <= w.now && p.nextAt <= p.endsAt && !sim.dead) {
       p.nextAt += p.periodMs;
-      hit(w.sims.get(e.poisonBy), p.tick);
+      hit(w.sims.get(e.poisonBy), p.tick, e.poisonSkill);
     }
     if (p.endsAt <= w.now) e.poison = null;
   }

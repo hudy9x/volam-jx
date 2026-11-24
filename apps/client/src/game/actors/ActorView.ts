@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  coldMovement, CAMP_COLORS, SPEED, TK_CAMP_COLORS, tkTitleOf, getActiveSpeedConfig, trackBasePercent, resolveSpeed, type Camp, type TkCamp, jumpHeight,
+  coldMovement, CAMP_COLORS, SPEED, TK_CAMP_COLORS, TK_SIEGE, tkTitleOf, getActiveSpeedConfig, trackBasePercent, resolveSpeed, type Camp, type TkCamp, jumpHeight,
   attackSpeedPct, castSpeedPct, speedPoints, totalSpeedPercents, attrOf,
 } from '@vltk/shared';
 import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
@@ -39,6 +39,8 @@ export class ActorView {
   private rankLabel: Phaser.GameObjects.Text | null = null;
   private readonly leaderFlag: Phaser.GameObjects.Graphics;
   private readonly bar: Phaser.GameObjects.Graphics;
+  private towerRing: Phaser.GameObjects.Graphics | null = null;
+  private lastTowerRingKey = '';
   private readonly decor: StateDecor;
   private elementBadge: Phaser.GameObjects.Image | null = null;
   private elementBadgeKey = '';
@@ -415,8 +417,9 @@ export class ActorView {
     const enmityRemain = !tkTag && s.kind === 'player' && s.hp > 0 && s.enmityTarget && (s.enmityAt ?? 0) > 0
       ? Math.max(0, Math.ceil((s.enmityAt! - Date.now()) / 1000))
       : -1;
-    const overheadTag = tkTag || (enmityRemain >= 0 ? (enmityRemain > 0 ? `⚔ Cừu sát (${enmityRemain}s)` : '⚔ Cừu sát') : '');
-    const overheadColor = tkTag ? color : '#ff4d4d';
+    const towerTag = s.tkTower && s.tkTower >= 1 && s.tkTower <= 3 && s.hp > 0 && s.tkInvuln ? '🛡 Bất tử' : '';
+    const overheadTag = towerTag || tkTag || (enmityRemain >= 0 ? (enmityRemain > 0 ? `⚔ Cừu sát (${enmityRemain}s)` : '⚔ Cừu sát') : '');
+    const overheadColor = towerTag ? '#ffd700' : tkTag ? color : '#ff4d4d';
     if (overheadTag) {
       if (!this.rankLabel) {
         this.rankLabel = this.scene.add.text(0, 0, '', {
@@ -510,9 +513,27 @@ export class ActorView {
       this.decor.update([...(s.states ?? []), ...(s.passiveFx ?? [])], Math.round(this.x), Math.round(this.y), this.headHeight - 8 + this.lift, s.ctl ?? 0);
     } else this.decor.update([], 0, 0, 0);
 
+    const viewerCamp = (typeof tkState !== 'undefined' ? tkState.get()?.me?.camp : '') || '';
+    const showTowerRing = !!s.tkTower && s.tkTower >= 1 && s.tkTower <= 3 && s.hp > 0 && this.stealth !== 'hidden' && this.inView;
+    if (showTowerRing && typeof this.scene.add?.graphics === 'function') {
+      if (!this.towerRing) this.towerRing = this.scene.add.graphics().setDepth(1);
+      const isFiring = !!s.tkTarget;
+      const ringKey = `${Math.round(this.x)},${Math.round(this.y)},${s.battleCamp ?? ''},${viewerCamp},${isFiring}`;
+      if (ringKey !== this.lastTowerRingKey) {
+        this.lastTowerRingKey = ringKey;
+        const isAlly = !!(viewerCamp && s.battleCamp === viewerCamp);
+        const strokeColor = isFiring ? 0xff4438 : isAlly ? 0x4fd16b : 0xffcc4d;
+        this.towerRing.clear();
+        this.towerRing.lineStyle(2, strokeColor, isFiring ? 0.65 : 0.38);
+        this.towerRing.strokeEllipse(this.x, this.y, TK_SIEGE.towerRange * 2, TK_SIEGE.towerRange);
+      }
+      this.towerRing.setVisible(true);
+    } else if (this.towerRing) {
+      this.towerRing.setVisible(false);
+    }
+
     const w = Math.max(10, ui(s.boss ? plate.barBossW : plate.barW)), bh = Math.max(2, ui(plate.barH));
     const ratio = s.maxHp ? Math.max(0, s.hp / s.maxHp) : 0;
-    const viewerCamp = (typeof tkState !== 'undefined' ? tkState.get()?.me?.camp : '') || '';
     const barKey = `${Math.round(this.x)},${top},${ratio.toFixed(3)},${s.pk},${s.battleCamp ?? ''},${viewerCamp},${plate.zoom}`;
     if (barKey === this.lastBarKey) return;
     this.lastBarKey = barKey;
@@ -638,6 +659,7 @@ export class ActorView {
     this.elementBadge?.destroy();
     this.label.destroy();
     this.bar.destroy();
+    this.towerRing?.destroy();
     this.decor.destroy();
     this.anchor.destroy();
     this.jx?.destroy();

@@ -5,6 +5,8 @@ export interface AutoSettings {
   autoRadius: number;
   /** Tự động đánh quái (tắt = bỏ qua quái/boss/lính NPC, chỉ đánh người khi bật autoPk). */
   autoMonster: boolean;
+  /** Tự động lên ngựa khi chạy xa hoặc dùng chiêu cưỡi ngựa (tắt = chỉ tự xuống ngựa nếu chiêu không dùng được trên ngựa). */
+  autoMount: boolean;
   autoSkipBoss: boolean;
   /** Tự động đánh người chơi địch (ưu tiên cao hơn quái/boss). */
   autoPk: boolean;
@@ -50,7 +52,7 @@ export interface AutoSettings {
 }
 
 export const DEFAULT_AUTO: AutoSettings = {
-  autoRadius: 500, autoMonster: true, autoSkipBoss: false, autoPk: false, autoBuff: true, autoReturn: true, autoSeek: true, autoPickup: true, autoSort: true,
+  autoRadius: 500, autoMonster: true, autoMount: true, autoSkipBoss: false, autoPk: false, autoBuff: true, autoReturn: true, autoSeek: true, autoPickup: true, autoSort: true,
   autoPriority: 'boss', autoRotate: true, autoCurse: true, autoMap: true, autoReturnTraining: true, autoRevive: true, autoBuyPotion: true, autoJunk: true,
   autoMoney: true, autoLootPriority: false, autoSellBlue: false, autoSellAllBlue: false, autoKeepValuable: true,
   autoLoot: 'all', autoHp: 50, autoMp: 20, autoReachPct: 60, autoMeleeClose: true,

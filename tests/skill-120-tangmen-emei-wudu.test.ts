@@ -52,7 +52,9 @@ function addPlayer(w: World, id: string, opts: { x: number; y: number; camp?: st
     level: 120, element: 'wood', weapon: [50, 80], basePhys: 50,
     attackRating: 1000, defense: 100, hitRecover: 0,
     resists: { phys: 0, cold: 0, fire: 0, light: 0, poison: 0 },
-    bag: {}, bonuses: {},
+    resist: { phys: 0, cold: 0, fire: 0, light: 0, poison: 0 },
+    resistMax: { phys: 75, cold: 75, fire: 75, light: 75, poison: 75 },
+    bag: {}, bonuses: {}, skillBonus: {},
   };
   w.add(sim);
   return sim;
@@ -208,4 +210,45 @@ test('Đường Môn 60/90/150: xuất hiện ngay (wait=0), Bạo Vũ Lê Hoa (
   assert.equal(castAnim(getSkill(341)!, false), 'attack', 'Tán Hoa Tiêu (100) uses DartThrow (attack)');
   assert.equal(castAnim(getSkill(249)!, false), 'attack', 'Tiểu Lý Phi Đao (101) uses DartThrow (attack)');
   assert.equal(castAnim(getSkill(302)!, false), 'attack', 'Bạo Vũ Lê Hoa (102) uses DartThrow (attack)');
+});
+
+test('Đường Môn 150 (1110 Tích Lịch Loạn Hoàn Kích): 30% đúng mục tiêu, 70% quanh 50px & không nổ sớm trước mặt địch', async () => {
+  const { resolveTichLichLanding } = await import('../packages/shared/src/skills/engine/SkillEngine.js');
+  const { isoDistance } = await import('../packages/shared/src/geometry.js');
+
+  const aim = { x: 2300, y: 2000 };
+  // 30% (< 0.3) -> đúng ngay aim
+  assert.deepEqual(resolveTichLichLanding(aim, () => 0.1), aim);
+  // 70% (>= 0.3) -> xung quanh aim bán kính <= 50 px
+  const scattered = resolveTichLichLanding(aim, () => 0.65);
+  const sd = isoDistance(aim.x, aim.y, scattered.x, scattered.y);
+  assert.ok(sd > 0 && sd <= 51, `Điểm rơi rải (${scattered.x},${scattered.y}) phải nằm quanh địch trong 50px (thực tế ${sd.toFixed(1)})`);
+
+  // Khi cast #1110 vào mục tiêu cách 300px -> đạn M374 bay hết quỹ đạo tới điểm rơi (tx=2300), không nổ sớm ở ~120px trước mặt
+  const w = makeWorld();
+  const tm = addPlayer(w, 'tm-1110', { x: 2000, y: 2000, camp: 'justice', pk: 2 });
+  tm.skills.set(1110, 20);
+  const target = addPlayer(w, 'victim-1110', { x: 2300, y: 2000, camp: 'evil', pk: 2 });
+  // Đặt random = 0.1 để rơi chính xác tại mục tiêu (2300, 2000)
+  w.random = () => 0.1;
+  const pose = w.engine.cast(tm, 1110, target, { x: target.a.x, y: target.a.y }, 10);
+  assert.equal(pose.rejected, undefined, `Cast #1110 không bị từ chối (${pose.note ?? ''})`);
+  w.now += 20;
+  w.engine.update();
+  const castEv = w.takeEvents();
+  const msl = castEv.find(e => e.t === 'msl' && e.k === 374) as any;
+  assert.ok(msl && msl.tx === 2300 && msl.ty === 2000, 'Quả bom M374 phải nhắm thẳng tới đúng điểm rơi (2300, 2000)');
+
+  // Giả lập bước tới khi hạ cánh -> tạo bẫy M161 (#1113) ngay tại (2300, 2000) thay vì nổ sớm trước mặt
+  let trapMsl: any = null;
+  for (let i = 0; i < 40; i++) {
+    w.now += 60;
+    w.engine.update();
+    const evs = w.takeEvents();
+    const found = evs.find(e => e.t === 'msl' && e.k === 161);
+    if (found) { trapMsl = found; break; }
+  }
+  assert.ok(trapMsl, 'Sau khi quả bom hạ cánh phải đặt bẫy M161 (#1113)');
+  assert.equal(trapMsl.x, 2300, 'Bẫy #1113 phải đặt đúng ngay tại tọa độ X của mục tiêu (2300)');
+  assert.equal(trapMsl.y, 2000, 'Bẫy #1113 phải đặt đúng ngay tại tọa độ Y của mục tiêu (2000)');
 });

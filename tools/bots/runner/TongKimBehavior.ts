@@ -7,6 +7,7 @@ import {
   SHOP_ITEMS,
   TK_BATTLE_MAP_ID,
   TK_MAPS,
+  TK_SIEGE,
   TK_SIGNUP_MAP_ID,
   autoAuraSkill,
   autoBuffSkills,
@@ -23,6 +24,8 @@ import {
   type BotTongKimTactic,
   type Element,
   type TkCamp,
+  type TkLaneId,
+  type TkStateMsg,
 } from '@vltk/shared';
 import type { Behavior, BotClient } from './BotClient.js';
 import {
@@ -325,6 +328,12 @@ export class TongKimBehavior implements Behavior {
       if (this.tryHealOwnMarshal(me, myCamp, now)) return;
     }
 
+    // 3g. Chế độ Phá Trụ (Mode 3): chia 3 đường, né aggro trụ, chờ lính vào tầm trụ rồi mới công trụ, và về thủ trụ nhà khi bị đánh.
+    if (st?.mode === 3) {
+      this.stepSiegeMode(me, myCamp, st, now);
+      return;
+    }
+
     // 4. Giao tranh ngoài tiền tuyến: tìm mục tiêu phe địch ưu tiên.
     const scanRadius = this.sc.tongkim?.scanRadius ?? DEFAULT_BOT_TONGKIM.scanRadius;
     const target = this.pickTarget(me, myCamp, scanRadius, tactic, endgame, siegeRole, now);
@@ -352,6 +361,130 @@ export class TongKimBehavior implements Behavior {
       this.advanceWaypoints(me, myCamp, now);
     } else {
       this.advanceTactical(me, myCamp, tactic, role, siegeRole, endgame, now);
+    }
+  }
+
+  private siegeRetreatUntil = 0;
+  private siegeRetreatPos: { x: number; y: number } | null = null;
+  private siegeWpIdx = 1;
+  private siegeMatchId = 0;
+
+  private stepSiegeMode(me: any, myCamp: TkCamp, st: TkStateMsg, now: number): void {
+    const cfg = tkMapLayout(this.bot.mapId) ?? tkMapLayout(TK_BATTLE_MAP_ID);
+    const siege = cfg?.[myCamp]?.siege;
+    const enemyCamp: TkCamp = myCamp === 'tong' ? 'kim' : 'tong';
+    if (!cfg || !siege) return;
+
+    if (this.siegeMatchId !== st.matchId) {
+      this.siegeMatchId = st.matchId;
+      this.siegeWpIdx = 1;
+      this.siegeRetreatUntil = 0;
+      this.siegeRetreatPos = null;
+    }
+    const myHp = Number(me.hp ?? me.state?.hp ?? 0);
+    const home = cfg[myCamp].spawn;
+    // Nếu vừa hồi sinh trong Hậu doanh -> reset tiến độ waypoint về đầu đường
+    if (isInTkSafeCamp(this.bot.mapId, me.x, me.y)) {
+      this.siegeWpIdx = 1;
+    }
+
+    const actors = this.bot.actors();
+    const myId = actors.find(a => a.isSelf)?.id ?? me.id ?? '';
+    const enemyTowers = actors.filter(a => a.state.kind === 'monster' && a.state.battleCamp === enemyCamp && a.state.hp > 0 && (a.state.tkTower ?? 0) >= 1 && (a.state.tkTower ?? 0) <= 3);
+
+    const pointTowardHome = (tx: number, ty: number, distFromTower: number) => {
+      const dx = home.x - tx;
+      const dy = (home.y - ty) * 2;
+      const len = Math.hypot(dx, dy) || 1;
+      return {
+        x: Math.round(tx + (dx / len) * distFromTower),
+        y: Math.round(ty + ((dy / len) * distFromTower) * 0.5),
+      };
+    };
+
+    // 1. Thoát khóa mục tiêu khi bị trụ bắn và máu đã xuống thấp (< 45% maxHP)
+    const myMaxHp = Math.max(1, Number(me.maxHp ?? me.state?.maxHp ?? 1));
+    const targetingMe = enemyTowers.find(t => t.state.tkTarget === myId && isoDistance(me.x, me.y, t.x, t.y) <= TK_SIEGE.towerRange + 80);
+    if (targetingMe && myHp < myMaxHp * 0.45) {
+      this.siegeRetreatUntil = now + 2200;
+      this.siegeRetreatPos = pointTowardHome(targetingMe.x, targetingMe.y, TK_SIEGE.towerRange + 130);
+    }
+    if (now < this.siegeRetreatUntil && this.siegeRetreatPos) {
+      if (isoDistance(me.x, me.y, this.siegeRetreatPos.x, this.siegeRetreatPos.y) > 90 && now >= this.nextMoveAt) {
+        this.nextMoveAt = now + 750;
+        this.bot.send(C2S.move, this.siegeRetreatPos);
+      }
+      return;
+    }
+
+    // 2. Phòng thủ trụ nhà khi Trụ Bảo Vệ (< 85%) hoặc Nhà Chính (< 95%) bị đánh -> dọn lính địch trước
+    const towers = st.towers ?? [];
+    const hurtHomeTower = towers.find(t => t.camp === myCamp && t.alive && ((t.tier === 'nexus' && t.hp < t.maxHp * 0.95) || (t.tier === 'guard' && t.hp < t.maxHp * 0.85)));
+    if (hurtHomeTower && (Math.floor(Math.abs(this.botIndex) / 2) % 10 < 6 || isoDistance(me.x, me.y, hurtHomeTower.x, hurtHomeTower.y) <= 1800)) {
+      const threat = actors
+        .filter(a => a.state.hp > 0 && a.state.battleCamp === enemyCamp && isoDistance(a.x, a.y, hurtHomeTower.x, hurtHomeTower.y) <= 950)
+        .sort((a, b) => (a.state.kind === 'monster' ? 0 : 1) - (b.state.kind === 'monster' ? 0 : 1) || isoDistance(me.x, me.y, a.x, a.y) - isoDistance(me.x, me.y, b.x, b.y))[0];
+      if (threat) {
+        if (this.bot.prepareCombat(now)) return;
+        const attacks = this.bot.attacks();
+        const skill = attacks.length ? attacks[this.atkIndex++ % attacks.length] : 1;
+        const range = Math.max(60, this.bot.range(skill));
+        if (this.bot.ready(skill, now) && now >= this.nextCastAt) {
+          this.nextCastAt = now + 280;
+          this.bot.cast(skill, threat.id, threat.x, threat.y, true, Math.max(48, Math.round(range * 0.85)));
+        }
+        return;
+      }
+      if (isoDistance(me.x, me.y, hurtHomeTower.x, hurtHomeTower.y) > 260 && now >= this.nextMoveAt) {
+        this.nextMoveAt = now + 900;
+        this.bot.send(C2S.move, { x: hurtHomeTower.x, y: hurtHomeTower.y });
+      }
+      return;
+    }
+
+    // 3. Phân đều 3 đường Top / Mid / Bot — chủ động lao vào công trụ mở, không đứng chờ lính
+    const lane: TkLaneId = (['top', 'mid', 'bot'] as const)[Math.floor(Math.abs(this.botIndex) / 2) % 3];
+    const scanRadius = this.sc.tongkim?.scanRadius ?? DEFAULT_BOT_TONGKIM.scanRadius;
+    const combatTarget = actors
+      .filter(a => {
+        if (a.state.hp <= 0 || a.state.battleCamp !== enemyCamp) return false;
+        const tkTower = a.state.tkTower ?? 0;
+        if (tkTower === 4 || (tkTower >= 1 && a.state.tkInvuln)) return false;
+        const detectR = tkTower >= 1 ? Math.max(scanRadius, 1200) : scanRadius;
+        return isoDistance(me.x, me.y, a.x, a.y) <= detectR;
+      })
+      .sort((a, b) => {
+        // Ưu tiên công trụ địch đang mở, hoặc địch gần nhất đang chặn đường
+        const aTower = a.state.tkTower ? 0 : 1;
+        const bTower = b.state.tkTower ? 0 : 1;
+        return aTower - bTower || isoDistance(me.x, me.y, a.x, a.y) - isoDistance(me.x, me.y, b.x, b.y);
+      })[0];
+
+    if (combatTarget) {
+      if (this.bot.prepareCombat(now)) return;
+      const attacks = this.bot.attacks();
+      const skill = attacks.length ? attacks[this.atkIndex++ % attacks.length] : 1;
+      const range = Math.max(60, this.bot.range(skill));
+      if (this.bot.ready(skill, now) && now >= this.nextCastAt) {
+        this.nextCastAt = now + 280;
+        this.bot.cast(skill, combatTarget.id, combatTarget.x, combatTarget.y, true, Math.max(48, Math.round(range * 0.85)));
+      }
+      return;
+    }
+
+    // 4. Tiến một chiều dọc waypoint của đường thẳng tới trụ/nhà chính địch
+    const wps = siege.lanes[lane];
+    if (!wps?.length) return;
+    this.siegeWpIdx = Math.max(1, Math.min(this.siegeWpIdx, wps.length - 1));
+    while (this.siegeWpIdx < wps.length - 1 && isoDistance(me.x, me.y, wps[this.siegeWpIdx].x, wps[this.siegeWpIdx].y) <= 260) {
+      this.siegeWpIdx++;
+    }
+    const wp = wps[this.siegeWpIdx];
+    const dest = { x: wp.x + Math.round(this.jitter.x * 0.35), y: wp.y + Math.round(this.jitter.y * 0.35) };
+
+    if (isoDistance(me.x, me.y, dest.x, dest.y) > 110 && now >= this.nextMoveAt) {
+      this.nextMoveAt = now + 900;
+      this.bot.send(C2S.move, dest);
     }
   }
 

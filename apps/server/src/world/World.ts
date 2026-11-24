@@ -139,7 +139,7 @@ export class World {
       if (sim.potions) updatePotions(this, sim);
       if (sim.dead) continue;
       if (sim.jump) updateJump(this, sim);
-      if (sim.effects) updateEffects(this, sim, (by, dmg) => applyHit(this, by ?? sim, sim, { dmg, crit: false, dot: true }));
+      if (sim.effects) updateEffects(this, sim, (by, dmg, skill) => applyHit(this, by ?? sim, sim, { dmg, crit: false, dot: true, skill }));
       if (sim.dead) continue;
       if (sim.kind === 'player') { updatePlayer(this, sim, dt); if (sim.pickup && updatePickup(this, sim)) this.hooks.inventory(sim); }
       else updateMonster(this, sim, dt);

@@ -17,11 +17,12 @@ import {
   TK_MIN_LEVEL,
   TK_MODE_NAMES,
   TK_POINTS,
-  TK_RESPAWN_DELAY_MS,
   TK_SCHEDULE,
+  TK_SIEGE,
   TK_SIGNUP_ENTRY,
   TK_SIGNUP_FEE,
   TK_SIGNUP_MAP_ID,
+  TK_TOWER_SKILLS,
   addToBag,
   createItem,
   getSkill,
@@ -35,7 +36,11 @@ import {
   tkKillPlayerPoints,
   tkMapLayout,
   tkRankForPoints,
+  tkRespawnDelayMs,
   tkTitleOf,
+  tkTowerHpScale,
+  tkTowerSkillForElement,
+  tkTowerSpriteFor,
   rollClarionNpcRole,
   type Element,
   type Item,
@@ -45,12 +50,16 @@ import {
   type TkActionMsg,
   type TkBattleMapConfig,
   type TkCamp,
+  type TkLaneId,
   type TkLeaderEntry,
+  type TkMinionType,
   type TkMode,
   type TkNpcRole,
   type TkPhase,
   type TkRank,
   type TkStateMsg,
+  type TkTowerSpec,
+  type TkTowerStatus,
 } from '@vltk/shared';
 import { db } from '../account/db.js';
 import { devTools } from '../env.js';
@@ -220,6 +229,10 @@ class TongKimManager {
   private rewardsGranted = false;
   private clarionUses: Record<TkCamp, number> = { tong: 0, kim: 0 };
   private devStealthChars = new Set<string>();
+  private fightingStartedAt = 0;
+  private siegeNextWaveAt = 0;
+  private siegeWaveNo = 0;
+  private siegeTowers = new Map<string, { spec: TkTowerSpec; camp: TkCamp; simId: string; hp: number; maxHp: number; alive: boolean; invuln: boolean }>();
 
   isDevStealth(charId?: string): boolean {
     return !!charId && this.devStealthChars.has(charId);
@@ -291,7 +304,7 @@ class TongKimManager {
     const now = Date.now();
     this.matchId++;
     this.currentBattleMapId = cfg.id;
-    this.mode = opts.mode === 2 ? 2 : 1;
+    this.mode = opts.mode === 3 ? 3 : opts.mode === 2 ? 2 : 1;
     this.timing = {
       signupSec: Math.max(5, Math.min(1800, Math.floor(opts.signupSec ?? TK_DEFAULT_TIMING.signupSec))),
       marshalDelaySec: Math.max(5, Math.min(3600, Math.floor(opts.marshalDelaySec ?? TK_DEFAULT_TIMING.marshalDelaySec))),
@@ -312,6 +325,10 @@ class TongKimManager {
     this.npcsSpawned = false;
     this.rewardsGranted = false;
     this.clarionUses = { tong: 0, kim: 0 };
+    this.fightingStartedAt = 0;
+    this.siegeNextWaveAt = 0;
+    this.siegeWaveNo = 0;
+    this.siegeTowers.clear();
     return {
       ok: true,
       matchId: this.matchId,
@@ -618,6 +635,7 @@ class TongKimManager {
         return;
       }
       this.phase = 'fighting';
+      this.fightingStartedAt = now;
       this.phaseEndsAt = now + this.timing.durationSec * 1000;
       this.marshalSpawnAt = now + this.timing.marshalDelaySec * 1000;
       if (w) {
@@ -630,6 +648,9 @@ class TongKimManager {
         }
         if (this.mode === 1 && !this.npcsSpawned) {
           this.spawnBattleNpcs(w);
+        } else if (this.mode === 3 && !this.npcsSpawned) {
+          this.spawnSiegeTowers(w);
+          this.siegeNextWaveAt = now + 3000;
         }
         w.hooks.announce(`Chiến trường Tống Kim (${TK_MODE_NAMES[this.mode]}) đã KHAI CHIẾN! Hãy xuất trận!`);
       }
@@ -638,13 +659,35 @@ class TongKimManager {
       if (w && this.mode === 1 && !this.marshalSpawned && now >= this.marshalSpawnAt) {
         this.spawnMarshals(w);
       }
+      if (w && this.mode === 3 && !this.npcsSpawned) {
+        this.spawnSiegeTowers(w);
+        this.siegeNextWaveAt = now + 3000;
+      }
+      if (w && this.mode === 3 && this.npcsSpawned && now >= this.siegeNextWaveAt) {
+        this.spawnSiegeWaves(w, now);
+      }
       if (now >= this.phaseEndsAt) {
         const { tongScore, kimScore } = this.counts();
         const tongAlive = !!this.tongMarshalId;
         const kimAlive = !!this.kimMarshalId;
         let win: 'tong' | 'kim' | 'draw';
         let reason: string;
-        if (this.mode === 1 && this.marshalSpawned && tongAlive !== kimAlive) {
+        if (this.mode === 3) {
+          const stats = this.siegeEndStats(w);
+          if (stats.tongDestroyed !== stats.kimDestroyed) {
+            // Phe phá được nhiều trụ địch hơn thắng
+            win = stats.kimDestroyed > stats.tongDestroyed ? 'tong' : 'kim';
+            reason = `Hết giờ — phe ${TK_CAMP_NAMES[win]} phá hủy nhiều công trình địch hơn (${stats.kimDestroyed} vs ${stats.tongDestroyed} trụ)!`;
+          } else if (Math.abs(stats.tongNexusPct - stats.kimNexusPct) > 0.001) {
+            win = stats.kimNexusPct < stats.tongNexusPct ? 'tong' : 'kim';
+            reason = `Hết giờ (cùng phá ${stats.tongDestroyed} trụ) — phe ${TK_CAMP_NAMES[win]} thắng nhờ bào mòn Nhà Chính địch nhiều hơn!`;
+          } else {
+            win = tongScore > kimScore ? 'tong' : kimScore > tongScore ? 'kim' : 'draw';
+            reason = win === 'draw'
+              ? `Hết giờ — hai phe hòa nhau (${tongScore} điểm)!`
+              : `Hết giờ — phe ${TK_CAMP_NAMES[win]} thắng theo tổng điểm (${tongScore} Tống vs ${kimScore} Kim)!`;
+          }
+        } else if (this.mode === 1 && this.marshalSpawned && tongAlive !== kimAlive) {
           win = tongAlive ? 'tong' : 'kim';
           reason = `Hết giờ — phe ${TK_CAMP_NAMES[win]} bảo toàn được Nguyên Soái và hạ gục Nguyên Soái đối phương để giành chiến thắng!`;
         } else {
@@ -673,6 +716,15 @@ class TongKimManager {
     }
 
     if (!w) return;
+
+    // Đồng bộ HP trụ hiện tại cho snapshot
+    if (this.mode === 3 && this.siegeTowers.size) {
+      for (const t of this.siegeTowers.values()) {
+        if (!t.alive) continue;
+        const ts = w.sims.get(t.simId);
+        if (ts) t.hp = Math.max(0, ts.hp);
+      }
+    }
 
     // 2. Xử lý hồi sinh & luật doanh trại cho người chơi trên map 378
     for (const sim of w.sims.values()) {
@@ -738,8 +790,10 @@ class TongKimManager {
       if (victim) {
         victim.deaths++;
         victim.streak = 0;
-        target.tkRespawnAt = w.now + TK_RESPAWN_DELAY_MS;
-        w.hooks.notify(target, `Bạn đã tử trận! Tự động hồi sinh tại doanh trại sau ${Math.round(TK_RESPAWN_DELAY_MS / 1000)} giây (không mất EXP/đồ).`);
+        const elapsedSec = this.fightingStartedAt > 0 ? Math.max(0, (w.now - this.fightingStartedAt) / 1000) : 0;
+        const delayMs = tkRespawnDelayMs(this.mode, elapsedSec, this.timing.durationSec);
+        target.tkRespawnAt = w.now + delayMs;
+        w.hooks.notify(target, `Bạn đã tử trận! Tự động hồi sinh tại doanh trại sau ${Math.round(delayMs / 1000)} giây (không mất EXP/đồ).`);
       }
       if (killer?.kind === 'player' && killer.charId && victim) {
         const atk = this.entries.get(killer.charId);
@@ -749,6 +803,58 @@ class TongKimManager {
           if (atk.streak > atk.maxStreak) atk.maxStreak = atk.streak;
           const { killPts, streakPts, total } = tkKillPlayerPoints(victim.rank, atk.streak);
           this.awardPoints(w, killer, atk, total, `Hạ gục ${victim.name} (+${killPts} điểm, Liên trảm ${atk.streak} +${streakPts} điểm).`);
+        }
+      }
+      return true;
+    }
+
+    if (target.kind === 'monster' && target.tkTowerId && target.tkCamp && target.tkTowerTier) {
+      const towerCamp = target.tkCamp;
+      const winCamp: TkCamp = towerCamp === 'tong' ? 'kim' : 'tong';
+      const entryRec = this.siegeTowers.get(target.tkTowerId);
+      if (entryRec) {
+        entryRec.alive = false;
+        entryRec.hp = 0;
+      }
+      this.refreshSiegeInvuln(w);
+      let creditPlayer = killer?.kind === 'player' ? killer : undefined;
+      if (!creditPlayer && target.dmgBy?.size) {
+        let bestDmg = 0;
+        for (const [id, dmg] of target.dmgBy) {
+          const cand = w.sims.get(id);
+          if (cand?.kind === 'player' && cand.a.battleCamp === winCamp && dmg > bestDmg) {
+            bestDmg = dmg;
+            creditPlayer = cand;
+          }
+        }
+      }
+      const pts = TK_SIEGE.towerPoints[target.tkTowerTier];
+      if (creditPlayer?.charId) {
+        const atk = this.entries.get(creditPlayer.charId);
+        if (atk && atk.camp === winCamp) {
+          atk.npcKills++;
+          this.awardPoints(w, creditPlayer, atk, pts, `Phá hủy ${target.a.name} (+${pts} điểm tích lũy)!`);
+        }
+      }
+      const teamBonus = TK_SIEGE.towerTeamBonus[target.tkTowerTier];
+      for (const s of w.sims.values()) {
+        if (s.kind !== 'player' || !s.charId || s === creditPlayer) continue;
+        const e = this.entries.get(s.charId);
+        if (e && e.camp === winCamp) {
+          this.awardPoints(w, s, e, teamBonus, `Đồng đội phá hủy ${target.a.name} (+${teamBonus} điểm)!`);
+        }
+      }
+      const killerName = creditPlayer?.a.name ?? `phe ${TK_CAMP_NAMES[winCamp]}`;
+      if (target.tkTowerTier === 'nexus') {
+        this.spawnRuinedNexus(w, towerCamp, target.a.x, target.a.y);
+        w.hooks.announce(`${target.a.name} đã bị ${killerName} phá hủy! Phe ${TK_CAMP_NAMES[winCamp]} giành chiến thắng!`);
+        this.finishMatch(w, winCamp, `Phe ${TK_CAMP_NAMES[winCamp]} đã phá hủy Nhà Chính quân địch!`, Date.now());
+      } else {
+        w.hooks.announce(`${target.a.name} đã bị ${killerName} phá hủy!`);
+        for (const sim of w.sims.values()) {
+          if (sim.kind !== 'player') continue;
+          if (sim.a.battleCamp === towerCamp) w.hooks.notify(sim, `${target.a.name} của phe ta đã bị phá hủy!`, 'danger');
+          else if (sim.a.battleCamp === winCamp) w.hooks.notify(sim, `Đã phá hủy ${target.a.name} của quân địch!`, 'victory');
         }
       }
       return true;
@@ -828,7 +934,7 @@ class TongKimManager {
           }
         }
         const respawnMs = TK_NPC_STATS[role].respawnMs;
-        if (respawnMs > 0 && target.home && !target.tkSummoned) {
+        if (respawnMs > 0 && target.home && !target.tkSummoned && !target.tkMinionType) {
           this.npcRespawns.push({ camp: npcCamp, role, x: target.home.x, y: target.home.y, respawnAt: w.now + respawnMs });
         }
       }
@@ -1117,6 +1223,301 @@ class TongKimManager {
         w.removeSim(id);
       }
     }
+    this.siegeTowers.clear();
+  }
+
+  private towerTitle(camp: TkCamp, spec: TkTowerSpec): string {
+    const campTxt = camp === 'tong' ? 'Tống' : 'Kim';
+    if (spec.tier === 'nexus') return `${campTxt} Long Trụ (Nhà Chính)`;
+    if (spec.tier === 'guard') return `${campTxt} Trụ Bảo Vệ`;
+    const laneTxt = spec.lane === 'top' ? 'Trên' : spec.lane === 'bot' ? 'Dưới' : 'Giữa';
+    return `${campTxt} Trụ Đường ${laneTxt}`;
+  }
+
+  private spawnSiegeTowers(w: World): void {
+    this.npcsSpawned = true;
+    this.siegeTowers.clear();
+    const layout = this.layout();
+    const hpScale = tkTowerHpScale(this.entries.size);
+    for (const camp of ['tong', 'kim'] as const) {
+      const siege = layout[camp].siege;
+      if (!siege) continue;
+      for (const spec of siege.towers) {
+        const [x, y] = nearestWalkable(w.grid, spec.x, spec.y);
+        const maxHp = Math.round(TK_SIEGE.towerBaseHp[spec.tier] * hpScale);
+        const sprite = tkTowerSpriteFor(camp, spec.tier, spec.element);
+        const skillId = tkTowerSkillForElement(spec.element);
+        const def: MonsterDef = {
+          id: (camp === 'tong' ? 9100 : 9200) + (spec.tier === 'nexus' ? 9 : spec.tier === 'guard' ? 5 : 1),
+          name: this.towerTitle(camp, spec),
+          sprite,
+          level: 100,
+          element: spec.element,
+          hp: maxHp,
+          damage: [1000, 1200],
+          resist: 0,
+          boss: spec.tier === 'nexus' ? 2 : 1,
+          scale: spec.tier === 'nexus' ? 1.1 : 1.0,
+          speed: 0,
+          vision: TK_SIEGE.towerRange,
+          leash: 0,
+          attackCooldown: TK_SIEGE.towerAttackMs / 1000,
+          skills: TK_TOWER_SKILLS.map(sid => [sid, 20] as [number, number]),
+          expOverride: 0,
+          hitRecover: 100,
+        };
+        const id = `tk_tower_${spec.id}_${w.nextMonsterId++}`;
+        const a = new Actor();
+        a.kind = 'monster';
+        a.name = def.name;
+        a.sprite = sprite;
+        a.series = spec.element;
+        a.level = 100;
+        a.x = Math.round(x);
+        a.y = Math.round(y);
+        a.dir = camp === 'tong' ? 1 : 5;
+        a.anim = 'idle';
+        a.moveScale = 1;
+        a.hp = maxHp;
+        a.maxHp = maxHp;
+        a.mp = 9999;
+        a.maxMp = 9999;
+        a.boss = spec.tier === 'nexus' ? 2 : 1;
+        a.scale = def.scale ?? 1;
+        a.battleCamp = camp;
+        a.battleRank = spec.tier === 'nexus' ? 5 : spec.tier === 'guard' ? 4 : 3;
+        a.tkTower = spec.tier === 'outer' ? 1 : spec.tier === 'guard' ? 2 : 3;
+        a.tkInvuln = spec.tier !== 'outer';
+        const sim = makeSim(id, 'monster', a, spec.element, 0);
+        sim.def = def;
+        sim.home = { x, y };
+        sim.baseDamage = def.damage;
+        sim.tkCamp = camp;
+        sim.tkTowerId = spec.id;
+        sim.tkTowerTier = spec.tier;
+        sim.tkLane = spec.lane;
+        sim.tkTowerInvuln = spec.tier !== 'outer';
+        for (const sid of TK_TOWER_SKILLS) sim.skills.set(sid, 20);
+        sim.skills.set(skillId, 20);
+        refreshMonsterCombat(sim);
+        w.add(sim);
+        this.siegeTowers.set(spec.id, {
+          spec,
+          camp,
+          simId: id,
+          hp: maxHp,
+          maxHp,
+          alive: true,
+          invuln: spec.tier !== 'outer',
+        });
+      }
+    }
+    this.refreshSiegeInvuln(w);
+  }
+
+  private refreshSiegeInvuln(w: World): void {
+    for (const camp of ['tong', 'kim'] as const) {
+      const list = [...this.siegeTowers.values()].filter(t => t.camp === camp);
+      const outerBroken = list.some(t => t.spec.tier === 'outer' && !t.alive);
+      const allGuardsBroken = list.filter(t => t.spec.tier === 'guard').every(t => !t.alive);
+      for (const t of list) {
+        if (!t.alive) { t.invuln = false; continue; }
+        t.invuln = t.spec.tier === 'outer' ? false : t.spec.tier === 'guard' ? !outerBroken : !allGuardsBroken;
+        const sim = w.sims.get(t.simId);
+        if (sim) {
+          sim.tkTowerInvuln = t.invuln;
+          sim.a.tkInvuln = t.invuln;
+        }
+      }
+    }
+  }
+
+  private spawnRuinedNexus(w: World, camp: TkCamp, x: number, y: number): void {
+    const id = `tk_ruin_${camp}_${w.nextMonsterId++}`;
+    const a = new Actor();
+    a.kind = 'monster';
+    a.name = camp === 'tong' ? 'Tống Long Trụ Vỡ' : 'Kim Long Trụ Vỡ';
+    a.sprite = 'enemy192';
+    a.series = 'tho';
+    a.level = 100;
+    a.x = Math.round(x);
+    a.y = Math.round(y);
+    a.dir = camp === 'tong' ? 1 : 5;
+    a.anim = 'idle';
+    a.moveScale = 1;
+    a.hp = 1;
+    a.maxHp = 1;
+    a.mp = 1;
+    a.maxMp = 1;
+    a.boss = 1;
+    a.scale = 1.1;
+    a.battleCamp = camp;
+    a.tkTower = 4;
+    const sim = makeSim(id, 'monster', a, 'tho', 0);
+    sim.tkCamp = camp;
+    sim.home = { x, y };
+    sim.def = {
+      id: 9999,
+      name: a.name,
+      sprite: 'enemy192',
+      level: 100,
+      element: 'tho',
+      hp: 1,
+      damage: [0, 0],
+      resist: 0,
+      speed: 0,
+      vision: 0,
+      leash: 0,
+      attackCooldown: 10,
+      skills: [],
+      scale: 1.1,
+      expOverride: 0,
+    };
+    w.add(sim);
+  }
+
+  private spawnSiegeWaves(w: World, now: number): void {
+    this.siegeWaveNo++;
+    this.siegeNextWaveAt = now + TK_SIEGE.waveIntervalMs;
+    const layout = this.layout();
+    const isSiegeWave = this.siegeWaveNo % 3 === 0;
+    for (const camp of ['tong', 'kim'] as const) {
+      const enemyCamp: TkCamp = camp === 'tong' ? 'kim' : 'tong';
+      const siege = layout[camp].siege;
+      if (!siege) continue;
+      for (const lane of ['top', 'mid', 'bot'] as const) {
+        const wps = siege.lanes[lane];
+        if (!wps.length) continue;
+        let current = 0;
+        for (const s of w.sims.values()) {
+          if (!s.dead && s.tkMinionType && s.tkCamp === camp && s.tkLane === lane) current++;
+        }
+        if (current >= TK_SIEGE.maxMinionsPerLane) continue;
+        const enemyOuter = [...this.siegeTowers.values()].find(t => t.camp === enemyCamp && t.spec.tier === 'outer' && t.spec.lane === lane);
+        const spawnSuper = Boolean(enemyOuter && !enemyOuter.alive);
+        const batch: TkMinionType[] = ['melee', 'melee', 'melee', 'ranged', 'ranged'];
+        if (isSiegeWave) batch.push('siege');
+        if (spawnSuper) batch.push('super');
+        const room = Math.max(0, TK_SIEGE.maxMinionsPerLane - current);
+        for (let i = 0; i < Math.min(batch.length, room); i++) {
+          this.spawnSiegeMinion(w, camp, lane, batch[i], wps, i);
+        }
+      }
+    }
+  }
+
+  private spawnSiegeMinion(w: World, camp: TkCamp, lane: TkLaneId, type: TkMinionType, waypoints: readonly { x: number; y: number }[], slotIdx: number): Sim {
+    const idx = w.nextMonsterId++;
+    const element = TK_ELEMENTS[idx % TK_ELEMENTS.length];
+    const start = waypoints[0];
+    const spreadAngle = (Math.PI * 2 * slotIdx) / 6;
+    const [x, y] = nearestWalkable(w.grid, start.x + Math.cos(spreadAngle) * 70, start.y + Math.sin(spreadAngle) * 35);
+    const sprite = type === 'siege'
+      ? (camp === 'tong' ? 'enemy021' : 'enemy024')
+      : type === 'super'
+        ? (camp === 'tong' ? 'enemy017' : 'enemy023')
+        : type === 'ranged'
+          ? (camp === 'tong' ? 'enemy026' : 'enemy036')
+          : (camp === 'tong' ? 'enemy029' : 'enemy031');
+    const hp = type === 'super' ? 720_000 : type === 'siege' ? 480_000 : type === 'melee' ? 180_000 : 120_000;
+    const dmg: [number, number] = type === 'super' ? [550, 750] : type === 'siege' ? [450, 620] : type === 'ranged' ? [260, 360] : [200, 280];
+    const scale = type === 'super' ? 1.28 : type === 'siege' ? 1.15 : 0.95;
+    const label = type === 'super' ? 'Siêu Binh' : type === 'siege' ? 'Phó Tướng' : type === 'ranged' ? 'Cung Thủ' : 'Bộ Binh';
+    const skills: [number, number][] = type === 'siege' ? [[148, 12]] : type === 'ranged' ? [[47, 10]] : [[1, 1]];
+    const def: MonsterDef = {
+      id: (camp === 'tong' ? 9300 : 9400) + (type === 'super' ? 4 : type === 'siege' ? 3 : type === 'ranged' ? 2 : 1),
+      name: `${camp === 'tong' ? 'Tống' : 'Kim'} ${label}`,
+      sprite,
+      level: 90,
+      element,
+      hp,
+      damage: dmg,
+      resist: 0,
+      scale,
+      speed: type === 'siege' ? 145 : 175,
+      vision: type === 'siege' ? 620 : 480,
+      leash: 0,
+      attackCooldown: type === 'siege' ? 1.8 : 1.4,
+      skills,
+      expOverride: 0,
+    };
+    const id = `tk_minion_${camp}_${lane}_${idx}`;
+    const a = new Actor();
+    a.kind = 'monster';
+    a.name = def.name;
+    a.sprite = sprite;
+    a.series = element;
+    a.level = 90;
+    a.x = Math.round(x);
+    a.y = Math.round(y);
+    a.dir = camp === 'tong' ? 1 : 5;
+    a.anim = 'idle';
+    a.moveScale = 1;
+    a.hp = hp;
+    a.maxHp = hp;
+    a.mp = 9999;
+    a.maxMp = 9999;
+    a.scale = scale;
+    a.battleCamp = camp;
+    a.battleRank = type === 'super' ? 3 : type === 'siege' ? 2 : 1;
+    const sim = makeSim(id, 'monster', a, element, def.speed);
+    sim.def = def;
+    sim.home = { x, y };
+    sim.baseDamage = dmg;
+    sim.tkCamp = camp;
+    sim.tkRole = type === 'super' ? 'general' : type === 'siege' ? 'commander' : 'soldier';
+    sim.tkLane = lane;
+    sim.tkMinionType = type;
+    sim.tkWaypoints = waypoints.map(p => ({ x: p.x, y: p.y }));
+    sim.tkWaypointIdx = Math.min(1, waypoints.length - 1);
+    for (const [sid, lvl] of skills) {
+      const sk = getSkill(sid);
+      if (sk) sim.skills.set(sid, Math.min(lvl, maxLevelOf(sk)));
+    }
+    if (!sim.skills.size) sim.skills.set(BASIC_ATTACK, 1);
+    refreshMonsterCombat(sim);
+    w.add(sim);
+    return sim;
+  }
+
+  private siegeEndStats(w?: World): { tongDestroyed: number; kimDestroyed: number; tongNexusPct: number; kimNexusPct: number } {
+    let tongDestroyed = 0, kimDestroyed = 0;
+    let tongNexusPct = 1, kimNexusPct = 1;
+    for (const t of this.siegeTowers.values()) {
+      const sim = w?.sims.get(t.simId);
+      const hp = t.alive ? (sim ? sim.hp : t.hp) : 0;
+      const maxHp = Math.max(1, t.maxHp);
+      if (!t.alive) {
+        if (t.camp === 'tong') tongDestroyed++;
+        else kimDestroyed++;
+      }
+      if (t.spec.tier === 'nexus') {
+        if (t.camp === 'tong') tongNexusPct = hp / maxHp;
+        else kimNexusPct = hp / maxHp;
+      }
+    }
+    return { tongDestroyed, kimDestroyed, tongNexusPct, kimNexusPct };
+  }
+
+  private siegeTowerSnapshots(): TkTowerStatus[] | undefined {
+    if (this.mode !== 3 || !this.siegeTowers.size) return undefined;
+    const out: TkTowerStatus[] = [];
+    for (const t of this.siegeTowers.values()) {
+      out.push({
+        id: t.spec.id,
+        camp: t.camp,
+        tier: t.spec.tier,
+        lane: t.spec.lane,
+        element: t.spec.element,
+        x: t.spec.x,
+        y: t.spec.y,
+        hp: t.alive ? t.hp : 0,
+        maxHp: t.maxHp,
+        alive: t.alive,
+        invuln: t.invuln,
+      });
+    }
+    return out;
   }
 
   private evacuateAll(w: World): void {
@@ -1190,6 +1591,7 @@ class TongKimManager {
         gateWaitSec,
         stealth: this.isDevStealth(charId),
       } : undefined,
+      towers: this.siegeTowerSnapshots(),
       top10: this.leaderboard().slice(0, 10),
     };
   }
@@ -1236,7 +1638,7 @@ class TongKimManager {
           return {};
         }
         const res = this.startMatch({
-          mode: msg.mode === 2 ? 2 : 1,
+          mode: msg.mode === 3 ? 3 : msg.mode === 2 ? 2 : 1,
           battleMapId: msg.battleMapId,
           signupSec: msg.signupSec ?? 30,
           durationSec: msg.durationSec ?? 600,

@@ -19,6 +19,7 @@ const HTML = `
   <div id="auto-panel-combat" role="tabpanel" aria-labelledby="auto-tab-combat" tabindex="0">
   <div class="auto-h">Đánh quái &amp; PK</div>
   <label class="check"><input type="checkbox" data-set="autoMonster" /> Tự động đánh quái</label>
+  <label class="check"><input type="checkbox" data-set="autoMount" /> Tự động lên ngựa khi di chuyển xa / đánh trên ngựa</label>
   <label class="check"><input type="checkbox" data-set="autoPk" /> Tự động đánh người (ưu tiên cao hơn đánh quái)</label>
   <label class="row">Ưu tiên mục tiêu <select data-set="autoPriority"><option value="near">Gần nhất</option><option value="boss">Hoàng Kim → Boss Xanh → quái thường</option><option value="blue">Boss Xanh → Quái thường (bỏ Hoàng Kim)</option></select></label>
   <label class="check"><input type="checkbox" data-set="autoSkipBoss" /> Bỏ qua boss</label>

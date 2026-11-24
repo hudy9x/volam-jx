@@ -105,6 +105,8 @@
 #bots-page .bp-scenario-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
 #bots-page .bp-scenario-item {display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #303832;border-radius:6px;padding:14px;overflow-wrap:anywhere}
 #bots-page .bp-scenario-item button {min-width:44px;min-height:44px}
+#bots-page .bp-scenario-item button.active {background:#c62828;border-color:#e53935;color:#fff}
+#bots-page .bp-scenario-item button.active:hover:not(:disabled) {background:#d32f2f;border-color:#ef5350}
 
 #bots-page #scenario-overview {grid-column:1/-1}
 #bots-page #tk-live-box {margin-top:14px;padding-top:14px;border-top:1px solid #303832}

@@ -814,3 +814,20 @@ test('noHorse buff skill dismounts first when autoBuff is enabled, then casts bu
   r.auto.update(1100, buffOpts);
   assert.deepEqual(r.casts, [1230], 'casts buff after server confirms dismount');
 });
+
+test('autoMount=false prevents auto-mounting on long travel and horse-allowed skills', () => {
+  const r = rig();
+  const mounts: boolean[] = [];
+  r.self.state.horse = 'horse-1';
+  r.self.state.mounted = false;
+  r.host.mount = (on: boolean) => { mounts.push(on); };
+
+  r.actors.push({
+    id: 'far-mob', x: 700, y: 0,
+    state: { kind: 'monster', hp: 100, maxHp: 100, boss: 0, pk: 0 },
+  });
+  const noMountOpts = { ...r.opts, autoMount: false, autoSeek: true, autoRadius: 1200 };
+  r.auto.start();
+  r.auto.update(1000, noMountOpts);
+  assert.deepEqual(mounts, [], 'does not mount automatically when autoMount is false');
+});

@@ -24,7 +24,7 @@ const LAST_KEY = 'vltk.botPanel.last';
 
 const AUTO_LABELS: Record<keyof AutoSettings, string> = {
   autoMoney: 'Tự nhặt ngân lượng', autoLootPriority: 'Ưu tiên nhặt đồ (phạm vi 1200)', autoSellBlue: 'Tự bán đồ xanh trong túi', autoSellAllBlue: 'Tự bán toàn bộ đồ xanh (bất kể dòng)', autoKeepValuable: 'Giữ đồ xanh có giá trị để rao bán',
-  autoRadius: 'Bán kính quanh chỗ bắt đầu', autoMonster: 'Tự động đánh quái', autoSkipBoss: 'Bỏ qua boss', autoPk: 'Tự động đánh người (ưu tiên hơn quái)', autoBuff: 'Tự động buff kỹ năng đã học và duy trì hào quang', autoReturn: 'Quay về chỗ cũ khi hết quái',
+  autoRadius: 'Bán kính quanh chỗ bắt đầu', autoMonster: 'Tự động đánh quái', autoMount: 'Tự động lên ngựa', autoSkipBoss: 'Bỏ qua boss', autoPk: 'Tự động đánh người (ưu tiên hơn quái)', autoBuff: 'Tự động buff kỹ năng đã học và duy trì hào quang', autoReturn: 'Quay về chỗ cũ khi hết quái',
   autoSeek: 'Tìm quái ở xa', autoPickup: 'Tự nhặt đồ', autoSort: 'Tự sắp xếp hành trang khi hết chỗ', autoPriority: 'Mục tiêu ưu tiên', autoRotate: 'Xoay chiêu',
   autoCurse: 'Tự dùng bùa hại', autoMap: 'Tự đổi bãi luyện công theo cấp', autoReturnTraining: 'Tự quay lại bãi luyện công trước đó', autoRevive: 'Tự hồi sinh khi trọng thương',
   autoBuyPotion: 'Hết thuốc về thành mua', autoJunk: 'Tự bán đồ trắng không mặc được', autoLoot: 'Lọc đồ nhặt',
@@ -702,7 +702,7 @@ class BotPanel {
       const running=[...this.running.values()].filter(bot=>this.assignments[bot.username]===name);
       const active=running.length>0;
       const phase=!active?'Đã dừng':running.every(bot=>bot.phase==='stopping')?'Đang dừng':running.some(bot=>bot.phase==='online')?'Đang chạy':'Đang chuẩn bị';
-      return `<article class="bp-scenario-item"><div><strong>${esc(title)}</strong><div class="bp-note">${count} bot · ${phase}</div></div><button data-toggle-scenario="${esc(name)}" aria-label="${active?'Dừng':'Chạy'} ${esc(title)}" title="${active?'Dừng':'Chạy'} ${esc(title)}" ${!count||this.runBusy?'disabled':''}>${active?'❚❚':'▶'}</button></article>`;
+      return `<article class="bp-scenario-item"><div><strong>${esc(title)}</strong><div class="bp-note">${count} bot · ${phase}</div></div><button data-toggle-scenario="${esc(name)}" class="${active?'active':''}" aria-pressed="${active}" aria-label="${active?'Dừng':'Chạy'} ${esc(title)}" title="${active?'Dừng':'Chạy'} ${esc(title)}" ${!count||this.runBusy?'disabled':''}>${active?'❚❚':'▶'}</button></article>`;
     }).join('')||'<p class="bp-note">Chưa có kịch bản. Lưu kịch bản bên dưới để bắt đầu.</p>';
     host.querySelectorAll<HTMLButtonElement>('[data-toggle-scenario]').forEach(button=>button.onclick=async()=>{
       if(this.runBusy)return;this.runBusy=true;this.updateRunActions();this.renderScenarioCards();

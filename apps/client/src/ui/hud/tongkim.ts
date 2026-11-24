@@ -139,6 +139,7 @@ export class TongKimHud {
     else if (act === 'leave') this.send({ op: 'leave' });
     else if (act === 'devStart1') this.send({ op: 'devStart', mode: 1, battleMapId: this.selectedBattleMapId, signupSec: 20, durationSec: 600, marshalDelaySec: 45 });
     else if (act === 'devStart2') this.send({ op: 'devStart', mode: 2, battleMapId: this.selectedBattleMapId, signupSec: 20, durationSec: 600 });
+    else if (act === 'devStart3') this.send({ op: 'devStart', mode: 3, battleMapId: this.selectedBattleMapId, signupSec: 20, durationSec: 900 });
     else if (act === 'devStop') this.send({ op: 'devStop' });
     else if (act === 'devStealth') this.send({ op: 'devStealth' });
     else if (act === 'regTong') this.send({ op: 'register', camp: 'tong' });
@@ -204,6 +205,7 @@ export class TongKimHud {
           }
           actions.push(`<button type="button" class="btn sm" data-tk-act="devStart1">Mở Nguyên Soái (Test)</button>`);
           actions.push(`<button type="button" class="btn sm" data-tk-act="devStart2">Mở Cừu Sát (Test)</button>`);
+          actions.push(`<button type="button" class="btn sm" data-tk-act="devStart3">Mở Phá Trụ (Test)</button>`);
         } else {
           actions.push(`<button type="button" class="btn2 tk-btn-danger" data-tk-act="devStop">Đóng trận</button>`);
         }
@@ -223,9 +225,18 @@ export class TongKimHud {
           ? `<div class="tk-me"><span>Tích lũy hiện có: <b>${me.accum.toLocaleString('vi-VN')}</b> điểm</span>${st.phase === 'closed' && st.nextSchedule ? `<span>Lịch kế tiếp: ${st.nextSchedule}</span>` : ''}</div>`
           : '';
 
-      const marshalRow = st.mode === 1 && st.marshalSpawned && st.phase === 'fighting'
+      let marshalRow = st.mode === 1 && st.marshalSpawned && st.phase === 'fighting'
         ? `<div class="tk-marshal">Nguyên Soái: <b class="tk-camp-tong">Tống ${st.tongMarshalAlive ? 'Còn' : 'Tử'}</b> · <b class="tk-camp-kim">Kim ${st.kimMarshalAlive ? 'Còn' : 'Tử'}</b></div>`
         : '';
+      if (st.mode === 3 && st.phase === 'fighting' && st.towers?.length) {
+        const tongAlive = st.towers.filter(t => t.camp === 'tong' && t.alive).length;
+        const kimAlive = st.towers.filter(t => t.camp === 'kim' && t.alive).length;
+        const tNex = st.towers.find(t => t.camp === 'tong' && t.tier === 'nexus');
+        const kNex = st.towers.find(t => t.camp === 'kim' && t.tier === 'nexus');
+        const tPct = tNex ? Math.ceil((tNex.hp / Math.max(1, tNex.maxHp)) * 100) : 0;
+        const kPct = kNex ? Math.ceil((kNex.hp / Math.max(1, kNex.maxHp)) * 100) : 0;
+        marshalRow = `<div class="tk-marshal">Trụ còn: <b class="tk-camp-tong">Tống ${tongAlive}/6 (${tPct}%)</b> · <b class="tk-camp-kim">Kim ${kimAlive}/6 (${kPct}%)</b></div>`;
+      }
 
       const rows = st.top10.length
         ? st.top10.map(r => `

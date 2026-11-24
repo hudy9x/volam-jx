@@ -53,6 +53,9 @@ export const Actor = schema({
   enmityTarget: t.string(),  // Cừu sát (enmity 1v1) opponent session id, '' = none
   enmityAt: t.float64(),     // server epoch ms when Cừu sát becomes active, 0 = none
   followTarget: t.string(),  // session id of player currently being followed, '' = none
+  tkTower: t.uint8(),        // 0 = normal, 1 = outer tower, 2 = guard tower, 3 = nexus, 4 = ruined nexus
+  tkInvuln: t.boolean(),     // tower invulnerable while preceding tier stands
+  tkTarget: t.string(),      // current target actor id locked by this tower
 }, 'Actor');
 export type Actor = SchemaType<typeof Actor>;
 

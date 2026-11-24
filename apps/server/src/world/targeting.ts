@@ -36,6 +36,7 @@ export function friendly(w: World, a: Sim, b: Sim): boolean {
 
 export function attackable(w: World, attacker: Sim, target: Sim, allowDeadAttacker = false): boolean {
   if (attacker.def?.dummy) return false;
+  if (target.a.tkTower === 4) return false;
   if (isHidden(target)) return false;
   return canAttack(info(attacker, allowDeadAttacker ? false : undefined), info(target), combatPairRules(w.meta, attacker.a, target.a, w.rules), w.now);
 }

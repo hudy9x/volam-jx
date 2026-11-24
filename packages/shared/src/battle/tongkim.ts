@@ -1,11 +1,15 @@
 // Chiến trường Tống Kim (theo tài liệu volam-3005/documents/tong-kim, map báo danh 323 -> chiến trường tùy chọn, mặc định 378).
 // TS thuần, dùng chung cho server, client và bot runner.
 import { isoDistance } from '../geometry.js';
+import type { Element } from '../characters/factions.js';
 import type { MapMeta } from '../maps/types.js';
 import tkMapsSource from './tk-maps.json' with { type: 'json' };
 
 export type TkCamp = 'tong' | 'kim';
-export type TkMode = 1 | 2; // 1: Bảo vệ Nguyên soái, 2: Cừu sát
+export type TkMode = 1 | 2 | 3; // 1: Bảo vệ Nguyên soái, 2: Cừu sát, 3: Phá Trụ
+export type TkLaneId = 'top' | 'mid' | 'bot';
+export type TkTowerTier = 'outer' | 'guard' | 'nexus';
+export type TkMinionType = 'melee' | 'ranged' | 'siege' | 'super';
 export type TkPhase = 'closed' | 'signup' | 'fighting' | 'ended';
 export type TkRank = 1 | 2 | 3 | 4 | 5;
 
@@ -16,7 +20,7 @@ export const TK_MIN_LEVEL = 60;
 export const TK_SIGNUP_FEE = 3000;
 export const TK_BALANCE_DIFF = 2;
 export const TK_MAX_PER_CAMP = 100;
-export const TK_CAMP_KICK_SEC = 20;
+export const TK_CAMP_KICK_SEC = 60;
 export const TK_GATE_WAIT_SEC = 5;
 export const TK_RESPAWN_DELAY_MS = 5000;
 export const TK_EXP_PER_ACCUM = 100;
@@ -61,7 +65,79 @@ export const TK_POINTS = {
 export const TK_MODE_NAMES: Record<TkMode, string> = {
   1: 'Bảo vệ Nguyên soái',
   2: 'Cừu sát',
+  3: 'Phá Trụ',
 };
+
+/** Hằng số cân bằng cho chế độ Phá Trụ (Mode 3). */
+export const TK_SIEGE = {
+  /** Tầm bắn trụ (iso px), lớn hơn tầm đánh xa nhất của người chơi (600 px) để chống góc lag. */
+  towerRange: 750,
+  /** Nhịp bắn của trụ (ms). */
+  towerAttackMs: 500,
+  /** Số mục tiêu người chơi tối đa trụ bắn cùng lúc khi bị băng trụ đông. */
+  towerMaxMultiTargets: 6,
+  /** Bán kính nổ lan AoE quanh mục tiêu khi trụ bắn người chơi (iso px). */
+  towerSplashRadius: 200,
+  /** Sóng xung chấn 360° mỗi mốc mất 25% HP trụ: gây % maxHP + choáng. */
+  towerPulsePct: 0.40,
+  towerPulseStunMs: 1500,
+  /** Giảm sát thương người chơi/bot gây lên lính đẩy đường. */
+  minionPlayerDmgMul: 0.5,
+  /** Sát thương trụ lên người chơi theo chuỗi hit liên tiếp (% maxHP xuyên kháng & xuyên khiên). */
+  towerPlayerHitPct: [0.50, 0.75, 1.00] as readonly number[],
+  /** Thời gian giữ chuỗi hit trên mục tiêu (ms). */
+  towerRampResetMs: 4000,
+  /** Thời gian giữ ưu tiên Call for Help khi đánh đồng minh trong tầm trụ (ms). */
+  towerCallForHelpMs: 3000,
+  /** Sát thương trụ lên lính (% maxHP mỗi phát). */
+  towerMinionHitPct: { melee: 0.35, ranged: 0.55, siege: 0.14, super: 0.10 } as Record<TkMinionType, number>,
+  /** Máu gốc trụ (chưa nhân sĩ số). */
+  towerBaseHp: { outer: 3_000_000, guard: 4_500_000, nexus: 8_000_000 } as Record<TkTowerTier, number>,
+  /** Trần sát thương tối đa trụ nhận mỗi giây (% maxHP/s). */
+  towerDpsCapPct: { withMinion: 0.05, backdoor: 0.015 },
+  /** Hệ số giảm sát thương khi không có lính địch trong tầm trụ (chống đẩy lén). */
+  backdoorDmgMul: 0.3,
+  /** Chu kỳ sinh đợt lính mới (ms). */
+  waveIntervalMs: 30_000,
+  /** Số lính tối đa mỗi đường / mỗi phe để bảo đảm hiệu năng server 20 tick/s. */
+  maxMinionsPerLane: 18,
+  /** Thời gian hồi sinh tăng dần theo tiến độ trận đấu (ms). */
+  respawnMinMs: 5_000,
+  respawnMaxMs: 25_000,
+  /** Điểm Tống Kim thưởng khi phá hủy công trình. */
+  towerPoints: { outer: 800, guard: 1200, nexus: 3000 } as Record<TkTowerTier, number>,
+  /** Điểm thưởng thêm cho toàn phe khi phá trụ. */
+  towerTeamBonus: { outer: 200, guard: 350, nexus: 1000 } as Record<TkTowerTier, number>,
+} as const;
+
+/** Chiêu cố định 90/150 nội công của Thiên Nhẫn (#362, #1076), Võ Đang (#365, #1078) và Côn Lôn (#375, #1081). */
+export const TK_TOWER_SKILLS = [362, 1076, 365, 1078, 375, 1081] as const;
+
+export function tkTowerHpScale(totalParticipants: number): number {
+  const extra = Math.max(0, totalParticipants - 10) * 0.08;
+  return 1 + Math.min(4, extra);
+}
+
+export function tkRespawnDelayMs(mode: TkMode, elapsedSec: number, durationSec: number): number {
+  if (mode !== 3) return TK_RESPAWN_DELAY_MS;
+  const ratio = durationSec > 0 ? Math.max(0, Math.min(1, elapsedSec / durationSec)) : 0;
+  return Math.round(TK_SIEGE.respawnMinMs + (TK_SIEGE.respawnMaxMs - TK_SIEGE.respawnMinMs) * ratio);
+}
+
+export function tkTowerSkillForElement(_el: Element, idx = 0): number {
+  return TK_TOWER_SKILLS[Math.abs(idx) % TK_TOWER_SKILLS.length];
+}
+
+export function tkTowerSpriteFor(camp: TkCamp, tier: TkTowerTier, el: Element): string {
+  if (tier === 'nexus') return camp === 'tong' ? 'enemy190' : 'enemy191';
+  switch (el) {
+    case 'kim': return 'enemy231';
+    case 'moc': return 'enemy229';
+    case 'thuy': return 'enemy228';
+    case 'hoa': return 'enemy227';
+    case 'tho': return 'enemy230';
+  }
+}
 
 export const TK_CAMP_NAMES: Record<TkCamp, string> = {
   tong: 'Đại Tống',
@@ -146,6 +222,20 @@ export function rollClarionNpcRole(rand: () => number = Math.random): 'soldier' 
   return 'commander';
 }
 
+export interface TkTowerSpec {
+  id: string;
+  tier: TkTowerTier;
+  lane?: TkLaneId;
+  element: Element;
+  x: number;
+  y: number;
+}
+
+export interface TkSiegeCampConfig {
+  towers: readonly TkTowerSpec[];
+  lanes: Record<TkLaneId, readonly { x: number; y: number }[]>;
+}
+
 export interface TkCampLayout {
   /** Điểm hồi sinh / vào Hậu doanh (an toàn). */
   spawn: { x: number; y: number };
@@ -159,6 +249,8 @@ export interface TkCampLayout {
   frontlines: readonly { x: number; y: number }[];
   /** Các tuyến sinh lính/tướng khi khai chiến Mode 1. */
   npcSpawns: readonly { role: Exclude<TkNpcRole, 'marshal'>; x: number; y: number; count: number; radius: number }[];
+  /** Cấu hình 6 trụ & 3 đường cho chế độ Phá Trụ (Mode 3). */
+  siege?: TkSiegeCampConfig;
 }
 
 export interface TkBattleMapConfig {
@@ -183,6 +275,16 @@ function cloneCampLayout(c: TkCampLayout): TkCampLayout {
     marshal: { x: c.marshal.x, y: c.marshal.y },
     frontlines: c.frontlines.map(p => ({ x: p.x, y: p.y })),
     npcSpawns: c.npcSpawns.map(g => ({ role: g.role, x: g.x, y: g.y, count: g.count, radius: g.radius })),
+    ...(c.siege ? {
+      siege: {
+        towers: c.siege.towers.map(t => ({ ...t })),
+        lanes: {
+          top: c.siege.lanes.top.map(p => ({ x: p.x, y: p.y })),
+          mid: c.siege.lanes.mid.map(p => ({ x: p.x, y: p.y })),
+          bot: c.siege.lanes.bot.map(p => ({ x: p.x, y: p.y })),
+        },
+      },
+    } : {}),
   };
 }
 
@@ -220,7 +322,7 @@ export function validateTkCampLayout(value: unknown, campName: string, meta?: Ma
     if (!Number.isFinite(radius) || radius < 0 || radius > 2000) throw Error(`Phe ${campName} · Bán kính cụm NPC #${idx + 1} phải từ 0 đến 2000 px.`);
     return { role, x: pt.x, y: pt.y, count, radius };
   });
-  return { spawn, safeRadius: Math.round(safeRadius), gateExit, marshal, frontlines, npcSpawns };
+  return { spawn, safeRadius: Math.round(safeRadius), gateExit, marshal, frontlines, npcSpawns, ...(raw.siege ? { siege: raw.siege } : {}) };
 }
 
 export function validateTkBattleMap(value: unknown, meta?: MapMeta): TkBattleMapConfig {

@@ -51,6 +51,9 @@ export interface AutoActorState {
   horse?: string;
   mounted?: boolean;
   stallTitle?: string;
+  tkTower?: number;
+  tkInvuln?: boolean;
+  tkTarget?: string;
 }
 
 /** An actor as auto-fight sees it (the client's actor views and the bot's room actors fit this). */
@@ -219,6 +222,7 @@ export class AutoPlay {
   private curseTried = new Map<string, number>();
   private lastReturn = -Infinity;
   private lastMountAt = -Infinity;
+  private lastAutoMount = true;
   private manualPauseAt = -Infinity;
   private manualMoving = false;
   private bans = new Map<string, number>();
@@ -302,6 +306,7 @@ export class AutoPlay {
   }
 
   update(now: number, opts: Settings): void {
+    this.lastAutoMount = opts.autoMount !== false;
     if (!this.running) {
       if (this.manualFocus && (this.host.self()?.state.hp ?? 0) <= 0) this.manualFocus = null;
       return;
@@ -531,6 +536,7 @@ export class AutoPlay {
   private ensureMount(now: number, self: AutoActor, wantMounted: boolean): boolean {
     if (!this.host.mount || self.state.hp <= 0 || self.state.stallTitle) return false;
     if (wantMounted) {
+      if (!this.lastAutoMount) return false;
       if (!self.state.horse || self.state.mounted) return false;
       if (now - this.lastMountAt >= MOUNT_GAP_MS) {
         this.lastMountAt = now;

@@ -1,4 +1,4 @@
-import type { ActiveStates, CharacterStats, CombatStats, Bag, Element, Equipment, Item, MonsterDef, Point, TkCamp, TkNpcRole } from '@vltk/shared';
+import type { ActiveStates, CharacterStats, CombatStats, Bag, Element, Equipment, Item, MonsterDef, Point, TkCamp, TkLaneId, TkMinionType, TkNpcRole, TkTowerTier } from '@vltk/shared';
 import type { PlayerProgress } from './progress.js';
 import type { Effects } from './systems/effects.js';
 import type { Actor } from '../net/schema.js';
@@ -132,6 +132,19 @@ export interface Sim {
   tkRole?: TkNpcRole;
   tkSummoned?: boolean;
   tkRespawnAt?: number;
+  // Tống Kim Phá Trụ (Mode 3)
+  tkTowerId?: string;
+  tkTowerTier?: TkTowerTier;
+  tkLane?: TkLaneId;
+  tkTowerInvuln?: boolean;
+  tkTowerHitMap?: Map<string, { count: number; lastAt: number }>;
+  tkTowerCallForHelp?: { attackerId: string; until: number };
+  tkTowerSecAt?: number;
+  tkTowerSecDmg?: number;
+  tkTowerPulseStage?: number;
+  tkMinionType?: TkMinionType;
+  tkWaypoints?: Point[];
+  tkWaypointIdx?: number;
 }
 
 export function makeSim(id: string, kind: Sim['kind'], a: Actor, element: Element, speed: number): Sim {

@@ -3,6 +3,15 @@ import { getMissile, tuningOf } from './registry.js';
 import { CELL } from './tuning.js';
 import { ANY_WEAPON, MissileForm, MoveKind, SkillStyle, WEAPON_NAMES, type SkillDef } from './types.js';
 
+/** Toàn bộ kỹ năng bẫy (Hãm Tĩnh) và chiêu nổ con của Đường Môn (kể cả 90 #351/#352 và 150 #1110/#1113): không gây phản đòn. */
+export const TANGMEN_TRAP_SKILLS = new Set<number>([
+  303, 304, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 1110, 1113,
+]);
+
+export function isTangmenTrapSkill(skillId?: number): boolean {
+  return skillId !== undefined && TANGMEN_TRAP_SKILLS.has(skillId);
+}
+
 /** Skills the engine can use: attacks, heals, bùa lợi / bùa hại, auras (toggle) — everything but passives. */
 export function isCastable(s: SkillDef): boolean {
   const castStyle = s.style === SkillStyle.Missiles || s.style === SkillStyle.Melee || s.style === SkillStyle.State

@@ -69,7 +69,7 @@ export interface StallBuyMsg { sellerCharId: string; uid: string; price: number;
 export interface TkActionMsg {
   op: 'register' | 'exitGate' | 'scout' | 'leave' | 'exchangeExp' | 'devStart' | 'devStop' | 'devStealth';
   camp?: 'tong' | 'kim';
-  mode?: 1 | 2;
+  mode?: 1 | 2 | 3;
   /** Map chiến trường muốn mở (chỉ dùng với devStart; mặc định 378). */
   battleMapId?: number;
   /** Số điểm tích lũy muốn đổi lấy EXP (0 = đổi tất cả). */
@@ -78,6 +78,19 @@ export interface TkActionMsg {
   signupSec?: number;
   durationSec?: number;
   marshalDelaySec?: number;
+}
+export interface TkTowerStatus {
+  id: string;
+  camp: 'tong' | 'kim';
+  tier: 'outer' | 'guard' | 'nexus';
+  lane?: 'top' | 'mid' | 'bot';
+  element: 'kim' | 'moc' | 'thuy' | 'hoa' | 'tho';
+  x: number;
+  y: number;
+  hp: number;
+  maxHp: number;
+  alive: boolean;
+  invuln: boolean;
 }
 export interface TkLeaderEntry {
   rankPos: number;
@@ -97,7 +110,7 @@ export interface TkStateMsg {
   matchId: number;
   battleMapId: number;
   availableMaps?: { id: number; name: string }[];
-  mode: 1 | 2;
+  mode: 1 | 2 | 3;
   phase: 'closed' | 'signup' | 'fighting' | 'ended';
   remainSec: number;
   tongCount: number;
@@ -127,6 +140,7 @@ export interface TkStateMsg {
     /** Chế độ Tàng hình kiểm thử (DEV_TOOLS). */
     stealth?: boolean;
   };
+  towers?: TkTowerStatus[];
   top10: TkLeaderEntry[];
 }
 export interface ChatMsg { text: string; ch?: ChatChannel }

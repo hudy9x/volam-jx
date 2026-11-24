@@ -536,6 +536,8 @@ const NPC_RES = [...new Set([
   // Tống Kim NPCs (Tống: enemy034, enemy029, enemy026, enemy021, enemy017, enemy004; Kim: enemy028, enemy031, enemy036, enemy024, enemy023, enemy006)
   'enemy034', 'enemy029', 'enemy026', 'enemy021', 'enemy017', 'enemy004',
   'enemy028', 'enemy031', 'enemy036', 'enemy024', 'enemy023', 'enemy006',
+  // Chế độ Phá Trụ (Long Trụ, Ngũ Hành Trụ, Tháp Pháo)
+  'enemy190', 'enemy191', 'enemy192', 'enemy227', 'enemy228', 'enemy229', 'enemy230', 'enemy231', 'boss098',
   ...GOLDEN_BOSS_CONFIG.bosses.map(b => b.sprite),
   ...spawnRes,
 ])];
@@ -544,22 +546,27 @@ const npcTable = readTable('\\settings\\npcres\\普通npc资源.txt');
 const npcs: Record<string, Partial<Record<(typeof NPC_KEYS)[keyof typeof NPC_KEYS], string>>> = {};
 /** Shadow sheet per body sheet (engine: body sprite name + "b.spr"; many sprites have none, then nothing is drawn). */
 const npcShadows: Record<string, string> = {};
-// Đường Phong uses compact SPR canvases with per-action foot anchors.
+// Đường Phong and compact tower SPR canvases use per-action foot anchors.
 // Keep legacy canvas coordinates for other resources until their source anchors are verified.
+const SPR_ANCHOR_NPCS = new Set([
+  'enemy157', 'enemy190', 'enemy191', 'enemy192',
+  'enemy227', 'enemy228', 'enemy229', 'enemy230', 'enemy231',
+]);
 for (const res of NPC_RES) {
   const row = npcTable.rows.find(r => r[0].trim() === res);
   const folder = typeRow(res)?.[typeCol('ResFilePath')].trim();
   if (!row || !folder) { console.warn(`  npc ${res} not found`); continue; }
+  const useSprAnchor = SPR_ANCHOR_NPCS.has(res);
   const set: (typeof npcs)[string] = {};
   npcTable.header.forEach((h, c) => {
     const key = NPC_KEYS[h as keyof typeof NPC_KEYS];
     const file = row[c]?.trim();
     if (!key || !file) return;
-    const k = sheet(`\\${folder}\\${file}`, `npc/${res}/${file.toLowerCase().replace(/\.spr$/, '')}`, false, res === 'enemy157');
+    const k = sheet(`\\${folder}\\${file}`, `npc/${res}/${file.toLowerCase().replace(/\.spr$/, '')}`, false, useSprAnchor);
     if (!k) return;
     set[key] = k;
     const shadowFile = file.replace(/\.spr$/i, 'b.spr');
-    const sk = sheet(`\\${folder}\\${shadowFile}`, `${k}b`, true, res === 'enemy157');
+    const sk = sheet(`\\${folder}\\${shadowFile}`, `${k}b`, true, useSprAnchor);
     if (sk) npcShadows[k] = sk;
   });
   npcs[res] = set;

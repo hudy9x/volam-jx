@@ -4,6 +4,7 @@ import type { MapMeta } from '@vltk/shared';
 import type { MapActor, ViewRect } from '../../game/ports';
 import { keyLabel } from '../../input/keymap';
 import { settings } from '../../state/settings';
+import { tkState } from '../../state/tongkim';
 import { assetUrl } from '../../art/assets';
 import { $, mount } from '../kit/dom';
 import './minimap.css';
@@ -153,6 +154,30 @@ class Minimap {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.lineWidth = 1;
     ctx.strokeRect(toX(view.x), toY(view.y), view.width * k, view.height * k);
+
+    const tk = tkState.get();
+    if (tk?.mode === 3 && tk.phase === 'fighting' && tk.towers?.length) {
+      for (const tw of tk.towers) {
+        const tx = toX(tw.x), ty = toY(tw.y);
+        if (tx < -6 || tx > width + 6 || ty < -6 || ty > height + 6) continue;
+        const isAlly = myBattleCamp ? tw.camp === myBattleCamp : tw.camp === 'tong';
+        const size = tw.tier === 'nexus' ? 4.5 : 3.2;
+        if (!tw.alive) {
+          ctx.strokeStyle = 'rgba(180, 180, 180, 0.5)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(tx - 2.5, ty - 2.5); ctx.lineTo(tx + 2.5, ty + 2.5);
+          ctx.moveTo(tx + 2.5, ty - 2.5); ctx.lineTo(tx - 2.5, ty + 2.5);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = isAlly ? '#44e06b' : '#ff3b30';
+          ctx.strokeStyle = tw.invuln ? '#ffd700' : '#000';
+          ctx.lineWidth = 1;
+          ctx.fillRect(tx - size, ty - size, size * 2, size * 2);
+          ctx.strokeRect(tx - size, ty - size, size * 2, size * 2);
+        }
+      }
+    }
 
     if (self && this.flag) this.trackFlag(this.flag, self, now);
     if (self && this.flag) {
