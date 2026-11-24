@@ -45,7 +45,14 @@ function drawIconSvg(): string {
  * + Bảng xếp hạng Top 10 + Dialog kết thúc trận đấu thắng/thua (dùng chung Web / Desktop / Mobile).
  */
 export class TongKimHud {
+  private readonly topBar: HTMLElement;
   private readonly toggleBtn: HTMLButtonElement;
+  private readonly tongHpBox: HTMLElement;
+  private readonly tongHpFill: HTMLElement;
+  private readonly tongHpPct: HTMLElement;
+  private readonly kimHpBox: HTMLElement;
+  private readonly kimHpFill: HTMLElement;
+  private readonly kimHpPct: HTMLElement;
   private readonly boardModal: HTMLElement;
   private readonly endModal: HTMLElement;
   private mapId = 0;
@@ -57,7 +64,28 @@ export class TongKimHud {
   private readonly onKeyDown: (e: KeyboardEvent) => void;
 
   constructor(parent: HTMLElement) {
-    this.toggleBtn = mount(parent, '<button type="button" id="tk-toggle" class="hidden" title="Bật/tắt bảng Tống Kim (phím `)">Tống Kim (`)</button>') as HTMLButtonElement;
+    this.topBar = mount(parent, `
+      <div id="tk-top-bar" class="hidden">
+        <div class="tk-siege-hp tk-siege-hp-tong hidden">
+          <span class="tk-siege-tag">Tống</span>
+          <span class="tk-siege-track"><i class="tk-siege-fill"></i></span>
+          <span class="tk-siege-pct">100.0%</span>
+        </div>
+        <button type="button" id="tk-toggle" title="Bật/tắt bảng Tống Kim (phím \`)">Tống Kim (\`)</button>
+        <div class="tk-siege-hp tk-siege-hp-kim hidden">
+          <span class="tk-siege-pct">100.0%</span>
+          <span class="tk-siege-track"><i class="tk-siege-fill"></i></span>
+          <span class="tk-siege-tag">Kim</span>
+        </div>
+      </div>
+    `);
+    this.toggleBtn = this.topBar.querySelector('#tk-toggle') as HTMLButtonElement;
+    this.tongHpBox = this.topBar.querySelector('.tk-siege-hp-tong') as HTMLElement;
+    this.tongHpFill = this.tongHpBox.querySelector('.tk-siege-fill') as HTMLElement;
+    this.tongHpPct = this.tongHpBox.querySelector('.tk-siege-pct') as HTMLElement;
+    this.kimHpBox = this.topBar.querySelector('.tk-siege-hp-kim') as HTMLElement;
+    this.kimHpFill = this.kimHpBox.querySelector('.tk-siege-fill') as HTMLElement;
+    this.kimHpPct = this.kimHpBox.querySelector('.tk-siege-pct') as HTMLElement;
     this.boardModal = mount(parent, '<div id="tk-board" class="hidden"></div>');
     this.endModal = mount(parent, '<div id="tk-end" class="hidden"></div>');
 
@@ -108,7 +136,7 @@ export class TongKimHud {
 
   hide(): void {
     this.mapId = 0;
-    this.toggleBtn.classList.add('hidden');
+    this.topBar.classList.add('hidden');
     this.boardModal.classList.add('hidden');
     this.endModal.classList.add('hidden');
   }
@@ -151,7 +179,7 @@ export class TongKimHud {
     const isBattle = this.mapId !== TK_SIGNUP_MAP_ID && (this.mapId === st?.battleMapId || isTkBattleMap(this.mapId));
     const activeMap = this.mapId === TK_SIGNUP_MAP_ID || isBattle;
     if (!activeMap || !st) {
-      this.toggleBtn.classList.add('hidden');
+      this.topBar.classList.add('hidden');
       this.boardModal.classList.add('hidden');
       this.endModal.classList.add('hidden');
       return;
@@ -160,11 +188,32 @@ export class TongKimHud {
     const me = st.me;
     const rankTitle = me?.camp && me.rank ? tkTitleOf(me.camp as TkCamp, me.rank) : '';
 
-    // Nút pill nhỏ luôn hiện ở góc để bấm chuột/chạm Mobile + hiển thị đồng hồ
-    this.toggleBtn.classList.remove('hidden');
+    // Nút pill nhỏ luôn hiện ở giữa + 2 thanh tổng HP trụ 2 bên ở Mode 3
+    this.topBar.classList.remove('hidden');
     this.toggleBtn.textContent = st.phase !== 'closed'
       ? `Tống Kim (\`) · ${fmtTime(st.remainSec)}`
       : 'Tống Kim (`)';
+
+    if (st.mode === 3 && st.phase === 'fighting' && st.towers?.length) {
+      let tongHp = 0, tongMax = 0, kimHp = 0, kimMax = 0;
+      for (const t of st.towers) {
+        const hp = t.alive ? Math.max(0, t.hp) : 0;
+        const max = Math.max(1, t.maxHp);
+        if (t.camp === 'tong') { tongHp += hp; tongMax += max; }
+        else { kimHp += hp; kimMax += max; }
+      }
+      const tongPct = tongMax > 0 ? Math.max(0, Math.min(100, (tongHp / tongMax) * 100)) : 0;
+      const kimPct = kimMax > 0 ? Math.max(0, Math.min(100, (kimHp / kimMax) * 100)) : 0;
+      this.tongHpBox.classList.remove('hidden');
+      this.kimHpBox.classList.remove('hidden');
+      this.tongHpFill.style.width = `${tongPct.toFixed(1)}%`;
+      this.kimHpFill.style.width = `${kimPct.toFixed(1)}%`;
+      this.tongHpPct.textContent = `${tongPct.toFixed(1)}%`;
+      this.kimHpPct.textContent = `${kimPct.toFixed(1)}%`;
+    } else {
+      this.tongHpBox.classList.add('hidden');
+      this.kimHpBox.classList.add('hidden');
+    }
 
     if (!this.panelOpen) {
       this.boardModal.classList.add('hidden');

@@ -1,12 +1,20 @@
-#tk-toggle {
+#tk-top-bar {
   position: absolute;
   top: 44px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 18;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+#tk-top-bar.hidden { display: none; }
+
+#tk-toggle {
   padding: 2px 10px;
   min-height: 22px;
-  background: rgba(14, 18, 24, 0.56);
+  background: rgba(14, 18, 24, 0.62);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(212, 175, 95, 0.45);
   border-radius: 999px;
@@ -14,13 +22,55 @@
   font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   cursor: pointer;
   pointer-events: auto;
 }
 #tk-toggle:hover {
-  background: rgba(24, 30, 38, 0.78);
+  background: rgba(24, 30, 38, 0.82);
 }
-#tk-toggle.hidden { display: none; }
+
+.tk-siege-hp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  min-height: 22px;
+  background: rgba(14, 18, 24, 0.62);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(212, 175, 95, 0.35);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tk-siege-hp.hidden { display: none; }
+.tk-siege-tag { font-size: 10px; letter-spacing: 0.02em; }
+.tk-siege-hp-tong .tk-siege-tag { color: #7cc0ff; }
+.tk-siege-hp-kim .tk-siege-tag { color: #ff8e7a; }
+.tk-siege-pct { color: #eef2f6; min-width: 38px; text-align: center; }
+.tk-siege-track {
+  position: relative;
+  width: 82px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+.tk-siege-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+.tk-siege-hp-tong .tk-siege-fill {
+  margin-left: auto;
+  background: linear-gradient(90deg, #2d7ff9, #69b8ff);
+}
+.tk-siege-hp-kim .tk-siege-fill {
+  background: linear-gradient(90deg, #ff6c57, #d93829);
+}
 
 .tk-board-summary {
   padding-bottom: 10px;
