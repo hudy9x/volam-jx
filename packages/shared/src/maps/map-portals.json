@@ -4749,6 +4749,48 @@
         "toY": 11880
       }
     ],
+    "326": [
+      {
+        "id": "tk-tong-out",
+        "label": "Ra chiến trường (Tống)",
+        "x": 2376,
+        "y": 11758,
+        "radius": 64,
+        "toMap": 326,
+        "toX": 4855,
+        "toY": 9440
+      },
+      {
+        "id": "tk-tong-back",
+        "label": "Về Hậu doanh (Tống)",
+        "x": 3439,
+        "y": 9336,
+        "radius": 64,
+        "toMap": 326,
+        "toX": 2605,
+        "toY": 12318
+      },
+      {
+        "id": "tk-kim-out",
+        "label": "Ra chiến trường (Kim)",
+        "x": 15840,
+        "y": 2993,
+        "radius": 64,
+        "toMap": 326,
+        "toX": 12585,
+        "toY": 4188
+      },
+      {
+        "id": "tk-kim-back",
+        "label": "Về Hậu doanh (Kim)",
+        "x": 14654,
+        "y": 5281,
+        "radius": 64,
+        "toMap": 326,
+        "toX": 15460,
+        "toY": 2377
+      }
+    ],
     "329": [
       {
         "id": "tk-tong-out",
