@@ -137,6 +137,7 @@ export interface Sim {
   tkTowerTier?: TkTowerTier;
   tkLane?: TkLaneId;
   tkTowerInvuln?: boolean;
+  tkCampAliveTowers?: number;
   tkTowerHitMap?: Map<string, { count: number; lastAt: number }>;
   tkTowerCallForHelp?: { attackerId: string; until: number };
   tkTowerSecAt?: number;

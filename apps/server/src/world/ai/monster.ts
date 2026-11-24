@@ -1,4 +1,4 @@
-import { TK_SIEGE, TK_TOWER_SKILLS, chooseSkill, getSkill, isWalkable, isoDistance } from '@vltk/shared';
+import { TK_SIEGE, TK_TOWER_SKILLS, chooseSkill, getSkill, isWalkable, isoDistance, tkTowerDamageScale } from '@vltk/shared';
 import type { Sim } from '../entity.js';
 import { applyHit, castNow } from '../systems/combat.js';
 import { face, followPath, setPath, updateConfusedMove } from '../systems/movement.js';
@@ -144,15 +144,16 @@ function updateTkTower(w: World, sim: Sim): void {
   const skillId = TK_TOWER_SKILLS[idx % TK_TOWER_SKILLS.length];
   sim.plan = { id: idx + 1, range: TK_SIEGE.towerRange };
   const sk = getSkill(skillId);
+  const towerScale = tkTowerDamageScale(sim.tkCampAliveTowers ?? TK_SIEGE.towersPerCamp);
   for (const t of targets) {
     sim.mp = sim.a.maxMp;
     sim.cooldowns.delete(skillId);
     w.engine.cast(sim, skillId, t, { x: t.a.x, y: t.a.y }, 500);
-    if (sk?.form === 1 && isoDistance(sim.a.x, sim.a.y, t.a.x, t.a.y) > 450) {
+    if (towerScale > 0 && sk?.form === 1 && isoDistance(sim.a.x, sim.a.y, t.a.x, t.a.y) > 450) {
       applyHit(w, sim, t, { dmg: 1, crit: false, skill: skillId });
     }
-    // Nổ lan AoE 200 px khi trụ bắn người chơi để chống đứng tụm đông người
-    if (t.kind === 'player') {
+    // Nổ lan AoE 200 px khi trụ bắn người chơi để chống đứng tụm đông người (tắt khi còn <= 3 trụ cuối)
+    if (towerScale > 0 && t.kind === 'player') {
       for (const nearby of w.sims.values()) {
         if (nearby === t || nearby.dead || nearby.kind !== 'player' || !attackable(w, sim, nearby)) continue;
         if (isoDistance(t.a.x, t.a.y, nearby.a.x, nearby.a.y) <= TK_SIEGE.towerSplashRadius) {
@@ -165,16 +166,13 @@ function updateTkTower(w: World, sim: Sim): void {
 
 function findLaneMinionTarget(w: World, sim: Sim, vision: number): Sim | undefined {
   let best: Sim | undefined;
-  let bestScore = Infinity;
+  let bestDist = Infinity;
+  const detectR = Math.max(vision, 900);
   for (const other of w.sims.values()) {
+    if (!other.tkTowerTier || other.tkTowerInvuln) continue;
     if (!attackable(w, sim, other)) continue;
-    if (other.tkTowerTier && other.tkTowerInvuln) continue;
     const d = isoDistance(sim.a.x, sim.a.y, other.a.x, other.a.y);
-    if (d > vision) continue;
-    // Ưu tiên: lính địch (0) < trụ mở (1000) < người chơi địch (2000)
-    const tierOffset = other.tkMinionType ? 0 : other.tkTowerTier ? 1000 : 2000;
-    const score = tierOffset + d;
-    if (score < bestScore) { bestScore = score; best = other; }
+    if (d <= detectR && d < bestDist) { bestDist = d; best = other; }
   }
   return best;
 }
@@ -193,8 +191,8 @@ function updateTkLaneMinion(w: World, sim: Sim, dt: number): void {
   }
 
   let target = sim.target ? w.sims.get(sim.target) : undefined;
-  if (target && (!attackable(w, sim, target) || (target.tkTowerTier && target.tkTowerInvuln))) target = undefined;
-  if (!target || isoDistance(sim.a.x, sim.a.y, target.a.x, target.a.y) > def.vision * 1.4) {
+  if (target && (!target.tkTowerTier || target.tkTowerInvuln || !attackable(w, sim, target))) target = undefined;
+  if (!target || isoDistance(sim.a.x, sim.a.y, target.a.x, target.a.y) > Math.max(def.vision, 900) * 1.4) {
     target = findLaneMinionTarget(w, sim, def.vision);
     sim.target = target?.id ?? null;
   }

@@ -89,26 +89,51 @@ export const TK_SIEGE = {
   towerRampResetMs: 4000,
   /** Thời gian giữ ưu tiên Call for Help khi đánh đồng minh trong tầm trụ (ms). */
   towerCallForHelpMs: 3000,
-  /** Sát thương trụ lên lính (% maxHP mỗi phát). */
-  towerMinionHitPct: { melee: 0.35, ranged: 0.55, siege: 0.14, super: 0.10 } as Record<TkMinionType, number>,
-  /** Máu gốc trụ (chưa nhân sĩ số). */
-  towerBaseHp: { outer: 3_000_000, guard: 4_500_000, nexus: 8_000_000 } as Record<TkTowerTier, number>,
+  /** Sát thương trụ lên lính (% maxHP mỗi phát, đơn mục tiêu cố định 2%–5%). */
+  towerMinionHitPct: { melee: 0.04, ranged: 0.05, siege: 0.03, super: 0.02 } as Record<TkMinionType, number>,
+  /** Máu gốc trụ (Trụ Đường & Bảo Vệ nhân theo sĩ số; Long Trụ cố định 500.000 HP). */
+  towerBaseHp: { outer: 1_500_000, guard: 2_250_000, nexus: 500_000 } as Record<TkTowerTier, number>,
   /** Trần sát thương tối đa trụ nhận mỗi giây (% maxHP/s). */
   towerDpsCapPct: { withMinion: 0.05, backdoor: 0.015 },
+  /** Trần sát thương tối đa Long Trụ nhận mỗi giây (% maxHP/s). */
+  nexusDpsCapPct: { withMinion: 0.10, backdoor: 0.03 },
+  /** Buff tăng sát thương toàn phe mỗi khi phá hủy 1 trụ địch (+10%/trụ, tối đa +30%). */
+  towerKillDmgBonusPerTower: 0.10,
+  towerKillDmgBonusMax: 0.30,
   /** Hệ số giảm sát thương khi không có lính địch trong tầm trụ (chống đẩy lén). */
   backdoorDmgMul: 0.3,
   /** Chu kỳ sinh đợt lính mới (ms). */
   waveIntervalMs: 30_000,
   /** Số lính tối đa mỗi đường / mỗi phe để bảo đảm hiệu năng server 20 tick/s. */
   maxMinionsPerLane: 18,
-  /** Thời gian hồi sinh tăng dần theo tiến độ trận đấu (ms). */
-  respawnMinMs: 5_000,
-  respawnMaxMs: 25_000,
+  /** Bậc thời gian hồi sinh theo số lần tử vong ở Mode 3 (giây): lần 1 = 30s, lần 2 = 60s, lần 3+ = 90s. */
+  respawnStepsSec: [30, 60, 90] as readonly number[],
   /** Điểm Tống Kim thưởng khi phá hủy công trình. */
   towerPoints: { outer: 800, guard: 1200, nexus: 3000 } as Record<TkTowerTier, number>,
   /** Điểm thưởng thêm cho toàn phe khi phá trụ. */
   towerTeamBonus: { outer: 200, guard: 350, nexus: 1000 } as Record<TkTowerTier, number>,
+  /** Tổng số trụ mỗi phe & cơ chế suy giảm sát thương trụ theo số trụ bị phá (còn <= 3 trụ cuối -> sát thương chiêu thức bình thường). */
+  towersPerCamp: 6,
+  towerNormalDamageThreshold: 3,
+  towerDmgScaleByDestroyed: [1.0, 0.70, 0.45] as readonly number[],
 } as const;
+
+/** Hệ số sát thương % maxHP của Trụ theo số trụ còn sống của phe đó (0 = dùng sát thương chiêu thức bình thường). */
+export function tkTowerDamageScale(aliveTowers: number): number {
+  if (aliveTowers <= TK_SIEGE.towerNormalDamageThreshold) return 0;
+  const destroyed = Math.max(0, TK_SIEGE.towersPerCamp - aliveTowers);
+  const steps = TK_SIEGE.towerDmgScaleByDestroyed;
+  return steps[Math.min(destroyed, steps.length - 1)];
+}
+
+/** Hệ số tăng sát thương toàn phe dựa trên số trụ địch đã phá hủy (+10%/trụ, tối đa +30%). */
+export function tkTowerKillDamageMul(enemyDestroyedTowers: number): number {
+  const bonus = Math.min(
+    TK_SIEGE.towerKillDmgBonusMax,
+    Math.max(0, enemyDestroyedTowers) * TK_SIEGE.towerKillDmgBonusPerTower,
+  );
+  return 1 + bonus;
+}
 
 /** Chiêu cố định 90/150 nội công của Thiên Nhẫn (#362, #1076), Võ Đang (#365, #1078) và Côn Lôn (#375, #1081). */
 export const TK_TOWER_SKILLS = [362, 1076, 365, 1078, 375, 1081] as const;
@@ -118,10 +143,15 @@ export function tkTowerHpScale(totalParticipants: number): number {
   return 1 + Math.min(4, extra);
 }
 
-export function tkRespawnDelayMs(mode: TkMode, elapsedSec: number, durationSec: number): number {
+export function tkRespawnDelayMs(
+  mode: TkMode,
+  deaths: number,
+  stepsSec: readonly number[] = TK_SIEGE.respawnStepsSec,
+): number {
   if (mode !== 3) return TK_RESPAWN_DELAY_MS;
-  const ratio = durationSec > 0 ? Math.max(0, Math.min(1, elapsedSec / durationSec)) : 0;
-  return Math.round(TK_SIEGE.respawnMinMs + (TK_SIEGE.respawnMaxMs - TK_SIEGE.respawnMinMs) * ratio);
+  const steps = stepsSec.length ? stepsSec : TK_SIEGE.respawnStepsSec;
+  const idx = Math.max(0, Math.min(steps.length - 1, Math.floor(Math.max(1, deaths)) - 1));
+  return Math.max(1_000, Math.round(steps[idx] * 1_000));
 }
 
 export function tkTowerSkillForElement(_el: Element, idx = 0): number {

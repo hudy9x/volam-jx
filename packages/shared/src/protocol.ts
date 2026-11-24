@@ -78,6 +78,7 @@ export interface TkActionMsg {
   signupSec?: number;
   durationSec?: number;
   marshalDelaySec?: number;
+  respawnStepsSec?: number[];
 }
 export interface TkTowerStatus {
   id: string;

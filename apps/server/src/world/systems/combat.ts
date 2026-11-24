@@ -1,5 +1,7 @@
 import {
   TK_SIEGE,
+  tkTowerDamageScale,
+  tkTowerKillDamageMul,
   combatRulesAt, combatPairRules,
   isTangmenTrapSkill,
   levelOf,
@@ -63,17 +65,23 @@ function hasEnemyMinionNearTower(w: World, tower: Sim): boolean {
   return false;
 }
 
+function towerScaleOf(tower: Sim): number {
+  return tkTowerDamageScale(tower.tkCampAliveTowers ?? TK_SIEGE.towersPerCamp);
+}
+
 export function towerHitDamage(w: World, tower: Sim, target: Sim): number {
   const map = (tower.tkTowerHitMap ??= new Map());
   const prev = map.get(target.id);
   if (target.tkMinionType) {
     map.set(target.id, { count: 1, lastAt: w.now });
-    const pct = TK_SIEGE.towerMinionHitPct[target.tkMinionType] ?? 0.35;
+    const pct = TK_SIEGE.towerMinionHitPct[target.tkMinionType] ?? 0.04;
     return Math.max(1, Math.floor(target.a.maxHp * pct));
   }
+  const scale = towerScaleOf(tower);
+  if (scale <= 0) return 0;
   const count = prev && w.now - prev.lastAt <= TK_SIEGE.towerRampResetMs ? prev.count + 1 : 1;
   map.set(target.id, { count, lastAt: w.now });
-  const pct = TK_SIEGE.towerPlayerHitPct[Math.min(count - 1, TK_SIEGE.towerPlayerHitPct.length - 1)];
+  const pct = TK_SIEGE.towerPlayerHitPct[Math.min(count - 1, TK_SIEGE.towerPlayerHitPct.length - 1)] * scale;
   return Math.max(1, Math.floor(target.a.maxHp * pct));
 }
 
@@ -90,12 +98,26 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
   attacker.lastAttackAt = w.now;
   if (target.kind === 'monster' && !target.def?.dummy && !target.target && !target.returning && attacker !== target) target.target = attacker.id;
   if (attacker.tkTowerTier) {
+    // Với NPC binh sĩ: trụ chỉ gây sát thương đơn mục tiêu lên đúng con lính đang khóa (tránh AoE 90/150 quét chết chùm cả đàn)
+    if (target.tkMinionType && attacker.a.tkTarget && attacker.a.tkTarget !== target.id) return;
     const map = (attacker.tkTowerHitMap ??= new Map());
     const prev = map.get(target.id);
     if (prev && w.now - prev.lastAt < 350) return;
   }
-  if (hit.miss && !attacker.tkTowerTier) { w.events.push({ t: 'hit', id: target.id, dmg: 0, miss: true }); return; }
-  let dmg = attacker.tkTowerTier ? towerHitDamage(w, attacker, target) : (hit.dmg > 0 ? Math.floor(hit.dmg) : 0);
+  const towerPctMode = Boolean(attacker.tkTowerTier && (target.tkMinionType || towerScaleOf(attacker) > 0));
+  if (hit.miss && !towerPctMode) { w.events.push({ t: 'hit', id: target.id, dmg: 0, miss: true }); return; }
+  let dmg = towerPctMode ? towerHitDamage(w, attacker, target) : (hit.dmg > 0 ? Math.floor(hit.dmg) : 0);
+
+  // Buff tăng sát thương toàn phe khi phá trụ địch ở Mode 3 (+10%/trụ, tối đa +30%, áp dụng mọi mục tiêu)
+  if (dmg > 0 && !attacker.tkTowerTier && !hit.reflected) {
+    const atkCamp = attacker.tkCamp ?? (attacker.a.battleCamp === 'tong' || attacker.a.battleCamp === 'kim' ? attacker.a.battleCamp : undefined);
+    if (atkCamp) {
+      const destroyed = tongKim.siegeDestroyedEnemyTowers(atkCamp);
+      if (destroyed > 0) {
+        dmg = Math.max(1, Math.floor(dmg * tkTowerKillDamageMul(destroyed)));
+      }
+    }
+  }
 
   // Lính đẩy đường giảm 50% sát thương nhận từ Người chơi / Bot
   if (target.tkMinionType && attacker.kind === 'player' && dmg > 0) {
@@ -112,7 +134,8 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
       target.tkTowerSecAt = w.now;
       target.tkTowerSecDmg = 0;
     }
-    const cap = Math.max(1, Math.floor(target.a.maxHp * (withMinion ? TK_SIEGE.towerDpsCapPct.withMinion : TK_SIEGE.towerDpsCapPct.backdoor)));
+    const dpsCfg = target.tkTowerTier === 'nexus' ? TK_SIEGE.nexusDpsCapPct : TK_SIEGE.towerDpsCapPct;
+    const cap = Math.max(1, Math.floor(target.a.maxHp * (withMinion ? dpsCfg.withMinion : dpsCfg.backdoor)));
     const used = target.tkTowerSecDmg ?? 0;
     const remain = Math.max(0, cap - used);
     if (remain <= 0) return;
@@ -129,14 +152,14 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
       }
     }
   }
-  // Đòn bắn của Trụ bỏ qua toàn bộ Hộ Thuẫn Nội Lực (staticmagicshield_p và manashield_p)
-  if (!hit.dot && !attacker.tkTowerTier && target.shieldHp && target.shieldHp > 0 && dmg > 0) {
+  // Đòn bắn % maxHP của Trụ bỏ qua toàn bộ Hộ Thuẫn Nội Lực (staticmagicshield_p và manashield_p); khi còn <= 3 trụ cuối trở về sát thương bình thường
+  if (!hit.dot && !towerPctMode && target.shieldHp && target.shieldHp > 0 && dmg > 0) {
     const absorb = Math.floor(Math.min(target.shieldHp, dmg));
     target.shieldHp -= absorb;
     dmg -= absorb;
   }
   const shield = Math.min(100, attrOf(combatOf(target).bag, 'manashield_p'));
-  if (!hit.dot && !attacker.tkTowerTier && shield > 0 && target.mp > 0 && dmg > 0) {
+  if (!hit.dot && !towerPctMode && shield > 0 && target.mp > 0 && dmg > 0) {
     const fromMp = Math.min(target.mp, Math.floor((dmg * shield) / 100));
     target.mp -= fromMp;
     dmg -= fromMp;
@@ -180,8 +203,9 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
     kill(w, target, attacker);
     return;
   }
-  // Sóng Xung Chấn 360° của Trụ mỗi mốc mất 25% HP (75%, 50%, 25%) -> 40% maxHP xuyên khiên + choáng 1.5s toàn bộ người chơi địch trong tầm
-  if (target.tkTowerTier && target.a.maxHp > 0) {
+  // Sóng Xung Chấn 360° của Trụ mỗi mốc mất 25% HP (75%, 50%, 25%) -> suy giảm theo số trụ còn sống (<= 3 trụ cuối tắt)
+  const pulseScale = target.tkTowerTier ? towerScaleOf(target) : 0;
+  if (pulseScale > 0 && target.a.maxHp > 0) {
     const ratio = target.hp / target.a.maxHp;
     const stage = ratio <= 0.25 ? 3 : ratio <= 0.50 ? 2 : ratio <= 0.75 ? 1 : 0;
     const prevStage = target.tkTowerPulseStage ?? 0;
@@ -191,7 +215,7 @@ export function applyHit(w: World, attacker: Sim, target: Sim, hit: HitResult & 
         if (p.dead || p.kind !== 'player' || !p.a.battleCamp || p.a.battleCamp === target.tkCamp) continue;
         if (isoDistance(target.a.x, target.a.y, p.a.x, p.a.y) > TK_SIEGE.towerRange) continue;
         w.events.push({ t: 'cast', id: target.id, skill: 1081, x: p.a.x, y: p.a.y });
-        const pulseDmg = Math.max(1, Math.floor(p.a.maxHp * TK_SIEGE.towerPulsePct));
+        const pulseDmg = Math.max(1, Math.floor(p.a.maxHp * TK_SIEGE.towerPulsePct * pulseScale));
         p.hp -= pulseDmg;
         w.events.push({ t: 'hit', id: p.id, dmg: pulseDmg, fatal: p.hp <= 0 || undefined });
         if (p.hp <= 0) {

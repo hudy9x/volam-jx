@@ -38,7 +38,9 @@ import {
   tkRankForPoints,
   tkRespawnDelayMs,
   tkTitleOf,
+  tkTowerDamageScale,
   tkTowerHpScale,
+  tkTowerKillDamageMul,
   tkTowerSkillForElement,
   tkTowerSpriteFor,
   rollClarionNpcRole,
@@ -107,6 +109,8 @@ export interface TkStartOptions {
   marshalDelaySec?: number;
   endSec?: number;
   allowSolo?: boolean;
+  /** Bậc thời gian hồi sinh cho Mode 3 (giây), mặc định [30, 60, 90]. */
+  respawnStepsSec?: number[];
 }
 
 const TK_NPC_STATS: Record<TkNpcRole, { hp: number; level: number; scale: number; boss: 0 | 1 | 2; respawnMs: number; damage: [number, number]; skills: [number, number][] }> = {
@@ -221,7 +225,10 @@ class TongKimManager {
   private winner: 'tong' | 'kim' | 'draw' | '' = '';
   private winReason = '';
   private allowSolo = false;
-  private timing: { signupSec: number; marshalDelaySec: number; durationSec: number; endSec: number } = { ...TK_DEFAULT_TIMING };
+  private timing: { signupSec: number; marshalDelaySec: number; durationSec: number; endSec: number; respawnStepsSec: number[] } = {
+    ...TK_DEFAULT_TIMING,
+    respawnStepsSec: [...TK_SIEGE.respawnStepsSec],
+  };
   private entries = new Map<string, TkPlayerEntry>();
   private npcRespawns: TkNpcRespawn[] = [];
   private npcsSpawned = false;
@@ -229,7 +236,6 @@ class TongKimManager {
   private rewardsGranted = false;
   private clarionUses: Record<TkCamp, number> = { tong: 0, kim: 0 };
   private devStealthChars = new Set<string>();
-  private fightingStartedAt = 0;
   private siegeNextWaveAt = 0;
   private siegeWaveNo = 0;
   private siegeTowers = new Map<string, { spec: TkTowerSpec; camp: TkCamp; simId: string; hp: number; maxHp: number; alive: boolean; invuln: boolean }>();
@@ -305,11 +311,15 @@ class TongKimManager {
     this.matchId++;
     this.currentBattleMapId = cfg.id;
     this.mode = opts.mode === 3 ? 3 : opts.mode === 2 ? 2 : 1;
+    const customSteps = Array.isArray(opts.respawnStepsSec)
+      ? opts.respawnStepsSec.map(v => Math.round(Number(v))).filter(v => Number.isFinite(v) && v >= 1 && v <= 600)
+      : [];
     this.timing = {
       signupSec: Math.max(5, Math.min(1800, Math.floor(opts.signupSec ?? TK_DEFAULT_TIMING.signupSec))),
       marshalDelaySec: Math.max(5, Math.min(3600, Math.floor(opts.marshalDelaySec ?? TK_DEFAULT_TIMING.marshalDelaySec))),
       durationSec: Math.max(30, Math.min(7200, Math.floor(opts.durationSec ?? TK_DEFAULT_TIMING.durationSec))),
       endSec: Math.max(5, Math.min(300, Math.floor(opts.endSec ?? TK_DEFAULT_TIMING.endSec))),
+      respawnStepsSec: customSteps.length ? customSteps : [...TK_SIEGE.respawnStepsSec],
     };
     this.allowSolo = !!opts.allowSolo;
     this.phase = 'signup';
@@ -325,7 +335,6 @@ class TongKimManager {
     this.npcsSpawned = false;
     this.rewardsGranted = false;
     this.clarionUses = { tong: 0, kim: 0 };
-    this.fightingStartedAt = 0;
     this.siegeNextWaveAt = 0;
     this.siegeWaveNo = 0;
     this.siegeTowers.clear();
@@ -635,7 +644,6 @@ class TongKimManager {
         return;
       }
       this.phase = 'fighting';
-      this.fightingStartedAt = now;
       this.phaseEndsAt = now + this.timing.durationSec * 1000;
       this.marshalSpawnAt = now + this.timing.marshalDelaySec * 1000;
       if (w) {
@@ -674,18 +682,13 @@ class TongKimManager {
         let reason: string;
         if (this.mode === 3) {
           const stats = this.siegeEndStats(w);
-          if (stats.tongDestroyed !== stats.kimDestroyed) {
-            // Phe phá được nhiều trụ địch hơn thắng
-            win = stats.kimDestroyed > stats.tongDestroyed ? 'tong' : 'kim';
-            reason = `Hết giờ — phe ${TK_CAMP_NAMES[win]} phá hủy nhiều công trình địch hơn (${stats.kimDestroyed} vs ${stats.tongDestroyed} trụ)!`;
-          } else if (Math.abs(stats.tongNexusPct - stats.kimNexusPct) > 0.001) {
-            win = stats.kimNexusPct < stats.tongNexusPct ? 'tong' : 'kim';
-            reason = `Hết giờ (cùng phá ${stats.tongDestroyed} trụ) — phe ${TK_CAMP_NAMES[win]} thắng nhờ bào mòn Nhà Chính địch nhiều hơn!`;
+          const diff = stats.tongPct - stats.kimPct;
+          if (Math.abs(diff) > 1e-6) {
+            win = diff > 0 ? 'tong' : 'kim';
+            reason = `Hết giờ — phe ${TK_CAMP_NAMES[win]} thắng nhờ tổng HP công trình còn lại cao hơn (Tống ${(stats.tongPct * 100).toFixed(1)}% vs Kim ${(stats.kimPct * 100).toFixed(1)}%)!`;
           } else {
-            win = tongScore > kimScore ? 'tong' : kimScore > tongScore ? 'kim' : 'draw';
-            reason = win === 'draw'
-              ? `Hết giờ — hai phe hòa nhau (${tongScore} điểm)!`
-              : `Hết giờ — phe ${TK_CAMP_NAMES[win]} thắng theo tổng điểm (${tongScore} Tống vs ${kimScore} Kim)!`;
+            win = 'draw';
+            reason = `Hết giờ — hai phe hòa nhau về tổng HP công trình (${(stats.tongPct * 100).toFixed(1)}%)!`;
           }
         } else if (this.mode === 1 && this.marshalSpawned && tongAlive !== kimAlive) {
           win = tongAlive ? 'tong' : 'kim';
@@ -790,8 +793,7 @@ class TongKimManager {
       if (victim) {
         victim.deaths++;
         victim.streak = 0;
-        const elapsedSec = this.fightingStartedAt > 0 ? Math.max(0, (w.now - this.fightingStartedAt) / 1000) : 0;
-        const delayMs = tkRespawnDelayMs(this.mode, elapsedSec, this.timing.durationSec);
+        const delayMs = tkRespawnDelayMs(this.mode, victim.deaths, this.timing.respawnStepsSec);
         target.tkRespawnAt = w.now + delayMs;
         w.hooks.notify(target, `Bạn đã tử trận! Tự động hồi sinh tại doanh trại sau ${Math.round(delayMs / 1000)} giây (không mất EXP/đồ).`);
       }
@@ -850,7 +852,14 @@ class TongKimManager {
         w.hooks.announce(`${target.a.name} đã bị ${killerName} phá hủy! Phe ${TK_CAMP_NAMES[winCamp]} giành chiến thắng!`);
         this.finishMatch(w, winCamp, `Phe ${TK_CAMP_NAMES[winCamp]} đã phá hủy Nhà Chính quân địch!`, Date.now());
       } else {
-        w.hooks.announce(`${target.a.name} đã bị ${killerName} phá hủy!`);
+        const aliveLeft = [...this.siegeTowers.values()].filter(t => t.camp === towerCamp && t.alive).length;
+        const dmgScale = tkTowerDamageScale(aliveLeft);
+        const dmgNote = dmgScale <= 0
+          ? ` Phe ${TK_CAMP_NAMES[towerCamp]} chỉ còn ${aliveLeft} trụ — sát thương trụ trở về bình thường!`
+          : ` Sát thương trụ còn lại của phe ${TK_CAMP_NAMES[towerCamp]} giảm còn ${Math.round(dmgScale * 100)}%!`;
+        const winBonusPct = Math.round((tkTowerKillDamageMul(this.siegeDestroyedEnemyTowers(winCamp)) - 1) * 100);
+        const bonusNote = winBonusPct > 0 ? ` Phe ${TK_CAMP_NAMES[winCamp]} được tăng +${winBonusPct}% sát thương toàn quân!` : '';
+        w.hooks.announce(`${target.a.name} đã bị ${killerName} phá hủy!${dmgNote}${bonusNote}`);
         for (const sim of w.sims.values()) {
           if (sim.kind !== 'player') continue;
           if (sim.a.battleCamp === towerCamp) w.hooks.notify(sim, `${target.a.name} của phe ta đã bị phá hủy!`, 'danger');
@@ -1244,7 +1253,9 @@ class TongKimManager {
       if (!siege) continue;
       for (const spec of siege.towers) {
         const [x, y] = nearestWalkable(w.grid, spec.x, spec.y);
-        const maxHp = Math.round(TK_SIEGE.towerBaseHp[spec.tier] * hpScale);
+        const maxHp = spec.tier === 'nexus'
+          ? TK_SIEGE.towerBaseHp.nexus
+          : Math.round(TK_SIEGE.towerBaseHp[spec.tier] * hpScale);
         const sprite = tkTowerSpriteFor(camp, spec.tier, spec.element);
         const skillId = tkTowerSkillForElement(spec.element);
         const def: MonsterDef = {
@@ -1318,6 +1329,7 @@ class TongKimManager {
   private refreshSiegeInvuln(w: World): void {
     for (const camp of ['tong', 'kim'] as const) {
       const list = [...this.siegeTowers.values()].filter(t => t.camp === camp);
+      const aliveCount = list.filter(t => t.alive).length;
       const outerBroken = list.some(t => t.spec.tier === 'outer' && !t.alive);
       const allGuardsBroken = list.filter(t => t.spec.tier === 'guard').every(t => !t.alive);
       for (const t of list) {
@@ -1326,6 +1338,7 @@ class TongKimManager {
         const sim = w.sims.get(t.simId);
         if (sim) {
           sim.tkTowerInvuln = t.invuln;
+          sim.tkCampAliveTowers = aliveCount;
           sim.a.tkInvuln = t.invuln;
         }
       }
@@ -1480,23 +1493,40 @@ class TongKimManager {
     return sim;
   }
 
-  private siegeEndStats(w?: World): { tongDestroyed: number; kimDestroyed: number; tongNexusPct: number; kimNexusPct: number } {
-    let tongDestroyed = 0, kimDestroyed = 0;
-    let tongNexusPct = 1, kimNexusPct = 1;
+  /** Số công trình phe địch đã bị phá hủy trong Mode 3 (dùng tính buff sát thương toàn phe). */
+  siegeDestroyedEnemyTowers(camp: TkCamp): number {
+    if (this.mode !== 3 || this.phase !== 'fighting' || !this.siegeTowers.size) return 0;
+    let count = 0;
+    for (const t of this.siegeTowers.values()) {
+      if (t.camp !== camp && !t.alive) count++;
+    }
+    return count;
+  }
+
+  private siegeEndStats(w?: World): {
+    tongHp: number;
+    tongMaxHp: number;
+    kimHp: number;
+    kimMaxHp: number;
+    tongPct: number;
+    kimPct: number;
+  } {
+    let tongHp = 0, tongMaxHp = 0, kimHp = 0, kimMaxHp = 0;
     for (const t of this.siegeTowers.values()) {
       const sim = w?.sims.get(t.simId);
-      const hp = t.alive ? (sim ? sim.hp : t.hp) : 0;
+      const hp = t.alive ? Math.max(0, sim ? sim.hp : t.hp) : 0;
       const maxHp = Math.max(1, t.maxHp);
-      if (!t.alive) {
-        if (t.camp === 'tong') tongDestroyed++;
-        else kimDestroyed++;
-      }
-      if (t.spec.tier === 'nexus') {
-        if (t.camp === 'tong') tongNexusPct = hp / maxHp;
-        else kimNexusPct = hp / maxHp;
-      }
+      if (t.camp === 'tong') { tongHp += hp; tongMaxHp += maxHp; }
+      else { kimHp += hp; kimMaxHp += maxHp; }
     }
-    return { tongDestroyed, kimDestroyed, tongNexusPct, kimNexusPct };
+    return {
+      tongHp,
+      tongMaxHp,
+      kimHp,
+      kimMaxHp,
+      tongPct: tongMaxHp > 0 ? tongHp / tongMaxHp : 0,
+      kimPct: kimMaxHp > 0 ? kimHp / kimMaxHp : 0,
+    };
   }
 
   private siegeTowerSnapshots(): TkTowerStatus[] | undefined {
@@ -1645,6 +1675,7 @@ class TongKimManager {
           marshalDelaySec: msg.marshalDelaySec ?? 60,
           endSec: 10,
           allowSolo: true,
+          respawnStepsSec: msg.respawnStepsSec,
         });
         w.hooks.notify(sim, res.message);
         return {};

@@ -557,7 +557,8 @@ export class MapRoom extends Room<{ state: MapState }> {
       const sim = this.simOf(client);
       if (!sim?.dead) return;
       if (isTkBattleMap(this.state.mapId)) {
-        this.notify(sim, 'Trong Tống Kim sẽ tự động hồi sinh tại Hậu doanh sau 5 giây.');
+        const left = sim.tkRespawnAt ? Math.max(1, Math.ceil((sim.tkRespawnAt - this.world.now) / 1000)) : 5;
+        this.notify(sim, `Trong Tống Kim sẽ tự động hồi sinh tại Hậu doanh sau ${left} giây.`);
         return;
       }
       const town = MAPS[TOWN_MAP_ID].raw.entry;

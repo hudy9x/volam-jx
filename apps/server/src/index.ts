@@ -68,14 +68,15 @@ const server = new Server({
     });
     app.post('/api/dev/tongkim/start', (req, res) => {
       if (!devTools()) { res.status(403).json({ error: 'DEV_TOOLS tắt.' }); return; }
-      const b = (req.body ?? {}) as { mode?: 1 | 2; signupSec?: number; durationSec?: number; marshalDelaySec?: number; endSec?: number; allowSolo?: boolean };
+      const b = (req.body ?? {}) as { mode?: 1 | 2 | 3; signupSec?: number; durationSec?: number; marshalDelaySec?: number; endSec?: number; allowSolo?: boolean; respawnStepsSec?: number[] };
       const r = tongKim.startMatch({
-        mode: b.mode === 2 ? 2 : 1,
+        mode: b.mode === 3 ? 3 : b.mode === 2 ? 2 : 1,
         signupSec: b.signupSec,
         durationSec: b.durationSec,
         marshalDelaySec: b.marshalDelaySec,
         endSec: b.endSec,
         allowSolo: b.allowSolo ?? true,
+        respawnStepsSec: b.respawnStepsSec,
       });
       res.status(r.ok ? 200 : 409).json(r);
     });
