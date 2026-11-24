@@ -24,3 +24,14 @@
   - Bảng Tống Kim gộp thông tin trận + Top 10 vào 1 dialog chuẩn game (`.dlg`, `.jade`, `.btn`, `.btn2`); thanh buff HUD (`status.ts`) ánh xạ `stateId 9101..9120` sang icon vật phẩm.
   - Minimap & Bigmap chiến trường chỉ dùng 2 nhóm màu: phe ta xanh (`#44e06b` đậm cho player/bot, `rgba(68,224,107,0.5)` cho NPC), phe địch đỏ (`#ff3b30` đậm cho player/bot, `rgba(255,59,48,0.5)` cho NPC).
   - Nhạc nền map `378` phát playlist xáo trộn 6 bài: `music401`, `music402`, `music403`, `music404`, `music400`, `music500`.
+
+## 4. Chế độ 3 — Phá Trụ (`TK_SIEGE`) & Bẫy kỹ thuật
+- **Sát thương trụ tách riêng 2 nhánh (`combat.ts`, `monster.ts`):**
+  - **NPC Binh sĩ (`tkMinionType`):** chỉ chịu **đơn mục tiêu** theo `attacker.a.tkTarget` (chặn AoE 90/150 quét chết chùm cả đàn), mức cố định `2%–5%` maxHP/hit (`melee 4%`, `ranged 5%`, `siege 3%`, `super 2%`). Lính chỉ nhắm mục tiêu duy nhất là **Trụ mở**, bỏ qua lính & người chơi/bot địch.
+  - **Người chơi / Bot:** chịu `50% → 75% → 100%` maxHP xuyên khiên nội lực, bắn đa mục tiêu + nổ lan `200 px` + Sóng Xung Chấn `40%` mỗi mốc 25% HP; suy giảm theo số trụ còn sống (`tkTowerDamageScale`: 6 trụ `100%`, 5 trụ `70%`, 4 trụ `45%`, `≤ 3` trụ cuối về sát thương chiêu thức bình thường).
+- **Máu trụ, Buff phá trụ & Thắng thua (`tongkim.ts`):**
+  - Trụ Đường `1.5M`, Trụ Bảo Vệ `2.25M` (nhân sĩ số); **Long Trụ (`nexus`) cố định `500.000` HP** với trần DPS `10%/s` có lính (`3%/s` backdoor). Phá 1 trụ địch tăng `+10%` sát thương toàn phe lên mọi mục tiêu (tối đa `+30%`).
+  - Hồi sinh Mode 3 theo bậc số lần tử vong (`respawnStepsSec = [30, 60, 90]`, cấu hình được). Phá Long Trụ thắng ngay; hết giờ so **tổng `%` HP còn lại của 6 trụ** (bảng xếp hạng điểm tích lũy giữ nguyên).
+- **Bẫy kỹ thuật cần tránh:**
+  - **Bot thủ trụ (`TongKimBehavior.ts`):** trụ không hồi máu nên **không** chỉ check `hp < 85%` (sẽ hút bot đứng tụm vĩnh viễn ở 1 trụ trống); chỉ kéo tối đa 50% bot về thủ khi có địch `≤ 1000 px` quanh trụ hoặc trụ vừa tụt HP trong `5s` gần nhất. Khi áp đảo cục bộ (`900 px`), ~2/3 bot bỏ địch dồn công trụ.
+  - **`BotClient.me()`** trả `Actor` phẳng (`me.hp`, không có `.state`/`.id`); `isTangmenTrapSkill` (gồm `#1110/#1113`) miễn nhiễm phản đòn/phản độc; `MoveKind.Parabola` chỉ nổ tại điểm rơi; sprite trụ compact SPR phải bật `SPR_ANCHOR_NPCS`.
