@@ -368,6 +368,7 @@ export class TongKimBehavior implements Behavior {
   private siegeRetreatPos: { x: number; y: number } | null = null;
   private siegeWpIdx = 1;
   private siegeMatchId = 0;
+  private siegeTowerLastHp = new Map<string, { hp: number; hurtAt: number }>();
 
   private stepSiegeMode(me: any, myCamp: TkCamp, st: TkStateMsg, now: number): void {
     const cfg = tkMapLayout(this.bot.mapId) ?? tkMapLayout(TK_BATTLE_MAP_ID);
@@ -380,6 +381,7 @@ export class TongKimBehavior implements Behavior {
       this.siegeWpIdx = 1;
       this.siegeRetreatUntil = 0;
       this.siegeRetreatPos = null;
+      this.siegeTowerLastHp.clear();
     }
     const myHp = Number(me.hp ?? me.state?.hp ?? 0);
     const home = cfg[myCamp].spawn;
@@ -417,12 +419,29 @@ export class TongKimBehavior implements Behavior {
       return;
     }
 
-    // 2. Phòng thủ trụ nhà khi Trụ Bảo Vệ (< 85%) hoặc Nhà Chính (< 95%) bị đánh -> dọn lính địch trước
+    // 2. Phòng thủ trụ nhà khi Trụ Bảo Vệ / Nhà Chính THỰC SỰ đang có địch áp sát hoặc vừa tụt máu trong 5s gần nhất
     const towers = st.towers ?? [];
-    const hurtHomeTower = towers.find(t => t.camp === myCamp && t.alive && ((t.tier === 'nexus' && t.hp < t.maxHp * 0.95) || (t.tier === 'guard' && t.hp < t.maxHp * 0.85)));
-    if (hurtHomeTower && (Math.floor(Math.abs(this.botIndex) / 2) % 10 < 6 || isoDistance(me.x, me.y, hurtHomeTower.x, hurtHomeTower.y) <= 1800)) {
+    for (const t of towers) {
+      if (t.camp !== myCamp || !t.alive) continue;
+      const prev = this.siegeTowerLastHp.get(t.id);
+      if (!prev) {
+        this.siegeTowerLastHp.set(t.id, { hp: t.hp, hurtAt: 0 });
+      } else {
+        if (t.hp < prev.hp) prev.hurtAt = now;
+        prev.hp = t.hp;
+      }
+    }
+    const homeDefendTargets = towers.filter(t => t.camp === myCamp && t.alive && (t.tier === 'nexus' || t.tier === 'guard'));
+    const threatenedHomeTower = homeDefendTargets.find(t => {
+      const hasThreatNearby = actors.some(a => a.state.hp > 0 && a.state.battleCamp === enemyCamp && isoDistance(a.x, a.y, t.x, t.y) <= 1000);
+      if (hasThreatNearby) return true;
+      const rec = this.siegeTowerLastHp.get(t.id);
+      return !!rec && rec.hurtAt > 0 && now - rec.hurtAt <= 5000;
+    });
+    const isDefenderSlot = Math.floor(Math.abs(this.botIndex) / 2) % 2 === 0;
+    if (threatenedHomeTower && (isDefenderSlot || isoDistance(me.x, me.y, threatenedHomeTower.x, threatenedHomeTower.y) <= 1200)) {
       const threat = actors
-        .filter(a => a.state.hp > 0 && a.state.battleCamp === enemyCamp && isoDistance(a.x, a.y, hurtHomeTower.x, hurtHomeTower.y) <= 950)
+        .filter(a => a.state.hp > 0 && a.state.battleCamp === enemyCamp && isoDistance(a.x, a.y, threatenedHomeTower.x, threatenedHomeTower.y) <= 1000)
         .sort((a, b) => (a.state.kind === 'monster' ? 0 : 1) - (b.state.kind === 'monster' ? 0 : 1) || isoDistance(me.x, me.y, a.x, a.y) - isoDistance(me.x, me.y, b.x, b.y))[0];
       if (threat) {
         if (this.bot.prepareCombat(now)) return;
@@ -435,30 +454,54 @@ export class TongKimBehavior implements Behavior {
         }
         return;
       }
-      if (isoDistance(me.x, me.y, hurtHomeTower.x, hurtHomeTower.y) > 260 && now >= this.nextMoveAt) {
-        this.nextMoveAt = now + 900;
-        this.bot.send(C2S.move, { x: hurtHomeTower.x, y: hurtHomeTower.y });
+      // Nếu chưa tới gần trụ mà trụ vừa tụt máu -> chạy về hỗ trợ; nếu đã ở gần trụ mà trống trơn thì đi tiếp đẩy đường
+      if (isoDistance(me.x, me.y, threatenedHomeTower.x, threatenedHomeTower.y) > 350) {
+        if (now >= this.nextMoveAt) {
+          this.nextMoveAt = now + 900;
+          this.bot.send(C2S.move, { x: threatenedHomeTower.x, y: threatenedHomeTower.y });
+        }
+        return;
       }
-      return;
     }
 
-    // 3. Phân đều 3 đường Top / Mid / Bot — chủ động lao vào công trụ mở, không đứng chờ lính
+    // 3. Phân đều 3 đường Top / Mid / Bot — tách quân công trụ khi áp đảo cục bộ
     const lane: TkLaneId = (['top', 'mid', 'bot'] as const)[Math.floor(Math.abs(this.botIndex) / 2) % 3];
     const scanRadius = this.sc.tongkim?.scanRadius ?? DEFAULT_BOT_TONGKIM.scanRadius;
-    const combatTarget = actors
+    const towerDetectR = Math.max(scanRadius, 1400);
+    const openTower = enemyTowers
+      .filter(a => !a.state.tkInvuln && isoDistance(me.x, me.y, a.x, a.y) <= towerDetectR)
+      .sort((a, b) => isoDistance(me.x, me.y, a.x, a.y) - isoDistance(me.x, me.y, b.x, b.y))[0];
+
+    let localAllies = actors.some(a => a.id === myId) ? 0 : 1;
+    let localEnemies = 0;
+    for (const a of actors) {
+      if (a.state.hp <= 0 || a.state.kind !== 'player') continue;
+      if (isoDistance(me.x, me.y, a.x, a.y) > 900) continue;
+      if (a.state.battleCamp === myCamp) localAllies++;
+      else if (a.state.battleCamp === enemyCamp) localEnemies++;
+    }
+
+    const outnumbering = !!openTower && (
+      localAllies >= localEnemies + 3
+      || (localEnemies > 0 && localEnemies <= 4 && localAllies >= localEnemies * 2)
+    );
+    const nearestEnemy = actors
       .filter(a => {
         if (a.state.hp <= 0 || a.state.battleCamp !== enemyCamp) return false;
         const tkTower = a.state.tkTower ?? 0;
-        if (tkTower === 4 || (tkTower >= 1 && a.state.tkInvuln)) return false;
-        const detectR = tkTower >= 1 ? Math.max(scanRadius, 1200) : scanRadius;
-        return isoDistance(me.x, me.y, a.x, a.y) <= detectR;
+        if (tkTower >= 1) return false;
+        return isoDistance(me.x, me.y, a.x, a.y) <= scanRadius;
       })
-      .sort((a, b) => {
-        // Ưu tiên công trụ địch đang mở, hoặc địch gần nhất đang chặn đường
-        const aTower = a.state.tkTower ? 0 : 1;
-        const bTower = b.state.tkTower ? 0 : 1;
-        return aTower - bTower || isoDistance(me.x, me.y, a.x, a.y) - isoDistance(me.x, me.y, b.x, b.y);
-      })[0];
+      .sort((a, b) => (a.state.kind === 'player' ? 0 : 1) - (b.state.kind === 'player' ? 0 : 1) || isoDistance(me.x, me.y, a.x, a.y) - isoDistance(me.x, me.y, b.x, b.y))[0];
+
+    let combatTarget = openTower ?? nearestEnemy;
+    if (outnumbering) {
+      // Áp đảo cục bộ: ~2/3 quân bỏ địch lao thẳng vào trụ, ~1/3 còn lại giữ chân địch
+      const isHoldGroup = Math.abs(this.botIndex) % 3 === 0;
+      combatTarget = (isHoldGroup && nearestEnemy) ? nearestEnemy : openTower!;
+    } else if (nearestEnemy && isoDistance(me.x, me.y, nearestEnemy.x, nearestEnemy.y) <= 550 && (!openTower || isoDistance(me.x, me.y, openTower.x, openTower.y) > 650)) {
+      combatTarget = nearestEnemy;
+    }
 
     if (combatTarget) {
       if (this.bot.prepareCombat(now)) return;

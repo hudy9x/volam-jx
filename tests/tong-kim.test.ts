@@ -1629,11 +1629,16 @@ test('Chế độ Phá Trụ (Mode 3): thông số dùng chung, scale HP, hồi 
 
   assert.equal(TK_MODE_NAMES[3], 'Phá Trụ');
   assert.equal(TK_SIEGE.towerRange, 750, 'Tầm bắn trụ phải > 600px (chiêu xa nhất) để chống góc lag');
+  assert.deepEqual(TK_SIEGE.towerBaseHp, { outer: 1_500_000, guard: 2_250_000, nexus: 500_000 });
   assert.equal(tkTowerHpScale(10), 1);
   assert.ok(tkTowerHpScale(50) > 3, 'Sĩ số đông phải nhân HP trụ lên');
-  assert.equal(tkRespawnDelayMs(3, 0, 900), 5000);
-  assert.equal(tkRespawnDelayMs(3, 900, 900), 25000);
-  assert.equal(tkRespawnDelayMs(1, 900, 900), 5000);
+  assert.equal(tkRespawnDelayMs(3, 1), 30_000);
+  assert.equal(tkRespawnDelayMs(3, 2), 60_000);
+  assert.equal(tkRespawnDelayMs(3, 3), 90_000);
+  assert.equal(tkRespawnDelayMs(3, 5), 90_000);
+  assert.equal(tkRespawnDelayMs(3, 1, [15, 40]), 15_000);
+  assert.equal(tkRespawnDelayMs(3, 2, [15, 40]), 40_000);
+  assert.equal(tkRespawnDelayMs(1, 3), 5000);
 
   assert.equal(tkTowerSpriteFor('tong', 'nexus', 'hoa'), 'enemy190');
   assert.equal(tkTowerSpriteFor('kim', 'nexus', 'hoa'), 'enemy191');
@@ -1724,8 +1729,21 @@ test('Chế độ Phá Trụ (Mode 3): Backdoor Protection, DPS Cap, cấm hồi
   applyHit(w, player, tower, { dmg: 1_000_000, crit: false, skill: 1 });
   assert.equal(2_000_000 - expectedBackdoorCap - tower.hp, Math.floor(3_000_000 * TK_SIEGE.towerDpsCapPct.withMinion), 'Có lính -> trần DPS là 5%/s');
 
-  // 5. Tách sát thương trụ lên lính vs lên người chơi (ramping 50% -> 75% -> 100%)
-  assert.equal(towerHitDamage(w, tower, minion), Math.floor(60_000 * 0.35), 'Lính cận chiến chịu 35% maxHP (3 hit chết)');
+  // 5. Tách sát thương trụ lên lính (đơn mục tiêu cố định 2%–5% maxHP) vs lên người chơi (ramping 50% -> 75% -> 100%)
+  assert.equal(towerHitDamage(w, tower, minion), Math.floor(60_000 * 0.04), 'Lính cận chiến chịu 4% maxHP');
+  const minion2 = makeActorSim('m-tong-2', 'monster', 'tong', 10820, 4800, 60_000);
+  minion2.tkCamp = 'tong';
+  minion2.tkMinionType = 'ranged';
+  assert.equal(towerHitDamage(w, tower, minion2), Math.floor(60_000 * 0.05), 'Lính tầm xa chịu 5% maxHP');
+  minion2.tkMinionType = 'siege';
+  assert.equal(towerHitDamage(w, tower, minion2), Math.floor(60_000 * 0.03), 'Phó tướng chịu 3% maxHP');
+  minion2.tkMinionType = 'super';
+  assert.equal(towerHitDamage(w, tower, minion2), Math.floor(60_000 * 0.02), 'Lính siêu cấp chịu 2% maxHP');
+  // Trụ đang khóa minion -> con lính thứ 2 dính AoE không bị sát thương chùm
+  tower.a.tkTarget = minion.id;
+  w.now += 1000;
+  applyHit(w, tower, minion2, { dmg: 1, crit: false, skill: 362 });
+  assert.equal(minion2.hp, 60_000, 'AoE 90/150 của trụ không được gây sát thương chùm lên lính không bị khóa');
   assert.equal(towerHitDamage(w, tower, player), 5000, 'Hit 1 lên người chơi = 50% maxHP');
   assert.equal(towerHitDamage(w, tower, player), 7500, 'Hit 2 lên người chơi = 75% maxHP');
   assert.equal(towerHitDamage(w, tower, player), 10000, 'Hit 3+ lên người chơi = 100% maxHP');
@@ -1893,4 +1911,299 @@ test('Chế độ Phá Trụ (Mode 3): Bot chia 3 đường, chờ lính ngoài 
   ];
   beh2.update(13_000);
   assert.equal(casts2.at(-1)?.targetId, kimOuter.id, 'Không cần lính tank, bot vẫn chủ động công trụ địch mở trong tầm 1200px');
+});
+
+test('Chế độ Phá Trụ (Mode 3): Lính đẩy đường chỉ nhắm Trụ mở, bỏ qua lính & người chơi/bot địch', async () => {
+  const { TK_BATTLE_MAP_ID, MAPS } = await import('../packages/shared/src/index.js');
+  const { updateMonster } = await import('../apps/server/src/world/ai/monster.js');
+  const { makeSim } = await import('../apps/server/src/world/entity.js');
+  const { Actor } = await import('../apps/server/src/net/schema.js');
+
+  const sims = new Map<string, any>();
+  const castedTargets: string[] = [];
+  const w: any = {
+    now: 20_000,
+    sims,
+    events: [],
+    meta: MAPS[TK_BATTLE_MAP_ID],
+    rules: {},
+    random: () => 0.5,
+    engine: {
+      ready: () => true,
+      check: () => ({ ok: true }),
+      cancel: () => {},
+      onDeath: () => {},
+      cast: (_caster: any, _skillId: number, target: any) => { castedTargets.push(target?.id ?? ''); },
+    },
+    hooks: { notify: () => {}, announce: () => {}, inventory: () => {}, log: () => {}, transfer: () => {} },
+  };
+
+  const spawnActor = (id: string, kind: 'player' | 'monster', camp: 'tong' | 'kim', x: number, y: number) => {
+    const a = new Actor();
+    a.kind = kind;
+    a.name = id;
+    a.battleCamp = camp;
+    a.x = x;
+    a.y = y;
+    a.hp = 100_000;
+    a.maxHp = 100_000;
+    a.pk = 1;
+    const s = makeSim(id, kind, a, 'hoa', 160);
+    s.combat = { level: 90, series: 'hoa', ar: 500, def: 100, lifeMax: 100_000, manaMax: 1000, attackSpeed: 0, castSpeed: 0, runSpeed: 1, resist: { phys: 0, cold: 0, fire: 0, light: 0, poison: 0 }, resistMax: { phys: 75, cold: 75, fire: 75, light: 75, poison: 75 }, bag: {} } as any;
+    sims.set(id, s);
+    return s;
+  };
+
+  const minion = spawnActor('tong-minion', 'monster', 'tong', 10000, 5000);
+  minion.tkCamp = 'tong';
+  minion.tkMinionType = 'melee';
+  minion.tkWaypoints = [{ x: 10000, y: 5000 }, { x: 10300, y: 5000 }];
+  minion.tkWaypointIdx = 1;
+  minion.skills.set(1, 1);
+  minion.def = { id: 9210, name: 'Lính Tống', sprite: 'enemy001', level: 85, element: 'hoa', hp: 100_000, damage: [100, 120], resist: 0, speed: 160, vision: 600, leash: 0, attackCooldown: 1, skills: [[1, 1]], scale: 1, expOverride: 0 };
+
+  const enemyPlayer = spawnActor('kim-player', 'player', 'kim', 10050, 5000);
+  const enemyMinion = spawnActor('kim-minion', 'monster', 'kim', 10120, 5000);
+  enemyMinion.tkCamp = 'kim';
+  enemyMinion.tkMinionType = 'melee';
+  const enemyTower = spawnActor('kim-tower', 'monster', 'kim', 10200, 5000);
+  enemyTower.tkCamp = 'kim';
+  enemyTower.tkTowerTier = 'outer';
+  enemyTower.tkTowerInvuln = false;
+
+  updateMonster(w, minion, 0.05);
+  assert.equal(minion.target, enemyTower.id, 'Dù người chơi và lính địch đứng gần hơn, lính vẫn chỉ nhắm Trụ mở');
+
+  enemyTower.a.hp = 0;
+  enemyTower.dead = true;
+  minion.target = null;
+  updateMonster(w, minion, 0.05);
+  assert.equal(minion.target, null, 'Khi không có trụ mở trong tầm, lính bỏ qua lính & người chơi/bot địch để tiếp tục hành quân');
+});
+
+test('Chế độ Phá Trụ (Mode 3): Bot tách quân bỏ địch công trụ khi áp đảo cục bộ (10 vs 3)', async () => {
+  const { TK_BATTLE_MAP_ID, TK_MAPS, DEFAULT_BOT_SCENARIO } = await import('../packages/shared/src/index.js');
+  const { TongKimBehavior } = await import('../tools/bots/runner/TongKimBehavior.js');
+
+  const kimOuter = TK_MAPS[TK_BATTLE_MAP_ID].kim.siege!.towers.find(t => t.tier === 'outer' && t.lane === 'mid')!;
+  const me: any = { x: kimOuter.x - 420, y: kimOuter.y, hp: 10000, maxHp: 10000, mp: 5000, maxMp: 5000, battleCamp: 'tong', kind: 'player', pk: 1 };
+
+  const allies = Array.from({ length: 9 }, (_, i) => ({
+    id: `ally-${i}`, isSelf: false, x: kimOuter.x - 450 + i * 10, y: kimOuter.y + 10,
+    state: { hp: 10000, maxHp: 10000, kind: 'player', battleCamp: 'tong' },
+  }));
+  const enemies = Array.from({ length: 3 }, (_, i) => ({
+    id: `enemy-${i}`, isSelf: false, x: kimOuter.x - 360 + i * 15, y: kimOuter.y,
+    state: { hp: 10000, maxHp: 10000, kind: 'player', battleCamp: 'kim' },
+  }));
+  const towerActor = {
+    id: kimOuter.id, isSelf: false, x: kimOuter.x, y: kimOuter.y,
+    state: { hp: 3_000_000, maxHp: 3_000_000, kind: 'monster', battleCamp: 'kim', tkTower: 1, tkInvuln: false },
+  };
+
+  const makeBot = (botIndex: number) => {
+    const casts: { skill: number; targetId?: string }[] = [];
+    const bot: any = {
+      name: `bot-${botIndex}`,
+      mapId: TK_BATTLE_MAP_ID,
+      bag: [],
+      learned: [],
+      autoSettings: { autoBuff: false },
+      stats: { faction: 'gaibang' },
+      tkState: {
+        matchId: 1, battleMapId: TK_BATTLE_MAP_ID, mode: 3, phase: 'fighting', remainSec: 600,
+        tongCount: 10, kimCount: 3, tongScore: 0, kimScore: 0, marshalSpawned: false, tongMarshalAlive: false, kimMarshalAlive: false,
+        me: { camp: 'tong', points: 0, rank: 1, kills: 0, deaths: 0, npcKills: 0, streak: 0, maxStreak: 0, accum: 0, inCamp: false, campRemainSec: 0, gateWaitSec: 0 },
+        towers: TK_MAPS[TK_BATTLE_MAP_ID].tong.siege!.towers.map(t => ({ ...t, camp: 'tong', hp: 3_000_000, maxHp: 3_000_000, alive: true, invuln: t.tier !== 'outer' })),
+        top10: [],
+      },
+      self: () => ({ id: `bot-${botIndex}`, isSelf: true, x: me.x, y: me.y, state: me }),
+      me: () => me,
+      actors: () => [{ id: `bot-${botIndex}`, isSelf: true, x: me.x, y: me.y, state: me }, ...allies, ...enemies, towerActor],
+      send: () => {},
+      prepareCombat: () => false,
+      attacks: () => [357],
+      range: () => 400,
+      ready: () => true,
+      cast: (skill: number, targetId?: string) => { casts.push({ skill, targetId }); },
+      reviveIfDead: () => {},
+    };
+    const beh = new TongKimBehavior(bot, { ...DEFAULT_BOT_SCENARIO, tongkim: { ...DEFAULT_BOT_SCENARIO.tongkim!, tactic: 'tactical' } }, botIndex);
+    beh.update(10_000);
+    return casts;
+  };
+
+  // botIndex = 1 (% 3 !== 0): nhóm công trụ -> bỏ địch lao thẳng vào trụ
+  const siegeCasts = makeBot(1);
+  assert.equal(siegeCasts[0]?.targetId, kimOuter.id, 'Nhóm công trụ (2/3 quân) phải bỏ qua địch để đánh thẳng Trụ khi áp đảo cục bộ');
+
+  // botIndex = 3 (% 3 === 0): nhóm chặn địch -> giữ chân bot địch
+  const holdCasts = makeBot(3);
+  assert.ok(holdCasts[0]?.targetId?.startsWith('enemy-'), 'Nhóm chặn địch (1/3 quân) phải giữ chân bot địch trong lúc đồng đội phá trụ');
+});
+
+test('Chế độ Phá Trụ (Mode 3): Sát thương trụ giảm khi mất trụ (5->70%, 4->45%) và còn <=3 trụ về sát thương thường', async () => {
+  const { TK_BATTLE_MAP_ID, MAPS, tkTowerDamageScale } = await import('../packages/shared/src/index.js');
+  const { applyHit } = await import('../apps/server/src/world/systems/combat.js');
+  const { makeSim } = await import('../apps/server/src/world/entity.js');
+  const { Actor } = await import('../apps/server/src/net/schema.js');
+
+  assert.equal(tkTowerDamageScale(6), 1);
+  assert.equal(tkTowerDamageScale(5), 0.7);
+  assert.equal(tkTowerDamageScale(4), 0.45);
+  assert.equal(tkTowerDamageScale(3), 0);
+  assert.equal(tkTowerDamageScale(1), 0);
+
+  const sims = new Map<string, any>();
+  const w: any = {
+    now: 30_000,
+    sims,
+    events: [],
+    meta: MAPS[TK_BATTLE_MAP_ID],
+    rules: {},
+    random: () => 0.5,
+    engine: { ready: () => true, cancel: () => {}, onDeath: () => {}, cast: () => {} },
+    hooks: { notify: () => {}, announce: () => {}, inventory: () => {}, log: () => {}, transfer: () => {} },
+  };
+
+  const makeActorSim = (id: string, kind: 'player' | 'monster', camp: 'tong' | 'kim', maxHp: number) => {
+    const a = new Actor();
+    a.kind = kind;
+    a.name = id;
+    a.battleCamp = camp;
+    a.x = 10000;
+    a.y = 5000;
+    a.hp = maxHp;
+    a.maxHp = maxHp;
+    a.pk = 1;
+    const s = makeSim(id, kind, a, 'hoa', 200);
+    s.combat = { level: 100, series: 'hoa', ar: 500, def: 100, lifeMax: maxHp, manaMax: 5000, attackSpeed: 0, castSpeed: 0, runSpeed: 1, resist: { phys: 0, cold: 0, fire: 0, light: 0, poison: 0 }, resistMax: { phys: 75, cold: 75, fire: 75, light: 75, poison: 75 }, bag: {} } as any;
+    sims.set(id, s);
+    return s;
+  };
+
+  const tower = makeActorSim('kim-tower', 'monster', 'kim', 3_000_000);
+  tower.tkCamp = 'kim';
+  tower.tkTowerTier = 'outer';
+
+  const testHit = (aliveTowers: number, shieldHp = 0) => {
+    w.now += 5_000; // reset ramp & debounce
+    tower.tkCampAliveTowers = aliveTowers;
+    const p = makeActorSim(`p-${aliveTowers}`, 'player', 'tong', 10_000);
+    p.shieldHp = shieldHp;
+    applyHit(w, tower, p, { dmg: 1200, crit: false, skill: 362 });
+    return { lost: 10_000 - p.hp, shieldLeft: p.shieldHp };
+  };
+
+  assert.equal(testHit(6, 2000).lost, 5000, 'Còn 6 trụ: hit 1 gây 50% maxHP và xuyên qua khiên');
+  assert.equal(testHit(5, 2000).lost, 3500, 'Còn 5 trụ: giảm còn 70% của 50% = 35% maxHP');
+  assert.equal(testHit(4, 2000).lost, 2250, 'Còn 4 trụ: giảm còn 45% của 50% = 22.5% maxHP');
+
+  const res3 = testHit(3, 500);
+  assert.equal(res3.lost, 700, 'Còn <= 3 trụ: trở về sát thương chiêu thức thường (1200 - 500 khiên = 700)');
+  assert.equal(res3.shieldLeft, 0, 'Còn <= 3 trụ: khiên nội lực hấp thụ đòn trụ như bình thường');
+});
+
+test('Chế độ Phá Trụ (Mode 3): Hết giờ phân định thắng thua theo tổng HP 6 trụ, bỏ qua điểm tích lũy', async () => {
+  const { tongKim } = await import('../apps/server/src/world/tongkim.js');
+
+  const bf: any = new (tongKim.constructor as any)();
+  bf.mode = 3;
+  bf.phase = 'fighting';
+  bf.phaseEndsAt = 1000;
+  bf.entries.set('c-tong', { charId: 'c-tong', name: 'TongA', camp: 'tong', points: 100, rank: 1, kills: 0, deaths: 0, npcKills: 0, streak: 0, maxStreak: 0, accum: 0, inCamp: false, campRemainSec: 0, gateWaitSec: 0 });
+  bf.entries.set('c-kim', { charId: 'c-kim', name: 'KimA', camp: 'kim', points: 99_999, rank: 5, kills: 10, deaths: 0, npcKills: 0, streak: 10, maxStreak: 10, accum: 0, inCamp: false, campRemainSec: 0, gateWaitSec: 0 });
+
+  bf.siegeTowers.set('t1', { spec: { id: 't1', tier: 'outer' }, camp: 'tong', simId: 'st1', hp: 1_400_000, maxHp: 1_500_000, alive: true, invuln: false });
+  bf.siegeTowers.set('k1', { spec: { id: 'k1', tier: 'outer' }, camp: 'kim', simId: 'sk1', hp: 600_000, maxHp: 1_500_000, alive: true, invuln: false });
+
+  bf.tickBattleWorld(undefined, 2000);
+  const snap = bf.snapshotFor('c-tong');
+  assert.equal(snap.winner, 'tong', 'Tống ít điểm tích lũy hơn (100 vs 99.999) nhưng tổng HP trụ cao hơn vẫn phải thắng');
+  assert.ok(snap.winReason.includes('tổng HP công trình'), 'Lý do thắng phải nêu rõ dựa trên tổng HP công trình');
+});
+
+test('Chế độ Phá Trụ (Mode 3): Long Trụ 500k HP (trần 10%/s), buff +10%/trụ (tối đa +30%) & Bot không kẹt ở trụ trống', async () => {
+  const { TK_BATTLE_MAP_ID, TK_MAPS, MAPS, tkTowerKillDamageMul, DEFAULT_BOT_SCENARIO } = await import('../packages/shared/src/index.js');
+  const { tongKim } = await import('../apps/server/src/world/tongkim.js');
+  const { applyHit } = await import('../apps/server/src/world/systems/combat.js');
+  const { makeSim } = await import('../apps/server/src/world/entity.js');
+  const { Actor } = await import('../apps/server/src/net/schema.js');
+  const { TongKimBehavior } = await import('../tools/bots/runner/TongKimBehavior.js');
+
+  assert.equal(tkTowerKillDamageMul(0), 1);
+  assert.equal(tkTowerKillDamageMul(1), 1.1);
+  assert.equal(tkTowerKillDamageMul(2), 1.2);
+  assert.equal(tkTowerKillDamageMul(3), 1.3);
+  assert.equal(tkTowerKillDamageMul(5), 1.3);
+
+  const prevMode = (tongKim as any).mode;
+  const prevPhase = (tongKim as any).phase;
+  const prevTowers = new Map((tongKim as any).siegeTowers);
+
+  try {
+    (tongKim as any).mode = 3;
+    (tongKim as any).phase = 'fighting';
+    (tongKim as any).siegeTowers.clear();
+    (tongKim as any).siegeTowers.set('k1', { spec: { id: 'k1', tier: 'outer' }, camp: 'kim', simId: 'k1', hp: 0, maxHp: 1_500_000, alive: false, invuln: false });
+    (tongKim as any).siegeTowers.set('k2', { spec: { id: 'k2', tier: 'outer' }, camp: 'kim', simId: 'k2', hp: 0, maxHp: 1_500_000, alive: false, invuln: false });
+    (tongKim as any).siegeTowers.set('k3', { spec: { id: 'k3', tier: 'outer' }, camp: 'kim', simId: 'k3', hp: 0, maxHp: 1_500_000, alive: false, invuln: false });
+    (tongKim as any).siegeTowers.set('k4', { spec: { id: 'k4', tier: 'guard' }, camp: 'kim', simId: 'k4', hp: 0, maxHp: 2_250_000, alive: false, invuln: false });
+
+    const sims = new Map<string, any>();
+    const w: any = {
+      now: 10_000, sims, events: [], meta: MAPS[TK_BATTLE_MAP_ID], rules: {}, random: () => 0.5,
+      engine: { ready: () => true, cancel: () => {}, onDeath: () => {}, cast: () => {} },
+      hooks: { notify: () => {}, announce: () => {}, inventory: () => {}, log: () => {}, transfer: () => {} },
+    };
+    const makeActor = (id: string, kind: 'player' | 'monster', camp: 'tong' | 'kim', x: number, y: number, maxHp: number) => {
+      const a = new Actor();
+      a.kind = kind; a.name = id; a.battleCamp = camp; a.x = x; a.y = y; a.hp = maxHp; a.maxHp = maxHp; a.pk = 1;
+      const s = makeSim(id, kind, a, 'hoa', 200);
+      s.combat = { level: 100, series: 'hoa', ar: 500, def: 100, lifeMax: maxHp, manaMax: 5000, attackSpeed: 0, castSpeed: 0, runSpeed: 1, resist: { phys: 0, cold: 0, fire: 0, light: 0, poison: 0 }, resistMax: { phys: 75, cold: 75, fire: 75, light: 75, poison: 75 }, bag: {} } as any;
+      sims.set(id, s);
+      return s;
+    };
+
+    const pTong = makeActor('p-tong', 'player', 'tong', 10000, 5000, 10_000);
+    const pKim = makeActor('p-kim', 'player', 'kim', 10050, 5000, 10_000);
+    applyHit(w, pTong, pKim, { dmg: 1000, crit: false, skill: 1 });
+    assert.equal(10_000 - pKim.hp, 1300, 'Phá 4 trụ địch vẫn cap tối đa +30% sát thương (1000 -> 1300)');
+
+    const nexus = makeActor('kim-nexus', 'monster', 'kim', 10100, 5000, 500_000);
+    nexus.tkCamp = 'kim'; nexus.tkTowerTier = 'nexus'; nexus.tkTowerInvuln = false;
+    const minion = makeActor('m-tong', 'monster', 'tong', 10150, 5000, 100_000);
+    minion.tkCamp = 'tong'; minion.tkMinionType = 'melee';
+    applyHit(w, pTong, nexus, { dmg: 200_000, crit: false, skill: 1 });
+    assert.equal(500_000 - nexus.hp, 50_000, 'Long Trụ 500k HP có trần mất máu 10%/s khi có lính (50.000/s)');
+  } finally {
+    (tongKim as any).mode = prevMode;
+    (tongKim as any).phase = prevPhase;
+    (tongKim as any).siegeTowers = prevTowers;
+  }
+
+  // Bot không được tụm lại đứng giữ Trụ Bảo Vệ bị tụt máu (<85%) khi xung quanh trụ không có địch
+  const tongGuard = TK_MAPS[TK_BATTLE_MAP_ID].tong.siege!.towers.find(t => t.tier === 'guard')!;
+  const me: any = { x: tongGuard.x + 250, y: tongGuard.y, hp: 10000, maxHp: 10000, mp: 5000, maxMp: 5000, battleCamp: 'tong', kind: 'player', pk: 1 };
+  const moves: { x: number; y: number }[] = [];
+  const bot: any = {
+    name: 'bot-guard', mapId: TK_BATTLE_MAP_ID, bag: [], learned: [], autoSettings: { autoBuff: false }, stats: { faction: 'gaibang' },
+    tkState: {
+      matchId: 77, battleMapId: TK_BATTLE_MAP_ID, mode: 3, phase: 'fighting', remainSec: 600,
+      tongCount: 10, kimCount: 10, tongScore: 0, kimScore: 0, marshalSpawned: false, tongMarshalAlive: false, kimMarshalAlive: false,
+      me: { camp: 'tong', points: 0, rank: 1, kills: 0, deaths: 0, npcKills: 0, streak: 0, maxStreak: 0, accum: 0, inCamp: false, campRemainSec: 0, gateWaitSec: 0 },
+      towers: TK_MAPS[TK_BATTLE_MAP_ID].tong.siege!.towers.map(t => ({
+        ...t, camp: 'tong', hp: t.id === tongGuard.id ? 1_000_000 : 1_500_000, maxHp: 2_250_000, alive: true, invuln: false,
+      })),
+      top10: [],
+    },
+    self: () => ({ id: 'bot-guard', isSelf: true, x: me.x, y: me.y, state: me }),
+    me: () => me,
+    actors: () => [{ id: 'bot-guard', isSelf: true, x: me.x, y: me.y, state: me }],
+    send: (_op: number, msg: any) => { if (msg?.x !== undefined) moves.push(msg); },
+    prepareCombat: () => false, attacks: () => [357], range: () => 400, ready: () => true, cast: () => {}, reviveIfDead: () => {},
+  };
+  const beh = new TongKimBehavior(bot, { ...DEFAULT_BOT_SCENARIO, tongkim: { ...DEFAULT_BOT_SCENARIO.tongkim!, tactic: 'tactical' } }, 2);
+  beh.update(10_000);
+  assert.ok(moves.length >= 1, 'Trụ Bảo Vệ mất máu nhưng không có địch -> bot phải tiếp tục tiến lên đẩy đường thay vì đứng tụm giữ trụ');
 });
