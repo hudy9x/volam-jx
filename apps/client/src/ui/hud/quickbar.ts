@@ -58,6 +58,8 @@ export interface QuickbarHandlers {
   notice(text: string): void;
   /** Use the first bag piece of an item row (an item on keys 1–9). */
   useItem(defId: string): void;
+  /** Kích hoạt ô phím tắt 1–9 (0–8) thống nhất với bàn phím. */
+  useKeySlot(slot: number): void;
 }
 
 /**
@@ -89,7 +91,7 @@ export class Quickbar {
         const item = skillbar.itemAt(slot);
         if (item) { h.useItem(item); return; }
         if (typeof slot === 'number' && skillbar.skillAt(slot) !== null) {
-          skillbar.selectLeft(slot);
+          h.useKeySlot(slot);
           return;
         }
         h.skills(true);

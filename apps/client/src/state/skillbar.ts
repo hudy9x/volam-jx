@@ -7,6 +7,8 @@ import { progress } from './progress';
 
 /** Bar slots: chuột trái, chuột phải, phím 1–9 (0–8). */
 export type BarSlot = 'left' | 'right' | number;
+/** Phân loại nội dung hiện tại của ô phím 1–9. */
+export type KeySlotKind = 'empty' | 'item' | 'attack' | 'aura' | 'cast' | 'passive';
 /** Keys 1–9 hold a skill id or an item row id (thuốc: the key uses the first such piece in the bag). */
 type KeyEntry = number | string | null;
 interface Bar { left: number | null; right: number | null; keys: KeyEntry[] }
@@ -14,6 +16,13 @@ interface Bar { left: number | null; right: number | null; keys: KeyEntry[] }
 export const BAR_KEYS = 9;
 /** Công kích vật lý: every character has it. */
 export const BASIC_SKILL = 1;
+/** Khoảng cách tối thiểu giữa 2 lần gửi C2S.cast từ phím 1–9 để tránh vượt ngưỡng 30 msg/s. */
+export const KEY_CAST_GAP_MS = 100;
+
+/** Kiểm tra giới hạn nhịp gửi lệnh chiêu từ phím 1–9. */
+export function canTriggerKeyCast(lastCastAt: number, now: number, gapMs = KEY_CAST_GAP_MS): boolean {
+  return lastCastAt <= 0 || now - lastCastAt >= gapMs;
+}
 
 /** 'all': levels, character or weapon changed; 'bar': only what sits in the slots. */
 export type SkillChange = 'all' | 'bar';
@@ -152,13 +161,38 @@ class SkillBarState {
     return null;
   }
 
-  /** Select a skill from key slot 0–8 onto the left mouse slot without modifying the key slot. */
+  /** Phân loại nội dung tại ô phím 1–9 (0–8) để xử lý đúng loại chiêu thức. */
+  classifyKeySlot(slot: number): KeySlotKind {
+    if (slot < 0 || slot >= BAR_KEYS) return 'empty';
+    if (this.itemAt(slot) !== null) return 'item';
+    const id = this.skillAt(slot);
+    if (id === null) return 'empty';
+    const s = getSkill(id);
+    if (!s || !isCastable(s)) return 'passive';
+    if (s.aura) return 'aura';
+    return skillCategory(s) === 'attack' ? 'attack' : 'cast';
+  }
+
+  /** Chỉ đưa chiêu tấn công (không phải vòng sáng / bị động / buff / hỗ trợ / bùa hại) từ ô 1–9 lên tay trái. */
   selectLeft(slot: number): boolean {
+    if (this.classifyKeySlot(slot) !== 'attack') return false;
+    const keySkill = this.skillAt(slot);
+    if (keySkill === null || this.skillAt('left') === keySkill) return false;
+    this.bar.left = keySkill;
+    this.save();
+    this.changed('bar');
+    return true;
+  }
+
+  /** Đưa chiêu (như vòng sáng) từ ô 1–9 sang tay phải mà giữ nguyên ô 1–9. */
+  selectRight(slot: number): boolean {
     if (slot < 0 || slot >= BAR_KEYS) return false;
     const keySkill = this.skillAt(slot);
     if (keySkill === null) return false;
-    if (this.skillAt('left') === keySkill) return false;
-    this.bar.left = keySkill;
+    const s = getSkill(keySkill);
+    if (!s || !isCastable(s)) return false;
+    if (this.skillAt('right') === keySkill) return false;
+    this.bar.right = keySkill;
     this.save();
     this.changed('bar');
     return true;

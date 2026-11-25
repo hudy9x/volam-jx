@@ -137,6 +137,7 @@ export class Hud implements WorldUi {
       team: () => this.toggleWindow('team'),
       notice: text => this.notice(text),
       useItem: defId => this.actions?.useItem(defId),
+      useKeySlot: slot => this.actions?.useKeySlot(slot),
     });
     this.notices = new Notices(root);
     this.playerMenu = new PlayerContextMenu(root, ctx);

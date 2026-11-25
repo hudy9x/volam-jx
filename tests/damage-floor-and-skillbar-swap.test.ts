@@ -162,3 +162,65 @@ test('SkillBarState.selectLeft assigns key skill to left hand without swapping a
   assert.equal(skillbar.skillAt('left'), 19);
   assert.equal(skillbar.skillAt(0), 19);
 });
+
+test('SkillBarState classifies 1-9 slots, blocks passive/buff/debuff/aura from left, puts aura on right, and throttles key casts', async () => {
+  const mem = new Map<string, string>();
+  (globalThis as Record<string, unknown>).localStorage = {
+    getItem: (k: string) => mem.get(k) ?? null,
+    setItem: (k: string, v: string) => { mem.set(k, String(v)); },
+    removeItem: (k: string) => { mem.delete(k); },
+  };
+  const { skillbar, canTriggerKeyCast } = await import('../apps/client/src/state/skillbar.ts');
+
+  // 1) Trấn phái buff (130 Túy Điệp Cuồng Vũ) & aura (16 La Hán Trận) & buff (42 Kim Chung Tráo) & support (93 Từ Hàng Phổ Độ) & debuff (67 Cửu Thiên Cuồng Lôi) & passive (36 Thiên Vương Chiến Ý)
+  skillbar.setCharacter('TestClassifyChar', 'shaolin');
+  skillbar.setLevels({ 1: 1, 14: 20, 16: 20, 21: 20, 36: 20, 42: 20, 67: 20, 93: 20, 130: 20, 150: 20, 710: 20, 1358: 20 });
+
+  assert.equal(skillbar.assign('left', 14), null);
+  assert.equal(skillbar.assign('right', null), null);
+  assert.equal(skillbar.assign(0, 130), null);  // Trấn phái buff
+  assert.equal(skillbar.assign(1, 150), null);  // Trấn phái buff
+  assert.equal(skillbar.assign(2, 1358), null); // Trấn phái buff
+  assert.equal(skillbar.assign(3, 42), null);   // Buff tự thân
+  assert.equal(skillbar.assign(4, 93), null);   // Hỗ trợ
+  assert.equal(skillbar.assign(5, 67), null);   // Bùa hại
+  assert.equal(skillbar.assign(6, 16), null);   // Vòng sáng (aura)
+  assert.equal(skillbar.assign(7, 710), null);  // Mê Ảnh Tung (support)
+
+  // Trấn phái buff / buff / support / debuff -> 'cast', không bao giờ đè vào tay trái
+  for (const slot of [0, 1, 2, 3, 4, 5, 7]) {
+    assert.equal(skillbar.classifyKeySlot(slot), 'cast');
+    assert.equal(skillbar.selectLeft(slot), false);
+    assert.equal(skillbar.skillAt('left'), 14);
+  }
+
+  // Vòng sáng -> 'aura', không đè tay trái, gán vào tay phải (không swap ô phím)
+  assert.equal(skillbar.classifyKeySlot(6), 'aura');
+  assert.equal(skillbar.selectLeft(6), false);
+  assert.equal(skillbar.skillAt('left'), 14);
+  assert.equal(skillbar.selectRight(6), true);
+  assert.equal(skillbar.skillAt('right'), 16);
+  assert.equal(skillbar.skillAt(6), 16);
+  assert.equal(skillbar.slotAura(), 16);
+
+  // Giả lập dữ liệu cũ trong localStorage có lưu nhầm chiêu bị động thuần (36) vào ô 8
+  mem.set('vltk.skillbar.TestPassiveLegacy', JSON.stringify({ left: 14, right: null, keys: [36, 21, null, null, null, null, null, null, null] }));
+  skillbar.setCharacter('TestPassiveLegacy', 'tianwang');
+  skillbar.setLevels({ 1: 1, 14: 20, 21: 20, 36: 20 });
+  assert.equal(skillbar.classifyKeySlot(0), 'passive');
+  assert.equal(skillbar.classifyKeySlot(1), 'passive');
+  assert.equal(skillbar.selectLeft(0), false);
+  assert.equal(skillbar.selectRight(0), false);
+  assert.equal(skillbar.skillAt('left'), 14);
+
+  // Kiểm chứng giới hạn nhịp cast 1-9 không vượt ngưỡng 30 msg/s (100 lần bấm trong 1 giây -> <= 10 lần gửi)
+  let lastCastAt = 0;
+  let sent = 0;
+  for (let now = 1000; now < 2000; now += 10) {
+    if (canTriggerKeyCast(lastCastAt, now)) {
+      lastCastAt = now;
+      sent++;
+    }
+  }
+  assert.ok(sent > 0 && sent <= 10, `expected <= 10 casts/sec, got ${sent}`);
+});

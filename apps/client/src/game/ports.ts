@@ -33,6 +33,8 @@ export interface WorldActions {
   use: (index: number) => void;
   /** Use the first bag piece of table row `defId` (keys 1–9, the quick bar), or say none is left. */
   useItem: (defId: string) => void;
+  /** Kích hoạt ô phím tắt 1–9 (0–8) từ Quickbar (Web/Desktop/Mobile). */
+  useKeySlot: (slot: number) => void;
   discard: (index: number) => void;
   /** Thợ rèn "Chế tạo": a blue piece of a row with ngũ hành `series` and lines per position (items/magic.ts). */
   forge: (item: string, series: number, lines: ([string, number] | null)[], token?: boolean) => void;

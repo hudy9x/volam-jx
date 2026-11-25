@@ -1,3 +1,27 @@
+## 2026-11-25 · Phím chức năng `1–9`: phân loại chiêu thức, không đưa buff/bị động/vòng sáng lên tay trái & kích hoạt ngay (đã commit)
+
+- **USER yêu cầu:** khắc phục 2 vấn đề của phím tắt `1–9` (và chạm ô `1–9` trên Quickbar): (1) không đưa chiêu bị động / trấn phái dạng buff / hỗ trợ / vòng sáng vào ô chuột trái (`left`), và (2) khi bấm `1–9` phải kích hoạt chiêu thức ngay (chọn phương án **1A + 2A**).
+- **Thay đổi:**
+  - `apps/client/src/state/skillbar.ts`: thêm `KeySlotKind`, `KEY_CAST_GAP_MS = 100`, `canTriggerKeyCast()`, `SkillBarState.classifyKeySlot()`, `SkillBarState.selectRight()`; cập nhật `selectLeft()` chỉ chấp nhận chiêu `'attack'` (`isCastable && !aura && skillCategory === 'attack'`), chặn tuyệt đối bị động, buff trấn phái, buff tự thân, hỗ trợ, bùa hại và vòng sáng.
+  - `apps/client/src/game/{ports.ts,WorldScene.ts}`, `apps/client/src/ui/hud/{quickbar.ts,Hud.ts}`, `apps/client/src/input/keymap.ts`: thống nhất luồng `useKeySlot` dùng chung cho phím `1–9` và click/chạm Quickbar (Web/Desktop/Mobile):
+    - Chiêu tấn công (`attack`): gán lên tay trái (`selectLeft`) **và** tung chiêu ngay về hướng chuột (hoặc kẻ địch gần nhất khi chạm Quickbar/ngoài canvas).
+    - Buff / Trấn phái buff / Hỗ trợ / Bùa hại: **không** thay tay trái, kích hoạt (`C2S.cast`) ngay (self-buff `SkillStyle.State` cast tại vị trí bản thân).
+    - Vòng sáng (`aura`): gán sang tay phải (`selectRight`) để bật vòng sáng qua `C2S.aura`, không đụng tay trái.
+    - Chống spam vượt `maxMessagesPerSecond = 30`: bỏ qua `event.repeat` và giới hạn nhịp cast từ `1–9` tối thiểu `100 ms`/lần (`<= 10 msg/s`).
+- **Kiểm tra:** `node --import tsx --test tests/damage-floor-and-skillbar-swap.test.ts` (**5/5 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Chưa commit/push.
+
+## 2026-11-24 · Map bắt ngựa cấp 120–150 trên Map 9101 (Đồng cỏ thử nghiệm) (chưa commit)
+
+- **USER yêu cầu:** triển khai map bắt ngựa cấp `120–150` trên Map `9101` (*Đồng cỏ thử nghiệm*) theo Hướng B (đánh hạ ngựa hoang → rơi vật phẩm ngựa tương ứng), lấy đủ **23 mẫu ngựa/thú cưỡi 120–150**, tạm thời **không khóa bán ở NPC Bán ngựa**, và **tăng mạnh HP + sát thương** của ngựa hoang để tạo độ khó.
+- **Thay đổi:**
+  - `packages/shared/src/monsters/{wild-horses.json,wild-horses.ts,monsters.ts,index.ts}`: thêm 23 `MonsterDef` ngựa hoang (`91000`–`91022`, `sprite: "horse:<look>"`) đọc từ `wild-horses.json`, chia 3 bậc (`rare` 280k–360k HP / 450% sát thương / rơi 25%, `epic` 520k HP / 600% sát thương / rơi 18%, `mythic` 780k–950k HP / 800% sát thương / rơi 12%), hỗ trợ `overrides` từng con và chế độ `testMode` (`testHp = 500`, giữ nguyên toàn bộ chỉ số khác) qua `getWildHorseConfig`/`setWildHorseConfig`/`syncWildHorseMonsters`.
+  - `apps/server/src/dev/devtools.ts`, `apps/client/src/ui/windows/gm.ts`: thêm `GET/PUT /api/dev/wild-horses` lưu atomic vào `wild-horses.json` và cập nhật nóng HP/chỉ số ngựa đang sống trên `LIVE_WORLDS`; thêm tab **Ngựa hoang (9101)** trong **GM Tool** để bật/tắt chế độ TEST 500 HP và chỉnh `%` tỉ lệ rơi (kèm preset `100%` / `Mặc định`).
+  - `packages/shared/spawns/9101.json`, `apps/server/src/world/systems/spawner.ts`: cấu hình 3 zone spawn phủ đủ 23 mẫu ngựa hoang trên Map `9101` (`auto: false`, respawn `45s`/`60s`/`90s`); giữ nguyên `bossTier` cho `def.wildHorse` không bị random nâng `blueBossChance`.
+  - `apps/server/src/world/systems/drops.ts`: trong `dropLoot`, khi hạ ngựa hoang (`monster.def?.wildHorse`), tung `rollWildHorseDrop` để rơi vật phẩm ngựa `horse-*` có bảo vệ chủ sở hữu (`owner`) và phát thông báo toàn server (`tone: 'victory'`).
+  - `apps/client/src/art/jx/index.ts`, `apps/client/src/game/actors/{PaperDoll.ts,ActorView.ts}`: thêm `horsePose`, `resolveHorseRow` (fallback row `14 → 10`, `16 → 13`), `isHorseSprite`/`parseHorseSpriteRow` và nguồn `{ kind: 'horse', row }` trên `JxSprite` để vẽ ngựa hoang 3 lớp không người cưỡi (đứng, chạy, chồm đánh `RideCut`, trúng đòn, chết + bóng đổ) dùng chung Web/Desktop/Mobile.
+  - `tests/wild-horses.test.ts`: kiểm chứng đủ 23 mẫu `120–150`, HP/sát thương tăng cao, `packages/shared/spawns/9101.json` hợp lệ, `dropLoot` rơi đúng ngựa + bảo vệ chủ sở hữu + thông báo `victory`, mọi sprite ngựa hoang đều có đủ layer, và chế độ `testMode` (`500 HP`) giữ nguyên toàn bộ chỉ số khác + áp dụng custom `dropRate`/`overrides`.
+- **Kiểm tra:** `node --import tsx --test tests/wild-horses.test.ts` (**5/5 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Chưa commit/push.
+
 ## 2026-11-24 · Tống Kim Chế độ 3: Hồi sinh 30s/60s/90s, Bot tách quân công trụ & Lính ưu tiên Trụ (đã commit)
 
 - **USER yêu cầu:** nâng thời gian hồi sinh Mode 3 theo bậc cấu hình được (`30s → 60s → 90s`), bổ sung chiến thuật Bot tách quân bỏ địch công trụ khi áp đảo quân số cục bộ, và đổi ưu tiên mục tiêu của lính đẩy đường sang **Trụ → Lính → Bot/Người chơi** (chưa đụng Kháng Đơn Chi Giác).

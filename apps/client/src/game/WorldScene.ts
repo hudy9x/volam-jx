@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import type { Room } from '@colyseus/sdk';
 import { Callbacks, CloseCode } from '@colyseus/sdk';
 import {
-  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, skillCategory, skillResourceCost, canPaySkillCost, equipError, TOWN_MAP_ID, isTkBattleMap, isEnmityActive, pvpAllowed, type Camp,
+  combatRulesAt, combatPairRules, AutoPlay, castRange, getSkill, isMelee, isoDistance, skillCategory, skillResourceCost, canPaySkillCost, equipError, SkillStyle, TOWN_MAP_ID, isTkBattleMap, isEnmityActive, pvpAllowed, type Camp,
   C2S, FACTIONS, ITEMS, MAPS, NPC_LINES, S2C, TOWN_NPCS, hasNav, registerNav,
   type FxEvent, type MapMeta, type NavFile, type NoticeMsg, type TownNpc, type TransferMsg,
 } from '@vltk/shared';
@@ -19,7 +19,7 @@ import { cursorCss, type CursorKind } from '../art/cursors';
 import { KEYS, SLOT_KEYS, type KeyAction } from '../input/keymap';
 import { bagIndexOf, inventory } from '../state/inventory';
 import { settings } from '../state/settings';
-import { BASIC_SKILL, skillbar, type BarSlot } from '../state/skillbar';
+import { BASIC_SKILL, canTriggerKeyCast, skillbar, type BarSlot } from '../state/skillbar';
 import { assetUrl } from '../art/assets';
 import { setActiveZoom, stepZoom, ui, uiPx, zoomPlate, worldRenderScale, textResolution, type ZoomPct } from './display';
 
@@ -56,6 +56,7 @@ export class WorldScene extends Phaser.Scene {
   private auto: AutoPlay | null = null;
   private actions!: WorldActions;
   private cursor: CursorKind | null = null;
+  private triggerKeySlot: (slot: number, fromPointer: boolean) => void = () => {};
 
   constructor() { super('world'); }
 
@@ -339,15 +340,71 @@ export class WorldScene extends Phaser.Scene {
       document.addEventListener('focusin', typing);
       document.addEventListener('focusout', typing);
       this.cleanups.push(() => { document.removeEventListener('focusin', typing); document.removeEventListener('focusout', typing); keys.enabled = true; });
-      const onKeySlot = (slot: number) => {
+      let lastKeyCastAt = 0;
+      const findNearestHostile = (maxDist: number): ActorView | undefined => {
+        if (!this.self) return undefined;
+        let best: ActorView | undefined;
+        let bestDist = maxDist;
+        for (const v of this.views.values()) {
+          if (!this.isHostile(v) || v.state.hp <= 0) continue;
+          const d = isoDistance(this.self.x, this.self.y, v.x, v.y);
+          if (d <= bestDist) { bestDist = d; best = v; }
+        }
+        return best;
+      };
+      this.triggerKeySlot = (slot: number, fromPointer: boolean) => {
         if (!this.self || this.self.state.hp <= 0) return;
-        const item = skillbar.itemAt(slot);
-        if (item) { this.actions.useItem(item); return; }
-        if (skillbar.skillAt(slot) !== null) { skillbar.selectLeft(slot); return; }
-        this.ui.notice(`Ô này chưa có chiêu: mở Kỹ năng (${KEYS.skills.label}) và kéo chiêu vào.`);
+        const kind = skillbar.classifyKeySlot(slot);
+        if (kind === 'item') {
+          const item = skillbar.itemAt(slot);
+          if (item) this.actions.useItem(item);
+          return;
+        }
+        if (kind === 'empty') {
+          this.ui.notice(`Ô này chưa có chiêu: mở Kỹ năng (${KEYS.skills.label}) và kéo chiêu vào.`);
+          return;
+        }
+        if (kind === 'passive') return;
+        if (kind === 'aura') {
+          skillbar.selectRight(slot);
+          return;
+        }
+        if (kind === 'attack') skillbar.selectLeft(slot);
+
+        const now = this.time.now;
+        if (!canTriggerKeyCast(lastKeyCastAt, now)) return;
+        const skillId = skillbar.skillAt(slot);
+        const s = skillId !== null ? getSkill(skillId) : undefined;
+        if (!s) return;
+        lastKeyCastAt = now;
+
+        let wx = this.self.x;
+        let wy = this.self.y;
+        let target: ActorView | undefined;
+        if (s.style !== SkillStyle.State) {
+          const p = this.input.activePointer;
+          if (fromPointer && inside(p)) {
+            const wp = this.cameras.main.getWorldPoint(p.x, p.y);
+            wx = wp.x;
+            wy = wp.y;
+            const picked = this.pickActor(wp.x, wp.y);
+            target = picked && picked.state.kind !== 'npc' ? picked : undefined;
+          } else if (kind === 'attack' || skillCategory(s) === 'debuff') {
+            const range = Math.max(castRange(s, Math.max(1, skillbar.levelOf(s.id))) + 150, 600);
+            const enemy = findNearestHostile(range);
+            if (enemy) {
+              wx = enemy.x;
+              wy = enemy.y;
+              target = enemy;
+            }
+          }
+        }
+        cast(slot, wx, wy, target, kind === 'attack' && !!target && this.isHostile(target));
       };
       // Shortcuts: input/keymap.ts. Esc is handled by the window manager (ui/kit/dialog.ts).
-      SLOT_KEYS.forEach((name, i) => keys.on(`keydown-${name}`, () => onKeySlot(i)));
+      SLOT_KEYS.forEach((name, i) => keys.on(`keydown-${name}`, (ev?: KeyboardEvent) => {
+        if (!ev?.repeat) this.triggerKeySlot(i, true);
+      }));
       const bind = (action: KeyAction, run: (event: KeyboardEvent) => void) => keys.on(`keydown-${KEYS[action].code}`, run);
       // Tab would move the browser focus: keep it for the big map.
       keys.addCapture(KEYS.bigmap.code);
@@ -391,6 +448,7 @@ export class WorldScene extends Phaser.Scene {
         if (index < 0) this.ui.notice(`Trong hành trang không còn ${ITEMS[defId]?.name ?? 'vật phẩm này'}.`);
         else this.room.send(C2S.use, { index });
       },
+      useKeySlot: slot => this.triggerKeySlot(slot, false),
       moveTo: (x, y) => this.room.send(C2S.move, { x, y }),
       mount: on => this.room.send(C2S.mount, { on }),
       equip: (index, slot) => this.room.send(C2S.equip, { index, slot }),
