@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  FOOT_X, FOOT_Y, drawOrder, npcPose, poseFor, spriteRow,
+  FOOT_X, FOOT_Y, drawOrder, horsePose, npcPose, poseFor, spriteRow,
   type AssocKey, type Layer, type Look, type NpcAction, type Pose,
 } from '../../art/jx';
 import { jxTextureKey, requestSheets, sheetReady } from './sheets';
@@ -15,7 +15,7 @@ const PREFETCH: AssocKey[] = ['stand', 'idle', 'run', 'townRun', 'attack1', 'att
 /** Shadows sit under the actor's other ground decorations (StateDecor draws under-foot effects at depth - 0.5). */
 const SHADOW_DEPTH = -0.6;
 
-export type Source = { kind: 'look'; look: Look } | { kind: 'npc'; res: string };
+export type Source = { kind: 'look'; look: Look } | { kind: 'npc'; res: string } | { kind: 'horse'; row: number };
 
 /**
  * One actor drawn from original JX sheets at 1:1 (positions rounded to whole pixels so the art stays sharp).
@@ -56,6 +56,7 @@ export class JxSprite {
   private pose(key: AssocKey): Pose | null {
     const s = this.source;
     if (s.kind === 'look') return poseFor(s.look, key);
+    if (s.kind === 'horse') return horsePose(s.row, key);
     return npcPose(s.res, NPC_KEY[key]);
   }
 
@@ -98,8 +99,9 @@ export class JxSprite {
     const f = Math.max(0, Math.min(bodyFrames - 1, frame(bodyFrames)));
     this.frame = f; this.action = key;
     let layers = pose.layers;
-    if (layers.length > 1 && this.source.kind === 'look') {
-      const order = drawOrder(this.source.look.sx, pose, dir, f);
+    if (layers.length > 1 && (this.source.kind === 'look' || this.source.kind === 'horse')) {
+      const sx = this.source.kind === 'look' ? this.source.look.sx : 'm';
+      const order = drawOrder(sx, pose, dir, f);
       layers = layers.slice().sort((a, b) => rank(order, a.part) - rank(order, b.part));
     }
     const fx = Math.round(x), fy = Math.round(y), by = Math.round(y - lift);

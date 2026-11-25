@@ -10,7 +10,7 @@
     - Chống spam vượt `maxMessagesPerSecond = 30`: bỏ qua `event.repeat` và giới hạn nhịp cast từ `1–9` tối thiểu `100 ms`/lần (`<= 10 msg/s`).
 - **Kiểm tra:** `node --import tsx --test tests/damage-floor-and-skillbar-swap.test.ts` (**5/5 pass**), `npm run typecheck` (0 lỗi), `npm run build` (thành công), `git diff --check` đạt. Chưa commit/push.
 
-## 2026-11-24 · Map bắt ngựa cấp 120–150 trên Map 9101 (Đồng cỏ thử nghiệm) (chưa commit)
+## 2026-11-24 · Map bắt ngựa cấp 120–150 trên Map 9101 (Đồng cỏ thử nghiệm) (đã commit)
 
 - **USER yêu cầu:** triển khai map bắt ngựa cấp `120–150` trên Map `9101` (*Đồng cỏ thử nghiệm*) theo Hướng B (đánh hạ ngựa hoang → rơi vật phẩm ngựa tương ứng), lấy đủ **23 mẫu ngựa/thú cưỡi 120–150**, tạm thời **không khóa bán ở NPC Bán ngựa**, và **tăng mạnh HP + sát thương** của ngựa hoang để tạo độ khó.
 - **Thay đổi:**

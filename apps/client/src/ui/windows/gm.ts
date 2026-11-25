@@ -4,10 +4,12 @@ import {
   formatSpeedCode,
   getActiveSpeedConfig,
   getExpElixirConfig,
+  getWildHorseConfig,
   resetSpeedConfig,
   resolveSpeed,
   setActiveSpeedConfig,
   setExpElixirConfig,
+  setWildHorseConfig,
   speedPoints,
   trackBasePercent,
   validateSpeedConfiguration,
@@ -67,6 +69,7 @@ export class GmToolWindow {
   <div class="gm-tabs" role="tablist">
     <button type="button" class="gm-tab on" id="gm-tab-speed">Tốc độ Di chuyển & Đánh</button>
     <button type="button" class="gm-tab" id="gm-tab-exp">Tiên Thảo Lộ (EXP)</button>
+    <button type="button" class="gm-tab" id="gm-tab-horse">Ngựa hoang (9101)</button>
   </div>
 
   <div id="gm-panel-speed">
@@ -175,6 +178,46 @@ export class GmToolWindow {
       <button type="button" class="gm-btn-save" id="gm-exp-save">💾 Lưu hệ số EXP</button>
     </div>
   </div>
+
+  <div id="gm-panel-horse" hidden>
+    <div class="gm-box">
+      <div class="gm-box-title">
+        <span>Chế độ TEST & Tỉ lệ rơi ngựa (Map 9101)</span>
+        <span style="font-size:10px; color:#86c8ff; text-transform:none;">Áp dụng nóng không cần restart server</span>
+      </div>
+      <div class="gm-live-grid">
+        <div class="gm-live-card">
+          <h4>Chế độ TEST (HP cực thấp)</h4>
+          <div class="gm-row">
+            <label><input type="checkbox" id="gm-horse-test-mode" /> Bật chế độ TEST (đặt toàn bộ ngựa hoang về 500 HP, giữ nguyên sát thương & các chỉ số khác)</label>
+          </div>
+          <div class="gm-row">
+            <label>HP khi TEST: <input type="number" id="gm-horse-test-hp" min="1" max="10000000" step="100" value="${getWildHorseConfig().testHp}" /></label>
+          </div>
+        </div>
+        <div class="gm-live-card">
+          <h4>Tỉ lệ rơi ngựa (%) theo bậc</h4>
+          <div class="gm-row">
+            <label>Tuấn mã 120–130 (rare %): <input type="number" id="gm-horse-rate-rare" min="0" max="100" step="1" value="${Math.round(getWildHorseConfig().tiers.rare.dropRate * 100)}" /></label>
+          </div>
+          <div class="gm-row">
+            <label>Thần mã 140–150 (epic %): <input type="number" id="gm-horse-rate-epic" min="0" max="100" step="1" value="${Math.round(getWildHorseConfig().tiers.epic.dropRate * 100)}" /></label>
+          </div>
+          <div class="gm-row">
+            <label>Tuyệt thế Thần mã (mythic %): <input type="number" id="gm-horse-rate-mythic" min="0" max="100" step="1" value="${Math.round(getWildHorseConfig().tiers.mythic.dropRate * 100)}" /></label>
+          </div>
+          <div class="gm-row">
+            <button type="button" class="gm-preset-btn" id="gm-horse-preset-100">100% (Test nhặt)</button>
+            <button type="button" class="gm-preset-btn" id="gm-horse-preset-default">Mặc định (25 / 18 / 12%)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="gm-status-bar" id="gm-horse-status">Chỉnh tỉ lệ rơi hoặc bật chế độ TEST 500 HP rồi bấm Lưu để áp dụng ngay trên Map 9101.</div>
+    <div class="gm-global-bar">
+      <button type="button" class="gm-btn-save" id="gm-horse-save">💾 Lưu & Áp dụng ngay</button>
+    </div>
+  </div>
 </section>`;
 
     mount(parent, HTML);
@@ -185,22 +228,29 @@ export class GmToolWindow {
     this.bindLiveControls();
     this.bindGlobalActions();
     this.bindExpControls();
+    this.bindWildHorseControls();
   }
 
   private bindExpControls(): void {
     const tabSpeed = $('gm-tab-speed')!;
     const tabExp = $('gm-tab-exp')!;
+    const tabHorse = $('gm-tab-horse')!;
     const panelSpeed = $('gm-panel-speed')!;
     const panelExp = $('gm-panel-exp')!;
-    const selectMainTab = (which: 'speed' | 'exp') => {
+    const panelHorse = $('gm-panel-horse')!;
+    const selectMainTab = (which: 'speed' | 'exp' | 'horse') => {
       tabSpeed.classList.toggle('on', which === 'speed');
       tabExp.classList.toggle('on', which === 'exp');
+      tabHorse.classList.toggle('on', which === 'horse');
       panelSpeed.hidden = which !== 'speed';
       panelExp.hidden = which !== 'exp';
+      panelHorse.hidden = which !== 'horse';
       if (which === 'exp') void this.loadExpConfig();
+      if (which === 'horse') void this.loadWildHorseConfig();
     };
     tabSpeed.addEventListener('click', () => selectMainTab('speed'));
     tabExp.addEventListener('click', () => selectMainTab('exp'));
+    tabHorse.addEventListener('click', () => selectMainTab('horse'));
 
     const normalInput = $('gm-exp-normal') as HTMLInputElement;
     const specialInput = $('gm-exp-special') as HTMLInputElement;
@@ -243,6 +293,82 @@ export class GmToolWindow {
         setExpElixirConfig(data.config);
         ($('gm-exp-normal') as HTMLInputElement).value = String(data.config.normal);
         ($('gm-exp-special') as HTMLInputElement).value = String(data.config.special);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  private bindWildHorseControls(): void {
+    const testModeInput = $('gm-horse-test-mode') as HTMLInputElement;
+    const testHpInput = $('gm-horse-test-hp') as HTMLInputElement;
+    const rareInput = $('gm-horse-rate-rare') as HTMLInputElement;
+    const epicInput = $('gm-horse-rate-epic') as HTMLInputElement;
+    const mythicInput = $('gm-horse-rate-mythic') as HTMLInputElement;
+    const status = $('gm-horse-status')!;
+
+    $('gm-horse-preset-100')?.addEventListener('click', () => {
+      rareInput.value = '100';
+      epicInput.value = '100';
+      mythicInput.value = '100';
+    });
+
+    $('gm-horse-preset-default')?.addEventListener('click', () => {
+      rareInput.value = '25';
+      epicInput.value = '18';
+      mythicInput.value = '12';
+    });
+
+    $('gm-horse-save')?.addEventListener('click', async () => {
+      const testMode = testModeInput.checked;
+      const testHp = Math.max(1, Math.round(Number(testHpInput.value) || 500));
+      const toRate = (el: HTMLInputElement, fallbackPct: number) => {
+        const pct = Number(el.value);
+        const clamped = Number.isFinite(pct) ? Math.max(0, Math.min(100, pct)) : fallbackPct;
+        return clamped / 100;
+      };
+      const cur = getWildHorseConfig();
+      const payload = {
+        testMode,
+        testHp,
+        tiers: {
+          rare: { ...cur.tiers.rare, dropRate: toRate(rareInput, 25) },
+          epic: { ...cur.tiers.epic, dropRate: toRate(epicInput, 18) },
+          mythic: { ...cur.tiers.mythic, dropRate: toRate(mythicInput, 12) },
+        },
+      };
+      try {
+        const res = await fetch(`${SERVER_URL}/api/dev/wild-horses`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Lỗi máy chủ (${res.status})`);
+        if (data.config) setWildHorseConfig(data.config);
+        status.textContent = data.config?.testMode
+          ? `Đã bật chế độ TEST (${data.config.testHp} HP) · Tỉ lệ rơi: ${Math.round(data.config.tiers.rare.dropRate * 100)}% / ${Math.round(data.config.tiers.epic.dropRate * 100)}% / ${Math.round(data.config.tiers.mythic.dropRate * 100)}%.`
+          : `Đã lưu chế độ thường · Tỉ lệ rơi: ${Math.round(data.config.tiers.rare.dropRate * 100)}% / ${Math.round(data.config.tiers.epic.dropRate * 100)}% / ${Math.round(data.config.tiers.mythic.dropRate * 100)}%.`;
+        status.classList.remove('error');
+      } catch (e) {
+        status.textContent = e instanceof Error ? e.message : String(e);
+        status.classList.add('error');
+      }
+    });
+  }
+
+  private async loadWildHorseConfig(): Promise<void> {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/dev/wild-horses`);
+      if (!res.ok) return;
+      const data = await res.json().catch(() => ({}));
+      if (data.config) {
+        const cfg = setWildHorseConfig(data.config);
+        ($('gm-horse-test-mode') as HTMLInputElement).checked = cfg.testMode;
+        ($('gm-horse-test-hp') as HTMLInputElement).value = String(cfg.testHp);
+        ($('gm-horse-rate-rare') as HTMLInputElement).value = String(Math.round(cfg.tiers.rare.dropRate * 100));
+        ($('gm-horse-rate-epic') as HTMLInputElement).value = String(Math.round(cfg.tiers.epic.dropRate * 100));
+        ($('gm-horse-rate-mythic') as HTMLInputElement).value = String(Math.round(cfg.tiers.mythic.dropRate * 100));
       }
     } catch {
       // ignore

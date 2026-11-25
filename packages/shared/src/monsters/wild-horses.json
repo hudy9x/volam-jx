@@ -1,0 +1,39 @@
+{
+  "testMode": true,
+  "testHp": 500,
+  "tiers": {
+    "rare": {
+      "hp120": 280000,
+      "hp130": 360000,
+      "damagePercent": 450,
+      "resist": 0.35,
+      "hitRecover": 45,
+      "speed": 250,
+      "attackCooldown": 1.3,
+      "dropRate": 0.25,
+      "respawnSec": 45
+    },
+    "epic": {
+      "hp": 520000,
+      "damagePercent": 600,
+      "resist": 0.45,
+      "hitRecover": 55,
+      "speed": 270,
+      "attackCooldown": 1.2,
+      "dropRate": 0.18,
+      "respawnSec": 60
+    },
+    "mythic": {
+      "hp110": 780000,
+      "hp120": 950000,
+      "damagePercent": 800,
+      "resist": 0.55,
+      "hitRecover": 65,
+      "speed": 290,
+      "attackCooldown": 1.1,
+      "dropRate": 0.12,
+      "respawnSec": 90
+    }
+  },
+  "overrides": {}
+}

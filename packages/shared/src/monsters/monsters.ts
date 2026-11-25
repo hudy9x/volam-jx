@@ -6,6 +6,12 @@ import type { Element } from '../characters/factions.js';
 import { GOLDEN_BOSS_CONFIG, GOLDEN_BOSS_DEFAULT_EXP, type GoldenBossConfig, type GoldenBossEntry } from '../bosses/index.js';
 import { monsterDamage, monsterHp } from './scaling.js';
 import { GEN_MONSTERS, type GenMonster } from './monsters.gen.js';
+import {
+  WILD_HORSE_MONSTERS,
+  setWildHorseConfig,
+  type WildHorseConfig,
+  type WildHorseMeta,
+} from './wild-horses.js';
 
 export interface MonsterDef {
   id: number;
@@ -47,6 +53,8 @@ export interface MonsterDef {
   dummy?: boolean;
   /** npcs.txt HitRecover: % shorter flinch (≥ 100: never flinches; formulas/effects.ts). */
   hitRecover?: number;
+  /** Wild horse capture/drop metadata (level 120–150 mounts on Map 9101). */
+  wildHorse?: WildHorseMeta;
 }
 
 /** npcs.txt Series order. */
@@ -99,6 +107,7 @@ const HAND: Record<number, MonsterDef> = {
   413: { id: 413, name: 'Cọc gỗ', sprite: 'enemy178', level: 1, element: 'kim', hp: 50000, damage: [0, 0], resist: 0,
     speed: 0, skills: [], attackCooldown: 99, vision: 0, leash: 0, scale: 1, dummy: true },
   ...Object.fromEntries(GOLDEN_BOSS_LIST.map(b => [b.id, b])),
+  ...Object.fromEntries(WILD_HORSE_MONSTERS.map(h => [h.id, h])),
 };
 
 export const MONSTERS: Record<number, MonsterDef> = {
@@ -113,5 +122,13 @@ export function syncGoldenBossMonsters(cfg: GoldenBossConfig): void {
     const def = goldenBossFromEntry(b);
     GOLDEN_BOSS_LIST.push(def);
     MONSTERS[b.id] = def;
+  }
+}
+
+/** Đồng bộ lại bảng MONSTERS khi cấu hình Ngựa hoang (Map 9101) thay đổi lúc runtime. */
+export function syncWildHorseMonsters(cfg?: Partial<WildHorseConfig>): void {
+  if (cfg) setWildHorseConfig(cfg);
+  for (const def of WILD_HORSE_MONSTERS) {
+    MONSTERS[def.id] = def;
   }
 }

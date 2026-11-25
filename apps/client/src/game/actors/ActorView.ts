@@ -3,7 +3,7 @@ import {
   coldMovement, CAMP_COLORS, SPEED, TK_CAMP_COLORS, TK_SIEGE, tkTitleOf, getActiveSpeedConfig, trackBasePercent, resolveSpeed, type Camp, type TkCamp, jumpHeight,
   attackSpeedPct, castSpeedPct, speedPoints, totalSpeedPercents, attrOf,
 } from '@vltk/shared';
-import { makeLook, lookKey, hasNpc, type AssocKey } from '../../art/jx';
+import { makeLook, lookKey, hasNpc, isHorseSprite, parseHorseSpriteRow, type AssocKey } from '../../art/jx';
 import type { ActorState } from '../../state/actor';
 import { tkState } from '../../state/tongkim';
 import { progress } from '../../state/progress';
@@ -209,6 +209,9 @@ export class ActorView {
       key = lookKey(look);
     } else if (hasNpc(s.sprite)) {
       source = { kind: 'npc', res: s.sprite };
+      key = s.sprite;
+    } else if (isHorseSprite(s.sprite)) {
+      source = { kind: 'horse', row: parseHorseSpriteRow(s.sprite) };
       key = s.sprite;
     }
     if (key === this.sourceKey) return;

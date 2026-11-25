@@ -113,7 +113,9 @@ export function updateSlots(w: World): void {
     const def = MONSTERS[slot.monsterId];
     if (!def) continue;
     // Ordinary monster slots in training zones have a chance (AutoGoldenNpc / blueBossChance) to spawn as a Boss Xanh (1).
-    const bossTier: 0 | 1 | 2 = slot.boss || (!slot.fixed && !def.dummy && Math.random() < DROPS.blueBossChance ? 1 : 0);
+    const bossTier: 0 | 1 | 2 = def.wildHorse
+      ? (slot.boss || bossTierOf(def.boss))
+      : (slot.boss || (!slot.fixed && !def.dummy && Math.random() < DROPS.blueBossChance ? 1 : 0));
     const stats = monsterAt(def, slot.level, bossTier);
     // Skills this build knows (others: the basic attack), at most their max level.
     const skills = stats.skills.filter(([sid]) => getSkill(sid)).map(([sid, lvl]) => [sid, Math.min(lvl, maxLevelOf(getSkill(sid)!))] as [number, number]);

@@ -21,6 +21,7 @@ import {
   rollMajorBossMantle,
   rollMagicLines,
   rollMoneyWithProfile,
+  rollWildHorseDrop,
   type DropProfile,
   type DropTable,
   type Item,
@@ -132,6 +133,15 @@ export function dropLoot(w: World, monster: Sim, killer: Sim | undefined): void 
   if (goldenEntry?.tier === 'major' && Math.random() < 0.25) {
     const mantleDef = rollMajorBossMantle(Math.random);
     out.push({ item: createItem(mantleDef, newItemUid()), money: 0 });
+  }
+  // Ngựa hoang (Map 9101, cấp 120–150): đánh hạ có tỉ lệ rơi đúng vật phẩm ngựa tương ứng.
+  if (monster.def?.wildHorse) {
+    const horseId = rollWildHorseDrop(monster.def, Math.random);
+    const horseDef = horseId ? ITEMS[horseId] : undefined;
+    if (horseDef) {
+      out.push({ item: createItem(horseDef, newItemUid()), money: 0 });
+      w.hooks.announce(`${killer.a.name} đã khuất phục và thu được ${horseDef.name} tại ${w.meta.name}!`, 'victory');
+    }
   }
   const total = out.length;
   out.forEach((d, i) => put(w, monster.a.x, monster.a.y, i, total, d.item, d.money, killer.id, killer.a.team ?? ''));

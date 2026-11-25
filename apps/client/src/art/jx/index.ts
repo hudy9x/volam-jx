@@ -144,6 +144,60 @@ export function npcPose(res: string, action: NpcAction): Pose | null {
 
 export const hasNpc = (res: string) => !!NPC_SHEETS[res];
 
+// ======================= wild horses (3 horse layers, no rider) =======================
+
+const HORSE_PARTS = [12, 13, 14] as const;
+const HORSE_ROW_FALLBACK: Record<number, number> = { 14: 10, 16: 13 };
+const DEFAULT_HORSE_ROW = 11; // Phiên Vũ
+const horsePoseCache = new Map<string, Pose | null>();
+
+export const isHorseSprite = (res: string) => res.startsWith('horse:');
+
+export function parseHorseSpriteRow(res: string): number {
+  const n = Number(res.slice(6));
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : DEFAULT_HORSE_ROW;
+}
+
+function hasHorseStand(row: number): boolean {
+  const stand = JX_ASSOC.m[0][1].stand;
+  if (!stand) return false;
+  return HORSE_PARTS.some(part => {
+    const key = JX_PARTS.m[part]?.[row]?.[stand];
+    return Boolean(key && sheetMeta(key));
+  });
+}
+
+export function resolveHorseRow(row: number): number {
+  if (hasHorseStand(row)) return row;
+  const fb = HORSE_ROW_FALLBACK[row];
+  if (fb !== undefined && hasHorseStand(fb)) return fb;
+  return DEFAULT_HORSE_ROW;
+}
+
+/** Wild horse pose: HorseBack/Middle/Front (parts 12/13/14) without a rider. */
+export function horsePose(horseRow: number, key: AssocKey): Pose | null {
+  const resolved = resolveHorseRow(horseRow);
+  const cacheKey = `${resolved}|${key}`;
+  let pose = horsePoseCache.get(cacheKey);
+  if (pose !== undefined) return pose;
+  const set = JX_ASSOC.m[0][1];
+  const action = set?.[key] ?? set?.stand;
+  pose = null;
+  if (action) {
+    const layers: Layer[] = [];
+    for (const part of HORSE_PARTS) {
+      const sheet = JX_PARTS.m[part]?.[resolved]?.[action];
+      const meta = sheet ? sheetMeta(sheet) : undefined;
+      if (sheet && meta) layers.push({ part, key: sheet, meta });
+    }
+    const body = layers.find(l => l.part === 13) ?? layers[0];
+    const shadowKey = JX_SHADOWS.m[action];
+    if (body) pose = { action, layers, body, shadow: shadowLayer(shadowKey) };
+  }
+  horsePoseCache.set(cacheKey, pose);
+  return pose;
+}
+
 // ======================= files =======================
 
 export const jxSheetUrl = (key: string) => assetUrl(`${key}.webp`);

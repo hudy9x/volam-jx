@@ -12,27 +12,31 @@ import {
   getActiveSpeedConfig,
   getDropConfig,
   getExpElixirConfig,
+  getWildHorseConfig,
   setActiveSpeedConfig,
   setDropConfig,
   setExpElixirConfig,
   setGoldenBossConfig,
   setSpawns,
+  setWildHorseConfig,
   spawnFileError,
   spawnsOf,
   syncGoldenBossMonsters,
   syncGoldenSettingsToDropConfig,
+  syncWildHorseMonsters,
   validateGoldenBossConfig,
   validateSpeedConfiguration,
   type GoldenBossConfig,
   type SpawnFile,
   type SpeedConfiguration,
+  type WildHorseConfig,
 } from '@vltk/shared';
 import { requireAuth, type AuthedRequest } from '../account/auth.js';
 import { db } from '../account/db.js';
 import { LIVE_WORLDS } from '../net/MapRoom.js';
 import { devTools } from '../env.js';
 import { reloadSpawns } from '../world/systems/spawner.js';
-import { refreshMoveScale } from '../world/systems/effects.js';
+import { refreshMonsterCombat, refreshMoveScale } from '../world/systems/effects.js';
 
 /**
  * Dev tool of the big map (client: dev/spawn-editor/spawnEditor.ts): read / save a map's monster spawns. Saving writes
@@ -160,6 +164,46 @@ export function registerDevRoutes(app: Application, spawnsDir: string): void {
         fs.writeFileSync(file, replaced, 'utf8');
       }
     }
+    res.json({ ok: true, config: next });
+  });
+
+  const wildHorsesPath = path.resolve(spawnsDir, '../src/monsters/wild-horses.json');
+
+  app.get('/api/dev/wild-horses', (_req, res) => {
+    res.json({ config: getWildHorseConfig() });
+  });
+
+  app.put('/api/dev/wild-horses', (req, res) => {
+    if (!devTools()) { res.status(403).json({ error: 'DEV_TOOLS tắt.' }); return; }
+    const patch = (req.body ?? {}) as Partial<WildHorseConfig>;
+    const prev = getWildHorseConfig();
+    const next = setWildHorseConfig(patch);
+    syncWildHorseMonsters();
+    try {
+      const tmp = `${wildHorsesPath}.tmp`;
+      fs.writeFileSync(tmp, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
+      fs.renameSync(tmp, wildHorsesPath);
+    } catch {
+      // Ignore write error in read-only environments
+    }
+    for (const world of LIVE_WORLDS.values()) {
+      for (const sim of world.sims.values()) {
+        if (sim.kind !== 'monster' || !sim.def?.wildHorse || sim.dead) continue;
+        const def = MONSTERS[sim.def.id];
+        if (!def) continue;
+        sim.def = def;
+        const newMaxHp = def.hpOverride ?? def.hp;
+        sim.a.maxHp = newMaxHp;
+        if (!next.testMode && prev.testMode && sim.hp <= prev.testHp) {
+          sim.hp = newMaxHp;
+        } else {
+          sim.hp = Math.min(sim.hp, newMaxHp);
+        }
+        sim.a.hp = Math.round(sim.hp);
+        refreshMonsterCombat(sim);
+      }
+    }
+    console.log(`[dev] updated wild-horses config (testMode=${next.testMode}, testHp=${next.testHp})`);
     res.json({ ok: true, config: next });
   });
 }
